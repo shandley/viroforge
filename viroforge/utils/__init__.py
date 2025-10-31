@@ -2,12 +2,12 @@
 ViroForge utility modules.
 
 This package contains utility functions for working with viral communities,
-contamination profiles, and creating complete mock virome compositions.
+contamination profiles, genome databases, and creating complete mock virome compositions.
 
 Modules:
     composition: Combine viral communities with contamination profiles
     validation: Quality control and data validation utilities
-    genome_sampler: Sample from viral databases (to be implemented)
+    genome_database: Download and manage viral genome databases from NCBI
     abundance: Abundance distribution modeling (to be implemented)
     metrics: Calculate ground truth metrics (to be implemented)
 """
@@ -37,6 +37,13 @@ from .validation import (
     validate_genome_collection,
 )
 
+from .genome_database import (
+    get_genome_database,
+    get_database_info,
+    set_entrez_email,
+    download_genome_set,
+)
+
 __all__ = [
     # Composition
     'MockViromeComposition',
@@ -53,4 +60,9 @@ __all__ = [
     'validate_file_not_empty',
     'validate_output_directory',
     'validate_genome_collection',
+    # Genome Database
+    'get_genome_database',
+    'get_database_info',
+    'set_entrez_email',
+    'download_genome_set',
 ]

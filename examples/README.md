@@ -269,13 +269,115 @@ python examples/platform_comparison.py
 - Optimizing analysis for specific platforms
 - Benchmarking with realistic platform biases
 
+## Integration Workflows
+
+### complete_workflow_integrated.py
+
+Complete end-to-end pipeline combining ALL Phase 2 features:
+
+**Pipeline Stages:**
+1. **Viral Community Creation**: Body-site specific profile (gut, 50 genomes)
+2. **Contamination Addition**: Realistic host + bacterial + fungal DNA
+3. **Initial Composition**: 50% viral, 50% contamination (bulk metagenome)
+4. **VLP Enrichment**: Standard protocol (0.2 μm TFF, 95% nuclease)
+   - Result: 97.1% viral fraction (1.94x enrichment)
+5. **Amplification Bias**: RdAB with 40 cycles
+   - Result: 100% viral fraction (contamination removed)
+6. **Read Generation**: 100,000 paired-end reads
+7. **Platform Artifacts**: NovaSeq 6000 artifacts applied
+   - PolyG tails: ~2.5% of reads
+   - Optical duplicates: ~9%
+   - Index hopping: ~1.5%
+8. **Ground Truth Export**: Complete metadata for validation
+
+**Run the example:**
+
+```bash
+python examples/complete_workflow_integrated.py
+```
+
+**Output:**
+
+The script creates an `output/complete_workflow/` directory containing:
+- `gut_virome_novaseq_R1.fastq` - Forward reads with artifacts
+- `gut_virome_novaseq_R2.fastq` - Reverse reads with artifacts
+- `ground_truth_composition.tsv` - Complete composition table
+- `ground_truth_read_mapping.tsv` - Read-to-genome mapping
+- `pipeline_summary.txt` - Pipeline statistics and enrichment metrics
+
+**Use cases:**
+- **Benchmarking virome pipelines**: Test the complete analysis workflow from raw reads to viral genomes
+- **Training**: Demonstrate realistic virome data generation
+- **Validation**: Ground truth files enable validation of taxonomic assignment, assembly, and abundance estimation
+- **Method comparison**: Test how different analysis tools handle realistic biases and artifacts
+
+**Key insights:**
+- VLP enrichment increases viral fraction from 50% to 97%
+- Amplification removes remaining contamination (100% viral)
+- Platform artifacts introduce realistic sequencing errors
+- Ground truth tracking enables precise validation
+
+### cross_platform_workflow.py
+
+Cross-platform comparison study design:
+
+**Study Design:**
+- Same viral community sequenced on two platforms
+- Same VLP enrichment protocol
+- Same amplification protocol (RdAB, 40 cycles)
+- Different platform-specific artifacts
+
+**Platforms Compared:**
+- **Platform A: NovaSeq 6000**
+  - Patterned flow cell
+  - PolyG tails: 0.80% (R1), 2.50% (R2)
+  - Optical duplicates: 8.26%
+  - Index hopping: 1.54%
+- **Platform B: MiSeq**
+  - Cluster-based flow cell
+  - PolyG tails: 0.00% (no polyG in cluster flow cells!)
+  - Optical duplicates: 2.44%
+  - Index hopping: 0.11%
+
+**Run the example:**
+
+```bash
+python examples/cross_platform_workflow.py
+```
+
+**Output:**
+
+The script creates an `output/cross_platform/` directory containing:
+- Platform A (NovaSeq) FASTQ files and ground truth
+- Platform B (MiSeq) FASTQ files and ground truth
+- `platform_comparison_summary.txt` - Quantitative comparison
+
+**Use cases:**
+- **Cross-platform reproducibility studies**: Test how analysis results vary by platform
+- **Platform selection**: Understand artifact profiles for different sequencers
+- **Quality control**: Validate artifact removal pipelines
+- **Cost-benefit analysis**: NovaSeq throughput vs MiSeq cleanliness
+
+**Key findings:**
+- NovaSeq has 1,796 more polyG tails than MiSeq
+- NovaSeq has 3,250 more optical duplicates
+- NovaSeq has 783 more index hopping events
+- MiSeq produces cleaner data with fewer artifacts
+- Both platforms suitable for virome studies with proper QC
+
+**Research applications:**
+- Testing if biological conclusions are platform-independent
+- Validating computational methods across platforms
+- Understanding when platform differences matter
+- Developing platform-agnostic analysis pipelines
+
 ## Next Steps
 
 As more ViroForge modules are implemented, additional examples will be added here for:
 
 - Long-read sequencing (PacBio, Oxford Nanopore)
 - Alternative platforms (MGI/DNBSEQ, Element Biosciences)
-- Complete end-to-end workflows combining all modules
+- Advanced integration workflows with custom parameters
 
 ## Questions or Issues?
 
