@@ -109,7 +109,7 @@ def _write_genome_fasta(composition, output_path: Path) -> Dict[str, str]:
             record = SeqRecord(
                 Seq(str(contaminant.sequence)),
                 id=contaminant.genome_id,
-                description=f"{contaminant.contaminant_type.value}|{contaminant.source_organism}"
+                description=f"{contaminant.contaminant_type.value}|{contaminant.organism}"
             )
             records.append(record)
             genome_types[contaminant.genome_id] = contaminant.contaminant_type.value
@@ -293,7 +293,7 @@ def _create_ground_truth_mapping(
             ground_truth.append({
                 'genome_id': contaminant.genome_id,
                 'genome_type': contaminant.contaminant_type.value,
-                'taxonomy': contaminant.source_organism,
+                'taxonomy': contaminant.organism,
                 'length': contaminant.length,
                 'gc_content': contaminant.gc_content,
                 'abundance': contaminant.abundance,
