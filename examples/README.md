@@ -65,14 +65,51 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -e .
 ```
 
+### generate_reads_example.py
+
+Demonstrates the `simulators.illumina` module for generating realistic Illumina reads:
+
+- **Example 1**: Quick generation - one-liner for complete datasets
+- **Example 2**: Custom composition with full control over parameters
+- **Example 3**: Generating datasets with different contamination levels
+- **Example 4**: Platform comparison (NovaSeq, MiSeq, HiSeq)
+- **Example 5**: File size estimation before generation
+
+**Requirements:**
+
+This example requires InSilicoSeq to be installed:
+
+```bash
+conda install -c bioconda insilicoseq
+# OR
+pip install InSilicoSeq
+```
+
+**Run the example:**
+
+```bash
+python examples/generate_reads_example.py
+```
+
+**Output:**
+
+The script will create FASTQ files and ground truth metadata:
+- `*_R1.fastq` - Forward reads
+- `*_R2.fastq` - Reverse reads
+- `ground_truth_genomes.tsv` - Ground truth genome metadata
+- `input_genomes.fasta` - Input genomes (if keep_temp_files=True)
+- `input_abundances.txt` - Input abundances (if keep_temp_files=True)
+
+**Note:** This example generates small datasets (50,000-100,000 reads) for demonstration. For production use, increase `n_reads` to 1M-10M+.
+
 ## Next Steps
 
 As more ViroForge modules are implemented, additional examples will be added here for:
 
-- Contamination profile generation
 - VLP enrichment modeling
-- Sequencing artifact simulation
-- Complete end-to-end virome generation
+- Sequencing artifact simulation (polyG tails, optical duplicates)
+- Long-read sequencing (PacBio, Oxford Nanopore)
+- Complete benchmarking workflows
 
 ## Questions or Issues?
 
