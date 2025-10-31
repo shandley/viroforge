@@ -217,16 +217,30 @@ viroforge create --config my_config.yaml --output my_data/
 
 ## Project Status
 
-**Current Version**: 0.1.0 (Initial Development)
+**Current Version**: 0.1.0-dev (Phase 1: ~80% Complete)
 
-**Development Roadmap**:
+### ✅ Phase 1 Complete
+- Community composition (5 body sites, 3 abundance distributions)
+- Contamination profiles (4 levels: clean, realistic, heavy, failed)
+- FASTQ generation (InSilicoSeq integration)
+- Validation framework (prevents FASTQ quality issues)
+- Ground truth tracking (complete metadata)
+- Comprehensive testing (100% pass rate)
 
-- **Phase 1** (Months 1-3): Core functionality - Basic genome sampling, contamination mixing, read generation
-- **Phase 2** (Months 4-6): Virome-specific features - VLP enrichment, PCR bias, NovaSeq artifacts
-- **Phase 3** (Months 7-9): Validation and refinement - Statistical validation, user testing, documentation
-- **Phase 4** (Months 10-11): Publication and release - Manuscript, v1.0 release, community announcement
+### 🚧 Phase 2 Starting (Virome-Specific Features)
+**Next 12 weeks**: Implementing core virome biology
+- VLP enrichment framework (Weeks 1-3)
+- Amplification bias (RdAB, MDA) (Weeks 4-6)
+- Platform artifacts (NovaSeq polyG, optical dups) (Weeks 7-8)
+- Integration & validation (Weeks 9-12)
 
-**Current Status**: Phase 1 - Initial setup and core development
+See `docs/IMPLEMENTATION_PLAN.md` for detailed Phase 2 plan.
+
+### Roadmap
+- **Phase 1** ✅ Core functionality (80% complete)
+- **Phase 2** 🚧 Virome-specific features (starting)
+- **Phase 3** ⏳ Validation and refinement
+- **Phase 4** ⏳ Publication and release
 
 ---
 
