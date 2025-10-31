@@ -227,13 +227,55 @@ python examples/amplification_comparison.py
 - MDA has extreme GC bias but less predictable due to stochasticity
 - Method choice depends on input DNA quantity and bias tolerance
 
+### platform_comparison.py
+
+Demonstrates the `artifacts` module for modeling platform-specific sequencing artifacts:
+
+- **PolyG Tails**: Patterned flow cell artifact (NovaSeq, NextSeq)
+  - Incomplete fluorophore quenching
+  - R2 more affected than R1
+  - Typical: 1-3% of reads, 15-45bp length
+- **Optical Duplicates**: All platforms (rate varies)
+  - Adjacent cluster signal bleed
+  - NovaSeq: ~9%, MiSeq: ~2.5%
+  - Can inflate coverage estimates
+- **Index Hopping**: Barcode misassignment
+  - Higher in patterned flow cells (1-2%)
+  - Lower in cluster flow cells (~0.1%)
+  - Critical for multiplexed studies
+
+**Platforms compared:**
+1. NovaSeq 6000 (patterned, high throughput)
+2. NextSeq 2000 (patterned, mid throughput)
+3. MiSeq (cluster, long reads, lowest artifacts)
+4. HiSeq 2500 (cluster, legacy platform)
+5. Ideal (no artifacts - control)
+
+**Run the example:**
+
+```bash
+python examples/platform_comparison.py
+```
+
+**Key insights:**
+- Patterned flow cells have polyG tails, cluster flow cells do not
+- NovaSeq has highest optical duplicate rate (~9%)
+- MiSeq has lowest artifacts, best for high-accuracy studies
+- Index hopping higher in NovaSeq, requires mitigation strategies
+
+**Use cases:**
+- Testing cross-platform reproducibility
+- Validating artifact removal pipelines
+- Optimizing analysis for specific platforms
+- Benchmarking with realistic platform biases
+
 ## Next Steps
 
 As more ViroForge modules are implemented, additional examples will be added here for:
 
-- Sequencing artifact simulation (polyG tails, optical duplicates)
 - Long-read sequencing (PacBio, Oxford Nanopore)
-- Platform-specific artifacts (Illumina vs MGI vs Element)
+- Alternative platforms (MGI/DNBSEQ, Element Biosciences)
+- Complete end-to-end workflows combining all modules
 
 ## Questions or Issues?
 

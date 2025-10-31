@@ -13,11 +13,11 @@ __email__ = "scott.handley@wustl.edu"
 # Phase 1: Core community & contamination (80% complete)
 # from .core import community, contamination
 
-# Phase 2: VLP enrichment & amplification bias (complete)
+# Phase 2: VLP enrichment, amplification bias, platform artifacts (complete)
 from . import enrichment
 from . import amplification
+from . import artifacts
 
 # Future modules
 # from .simulators import illumina
-# from .artifacts import platform_specific
 # from .utils import genome_sampler, abundance, metrics
