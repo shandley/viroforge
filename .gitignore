@@ -78,6 +78,7 @@ output/
 results/
 test_output/
 mock_data/
+example_output/
 
 # Database directories
 databases/
