@@ -102,14 +102,138 @@ The script will create FASTQ files and ground truth metadata:
 
 **Note:** This example generates small datasets (50,000-100,000 reads) for demonstration. For production use, increase `n_reads` to 1M-10M+.
 
+## VLP Enrichment Examples
+
+### vlp_enrichment_basic.py
+
+Demonstrates basic VLP (Virus-Like Particle) enrichment workflow:
+
+- Creating a viral community and contamination profile
+- Combining into a bulk metagenome composition (50% viral)
+- Applying standard VLP enrichment protocol
+- Calculating enrichment metrics and sequencing impact
+
+**Run the example:**
+
+```bash
+python examples/vlp_enrichment_basic.py
+```
+
+**Key concepts:**
+- VLP enrichment is the defining feature of viromics
+- Increases viral fraction from ~50% to >95%
+- Removes host and bacterial DNA contamination
+- Dramatically improves viral genome coverage
+
+### vlp_vs_bulk_comparison.py
+
+Side-by-side comparison of VLP-enriched vs bulk metagenome sequencing:
+
+- Creates paired samples from identical starting material
+- Sample A: VLP enrichment applied
+- Sample B: No enrichment (bulk metagenome)
+- Compares viral fraction, sequencing yield, and cost efficiency
+- Discusses research applications for each approach
+
+**Run the example:**
+
+```bash
+python examples/vlp_vs_bulk_comparison.py
+```
+
+**Key insights:**
+- VLP enrichment: ~2x increase in viral fraction
+- Bulk metagenome: preserves virus-host ratios
+- Cost efficiency: VLP saves ~50% sequencing costs for same viral reads
+- Different use cases for virome vs metagenome studies
+
+### vlp_protocol_comparison.py
+
+Compares different VLP enrichment protocols used in the literature:
+
+- **Standard VLP**: 0.2 μm TFF, 95% nuclease (most common)
+- **Iron Chloride VLP**: FeCl3 precipitation, 98% nuclease (Conceição-Neto et al.)
+- **Ultracentrifugation VLP**: Density gradient, 90% nuclease
+- **Syringe Filter VLP**: Sharp cutoff, field-friendly
+- **Bulk Metagenome**: No enrichment for comparison
+
+**Run the example:**
+
+```bash
+python examples/vlp_protocol_comparison.py
+```
+
+**Guidance:**
+- Protocol selection guide based on research goals
+- Maximum purity vs standardization vs sample constraints
+- Impact of methodology on final composition
+
+### complete_vlp_workflow.py
+
+Complete end-to-end workflow for creating VLP-enriched virome datasets:
+
+- **Step 1**: Create viral community
+- **Step 2**: Add realistic contamination
+- **Step 3**: Create mock composition
+- **Step 4**: Apply VLP enrichment
+- **Step 5**: Generate sequencing reads
+- **Step 6**: Export ground truth metadata
+
+**Run the example:**
+
+```bash
+python examples/complete_vlp_workflow.py
+```
+
+**Output:**
+
+The script creates an `output/vlp_virome_example/` directory containing:
+- `ground_truth_composition.tsv` - Complete composition with abundances
+- `summary_stats.txt` - Dataset summary statistics
+
+**Use case:**
+- Recommended workflow for benchmarking virome analysis pipelines
+- Ideal for testing taxonomy assignment, assembly, and abundance estimation
+- Includes ground truth for validation
+
+### amplification_comparison.py
+
+Demonstrates the `amplification` module for modeling library preparation biases:
+
+- **No Amplification**: Control for high-biomass samples (no bias)
+- **RdAB Amplification**: Random RT + dsDNA + PCR (most common method)
+  - Length bias: exponential advantage for short genomes
+  - GC bias: quadratic penalty at extreme GC values
+  - Typical: 40 cycles, moderate bias
+- **Linker Amplification**: Adapter ligation + PCR (modern protocols)
+  - No length bias (all fragments have adapters)
+  - Weak GC bias
+  - Typical: 20 cycles, minimal bias
+- **MDA Amplification**: Multiple Displacement Amplification (low biomass)
+  - No length bias
+  - Extreme GC bias (10-1000x range)
+  - High stochasticity (random variations)
+  - Chimera formation
+
+**Run the example:**
+
+```bash
+python examples/amplification_comparison.py
+```
+
+**Key insights:**
+- RdAB shows strongest bias (3x coefficient of variation)
+- Linker has minimal bias (similar to no amplification)
+- MDA has extreme GC bias but less predictable due to stochasticity
+- Method choice depends on input DNA quantity and bias tolerance
+
 ## Next Steps
 
 As more ViroForge modules are implemented, additional examples will be added here for:
 
-- VLP enrichment modeling
 - Sequencing artifact simulation (polyG tails, optical duplicates)
 - Long-read sequencing (PacBio, Oxford Nanopore)
-- Complete benchmarking workflows
+- Platform-specific artifacts (Illumina vs MGI vs Element)
 
 ## Questions or Issues?
 
