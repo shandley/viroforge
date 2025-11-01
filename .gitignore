@@ -85,6 +85,19 @@ databases/
 references/
 genomes/
 
+# RefSeq data and parsed genomes (large, user-generated)
+data/refseq/
+data/parsed/
+
+# SQLite databases with genome data (too large for git)
+*.db
+
+# Gzipped genome files
+*.fna.gz
+
+# Except test databases (schema only, no data)
+!**/test_*.db
+
 # Documentation build
 docs/_build/
 docs/_static/
