@@ -89,6 +89,9 @@ genomes/
 data/refseq/
 data/parsed/
 
+# ICTV data (large Excel files and parsed data)
+data/ictv/
+
 # SQLite databases with genome data (too large for git)
 *.db
 
