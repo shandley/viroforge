@@ -1,0 +1,110 @@
+================================================================================
+BODY SITE VIROME COLLECTION VALIDATION REPORT
+================================================================================
+
+Collection Information:
+  ID: 15
+  Name: Freshwater Virome - Lake Surface Water
+  Description: Freshwater virome from lake surface waters. Actinophage and cyanophage-dominated.
+  Selection Criteria: Body site: freshwater, Sample type: lake_water, Health status: not_applicable, Phage fraction: 95.0%
+  Curation Date: 2025-11-01 20:10:02
+  Expected Genome Count: 200
+
+Quality Checks:
+--------------------------------------------------------------------------------
+  ✓ genome_count: PASS
+      Expected: 200
+      Actual: 200
+
+  ✓ abundance_sum: PASS
+      Expected: 1.0
+      Actual: 1.0000
+
+  ✓ taxonomy_coverage: PASS
+      Threshold: 0.7
+      Actual: 1.0000
+
+  ✓ shannon_diversity: PASS
+      Threshold: 3.0
+      Actual: 3.8868
+
+  ⚠ dominant_tier: WARN
+      Threshold: 0.01
+      Actual: 0.0000
+
+  ✓ mid_tier_distribution: PASS
+      Threshold: 0.5
+      Actual: 0.7350
+
+
+Abundance Distribution:
+--------------------------------------------------------------------------------
+  Total Genomes: 200
+  Abundance Sum: 1.000000
+  Max Abundance: 8.8112%
+  Mean Abundance: 0.5000%
+  Median Abundance: 0.0903%
+  Min Abundance: 0.000880%
+
+  Shannon Diversity: 3.89
+  Simpson Diversity: 0.9636
+
+  Tier Distribution (genome counts):
+    Dominant (10-30%):      0 genomes (0.0% of total abundance)
+    Common (1-10%):        25 genomes (77.2% of total abundance)
+    Moderate (0.1-1%):     71 genomes (20.0% of total abundance)
+    Rare (0.01-0.1%):      76 genomes (2.7% of total abundance)
+    Very Rare (<0.01%):    28 genomes (0.1% of total abundance)
+
+
+Taxonomic Composition:
+--------------------------------------------------------------------------------
+  Taxonomy Coverage: 100.0%
+
+  Top 10 Realms:
+    Duplodnaviria                             162 (81.0%)
+    Monodnaviria                               31 (15.5%)
+    Riboviria                                   4 (2.0%)
+
+  Top 10 Classes:
+    Caudoviricetes                            162 (81.0%)
+    Malgrandaviricetes                         20 (10.0%)
+    Faserviricetes                             10 (5.0%)
+    Leviviricetes                               3 (1.5%)
+    Quintoviricetes                             1 (0.5%)
+    Bunyaviricetes                              1 (0.5%)
+
+  Top 10 Families:
+    Microviridae                               20 (10.0%)
+    Straboviridae                              17 (8.5%)
+    Aliceevansviridae                          12 (6.0%)
+    Inoviridae                                 10 (5.0%)
+    Autotranscriptaviridae                      9 (4.5%)
+    Demerecviridae                              9 (4.5%)
+    Drexlerviridae                              8 (4.0%)
+    Chimalliviridae                             7 (3.5%)
+    Herelleviridae                              7 (3.5%)
+    Autoscriptoviridae                          6 (3.0%)
+
+
+Genome Characteristics:
+--------------------------------------------------------------------------------
+  Genome Lengths:
+    Mean:       74,992 bp
+    Median:     50,182 bp
+    Range:       2,816 -    309,208 bp
+    Std Dev:     64,909 bp
+
+  GC Content:
+    Mean:   45.35%
+    Median: 44.51%
+    Range:  27.15% - 68.84%
+    Std Dev:  9.14%
+
+  Genome Type Distribution:
+    dsDNA            196 (98.0%)
+    ssRNA              4 (2.0%)
+
+================================================================================
+End of Validation Report
+================================================================================

@@ -1,0 +1,38 @@
+Body Site Virome Collection Summary
+======================================================================
+
+Collection: Gut Virome - Adult Healthy (Western Diet)
+ID: gut_virome_adult_healthy_western
+Body Site: gut
+Sample Type: stool
+Health Status: healthy
+
+Composition:
+  Total genomes: 500
+  Phage fraction: 96.0%
+
+Taxonomic Targets:
+  - Crassvirales: 150 genomes (30.0%)
+  - Siphoviridae: 140 genomes (28.0%)
+  - Myoviridae: 70 genomes (14.0%)
+  - Podoviridae: 40 genomes (8.0%)
+  - Microviridae: 50 genomes (10.0%)
+  - Inoviridae: 15 genomes (3.0%)
+  - Adenoviridae: 10 genomes (2.0%)
+  - Anelloviridae: 10 genomes (2.0%)
+  - Other: 15 genomes (3.0%)
+
+Abundance Distribution:
+  Model: mixed
+  Dominant tier (10-30%): 8 genomes
+  Common tier (1-10%): 75 genomes
+  Moderate tier (0.1-1%): 175 genomes
+  Rare tier (0.01-0.1%): 217 genomes
+  Very rare tier (<0.01%): 25 genomes
+
+Statistics:
+  Max abundance: 22.5888%
+  Mean abundance: 0.7463%
+  Median abundance: 0.1583%
+  Min abundance: 0.001097%
+  Shannon diversity: 3.50

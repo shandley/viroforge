@@ -1,0 +1,35 @@
+Body Site Virome Collection Summary
+======================================================================
+
+Collection: Mouse Gut Virome - Laboratory (C57BL/6)
+ID: mouse_gut_virome_lab
+Body Site: gut
+Sample Type: feces
+Health Status: healthy
+
+Composition:
+  Total genomes: 150
+  Phage fraction: 90.0%
+
+Taxonomic Targets:
+  - Lactobacillus: 45 genomes (30.0%)
+  - Siphoviridae: 45 genomes (30.0%)
+  - Myoviridae: 23 genomes (15.3%)
+  - Podoviridae: 15 genomes (10.0%)
+  - Microviridae: 7 genomes (4.7%)
+  - Murine_viruses: 15 genomes (10.0%)
+
+Abundance Distribution:
+  Model: log_normal
+  Dominant tier (10-30%): 3 genomes
+  Common tier (1-10%): 20 genomes
+  Moderate tier (0.1-1%): 50 genomes
+  Rare tier (0.01-0.1%): 60 genomes
+  Very rare tier (<0.01%): 17 genomes
+
+Statistics:
+  Max abundance: 31.0711%
+  Mean abundance: 4.5455%
+  Median abundance: 0.3933%
+  Min abundance: 0.022109%
+  Shannon diversity: 1.81

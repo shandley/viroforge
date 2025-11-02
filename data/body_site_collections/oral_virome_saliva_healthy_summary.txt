@@ -1,0 +1,37 @@
+Body Site Virome Collection Summary
+======================================================================
+
+Collection: Oral Virome - Saliva (Healthy)
+ID: oral_virome_saliva_healthy
+Body Site: oral_cavity
+Sample Type: saliva
+Health Status: healthy
+
+Composition:
+  Total genomes: 200
+  Phage fraction: 92.5%
+
+Taxonomic Targets:
+  - Siphoviridae: 80 genomes (40.0%)
+  - Myoviridae: 40 genomes (20.0%)
+  - Podoviridae: 30 genomes (15.0%)
+  - Microviridae: 20 genomes (10.0%)
+  - Inoviridae: 15 genomes (7.5%)
+  - Herpesviridae: 8 genomes (4.0%)
+  - Papillomaviridae: 4 genomes (2.0%)
+  - Anelloviridae: 3 genomes (1.5%)
+
+Abundance Distribution:
+  Model: log_normal
+  Dominant tier (10-30%): 5 genomes
+  Common tier (1-10%): 30 genomes
+  Moderate tier (0.1-1%): 70 genomes
+  Rare tier (0.01-0.1%): 80 genomes
+  Very rare tier (<0.01%): 15 genomes
+
+Statistics:
+  Max abundance: 26.6425%
+  Mean abundance: 2.1277%
+  Median abundance: 0.4458%
+  Min abundance: 0.001335%
+  Shannon diversity: 2.65

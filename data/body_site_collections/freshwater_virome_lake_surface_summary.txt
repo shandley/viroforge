@@ -1,0 +1,33 @@
+Body Site Virome Collection Summary
+======================================================================
+
+Collection: Freshwater Virome - Lake Surface Water
+ID: freshwater_virome_lake_surface
+Body Site: freshwater
+Sample Type: lake_water
+Health Status: not_applicable
+
+Composition:
+  Total genomes: 200
+  Phage fraction: 95.0%
+
+Taxonomic Targets:
+  - Caudoviricetes: 160 genomes (80.0%)
+  - Microviridae: 20 genomes (10.0%)
+  - Inoviridae: 10 genomes (5.0%)
+  - Other: 10 genomes (5.0%)
+
+Abundance Distribution:
+  Model: log_normal
+  Dominant tier (10-30%): 4 genomes
+  Common tier (1-10%): 30 genomes
+  Moderate tier (0.1-1%): 80 genomes
+  Rare tier (0.01-0.1%): 70 genomes
+  Very rare tier (<0.01%): 16 genomes
+
+Statistics:
+  Max abundance: 8.8112%
+  Mean abundance: 0.5000%
+  Median abundance: 0.0903%
+  Min abundance: 0.000880%
+  Shannon diversity: 3.89

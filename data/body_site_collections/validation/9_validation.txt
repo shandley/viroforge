@@ -1,0 +1,115 @@
+================================================================================
+BODY SITE VIROME COLLECTION VALIDATION REPORT
+================================================================================
+
+Collection Information:
+  ID: 9
+  Name: Gut Virome - Adult Healthy (Western Diet)
+  Description: Human gut virome from healthy adults with Western diet. crAssphage-dominated composition typical of industrialized populations.
+  Selection Criteria: Body site: gut, Sample type: stool, Health status: healthy, Phage fraction: 96.0%
+  Curation Date: 2025-11-01 20:10:01
+  Expected Genome Count: 134
+
+Quality Checks:
+--------------------------------------------------------------------------------
+  ✓ genome_count: PASS
+      Expected: 134
+      Actual: 134
+
+  ✓ abundance_sum: PASS
+      Expected: 1.0
+      Actual: 1.0000
+
+  ✓ taxonomy_coverage: PASS
+      Threshold: 0.7
+      Actual: 1.0000
+
+  ✓ shannon_diversity: PASS
+      Threshold: 3.0
+      Actual: 3.4963
+
+  ⚠ dominant_tier: WARN
+      Threshold: 0.01
+      Actual: 0.0075
+
+  ✓ mid_tier_distribution: PASS
+      Threshold: 0.5
+      Actual: 0.8209
+
+
+Abundance Distribution:
+--------------------------------------------------------------------------------
+  Total Genomes: 134
+  Abundance Sum: 1.000000
+  Max Abundance: 22.5888%
+  Mean Abundance: 0.7463%
+  Median Abundance: 0.1583%
+  Min Abundance: 0.001097%
+
+  Shannon Diversity: 3.50
+  Simpson Diversity: 0.9265
+
+  Tier Distribution (genome counts):
+    Dominant (10-30%):      1 genomes (22.6% of total abundance)
+    Common (1-10%):        16 genomes (50.4% of total abundance)
+    Moderate (0.1-1%):     54 genomes (24.3% of total abundance)
+    Rare (0.01-0.1%):      56 genomes (2.7% of total abundance)
+    Very Rare (<0.01%):     7 genomes (0.0% of total abundance)
+
+
+Taxonomic Composition:
+--------------------------------------------------------------------------------
+  Taxonomy Coverage: 100.0%
+
+  Top 10 Realms:
+    Duplodnaviria                              76 (56.7%)
+    Monodnaviria                               39 (29.1%)
+    Varidnaviria                               10 (7.5%)
+    Riboviria                                   2 (1.5%)
+
+  Top 10 Classes:
+    Caudoviricetes                             76 (56.7%)
+    Malgrandaviricetes                         21 (15.7%)
+    Faserviricetes                             14 (10.4%)
+    Pharingeaviricetes                         10 (7.5%)
+    Arfiviricetes                               1 (0.7%)
+    Repensiviricetes                            1 (0.7%)
+    Papovaviricetes                             1 (0.7%)
+    Huolimaviricetes                            1 (0.7%)
+    Flasuviricetes                              1 (0.7%)
+    Bunyaviricetes                              1 (0.7%)
+
+  Top 10 Families:
+    Suoliviridae                               36 (26.9%)
+    Microviridae                               21 (15.7%)
+    Intestiviridae                             18 (13.4%)
+    Steigviridae                               15 (11.2%)
+    Inoviridae                                 14 (10.4%)
+    Adenoviridae                               10 (7.5%)
+    Unknown                                     7 (5.2%)
+    Crevaviridae                                4 (3.0%)
+    Winoviridae                                 1 (0.7%)
+    Schitoviridae                               1 (0.7%)
+
+
+Genome Characteristics:
+--------------------------------------------------------------------------------
+  Genome Lengths:
+    Mean:       62,099 bp
+    Median:     92,301 bp
+    Range:       4,421 -    159,801 bp
+    Std Dev:     42,384 bp
+
+  GC Content:
+    Mean:   39.48%
+    Median: 35.97%
+    Range:  24.71% - 66.18%
+    Std Dev:  9.60%
+
+  Genome Type Distribution:
+    dsDNA            133 (99.3%)
+    ssRNA              1 (0.7%)
+
+================================================================================
+End of Validation Report
+================================================================================

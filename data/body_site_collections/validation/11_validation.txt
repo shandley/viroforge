@@ -1,0 +1,96 @@
+================================================================================
+BODY SITE VIROME COLLECTION VALIDATION REPORT
+================================================================================
+
+Collection Information:
+  ID: 11
+  Name: Skin Virome - Sebaceous Sites (Healthy)
+  Description: Skin virome from sebaceous sites (forehead, back). Cutibacterium (P. acnes) phage-dominated.
+  Selection Criteria: Body site: skin, Sample type: swab, Health status: healthy, Phage fraction: 96.0%
+  Curation Date: 2025-11-01 20:10:01
+  Expected Genome Count: 15
+
+Quality Checks:
+--------------------------------------------------------------------------------
+  ✓ genome_count: PASS
+      Expected: 15
+      Actual: 15
+
+  ✓ abundance_sum: PASS
+      Expected: 1.0
+      Actual: 1.0000
+
+  ✓ taxonomy_coverage: PASS
+      Threshold: 0.7
+      Actual: 1.0000
+
+  ✗ shannon_diversity: FAIL
+      Threshold: 3.0
+      Actual: 1.8504
+
+  ✓ dominant_tier: PASS
+      Threshold: 0.01
+      Actual: 0.2000
+
+  ⚠ mid_tier_distribution: WARN
+      Threshold: 0.5
+      Actual: 0.3333
+
+
+Abundance Distribution:
+--------------------------------------------------------------------------------
+  Total Genomes: 15
+  Abundance Sum: 1.000000
+  Max Abundance: 36.1929%
+  Mean Abundance: 6.6667%
+  Median Abundance: 2.8058%
+  Min Abundance: 0.009867%
+
+  Shannon Diversity: 1.85
+  Simpson Diversity: 0.7880
+
+  Tier Distribution (genome counts):
+    Dominant (10-30%):      3 genomes (73.1% of total abundance)
+    Common (1-10%):         6 genomes (25.5% of total abundance)
+    Moderate (0.1-1%):      3 genomes (1.3% of total abundance)
+    Rare (0.01-0.1%):       2 genomes (0.1% of total abundance)
+    Very Rare (<0.01%):     1 genomes (0.0% of total abundance)
+
+
+Taxonomic Composition:
+--------------------------------------------------------------------------------
+  Taxonomy Coverage: 100.0%
+
+  Top 10 Realms:
+    Monodnaviria                               15 (100.0%)
+
+  Top 10 Classes:
+    Malgrandaviricetes                          8 (53.3%)
+    Papovaviricetes                             7 (46.7%)
+
+  Top 10 Families:
+    Microviridae                                8 (53.3%)
+    Papillomaviridae                            4 (26.7%)
+    Polyomaviridae                              3 (20.0%)
+
+
+Genome Characteristics:
+--------------------------------------------------------------------------------
+  Genome Lengths:
+    Mean:        5,828 bp
+    Median:      6,068 bp
+    Range:       4,421 -      7,409 bp
+    Std Dev:      1,069 bp
+
+  GC Content:
+    Mean:   41.71%
+    Median: 42.27%
+    Range:  32.05% - 46.10%
+    Std Dev:  3.49%
+
+  Genome Type Distribution:
+    dsDNA             15 (100.0%)
+
+================================================================================
+End of Validation Report
+================================================================================

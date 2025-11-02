@@ -1,0 +1,106 @@
+================================================================================
+BODY SITE VIROME COLLECTION VALIDATION REPORT
+================================================================================
+
+Collection Information:
+  ID: 12
+  Name: Respiratory Virome - Nasopharynx (Healthy)
+  Description: Respiratory virome from nasopharyngeal swabs. Mixed phage and eukaryotic viral composition.
+  Selection Criteria: Body site: respiratory, Sample type: nasopharyngeal_swab, Health status: healthy, Phage fraction: 87.5%
+  Curation Date: 2025-11-01 20:10:01
+  Expected Genome Count: 41
+
+Quality Checks:
+--------------------------------------------------------------------------------
+  ✓ genome_count: PASS
+      Expected: 41
+      Actual: 41
+
+  ✓ abundance_sum: PASS
+      Expected: 1.0
+      Actual: 1.0000
+
+  ✓ taxonomy_coverage: PASS
+      Threshold: 0.7
+      Actual: 1.0000
+
+  ⚠ shannon_diversity: WARN
+      Threshold: 3.0
+      Actual: 2.4343
+
+  ✓ dominant_tier: PASS
+      Threshold: 0.01
+      Actual: 0.1220
+
+  ✓ mid_tier_distribution: PASS
+      Threshold: 0.5
+      Actual: 0.6341
+
+
+Abundance Distribution:
+--------------------------------------------------------------------------------
+  Total Genomes: 41
+  Abundance Sum: 1.000000
+  Max Abundance: 20.2237%
+  Mean Abundance: 2.4390%
+  Median Abundance: 0.3696%
+  Min Abundance: 0.002643%
+
+  Shannon Diversity: 2.43
+  Simpson Diversity: 0.8800
+
+  Tier Distribution (genome counts):
+    Dominant (10-30%):      5 genomes (72.1% of total abundance)
+    Common (1-10%):         7 genomes (19.9% of total abundance)
+    Moderate (0.1-1%):     16 genomes (7.4% of total abundance)
+    Rare (0.01-0.1%):      10 genomes (0.6% of total abundance)
+    Very Rare (<0.01%):     3 genomes (0.0% of total abundance)
+
+
+Taxonomic Composition:
+--------------------------------------------------------------------------------
+  Taxonomy Coverage: 100.0%
+
+  Top 10 Realms:
+    Monodnaviria                               20 (48.8%)
+    Varidnaviria                               10 (24.4%)
+    Duplodnaviria                               8 (19.5%)
+    Riboviria                                   3 (7.3%)
+
+  Top 10 Classes:
+    Malgrandaviricetes                         20 (48.8%)
+    Pharingeaviricetes                         10 (24.4%)
+    Herviviricetes                              8 (19.5%)
+    Insthoviricetes                             2 (4.9%)
+    Pisoniviricetes                             1 (2.4%)
+
+  Top 10 Families:
+    Microviridae                               20 (48.8%)
+    Adenoviridae                               10 (24.4%)
+    Orthoherpesviridae                          7 (17.1%)
+    Orthomyxoviridae                            2 (4.9%)
+    Alloherpesviridae                           1 (2.4%)
+    Coronaviridae                               1 (2.4%)
+
+
+Genome Characteristics:
+--------------------------------------------------------------------------------
+  Genome Lengths:
+    Mean:       39,714 bp
+    Median:     10,645 bp
+    Range:       4,421 -    207,914 bp
+    Std Dev:     52,716 bp
+
+  GC Content:
+    Mean:   45.48%
+    Median: 45.03%
+    Range:  32.05% - 63.38%
+    Std Dev:  6.15%
+
+  Genome Type Distribution:
+    dsDNA             38 (92.7%)
+    ssRNA              3 (7.3%)
+
+================================================================================
+End of Validation Report
+================================================================================

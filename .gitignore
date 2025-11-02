@@ -92,6 +92,9 @@ data/parsed/
 # ICTV data (large Excel files and parsed data)
 data/ictv/
 
+# Generated benchmark datasets (large FASTQ files)
+data/benchmark_datasets/
+
 # SQLite databases with genome data (too large for git)
 *.db
 

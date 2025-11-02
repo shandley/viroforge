@@ -1,0 +1,103 @@
+================================================================================
+BODY SITE VIROME COLLECTION VALIDATION REPORT
+================================================================================
+
+Collection Information:
+  ID: 10
+  Name: Oral Virome - Saliva (Healthy)
+  Description: Oral virome from healthy saliva. Streptococcus phage-dominated with high Siphoviridae prevalence.
+  Selection Criteria: Body site: oral_cavity, Sample type: saliva, Health status: healthy, Phage fraction: 92.5%
+  Curation Date: 2025-11-01 20:10:01
+  Expected Genome Count: 47
+
+Quality Checks:
+--------------------------------------------------------------------------------
+  ✓ genome_count: PASS
+      Expected: 47
+      Actual: 47
+
+  ✓ abundance_sum: PASS
+      Expected: 1.0
+      Actual: 1.0000
+
+  ✓ taxonomy_coverage: PASS
+      Threshold: 0.7
+      Actual: 1.0000
+
+  ⚠ shannon_diversity: WARN
+      Threshold: 3.0
+      Actual: 2.6528
+
+  ✓ dominant_tier: PASS
+      Threshold: 0.01
+      Actual: 0.0426
+
+  ✓ mid_tier_distribution: PASS
+      Threshold: 0.5
+      Actual: 0.6383
+
+
+Abundance Distribution:
+--------------------------------------------------------------------------------
+  Total Genomes: 47
+  Abundance Sum: 1.000000
+  Max Abundance: 26.6425%
+  Mean Abundance: 2.1277%
+  Median Abundance: 0.4458%
+  Min Abundance: 0.001335%
+
+  Shannon Diversity: 2.65
+  Simpson Diversity: 0.8857
+
+  Tier Distribution (genome counts):
+    Dominant (10-30%):      2 genomes (37.0% of total abundance)
+    Common (1-10%):        12 genomes (54.3% of total abundance)
+    Moderate (0.1-1%):     15 genomes (7.8% of total abundance)
+    Rare (0.01-0.1%):      15 genomes (0.9% of total abundance)
+    Very Rare (<0.01%):     3 genomes (0.0% of total abundance)
+
+
+Taxonomic Composition:
+--------------------------------------------------------------------------------
+  Taxonomy Coverage: 100.0%
+
+  Top 10 Realms:
+    Monodnaviria                               38 (80.9%)
+    Duplodnaviria                               9 (19.1%)
+
+  Top 10 Classes:
+    Malgrandaviricetes                         20 (42.6%)
+    Faserviricetes                             14 (29.8%)
+    Herviviricetes                              8 (17.0%)
+    Papovaviricetes                             4 (8.5%)
+    Caudoviricetes                              1 (2.1%)
+
+  Top 10 Families:
+    Microviridae                               20 (42.6%)
+    Inoviridae                                 14 (29.8%)
+    Orthoherpesviridae                          7 (14.9%)
+    Papillomaviridae                            4 (8.5%)
+    Alloherpesviridae                           1 (2.1%)
+    Winoviridae                                 1 (2.1%)
+
+
+Genome Characteristics:
+--------------------------------------------------------------------------------
+  Genome Lengths:
+    Mean:       29,706 bp
+    Median:      6,407 bp
+    Range:       4,421 -    207,914 bp
+    Std Dev:     51,785 bp
+
+  GC Content:
+    Mean:   45.26%
+    Median: 44.92%
+    Range:  32.05% - 62.05%
+    Std Dev:  5.73%
+
+  Genome Type Distribution:
+    dsDNA             47 (100.0%)
+
+================================================================================
+End of Validation Report
+================================================================================

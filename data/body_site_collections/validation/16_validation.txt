@@ -1,0 +1,108 @@
+================================================================================
+BODY SITE VIROME COLLECTION VALIDATION REPORT
+================================================================================
+
+Collection Information:
+  ID: 16
+  Name: Mouse Gut Virome - Laboratory (C57BL/6)
+  Description: Mouse gut virome from laboratory C57BL/6 mice. Lactobacillus phage-dominated.
+  Selection Criteria: Body site: gut, Sample type: feces, Health status: healthy, Phage fraction: 90.0%
+  Curation Date: 2025-11-01 20:10:02
+  Expected Genome Count: 22
+
+Quality Checks:
+--------------------------------------------------------------------------------
+  ✓ genome_count: PASS
+      Expected: 22
+      Actual: 22
+
+  ✓ abundance_sum: PASS
+      Expected: 1.0
+      Actual: 1.0000
+
+  ✓ taxonomy_coverage: PASS
+      Threshold: 0.7
+      Actual: 1.0000
+
+  ✗ shannon_diversity: FAIL
+      Threshold: 3.0
+      Actual: 1.8077
+
+  ✓ dominant_tier: PASS
+      Threshold: 0.01
+      Actual: 0.1364
+
+  ✓ mid_tier_distribution: PASS
+      Threshold: 0.5
+      Actual: 0.6364
+
+
+Abundance Distribution:
+--------------------------------------------------------------------------------
+  Total Genomes: 22
+  Abundance Sum: 1.000000
+  Max Abundance: 31.0711%
+  Mean Abundance: 4.5455%
+  Median Abundance: 0.3933%
+  Min Abundance: 0.022109%
+
+  Shannon Diversity: 1.81
+  Simpson Diversity: 0.7736
+
+  Tier Distribution (genome counts):
+    Dominant (10-30%):      3 genomes (80.6% of total abundance)
+    Common (1-10%):         5 genomes (14.9% of total abundance)
+    Moderate (0.1-1%):     10 genomes (4.3% of total abundance)
+    Rare (0.01-0.1%):       4 genomes (0.1% of total abundance)
+    Very Rare (<0.01%):     0 genomes (0.0% of total abundance)
+
+
+Taxonomic Composition:
+--------------------------------------------------------------------------------
+  Taxonomy Coverage: 100.0%
+
+  Top 10 Realms:
+    Monodnaviria                               10 (45.5%)
+    Riboviria                                   3 (13.6%)
+    Duplodnaviria                               1 (4.5%)
+
+  Top 10 Classes:
+    Malgrandaviricetes                          8 (36.4%)
+    Repensiviricetes                            2 (9.1%)
+    Chrymotiviricetes                           1 (4.5%)
+    Caudoviricetes                              1 (4.5%)
+    Monjiviricetes                              1 (4.5%)
+    Vidaverviricetes                            1 (4.5%)
+
+  Top 10 Families:
+    Unknown                                     8 (36.4%)
+    Microviridae                                8 (36.4%)
+    Chrysoviridae                               1 (4.5%)
+    Straboviridae                               1 (4.5%)
+    Rhabdoviridae                               1 (4.5%)
+    Geminiviridae                               1 (4.5%)
+    Cystoviridae                                1 (4.5%)
+    Genomoviridae                               1 (4.5%)
+
+
+Genome Characteristics:
+--------------------------------------------------------------------------------
+  Genome Lengths:
+    Mean:       23,761 bp
+    Median:      5,788 bp
+    Range:       1,030 -    168,241 bp
+    Std Dev:     46,571 bp
+
+  GC Content:
+    Mean:   45.44%
+    Median: 44.99%
+    Range:  35.75% - 53.61%
+    Std Dev:  4.97%
+
+  Genome Type Distribution:
+    dsDNA             21 (95.5%)
+    ssRNA              1 (4.5%)
+
+================================================================================
+End of Validation Report
+================================================================================

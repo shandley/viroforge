@@ -1,0 +1,112 @@
+================================================================================
+BODY SITE VIROME COLLECTION VALIDATION REPORT
+================================================================================
+
+Collection Information:
+  ID: 14
+  Name: Soil Virome - Agricultural
+  Description: Soil virome from agricultural fields. Actinophage-dominated with high diversity.
+  Selection Criteria: Body site: soil, Sample type: soil_extract, Health status: not_applicable, Phage fraction: 94.0%
+  Curation Date: 2025-11-01 20:10:02
+  Expected Genome Count: 291
+
+Quality Checks:
+--------------------------------------------------------------------------------
+  ✓ genome_count: PASS
+      Expected: 291
+      Actual: 291
+
+  ✓ abundance_sum: PASS
+      Expected: 1.0
+      Actual: 1.0000
+
+  ✓ taxonomy_coverage: PASS
+      Threshold: 0.7
+      Actual: 1.0000
+
+  ✓ shannon_diversity: PASS
+      Threshold: 3.0
+      Actual: 4.3877
+
+  ⚠ dominant_tier: WARN
+      Threshold: 0.01
+      Actual: 0.0000
+
+  ✓ mid_tier_distribution: PASS
+      Threshold: 0.5
+      Actual: 0.6838
+
+
+Abundance Distribution:
+--------------------------------------------------------------------------------
+  Total Genomes: 291
+  Abundance Sum: 1.000000
+  Max Abundance: 7.0231%
+  Mean Abundance: 0.3436%
+  Median Abundance: 0.0666%
+  Min Abundance: 0.000333%
+
+  Shannon Diversity: 4.39
+  Simpson Diversity: 0.9784
+
+  Tier Distribution (genome counts):
+    Dominant (10-30%):      0 genomes (0.0% of total abundance)
+    Common (1-10%):        36 genomes (71.8% of total abundance)
+    Moderate (0.1-1%):     91 genomes (24.3% of total abundance)
+    Rare (0.01-0.1%):     108 genomes (3.7% of total abundance)
+    Very Rare (<0.01%):    56 genomes (0.3% of total abundance)
+
+
+Taxonomic Composition:
+--------------------------------------------------------------------------------
+  Taxonomy Coverage: 100.0%
+
+  Top 10 Realms:
+    Duplodnaviria                             242 (83.2%)
+    Monodnaviria                               34 (11.7%)
+    Riboviria                                   6 (2.1%)
+
+  Top 10 Classes:
+    Caudoviricetes                            242 (83.2%)
+    Malgrandaviricetes                         21 (7.2%)
+    Faserviricetes                             11 (3.8%)
+    Monjiviricetes                              2 (0.7%)
+    Repensiviricetes                            2 (0.7%)
+    Alsuviricetes                               2 (0.7%)
+    Leviviricetes                               1 (0.3%)
+    Stelpaviricetes                             1 (0.3%)
+
+  Top 10 Families:
+    Straboviridae                              25 (8.6%)
+    Microviridae                               21 (7.2%)
+    Herelleviridae                             18 (6.2%)
+    Autotranscriptaviridae                     18 (6.2%)
+    Aliceevansviridae                          18 (6.2%)
+    Schitoviridae                              16 (5.5%)
+    Drexlerviridae                             16 (5.5%)
+    Sarkviridae                                12 (4.1%)
+    Inoviridae                                 11 (3.8%)
+    Autoscriptoviridae                         11 (3.8%)
+
+
+Genome Characteristics:
+--------------------------------------------------------------------------------
+  Genome Lengths:
+    Mean:       71,906 bp
+    Median:     50,403 bp
+    Range:       1,759 -    316,674 bp
+    Std Dev:     58,724 bp
+
+  GC Content:
+    Mean:   46.77%
+    Median: 45.20%
+    Range:  26.04% - 71.42%
+    Std Dev: 10.15%
+
+  Genome Type Distribution:
+    dsDNA            287 (98.6%)
+    ssRNA              4 (1.4%)
+
+================================================================================
+End of Validation Report
+================================================================================

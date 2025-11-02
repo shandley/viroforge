@@ -1,0 +1,111 @@
+================================================================================
+BODY SITE VIROME COLLECTION VALIDATION REPORT
+================================================================================
+
+Collection Information:
+  ID: 13
+  Name: Marine Virome - Coastal Surface Water
+  Description: Marine virome from coastal surface waters. Pelagiphage and cyanophage-dominated composition.
+  Selection Criteria: Body site: marine, Sample type: seawater, Health status: not_applicable, Phage fraction: 97.0%
+  Curation Date: 2025-11-01 20:10:02
+  Expected Genome Count: 448
+
+Quality Checks:
+--------------------------------------------------------------------------------
+  ✗ genome_count: FAIL
+      Expected: 448
+      Actual: 447
+
+  ✓ abundance_sum: PASS
+      Expected: 1.0
+      Actual: 0.9915
+
+  ✓ taxonomy_coverage: PASS
+      Threshold: 0.7
+      Actual: 1.0000
+
+  ✓ shannon_diversity: PASS
+      Threshold: 3.0
+      Actual: 4.7317
+
+  ⚠ dominant_tier: WARN
+      Threshold: 0.01
+      Actual: 0.0000
+
+  ✓ mid_tier_distribution: PASS
+      Threshold: 0.5
+      Actual: 0.6331
+
+
+Abundance Distribution:
+--------------------------------------------------------------------------------
+  Total Genomes: 447
+  Abundance Sum: 0.991523
+  Max Abundance: 4.1995%
+  Mean Abundance: 0.2218%
+  Median Abundance: 0.0388%
+  Min Abundance: 0.000151%
+
+  Shannon Diversity: 4.73
+  Simpson Diversity: 0.9862
+
+  Tier Distribution (genome counts):
+    Dominant (10-30%):      0 genomes (0.0% of total abundance)
+    Common (1-10%):        37 genomes (59.2% of total abundance)
+    Moderate (0.1-1%):     97 genomes (31.3% of total abundance)
+    Rare (0.01-0.1%):     186 genomes (8.0% of total abundance)
+    Very Rare (<0.01%):   127 genomes (0.6% of total abundance)
+
+
+Taxonomic Composition:
+--------------------------------------------------------------------------------
+  Taxonomy Coverage: 100.0%
+
+  Top 10 Realms:
+    Duplodnaviria                             401 (89.7%)
+    Monodnaviria                               24 (5.4%)
+    Varidnaviria                                7 (1.6%)
+    Riboviria                                   3 (0.7%)
+
+  Top 10 Classes:
+    Caudoviricetes                            401 (89.7%)
+    Malgrandaviricetes                         21 (4.7%)
+    Megaviricetes                               7 (1.6%)
+    Alsuviricetes                               2 (0.4%)
+    Repensiviricetes                            2 (0.4%)
+    Stelpaviricetes                             1 (0.2%)
+    Quintoviricetes                             1 (0.2%)
+
+  Top 10 Families:
+    Straboviridae                              37 (8.3%)
+    Autotranscriptaviridae                     32 (7.2%)
+    Herelleviridae                             25 (5.6%)
+    Schitoviridae                              24 (5.4%)
+    Aliceevansviridae                          22 (4.9%)
+    Microviridae                               21 (4.7%)
+    Demerecviridae                             18 (4.0%)
+    Peduoviridae                               18 (4.0%)
+    Drexlerviridae                             18 (4.0%)
+    Kyanoviridae                               15 (3.4%)
+
+
+Genome Characteristics:
+--------------------------------------------------------------------------------
+  Genome Lengths:
+    Mean:       83,295 bp
+    Median:     57,899 bp
+    Range:       1,356 -    407,339 bp
+    Std Dev:     67,767 bp
+
+  GC Content:
+    Mean:   46.42%
+    Median: 44.78%
+    Range:  26.15% - 69.53%
+    Std Dev:  9.90%
+
+  Genome Type Distribution:
+    dsDNA            447 (100.0%)
+
+================================================================================
+End of Validation Report
+================================================================================

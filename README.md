@@ -5,8 +5,10 @@
 A comprehensive mock metavirome data generator for testing and validating virome analysis pipelines.
 
 [![Tests](https://img.shields.io/badge/tests-178%20passing-brightgreen)](tests/)
-[![Phase](https://img.shields.io/badge/Phase%202-90%25%20Complete-blue)](docs/IMPLEMENTATION_PLAN.md)
-[![Python](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/)
+[![Phase](https://img.shields.io/badge/Phase%204-Complete-success)](docs/IMPLEMENTATION_PLAN.md)
+[![Collections](https://img.shields.io/badge/collections-8%20body%20sites-blue)](docs/COLLECTION_IMPLEMENTATION_GUIDE.md)
+[![Genomes](https://img.shields.io/badge/genomes-14%2C423%20RefSeq-blue)](docs/GENOME_DATABASE_DESIGN.md)
+[![Python](https://img.shields.io/badge/python-3.9%2B-blue)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 ---
@@ -19,14 +21,14 @@ ViroForge generates realistic synthetic virome sequencing datasets with complete
 
 ### Key Features
 
-- 🧬 **Complete Virome Workflow** - Models VLP enrichment, amplification bias, platform artifacts
-- 🔬 **VLP Enrichment** - Realistic filtration, nuclease treatment, contamination removal
-- 📈 **Amplification Bias** - RdAB, MDA, and linker-based amplification methods
-- 🖥️ **Platform Artifacts** - NovaSeq polyG tails, optical duplicates, index hopping
-- 🌍 **Body-Site Profiles** - Gut, oral, skin, respiratory-specific viral compositions
-- 📊 **Complete Ground Truth** - Taxonomic composition, abundance tables, read mappings
-- ✅ **Thoroughly Tested** - 178 tests passing, 100% reproducible
-- 🎯 **Production Ready** - Used for real benchmarking studies
+- **8 Curated Body Site Collections** - Literature-validated virome compositions (gut, oral, skin, respiratory, marine, soil, freshwater, mouse gut)
+- **14,423 RefSeq Viral Genomes** - Complete database with ICTV taxonomy integration
+- **Database-Driven FASTQ Generation** - Direct generation from curated collections with InSilicoSeq
+- **Complete Ground Truth** - Taxonomic composition, abundance tables, genome-read mappings
+- **VLP Enrichment Simulation** - Realistic filtration, nuclease treatment effects
+- **Platform-Specific Error Models** - NovaSeq, MiSeq, HiSeq with realistic artifacts
+- **Reproducible Benchmarks** - Random seeds, complete metadata, known composition
+- **Production Ready** - 178 tests passing, used for real pipeline validation
 
 ---
 
@@ -64,47 +66,69 @@ cd viroforge
 python3 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-# Install with dependencies
-pip install -e .
+# Install dependencies
+pip install biopython numpy pandas
+pip install insilicoseq  # For FASTQ generation
 ```
 
-### Generate Your First Mock Dataset
+### Generate FASTQ from Curated Collections (Recommended)
 
-```python
-from viroforge.core.community import create_body_site_profile
-from viroforge.core.contamination import create_contamination_profile
-from viroforge.utils.composition import MockViromeComposition
-from viroforge.enrichment import standard_vlp
-from viroforge.amplification import rdab_40_cycles
-from viroforge.artifacts import novaseq_6000
+**Step 1: List Available Collections**
 
-# Create viral community
-viral_community = create_body_site_profile('gut', n_genomes=50, random_seed=42)
-
-# Add realistic contamination
-contamination = create_contamination_profile('realistic', random_seed=42)
-
-# Create composition (50% viral, 50% contamination)
-composition = MockViromeComposition(
-    name='my_first_virome',
-    viral_community=viral_community,
-    contamination_profile=contamination,
-    viral_fraction=0.5
-)
-
-# Apply VLP enrichment (increases viral fraction to ~97%)
-vlp = standard_vlp()
-vlp.apply(composition)
-
-# Apply amplification bias (RdAB, 40 cycles)
-amplification = rdab_40_cycles()
-amplification.apply(composition)
-
-# Generate reads and apply platform artifacts
-# (see examples/ for complete workflow)
+```bash
+python scripts/generate_fastq_dataset.py --list-collections
 ```
 
-See `examples/complete_workflow_integrated.py` for a complete end-to-end example.
+Output:
+```
+Available Collections:
+ID: 9  - Gut Virome - Adult Healthy (Western Diet) - 134 genomes
+ID: 10 - Oral Virome - Saliva (Healthy) - 47 genomes
+ID: 11 - Skin Virome - Sebaceous Sites (Healthy) - 15 genomes
+ID: 12 - Respiratory Virome - Nasopharynx (Healthy) - 41 genomes
+ID: 13 - Marine Virome - Coastal Surface Water - 448 genomes
+ID: 14 - Soil Virome - Agricultural - 291 genomes
+ID: 15 - Freshwater Virome - Lake Surface Water - 200 genomes
+ID: 16 - Mouse Gut Virome - Laboratory (C57BL/6) - 22 genomes
+```
+
+**Step 2: Generate FASTQ Dataset**
+
+```bash
+# Generate gut virome with VLP enrichment
+python scripts/generate_fastq_dataset.py \
+    --collection-id 9 \
+    --output data/fastq/gut_virome \
+    --coverage 10 \
+    --platform novaseq
+```
+
+Output:
+```
+output/
+├── fasta/
+│   └── gut_virome_adult_healthy_western_diet.fasta  # Reference genomes
+├── fastq/
+│   ├── gut_virome_adult_healthy_western_diet_R1.fastq  # Forward reads
+│   └── gut_virome_adult_healthy_western_diet_R2.fastq  # Reverse reads
+└── metadata/
+    ├── gut_virome_adult_healthy_western_diet_metadata.json  # Complete ground truth
+    └── gut_virome_adult_healthy_western_diet_composition.tsv  # Abundance table
+```
+
+**Step 3: Use with Hecatomb or Other Pipelines**
+
+```bash
+# Run Hecatomb on generated dataset
+hecatomb run \
+    --reads data/fastq/gut_virome/fastq/*_R{1,2}.fastq \
+    --outdir results/gut_benchmark
+
+# Compare results to ground truth
+# See metadata/gut_virome_metadata.json for known composition
+```
+
+See [FASTQ Generation Guide](docs/PHASE4_FASTQ_GENERATION.md) for detailed documentation.
 
 ---
 
@@ -112,55 +136,66 @@ See `examples/complete_workflow_integrated.py` for a complete end-to-end example
 
 ### 1. Benchmark Virome Analysis Pipelines
 
-```python
-# Generate standardized test dataset
-from viroforge.core.community import create_body_site_profile
-from viroforge.enrichment import standard_vlp
+```bash
+# Generate gut virome benchmark dataset
+python scripts/generate_fastq_dataset.py \
+    --collection-id 9 \
+    --output benchmarks/gut_10x \
+    --coverage 10 \
+    --platform novaseq
 
-# Create dataset with known composition
-community = create_body_site_profile('gut', n_genomes=100, random_seed=42)
-# ... apply VLP enrichment, generate FASTQ
-# ... run through analysis pipeline
-# ... compare results to ground truth
+# Run your pipeline
+your_pipeline benchmarks/gut_10x/fastq/*_R{1,2}.fastq
+
+# Compare results to ground truth
+# See benchmarks/gut_10x/metadata/gut_virome_metadata.json
 ```
 
-### 2. Test VLP Enrichment Success vs Failure
+### 2. Compare VLP vs Bulk Metagenome
 
-```python
-from viroforge.enrichment import standard_vlp, VLPEnrichment
+```bash
+# Generate with VLP enrichment (default)
+python scripts/generate_fastq_dataset.py \
+    --collection-id 13 \
+    --output marine_vlp \
+    --coverage 10
 
-# Successful VLP enrichment
-success_vlp = standard_vlp()  # 0.2 μm, 95% nuclease
-success_vlp.apply(composition)
+# Generate bulk metagenome (no VLP)
+python scripts/generate_fastq_dataset.py \
+    --collection-id 13 \
+    --output marine_bulk \
+    --coverage 10 \
+    --no-vlp
 
-# Failed VLP enrichment
-failed_vlp = VLPEnrichment(
-    nuclease_efficiency=0.3,  # Poor nuclease treatment
-    stochastic_variation=0.5   # High variability
-)
-failed_vlp.apply(composition)
-
-# Compare viral fractions, contamination levels
+# Compare viral recovery rates between VLP and bulk
 ```
 
 ### 3. Cross-Platform Reproducibility Testing
 
-```python
-from viroforge.artifacts import novaseq_6000, miseq
+```bash
+# Generate datasets on different platforms
+python scripts/generate_fastq_dataset.py --collection-id 9 --platform novaseq --output novaseq_gut
+python scripts/generate_fastq_dataset.py --collection-id 9 --platform miseq --output miseq_gut
+python scripts/generate_fastq_dataset.py --collection-id 9 --platform hiseq --output hiseq_gut
 
-# Same community, different platforms
-novaseq_platform = novaseq_6000()
-miseq_platform = miseq()
-
-novaseq_reads = novaseq_platform.apply(reads.copy(), random_seed=42)
-miseq_reads = miseq_platform.apply(reads.copy(), random_seed=42)
-
-# Compare:
-# - NovaSeq: polyG tails, higher optical duplicates
-# - MiSeq: No polyG, lower artifacts
+# Compare platform-specific artifacts and assembly quality
 ```
 
-See `examples/` directory for complete workflows.
+### 4. Batch Generation for Comprehensive Benchmarks
+
+```bash
+# Generate all 8 collections at 10x coverage
+python scripts/batch_generate_fastq.py \
+    --preset benchmark-standard \
+    --output data/benchmark_suite
+
+# Or run quick tests
+python scripts/batch_generate_fastq.py \
+    --preset quick-test \
+    --output data/test_datasets
+```
+
+See [docs/PHASE4_FASTQ_GENERATION.md](docs/PHASE4_FASTQ_GENERATION.md) for complete documentation.
 
 ---
 
@@ -296,84 +331,94 @@ Pipeline Stages:
 ## Documentation
 
 ### User Documentation
-- **[User Guide](docs/USER_GUIDE.md)** - Comprehensive usage guide
-- **[Tutorial](docs/TUTORIAL.md)** - Step-by-step walkthrough
-- **[API Reference](docs/API.md)** - Python API documentation
-- **[Examples README](examples/README.md)** - All example scripts explained
+- **[FASTQ Generation Guide](docs/PHASE4_FASTQ_GENERATION.md)** - Generate datasets from curated collections
+- **[Collection Implementation Guide](docs/COLLECTION_IMPLEMENTATION_GUIDE.md)** - How collections were curated
+- **[Database Design](docs/GENOME_DATABASE_DESIGN.md)** - RefSeq genome database schema
+- **[User Guide](docs/USER_GUIDE.md)** - Comprehensive usage guide (legacy API)
+- **[Tutorial](docs/TUTORIAL.md)** - Step-by-step walkthrough (legacy API)
+
+### Body Site Collections
+- **[Collection Overview](docs/BODY_SITE_COLLECTIONS.md)** - Original curation plans
+- **[Gut Virome Curation](docs/GUT_VIROME_CURATION.md)** - Detailed gut virome plan
+- **[Curation Workflow](docs/BODY_SITE_CURATION_WORKFLOW.md)** - Technical workflow
 
 ### Developer Documentation
 - **[Design Rationale](docs/DESIGN_RATIONALE.md)** - Design decisions and literature review
-- **[Implementation Plan](docs/IMPLEMENTATION_PLAN.md)** - Phase 2 detailed plan
-- **[Validation Framework](docs/VALIDATION.md)** - Quality control system
+- **[Implementation Plan](docs/IMPLEMENTATION_PLAN.md)** - Phased development roadmap
 - **[VLP Biology](docs/VLP_ENRICHMENT_BIOLOGY.md)** - VLP enrichment biology guide
+- **[API Reference](docs/API.md)** - Python API documentation (legacy)
 
-### Lab Notebook
-- **[Lab Notebook Index](lab-notebook/INDEX.md)** - Complete development log
-- Track design decisions, test results, and progress
+### Scripts Documentation
+- **[Exploration Tools](scripts/README_EXPLORATION_TOOLS.md)** - Database exploration utilities
+- **[Helper Utilities](scripts/README_HELPER_UTILITIES.md)** - Supporting scripts
 
 ---
 
 ## Project Status
 
-**Current Version**: 0.2.0-dev
+**Current Version**: 0.3.0
 
-**Phase 2: 90% Complete** 🎉
+**Phase 4: Complete** | **Production Ready**
 
-### ✅ Completed
+### Completed Phases
 
-**Phase 1 (Complete)**
-- ✅ Viral community composition (5 body sites, 3 abundance distributions)
-- ✅ Contamination profiles (realistic host, bacterial, fungal DNA)
-- ✅ FASTQ generation with ground truth tracking
-- ✅ Comprehensive validation framework
-- ✅ 158 tests passing
+**Phase 1: Core Simulator (Complete)**
+- Viral community composition (5 body sites, 3 abundance distributions)
+- Contamination profiles (realistic host, bacterial, fungal DNA)
+- FASTQ generation with ground truth tracking
+- Comprehensive validation framework
+- 158 tests passing
 
-**Phase 2 (90% Complete)**
-- ✅ VLP Enrichment Framework (40 tests) - Weeks 1-3
-  - Filtration models (size-based viral enrichment)
-  - Nuclease treatment (contamination removal)
+**Phase 2: Virome-Specific Features (Complete)**
+- VLP Enrichment Framework (40 tests)
+  - Filtration models, nuclease treatment
   - 4 pre-defined protocols
+- Amplification Bias Framework (31 tests)
+  - RdAB, MDA, linker amplification
+  - Length and GC bias modeling
+- Platform Artifact Framework (33 tests)
+  - PolyG tails, optical duplicates, index hopping
+  - 5 platform profiles (NovaSeq, MiSeq, HiSeq)
+- Integration & Workflows (20 tests)
+  - End-to-end pipelines, cross-platform comparisons
 
-- ✅ Amplification Bias Framework (31 tests) - Weeks 4-6
-  - RdAB amplification (length + GC bias)
-  - MDA amplification (extreme GC bias + stochasticity)
-  - Linker amplification (minimal bias)
-  - 6 pre-defined protocols
+**Phase 3: Genome Database & Collections (Complete)**
+- RefSeq viral genome database (14,423 genomes)
+- ICTV taxonomy integration (53.9% coverage)
+- 8 curated body site collections (1,198 genomes):
+  - Gut, Oral, Skin, Respiratory (human)
+  - Marine, Soil, Freshwater (environmental)
+  - Mouse Gut (model organism)
+- Literature-validated compositions
+- Automated curation workflows
 
-- ✅ Platform Artifact Framework (33 tests) - Weeks 7-8
-  - PolyG tails (patterned flow cells)
-  - Optical duplicates (all platforms)
-  - Index hopping (multiplexed libraries)
-  - 5 platform profiles
+**Phase 4: FASTQ Generation (Complete)**
+- Database-driven FASTQ generation
+- InSilicoSeq integration for realistic reads
+- VLP enrichment simulation
+- Platform-specific error models
+- Complete ground truth metadata export
+- Batch generation with presets
+- Comprehensive documentation
 
-- ✅ Integration & Workflows (20 tests) - Weeks 9-10
-  - Complete end-to-end pipelines
-  - Cross-platform comparisons
-  - Comprehensive integration testing
-
-### 🚧 In Progress
-
-**Phase 2 Final Steps** - Weeks 11-12
-- 🔄 Documentation polish (in progress)
-- ⏳ Tutorial creation
-- ⏳ Publication preparation
-
-### 📊 Test Coverage
+### Test Coverage
 
 ```
 Total Tests:        178 passing (100%)
 Unit Tests:         158
 Integration Tests:  20
-Execution Time:     ~59 seconds
+Collections:        8 body sites
+Genomes:            14,423 RefSeq viral genomes
 Coverage:           Comprehensive
 ```
 
-### Roadmap
+### Implementation Status
 
-- **Phase 1** ✅ Core functionality (Complete)
-- **Phase 2** 🚧 Virome-specific features (90% complete)
-- **Phase 3** ⏳ Publication and release (Next)
-- **Phase 4** ⏳ Community feedback and refinement
+- **Phase 1** - Core functionality (Complete)
+- **Phase 2** - Virome-specific features (Complete)
+- **Phase 3** - Genome database & collections (Complete)
+- **Phase 4** - FASTQ generation (Complete)
+- **Phase 5** - Publication & community release (Planned)
 
 ---
 
@@ -487,8 +532,15 @@ ViroForge was developed to support virome analysis pipeline validation and bench
 
 ## Status
 
-✅ **Production Ready** - Phase 2 (90% complete)
+**Production Ready** - Phase 4 Complete
 
-ViroForge is ready for use in benchmarking studies. The core functionality is complete and thoroughly tested. Documentation and publication are in progress.
+ViroForge is ready for use in benchmarking studies. All core functionality is complete and thoroughly tested:
 
-**Last Updated**: 2025-10-31
+- 8 curated body site collections with literature-validated compositions
+- 14,423 RefSeq viral genomes with ICTV taxonomy
+- Database-driven FASTQ generation with complete ground truth
+- Platform-specific error models (NovaSeq, MiSeq, HiSeq)
+- VLP enrichment simulation
+- Comprehensive documentation
+
+**Last Updated**: 2025-11-01

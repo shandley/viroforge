@@ -1,0 +1,33 @@
+Body Site Virome Collection Summary
+======================================================================
+
+Collection: Marine Virome - Coastal Surface Water
+ID: marine_virome_coastal_surface
+Body Site: marine
+Sample Type: seawater
+Health Status: not_applicable
+
+Composition:
+  Total genomes: 500
+  Phage fraction: 97.0%
+
+Taxonomic Targets:
+  - Caudoviricetes: 400 genomes (80.0%)
+  - Microviridae: 50 genomes (10.0%)
+  - Phycodnaviridae: 30 genomes (6.0%)
+  - Other: 20 genomes (4.0%)
+
+Abundance Distribution:
+  Model: power_law
+  Dominant tier (10-30%): 10 genomes
+  Common tier (1-10%): 80 genomes
+  Moderate tier (0.1-1%): 200 genomes
+  Rare tier (0.01-0.1%): 180 genomes
+  Very rare tier (<0.01%): 30 genomes
+
+Statistics:
+  Max abundance: 4.1995%
+  Mean abundance: 0.2232%
+  Median abundance: 0.0395%
+  Min abundance: 0.000151%
+  Shannon diversity: 4.77

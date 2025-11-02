@@ -1,244 +1,369 @@
-# ViroForge Quickstart
+# ViroForge Quick Start Guide
 
-**Get your first synthetic virome dataset in 5 minutes!**
+**Goal**: Generate synthetic virome FASTQ files in 5 minutes
 
 ---
 
-## Install
+## Installation
 
 ```bash
+# Clone repository
 git clone https://github.com/shandley/viroforge.git
 cd viroforge
-python3 -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -e .
+
+# Install dependencies
+pip install biopython numpy pandas insilicoseq
 ```
 
 ---
 
 ## Generate Your First Dataset
 
-Create a file `my_first_virome.py`:
-
-```python
-from viroforge.core.community import create_body_site_profile
-from viroforge.core.contamination import create_contamination_profile
-from viroforge.utils.composition import MockViromeComposition
-from viroforge.enrichment import standard_vlp
-from viroforge.amplification import rdab_40_cycles
-
-# 1. Create a gut virome with 50 viral genomes
-print("Creating viral community...")
-community = create_body_site_profile('gut', n_genomes=50, random_seed=42)
-
-# 2. Add realistic contamination (host DNA, bacteria)
-print("Adding contamination...")
-contamination = create_contamination_profile('realistic', random_seed=42)
-
-# 3. Create initial composition (50% viral, 50% contamination)
-print("Creating composition...")
-composition = MockViromeComposition(
-    name='my_first_virome',
-    viral_community=community,
-    contamination_profile=contamination,
-    viral_fraction=0.5
-)
-
-print(f"  Initial viral fraction: {composition.viral_fraction*100:.1f}%")
-
-# 4. Apply VLP enrichment (→ 97% viral)
-print("Applying VLP enrichment...")
-vlp = standard_vlp()
-vlp.apply(composition)
-print(f"  After VLP: {composition.viral_fraction*100:.1f}%")
-
-# 5. Apply amplification bias (RdAB, 40 cycles)
-print("Applying amplification...")
-amplification = rdab_40_cycles()
-amplification.apply(composition)
-print(f"  After amplification: {composition.viral_fraction*100:.1f}%")
-
-# 6. Export ground truth
-import pandas as pd
-composition_data = []
-for genome in composition.viral_community.genomes:
-    composition_data.append({
-        'genome_id': genome.genome_id,
-        'organism': genome.organism,
-        'family': genome.family,
-        'abundance': genome.abundance,
-        'length': len(genome.sequence),
-        'gc_content': genome.gc
-    })
-
-df = pd.DataFrame(composition_data)
-df.to_csv('ground_truth_composition.tsv', sep='\t', index=False)
-print("\n✅ Success! Ground truth saved to: ground_truth_composition.tsv")
-print(f"   Final viral fraction: {composition.viral_fraction*100:.1f}%")
-print(f"   Total genomes: {len(composition_data)}")
-```
-
-Run it:
-```bash
-python my_first_virome.py
-```
-
-**Output:**
-```
-Creating viral community...
-Adding contamination...
-Creating composition...
-  Initial viral fraction: 50.0%
-Applying VLP enrichment...
-  After VLP: 97.1%
-Applying amplification...
-  After amplification: 100.0%
-
-✅ Success! Ground truth saved to: ground_truth_composition.tsv
-   Final viral fraction: 100.0%
-   Total genomes: 50
-```
-
----
-
-## What Just Happened?
-
-1. **Viral Community** - Created 50 gut-specific viral genomes
-2. **Contamination** - Added realistic host + bacterial DNA
-3. **Initial Mix** - Started at 50% viral, 50% contamination
-4. **VLP Enrichment** - Filtered + nuclease treatment → 97% viral
-5. **Amplification** - RdAB PCR → 100% viral (removed remaining contam)
-6. **Ground Truth** - Exported complete composition table
-
----
-
-## Next Steps
-
-### Run Complete Examples
+**Step 1: See what's available**
 
 ```bash
-# Full end-to-end workflow with FASTQ generation
-python examples/complete_workflow_integrated.py
-
-# Compare NovaSeq vs MiSeq platforms
-python examples/cross_platform_workflow.py
-
-# Compare VLP protocols
-python examples/vlp_protocol_comparison.py
+python scripts/generate_fastq_dataset.py --list-collections
 ```
 
-### Add Platform Artifacts
-
-```python
-from viroforge.artifacts import novaseq_6000, ReadPair
-
-# Create mock reads
-reads = []
-for i in range(1000):
-    read = ReadPair(
-        read_id=f"read_{i}",
-        forward_seq="A" * 80,
-        reverse_seq="T" * 80,
-        forward_qual="I" * 80,
-        reverse_qual="I" * 80,
-        genome_id=f"genome_{i % 50}",
-        tile_x=i * 100,
-        tile_y=i * 100
-    )
-    reads.append(read)
-
-# Apply NovaSeq artifacts (polyG tails, optical dups, index hopping)
-platform = novaseq_6000()
-reads_with_artifacts = platform.apply(reads, random_seed=42)
-
-print(f"Original reads: {len(reads)}")
-print(f"With artifacts: {len(reads_with_artifacts)}")
-print(f"Optical duplicates added: {len(reads_with_artifacts) - len(reads)}")
+Output:
+```
+Available Collections:
+ID: 9  - Gut Virome - Adult Healthy (Western Diet) - 134 genomes
+ID: 10 - Oral Virome - Saliva (Healthy) - 47 genomes
+ID: 11 - Skin Virome - Sebaceous Sites (Healthy) - 15 genomes
+ID: 12 - Respiratory Virome - Nasopharynx (Healthy) - 41 genomes
+ID: 13 - Marine Virome - Coastal Surface Water - 448 genomes
+ID: 14 - Soil Virome - Agricultural - 291 genomes
+ID: 15 - Freshwater Virome - Lake Surface Water - 200 genomes
+ID: 16 - Mouse Gut Virome - Laboratory (C57BL/6) - 22 genomes
 ```
 
-### Try Different Body Sites
+**Step 2: Generate FASTQ**
 
-```python
-# Oral virome
-oral = create_body_site_profile('oral', n_genomes=50, random_seed=42)
-
-# Skin virome
-skin = create_body_site_profile('skin', n_genomes=50, random_seed=42)
-
-# Respiratory virome
-respiratory = create_body_site_profile('respiratory', n_genomes=50, random_seed=42)
+```bash
+# Generate gut virome dataset
+python scripts/generate_fastq_dataset.py \
+    --collection-id 9 \
+    --output my_first_virome \
+    --coverage 10
 ```
 
-### Test Failed VLP Enrichment
+Wait 5-15 minutes depending on collection size.
 
-```python
-from viroforge.enrichment import VLPEnrichment
+**Step 3: Check output**
 
-# Failed enrichment (should flag QC)
-failed_vlp = VLPEnrichment(
-    nuclease_efficiency=0.3,  # Poor nuclease
-    stochastic_variation=0.5   # High variability
-)
-failed_vlp.apply(composition)
-# Result: <80% viral (should be flagged by ViromeQC)
+```bash
+ls -lh my_first_virome/fastq/
 ```
 
----
+You'll see:
+- `*_R1.fastq` - Forward reads
+- `*_R2.fastq` - Reverse reads
 
-## Learn More
+**Step 4: View ground truth**
 
-- **[Tutorial](TUTORIAL.md)** - Step-by-step learning (30 min)
-- **[User Guide](USER_GUIDE.md)** - Complete documentation (2 hours)
-- **[Examples](../examples/README.md)** - All example scripts explained
-- **[API Reference](API.md)** - Full API documentation
+```bash
+# View composition table
+cat my_first_virome/metadata/*_composition.tsv
+```
+
+Shows exact viral composition with abundances.
 
 ---
 
 ## Common Use Cases
 
-### 1. Benchmark Your Pipeline
+### Quick Test Dataset
 
-```python
-# Generate test dataset
-community = create_body_site_profile('gut', n_genomes=100, random_seed=42)
-# ... complete workflow ...
-# Compare your pipeline results to ground_truth_composition.tsv
+```bash
+# Small, fast dataset for testing
+python scripts/generate_fastq_dataset.py \
+    --collection-id 16 \
+    --output test_data \
+    --coverage 1
 ```
 
-### 2. Test QC Tools
+Runtime: 2-3 minutes
 
-```python
-# Successful VLP
-success = create_contamination_profile('clean')  # 2% contam
+### Full Benchmark Dataset
 
-# Failed VLP
-failed = create_contamination_profile('failed')  # 35% contam
-
-# Your QC tool should flag the failed sample!
+```bash
+# Comprehensive gut virome
+python scripts/generate_fastq_dataset.py \
+    --collection-id 9 \
+    --output benchmarks/gut \
+    --coverage 10
 ```
 
-### 3. Cross-Platform Testing
+Runtime: 10-15 minutes
 
-```python
-from viroforge.artifacts import novaseq_6000, miseq
+### Bulk Metagenome (No VLP)
 
-# Same community, different platforms
-novaseq = novaseq_6000()  # Has polyG tails, high optical dups
-miseq_platform = miseq()  # No polyG, low optical dups
+```bash
+# Without VLP enrichment
+python scripts/generate_fastq_dataset.py \
+    --collection-id 9 \
+    --output gut_bulk \
+    --coverage 10 \
+    --no-vlp
+```
 
-# Test if your pipeline results are platform-independent
+### Different Sequencing Platform
+
+```bash
+# MiSeq instead of NovaSeq
+python scripts/generate_fastq_dataset.py \
+    --collection-id 13 \
+    --output marine_miseq \
+    --coverage 10 \
+    --platform miseq
+```
+
+Platforms: `novaseq`, `miseq`, `hiseq`
+
+---
+
+## Generate Multiple Datasets
+
+```bash
+# All 8 collections at 10x coverage
+python scripts/batch_generate_fastq.py \
+    --preset benchmark-standard \
+    --output benchmarks
+```
+
+Runtime: Several hours
+
+Other presets:
+- `quick-test` - Fast test (3 collections, 1x coverage)
+- `vlp-comparison` - VLP vs bulk
+- `platform-comparison` - NovaSeq vs MiSeq vs HiSeq
+- `coverage-series` - 1x, 5x, 10x, 20x, 50x
+
+---
+
+## Use with Hecatomb
+
+```bash
+# Generate benchmark
+python scripts/generate_fastq_dataset.py \
+    --collection-id 9 \
+    --output benchmarks/gut \
+    --coverage 10
+
+# Run Hecatomb
+hecatomb run \
+    --reads benchmarks/gut/fastq/*_R{1,2}.fastq \
+    --outdir results/gut
+
+# Compare to ground truth
+# See: benchmarks/gut/metadata/*_metadata.json
 ```
 
 ---
 
-## Help & Support
+## Output Files
 
-- **Issues**: https://github.com/shandley/viroforge/issues
-- **Discussions**: https://github.com/shandley/viroforge/discussions
-- **Email**: scott.handley@wustl.edu
+Every dataset includes:
+
+```
+output_dir/
+├── fasta/
+│   └── collection.fasta              # Reference genomes
+├── fastq/
+│   ├── collection_R1.fastq          # Forward reads
+│   └── collection_R2.fastq          # Reverse reads
+└── metadata/
+    ├── collection_metadata.json     # Complete ground truth
+    └── collection_composition.tsv   # Abundance table
+```
+
+**Ground truth metadata** contains:
+- Exact viral composition
+- Genome IDs, names, taxonomy
+- Relative abundances
+- Coverage and platform parameters
+
+Use this to validate your pipeline results.
 
 ---
 
-**Happy Forging! 🔨🦠**
+## Customization Options
+
+### Coverage
+
+```bash
+--coverage 10    # 10x mean coverage (default)
+--coverage 50    # High coverage
+--coverage 1     # Low coverage (fast)
+```
+
+### Read Parameters
+
+```bash
+--read-length 150    # bp (default)
+--insert-size 350    # bp (default)
+```
+
+### VLP Enrichment
+
+```bash
+# With VLP (default)
+(no flag needed)
+
+# Without VLP
+--no-vlp
+
+# Custom VLP efficiency
+--vlp-efficiency 0.90
+```
+
+### Reproducibility
+
+```bash
+--seed 42    # Use same random seed for reproducible results
+--seed 123   # Different seed = different read sampling
+```
+
+---
+
+## Troubleshooting
+
+**InSilicoSeq not found**
+
+```bash
+pip install insilicoseq
+# or
+conda install -c bioconda insilicoseq
+```
+
+**Database not found**
+
+Check database exists:
+```bash
+ls -lh viroforge/data/viral_genomes.db
+```
+
+Should show ~100MB file. If missing, Phase 3 database construction wasn't completed.
+
+**Out of memory**
+
+Use lower coverage:
+```bash
+--coverage 5
+```
+
+Or limit read count:
+```bash
+--n-reads 100000
+```
+
+**Slow generation**
+
+Normal for large collections. Marine (448 genomes) and Soil (291 genomes) take longest.
+
+Faster alternatives:
+- Use smaller collections (Skin: 15, Mouse Gut: 22)
+- Lower coverage (`--coverage 1`)
+- Test with dry run first (`--dry-run`)
+
+---
+
+## Collection Details
+
+| ID | Environment | Genomes | Best For |
+|----|-------------|---------|----------|
+| 9 | Human Gut | 134 | General benchmarking |
+| 10 | Human Oral | 47 | Oral microbiome studies |
+| 11 | Human Skin | 15 | Quick tests (small) |
+| 12 | Human Respiratory | 41 | Respiratory virome |
+| 13 | Marine | 448 | Environmental viromics |
+| 14 | Soil | 291 | Soil ecology |
+| 15 | Freshwater | 200 | Aquatic viromics |
+| 16 | Mouse Gut | 22 | Quick tests (smallest) |
+
+See [Collection Implementation Guide](COLLECTION_IMPLEMENTATION_GUIDE.md) for detailed composition information.
+
+---
+
+## Next Steps
+
+### Explore Your Data
+
+```bash
+# Count reads
+wc -l output/fastq/*_R1.fastq
+# Divide by 4 for read count
+
+# Check composition
+less output/metadata/*_composition.tsv
+```
+
+### Run Through Your Pipeline
+
+```bash
+your_pipeline output/fastq/*_R{1,2}.fastq
+```
+
+### Compare Results to Ground Truth
+
+```python
+import json
+with open('output/metadata/*_metadata.json') as f:
+    truth = json.load(f)
+# Compare to pipeline output
+```
+
+---
+
+## Advanced Usage: Python API
+
+For users who need more control, ViroForge also provides a Python API for custom workflows:
+
+```python
+from viroforge.core.community import create_body_site_profile
+from viroforge.enrichment import standard_vlp
+from viroforge.amplification import rdab_40_cycles
+
+# Create custom composition
+community = create_body_site_profile('gut', n_genomes=50, random_seed=42)
+# Apply VLP enrichment
+vlp = standard_vlp()
+vlp.apply(composition)
+# Apply amplification
+amplification = rdab_40_cycles()
+amplification.apply(composition)
+```
+
+See [USER_GUIDE.md](USER_GUIDE.md) for complete Python API documentation.
+
+---
+
+## Documentation
+
+**Detailed Guides**:
+- [FASTQ Generation](PHASE4_FASTQ_GENERATION.md) - Complete documentation
+- [Collection Implementation](COLLECTION_IMPLEMENTATION_GUIDE.md) - How collections were curated
+- [Scripts README](../scripts/README_FASTQ_GENERATION.md) - All command-line options
+
+**Database**:
+- 14,423 RefSeq viral genomes
+- ICTV taxonomy integration
+- 8 curated body site collections
+- Literature-validated compositions
+
+---
+
+## Support
+
+**Questions**: scott.handley@wustl.edu
+
+**Issues**: https://github.com/shandley/viroforge/issues
+
+**Full Documentation**: See `docs/` directory
+
+---
+
+**Happy Forging!**
 
 *Generated datasets are ready for immediate use in benchmarking studies.*
