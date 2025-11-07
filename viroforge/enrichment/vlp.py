@@ -55,13 +55,19 @@ class VirionSizeEstimator:
         'unknown': {'a': 25, 'b': -45, 'variance': 20}  # Conservative estimate
     }
 
-    def estimate_size(self, genome_length: int, genome_type: str = 'dsDNA') -> VirionSizeEstimate:
+    def estimate_size(
+        self,
+        genome_length: int,
+        genome_type: str = 'dsDNA',
+        rng: Optional[np.random.Generator] = None
+    ) -> VirionSizeEstimate:
         """
         Estimate virion diameter from genome length and type
 
         Args:
             genome_length: Genome length in base pairs
             genome_type: Genome type (dsDNA, ssDNA, dsRNA, ssRNA, etc.)
+            rng: Optional random number generator for reproducibility
 
         Returns:
             VirionSizeEstimate with diameter, volume, and confidence
@@ -71,7 +77,9 @@ class VirionSizeEstimator:
             genome_type = 'unknown'
             confidence = 'low'
         else:
-            confidence = 'medium' if genome_type in ['dsDNA', 'ssDNA'] else 'high'
+            # dsDNA/ssDNA have most empirical data (tailed phages, microviruses)
+            # RNA viruses have more variable morphologies
+            confidence = 'high' if genome_type in ['dsDNA', 'ssDNA'] else 'medium'
 
         params = self.SIZE_RELATIONSHIPS[genome_type]
 
@@ -80,7 +88,10 @@ class VirionSizeEstimator:
         diameter_nm = params['a'] * log_length + params['b']
 
         # Add stochastic variation
-        diameter_nm += np.random.normal(0, params['variance'] * 0.3)
+        if rng is not None:
+            diameter_nm += rng.normal(0, params['variance'] * 0.3)
+        else:
+            diameter_nm += np.random.normal(0, params['variance'] * 0.3)
 
         # Ensure reasonable bounds
         diameter_nm = max(15, min(500, diameter_nm))  # 15 nm (small ssDNA) to 500 nm (giant viruses)
@@ -331,8 +342,11 @@ class VLPEnrichment:
         self.size_estimator = VirionSizeEstimator()
         self.random_seed = random_seed
 
+        # Use local RNG instead of global state for thread safety
         if random_seed is not None:
-            np.random.seed(random_seed)
+            self.rng = np.random.default_rng(random_seed)
+        else:
+            self.rng = np.random.default_rng()
 
         logger.info(f"Initialized VLP enrichment: {protocol.name}")
 
@@ -362,40 +376,62 @@ class VLPEnrichment:
         size_estimates = []
 
         # Apply size-based retention (if applicable)
-        if self.protocol.filtration_method in ['tangential_flow', 'syringe', 'centrifugal', 'column']:
+        if self.protocol.filtration_method in ['tangential_flow', 'syringe', 'centrifugal']:
             for i, genome in enumerate(genomes):
                 # Estimate virion size
                 size_est = self.size_estimator.estimate_size(
                     genome['length'],
-                    genome.get('genome_type', 'dsDNA')
+                    genome.get('genome_type', 'dsDNA'),
+                    rng=self.rng
                 )
                 size_estimates.append(size_est)
 
                 # Calculate retention probability
-                if self.protocol.retention_curve_type == 'sigmoid':
-                    retention = FiltrationCurve.sigmoid(
-                        size_est.estimated_diameter_nm,
-                        self.protocol.pore_size_um,
-                        self.protocol.retention_curve_steepness
-                    )
-                elif self.protocol.retention_curve_type == 'step':
-                    retention = FiltrationCurve.step(
-                        size_est.estimated_diameter_nm,
-                        self.protocol.pore_size_um
-                    )
-                else:  # linear
-                    retention = FiltrationCurve.linear(
-                        size_est.estimated_diameter_nm,
-                        self.protocol.pore_size_um
-                    )
+                if self.protocol.pore_size_um is not None:
+                    if self.protocol.retention_curve_type == 'sigmoid':
+                        retention = FiltrationCurve.sigmoid(
+                            size_est.estimated_diameter_nm,
+                            self.protocol.pore_size_um,
+                            self.protocol.retention_curve_steepness
+                        )
+                    elif self.protocol.retention_curve_type == 'step':
+                        retention = FiltrationCurve.step(
+                            size_est.estimated_diameter_nm,
+                            self.protocol.pore_size_um
+                        )
+                    else:  # linear
+                        retention = FiltrationCurve.linear(
+                            size_est.estimated_diameter_nm,
+                            self.protocol.pore_size_um
+                        )
+                    enrichment_factors[i] = retention
+                else:
+                    # Column-based or other methods without pore size
+                    # Use moderate size-dependent retention
+                    # Smaller viruses retained less efficiently
+                    size_factor = min(1.0, size_est.estimated_diameter_nm / 100.0)
+                    enrichment_factors[i] = 0.5 + 0.5 * size_factor
 
-                enrichment_factors[i] = retention
+        elif self.protocol.filtration_method == 'column':
+            # Column-based methods (e.g., Norgen kit)
+            # Moderate size-dependent retention
+            for i, genome in enumerate(genomes):
+                size_est = self.size_estimator.estimate_size(
+                    genome['length'],
+                    genome.get('genome_type', 'dsDNA'),
+                    rng=self.rng
+                )
+                size_estimates.append(size_est)
+
+                # Modest size bias (larger viruses bind better to columns)
+                size_factor = min(1.0, size_est.estimated_diameter_nm / 80.0)
+                enrichment_factors[i] = 0.6 + 0.4 * size_factor
 
         # Apply recovery rate (overall loss during processing)
         enrichment_factors *= self.protocol.recovery_rate
 
         # Add stochastic variation (biological and technical variability)
-        variation = np.random.normal(1.0, 0.05, n_genomes)  # 5% CV
+        variation = self.rng.normal(1.0, 0.05, n_genomes)  # 5% CV
         enrichment_factors *= variation
 
         # Apply enrichment
@@ -443,6 +479,202 @@ class VLPEnrichment:
             'mean_virion_diameter_nm': float(np.mean(sizes)),
             'size_range_nm': (float(np.min(sizes)), float(np.max(sizes)))
         }
+
+    def apply_contamination_reduction(
+        self,
+        contamination_profile: 'ContaminationProfile'
+    ) -> Tuple['ContaminationProfile', Dict]:
+        """
+        Apply protocol-specific contamination reduction
+
+        Different contaminant types are affected differently:
+        - Host DNA (free): Removed by nuclease treatment (90-98%)
+        - rRNA (free/debris): Removed by nuclease treatment (85-95%)
+        - Reagent bacteria (cells): Removed by filtration (75-95%)
+        - PhiX (encapsidated): Treated like small virus (10-40% loss)
+
+        Args:
+            contamination_profile: Original contamination profile
+
+        Returns:
+            Tuple of (reduced_profile, reduction_stats)
+
+        Literature basis:
+        - Thurber et al. 2009: DNase reduces free DNA by >95%
+        - Shkoporov et al. 2018: 0.2 μm filtration removes >90% bacteria
+        - Roux et al. 2016 (ViromeQC): Typical contamination ranges
+        """
+        from ..core.contamination import ContaminationProfile, ContaminantType
+
+        # Create a copy of the contamination profile
+        reduced_profile = ContaminationProfile(name=f"{contamination_profile.name}_vlp_reduced")
+
+        original_abundances = {}
+        reduced_abundances = {}
+        reduction_factors_by_type = {}
+
+        for contaminant in contamination_profile.contaminants:
+            ctype = contaminant.contaminant_type
+            original_abundance = contaminant.abundance
+
+            # Calculate reduction factor based on contaminant type
+            if ctype == ContaminantType.HOST_DNA:
+                # Free host DNA - highly susceptible to nuclease
+                if self.protocol.nuclease_treatment:
+                    base_removal = self.protocol.nuclease_efficiency
+                    # Add some variation (biological + technical)
+                    removal = base_removal * self.rng.normal(1.0, 0.05)
+                    removal = np.clip(removal, 0.85, 0.99)
+                else:
+                    # Without nuclease, only filtration helps (minimal for free DNA)
+                    removal = 0.20 * self.protocol.contamination_reduction
+
+            elif ctype == ContaminantType.RRNA:
+                # rRNA - some protection in cellular debris
+                if self.protocol.nuclease_treatment:
+                    base_removal = self.protocol.nuclease_efficiency * 0.92  # Slightly less efficient
+                    removal = base_removal * self.rng.normal(1.0, 0.08)
+                    removal = np.clip(removal, 0.80, 0.97)
+                else:
+                    removal = 0.15 * self.protocol.contamination_reduction
+
+            elif ctype == ContaminantType.REAGENT_BACTERIA:
+                # Bacterial cells - primarily removed by filtration
+                if self.protocol.filtration_method in ['tangential_flow', 'syringe', 'centrifugal']:
+                    # Bacteria are 1-5 μm, much larger than pore size
+                    # Should be nearly 100% removed by 0.2 μm filter
+                    base_removal = self.protocol.contamination_reduction * 0.98
+                    removal = base_removal * self.rng.normal(1.0, 0.10)
+                    removal = np.clip(removal, 0.70, 0.99)
+                elif self.protocol.filtration_method == 'ultracentrifugation':
+                    # Cells pellet differently than viruses
+                    removal = 0.85 * self.rng.normal(1.0, 0.15)
+                    removal = np.clip(removal, 0.60, 0.95)
+                elif self.protocol.filtration_method == 'column':
+                    # Column-based kits variable
+                    removal = 0.88 * self.rng.normal(1.0, 0.12)
+                    removal = np.clip(removal, 0.65, 0.95)
+                else:  # no filtration
+                    removal = 0.0
+
+                # Nuclease also helps if cells are lysed
+                if self.protocol.nuclease_treatment:
+                    # Assume ~30% of bacteria are lysed
+                    lysed_fraction = 0.30
+                    additional_removal = lysed_fraction * self.protocol.nuclease_efficiency * 0.5
+                    removal = min(0.99, removal + additional_removal)
+
+            elif ctype == ContaminantType.PHIX:
+                # PhiX is an encapsidated virus (27 nm, ssDNA, circular)
+                # Treat similarly to small viruses
+                # PhiX genome: 5,386 bp, ssDNA
+                phix_size = self.size_estimator.estimate_size(5386, 'ssDNA', rng=self.rng)
+
+                if self.protocol.filtration_method in ['tangential_flow', 'syringe', 'centrifugal', 'column']:
+                    # PhiX is small (27 nm), some loss through filters
+                    if self.protocol.pore_size_um is not None:
+                        # Calculate retention like other viruses
+                        if self.protocol.retention_curve_type == 'sigmoid':
+                            retention = FiltrationCurve.sigmoid(
+                                phix_size.estimated_diameter_nm,
+                                self.protocol.pore_size_um,
+                                self.protocol.retention_curve_steepness
+                            )
+                        elif self.protocol.retention_curve_type == 'step':
+                            retention = FiltrationCurve.step(
+                                phix_size.estimated_diameter_nm,
+                                self.protocol.pore_size_um
+                            )
+                        else:  # linear
+                            retention = FiltrationCurve.linear(
+                                phix_size.estimated_diameter_nm,
+                                self.protocol.pore_size_um
+                            )
+
+                        # Apply recovery rate
+                        retention *= self.protocol.recovery_rate
+
+                        # Small viruses have some additional loss
+                        retention *= self.rng.normal(0.85, 0.10)
+                        retention = np.clip(retention, 0.60, 0.95)
+
+                        removal = 1.0 - retention
+                    else:
+                        # Column-based: moderate retention
+                        retention = self.protocol.recovery_rate * 0.75
+                        removal = 1.0 - retention
+                else:
+                    # No filtration: PhiX retained
+                    removal = 0.0
+
+            else:  # OTHER or unknown
+                # Apply general contamination reduction
+                removal = self.protocol.contamination_reduction * self.rng.normal(1.0, 0.15)
+                removal = np.clip(removal, 0.50, 0.99)
+
+            # Calculate reduced abundance
+            reduced_abundance = original_abundance * (1.0 - removal)
+
+            # Track statistics
+            if ctype not in original_abundances:
+                original_abundances[ctype] = 0.0
+                reduced_abundances[ctype] = 0.0
+                reduction_factors_by_type[ctype] = []
+
+            original_abundances[ctype] += original_abundance
+            reduced_abundances[ctype] += reduced_abundance
+            reduction_factors_by_type[ctype].append(removal)
+
+            # Create reduced contaminant (copy with new abundance)
+            from ..core.contamination import ContaminantGenome
+            reduced_contaminant = ContaminantGenome(
+                genome_id=contaminant.genome_id,
+                sequence=contaminant.sequence,
+                contaminant_type=contaminant.contaminant_type,
+                description=contaminant.description,
+                organism=contaminant.organism,
+                source=contaminant.source,
+                abundance=reduced_abundance,
+                gc_content=contaminant.gc_content,
+                metadata=contaminant.metadata.copy()
+            )
+
+            reduced_profile.add_contaminant(reduced_contaminant)
+
+        # Calculate reduction statistics
+        stats = {
+            'protocol': self.protocol.name,
+            'original_total_contamination': contamination_profile.get_total_abundance(),
+            'reduced_total_contamination': reduced_profile.get_total_abundance(),
+            'overall_reduction_factor': 1.0 - (reduced_profile.get_total_abundance() /
+                                              max(contamination_profile.get_total_abundance(), 1e-10)),
+            'reduction_by_type': {},
+            'mean_removal_by_type': {}
+        }
+
+        for ctype in original_abundances:
+            original = original_abundances[ctype]
+            reduced = reduced_abundances[ctype]
+
+            if original > 0:
+                reduction = 1.0 - (reduced / original)
+            else:
+                reduction = 0.0
+
+            stats['reduction_by_type'][ctype.value] = {
+                'original_abundance': float(original),
+                'reduced_abundance': float(reduced),
+                'reduction_factor': float(reduction),
+                'reduction_pct': float(reduction * 100)
+            }
+
+            stats['mean_removal_by_type'][ctype.value] = float(np.mean(reduction_factors_by_type[ctype]))
+
+        logger.info(f"Contamination reduction applied: {stats['overall_reduction_factor']*100:.1f}% total removal")
+        logger.info(f"Original: {stats['original_total_contamination']:.4f} → "
+                   f"Reduced: {stats['reduced_total_contamination']:.4f}")
+
+        return reduced_profile, stats
 
     def compare_to_bulk(
         self,

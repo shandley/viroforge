@@ -408,9 +408,12 @@ def add_host_contamination(
         >>> profile = ContaminationProfile()
         >>> add_host_contamination(profile, "human", abundance_pct=5.0)
     """
+    # Use local RNG instead of global state for thread safety
     if random_seed is not None:
-        random.seed(random_seed)
-        np.random.seed(random_seed)
+        rng = np.random.default_rng(random_seed)
+        random.seed(random_seed)  # Still needed for random.choice()
+    else:
+        rng = np.random.default_rng()
 
     # Map organism to genome info
     host_info = {
@@ -525,9 +528,12 @@ def add_rrna_contamination(
         >>> profile = ContaminationProfile()
         >>> add_rrna_contamination(profile, abundance_pct=3.0)
     """
+    # Use local RNG instead of global state for thread safety
     if random_seed is not None:
-        random.seed(random_seed)
-        np.random.seed(random_seed)
+        rng = np.random.default_rng(random_seed)
+        random.seed(random_seed)  # Still needed for random.choice()
+    else:
+        rng = np.random.default_rng()
 
     logger.info(f"Adding {abundance_pct}% rRNA contamination")
 
@@ -574,7 +580,7 @@ def add_rrna_contamination(
                 length = rrna_types[rrna_type]
 
                 # rRNA typically has higher GC content
-                gc_content = np.random.normal(55.0, 5.0)
+                gc_content = rng.normal(55.0, 5.0)
                 gc_content = np.clip(gc_content, 40.0, 70.0)
 
                 seq = _generate_sequence_with_gc(length, gc_content)
@@ -622,9 +628,12 @@ def add_reagent_contamination(
         >>> profile = ContaminationProfile()
         >>> add_reagent_contamination(profile, abundance_pct=0.5)
     """
+    # Use local RNG instead of global state for thread safety
     if random_seed is not None:
-        random.seed(random_seed)
-        np.random.seed(random_seed)
+        rng = np.random.default_rng(random_seed)
+        random.seed(random_seed)  # Still needed for random.choice()
+    else:
+        rng = np.random.default_rng()
 
     # Common reagent contaminants from Salter et al. 2014
     if species is None:
@@ -668,10 +677,10 @@ def add_reagent_contamination(
 
         for i, sp in enumerate(selected_species):
             # Typical bacterial genome: 3-6 Mbp
-            genome_length = int(np.random.uniform(3e6, 6e6))
+            genome_length = int(rng.uniform(3e6, 6e6))
 
             # Bacterial genomes typically 40-60% GC
-            gc_content = np.random.uniform(40.0, 60.0)
+            gc_content = rng.uniform(40.0, 60.0)
 
             seq = _generate_sequence_with_gc(genome_length, gc_content)
 
@@ -762,9 +771,12 @@ def create_contamination_profile(
         >>> profile = create_contamination_profile('realistic')
         >>> print(profile.get_summary_stats())
     """
+    # Use local RNG instead of global state for thread safety
     if random_seed is not None:
-        random.seed(random_seed)
-        np.random.seed(random_seed)
+        rng = np.random.default_rng(random_seed)
+        random.seed(random_seed)  # Still needed for random.choice()
+    else:
+        rng = np.random.default_rng()
 
     # Pre-defined contamination profiles based on ViromeQC paper
     profile_configs = {

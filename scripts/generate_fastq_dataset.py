@@ -49,6 +49,18 @@ except ImportError:
     print("Error: Biopython not installed. Install with: pip install biopython")
     sys.exit(1)
 
+# Import ViroForge modules
+try:
+    from viroforge.enrichment.vlp import VLPEnrichment, VLPProtocol
+    from viroforge.core.contamination import (
+        create_contamination_profile,
+        ContaminationProfile
+    )
+except ImportError as e:
+    print(f"Error importing ViroForge modules: {e}")
+    print("Make sure you're running from the ViroForge root directory")
+    sys.exit(1)
+
 # Set up logging
 logging.basicConfig(
     level=logging.INFO,
@@ -163,50 +175,228 @@ class FASTQGenerator:
     def prepare_genomes(
         self,
         genomes: List[Dict],
-        apply_vlp: bool = True,
-        vlp_efficiency: float = 0.95
-    ) -> Tuple[List[SeqRecord], List[float]]:
+        vlp_protocol: Optional[str] = 'tangential_flow',
+        contamination_level: str = 'realistic'
+    ) -> Tuple[List[SeqRecord], List[float], Dict]:
         """
-        Prepare genome sequences and adjust abundances.
+        Prepare genome sequences with VLP enrichment and contamination.
 
         Args:
             genomes: List of genome dictionaries
-            apply_vlp: Whether to apply VLP enrichment simulation
-            vlp_efficiency: Nuclease treatment efficiency (if VLP)
+            vlp_protocol: VLP protocol name (tangential_flow, syringe, ultracentrifugation,
+                         norgen, none) or None for no VLP
+            contamination_level: Contamination level (clean, realistic, heavy)
 
         Returns:
-            Tuple of (sequence_records, adjusted_abundances)
+            Tuple of (sequence_records, abundances, enrichment_stats)
         """
-        sequences = []
-        abundances = []
+        logger.info(f"Preparing {len(genomes)} viral genomes...")
 
-        logger.info(f"Preparing {len(genomes)} genomes...")
+        # Convert genomes to viral sequences
+        viral_sequences = []
+        viral_abundances = []
 
-        for i, genome in enumerate(genomes):
-            # Create SeqRecord
+        for genome in genomes:
             record = SeqRecord(
                 Seq(genome['sequence']),
                 id=genome['genome_id'],
                 description=f"{genome['genome_name']} | {genome.get('family', 'Unknown')}"
             )
+            viral_sequences.append(record)
+            viral_abundances.append(genome['relative_abundance'])
+
+        viral_abundances = np.array(viral_abundances)
+
+        # If no VLP protocol specified, return viral genomes only
+        if vlp_protocol is None or vlp_protocol == 'none':
+            logger.info("No VLP enrichment applied (bulk metagenome mode)")
+
+            # Still add contamination (not reduced by VLP)
+            contam_profile = create_contamination_profile(
+                contamination_level,
+                random_seed=self.random_seed
+            )
+
+            # Combine viral + contamination
+            sequences, abundances = self._combine_viral_and_contamination(
+                viral_sequences,
+                viral_abundances,
+                contam_profile
+            )
+
+            stats = {
+                'vlp_protocol': 'none',
+                'contamination_level': contamination_level,
+                'viral_fraction': float(viral_abundances.sum()),
+                'contamination_fraction': float(contam_profile.get_total_abundance()),
+                'n_viral_genomes': len(viral_sequences),
+                'n_contaminants': len(contam_profile)
+            }
+
+            return sequences, abundances, stats
+
+        # Apply VLP enrichment workflow
+        logger.info(f"Applying VLP enrichment: {vlp_protocol}")
+        sequences, abundances, stats = self._apply_vlp_enrichment(
+            viral_sequences,
+            viral_abundances,
+            genomes,
+            vlp_protocol,
+            contamination_level
+        )
+
+        return sequences, abundances, stats
+
+    def _apply_vlp_enrichment(
+        self,
+        viral_sequences: List[SeqRecord],
+        viral_abundances: np.ndarray,
+        genomes: List[Dict],
+        vlp_protocol: str,
+        contamination_level: str
+    ) -> Tuple[List[SeqRecord], List[float], Dict]:
+        """
+        Apply VLP enrichment protocol with size-based enrichment and contamination reduction.
+
+        Args:
+            viral_sequences: Viral genome SeqRecords
+            viral_abundances: Viral relative abundances
+            genomes: Genome metadata dictionaries
+            vlp_protocol: VLP protocol name
+            contamination_level: Contamination level
+
+        Returns:
+            Tuple of (combined_sequences, combined_abundances, enrichment_stats)
+        """
+        # Map protocol name to VLPProtocol
+        protocol_map = {
+            'tangential_flow': VLPProtocol.tangential_flow_standard(),
+            'syringe': VLPProtocol.syringe_filter_standard(),
+            'ultracentrifugation': VLPProtocol.ultracentrifugation(),
+            'norgen': VLPProtocol.norgen_kit()
+        }
+
+        if vlp_protocol not in protocol_map:
+            raise ValueError(
+                f"Unknown VLP protocol: {vlp_protocol}. "
+                f"Choose from: {', '.join(protocol_map.keys())}"
+            )
+
+        protocol_config = protocol_map[vlp_protocol]
+
+        # Initialize VLP enrichment
+        vlp = VLPEnrichment(
+            protocol=protocol_config,
+            random_seed=self.random_seed
+        )
+
+        # Apply size-based enrichment to viral genomes
+        logger.info("Applying size-based viral enrichment...")
+        enriched_viral_abundances, viral_stats = vlp.apply_enrichment(
+            genomes=genomes,
+            abundances=viral_abundances
+        )
+
+        # Create contamination profile
+        logger.info(f"Creating contamination profile: {contamination_level}")
+        contam_profile = create_contamination_profile(
+            contamination_level,
+            random_seed=self.random_seed
+        )
+
+        # Apply contamination reduction
+        logger.info("Applying VLP contamination reduction...")
+        reduced_contam_profile, contam_stats = vlp.apply_contamination_reduction(
+            contam_profile
+        )
+
+        # Combine viral genomes + reduced contamination
+        sequences, abundances = self._combine_viral_and_contamination(
+            viral_sequences,
+            enriched_viral_abundances,
+            reduced_contam_profile
+        )
+
+        # Calculate FINAL viral and contamination fractions after normalization
+        n_viral = len(viral_sequences)
+        final_viral_fraction = sum(abundances[:n_viral])
+        final_contam_fraction = sum(abundances[n_viral:])
+
+        # Compile statistics
+        stats = {
+            'vlp_protocol': vlp_protocol,
+            'contamination_level': contamination_level,
+            'viral_enrichment': viral_stats,
+            'contamination_reduction': contam_stats,
+            'viral_fraction': float(final_viral_fraction),
+            'contamination_fraction': float(final_contam_fraction),
+            'n_viral_genomes': len(viral_sequences),
+            'n_contaminants': len(reduced_contam_profile)
+        }
+
+        logger.info(f"VLP enrichment complete:")
+        logger.info(f"  Final viral fraction: {stats['viral_fraction']*100:.2f}%")
+        logger.info(f"  Final contamination: {stats['contamination_fraction']*100:.2f}%")
+        logger.info(f"  Total genomes: {len(sequences)}")
+
+        return sequences, abundances, stats
+
+    def _combine_viral_and_contamination(
+        self,
+        viral_sequences: List[SeqRecord],
+        viral_abundances: np.ndarray,
+        contam_profile: ContaminationProfile
+    ) -> Tuple[List[SeqRecord], List[float]]:
+        """
+        Combine viral genomes and contamination into single set of sequences.
+
+        Args:
+            viral_sequences: Viral genome SeqRecords
+            viral_abundances: Viral relative abundances (sum may be < 1.0)
+            contam_profile: Contamination profile with contaminants
+
+        Returns:
+            Tuple of (combined_sequences, combined_abundances)
+        """
+        sequences = list(viral_sequences)
+        abundances = list(viral_abundances)
+
+        # Add contaminants
+        for contaminant in contam_profile.contaminants:
+            record = SeqRecord(
+                contaminant.sequence,
+                id=contaminant.genome_id,
+                description=f"{contaminant.organism} | {contaminant.contaminant_type.value}"
+            )
             sequences.append(record)
+            abundances.append(contaminant.abundance)
 
-            # Get relative abundance
-            abundance = genome['relative_abundance']
-
-            # Apply VLP enrichment effect (increases viral fraction)
-            if apply_vlp:
-                # VLP increases viral recovery ~20x relative to non-viral
-                # This simulates contamination removal
-                abundance = abundance * (1.0 + np.random.normal(0.2, 0.05))
-
-            abundances.append(abundance)
-
-        # Renormalize abundances
+        # Normalize to sum to 1.0
         abundances = np.array(abundances)
-        abundances = abundances / abundances.sum()
+        total_abundance = abundances.sum()
 
-        logger.info(f"Genome abundance range: {abundances.min():.6f} - {abundances.max():.6f}")
+        # Validate total abundance
+        if total_abundance == 0 or not np.isfinite(total_abundance):
+            raise ValueError(
+                "Total abundance is zero or invalid. This indicates a problem with "
+                "VLP enrichment or contamination profile generation."
+            )
+
+        abundances = abundances / total_abundance
+
+        # Validate final abundances
+        if not np.allclose(abundances.sum(), 1.0, atol=1e-6):
+            logger.warning(
+                f"Abundances do not sum to 1.0 (sum={abundances.sum():.8f}). "
+                "Renormalizing..."
+            )
+            abundances = abundances / abundances.sum()
+
+        if np.any(~np.isfinite(abundances)):
+            raise ValueError("Abundances contain NaN or infinite values")
+
+        logger.info(f"Combined {len(viral_sequences)} viral + {len(contam_profile)} contaminants")
+        logger.info(f"Final abundance range: {abundances.min():.6f} - {abundances.max():.6f}")
 
         return sequences, abundances.tolist()
 
@@ -256,14 +446,53 @@ class FASTQGenerator:
         """
         import subprocess
 
+        # Validate coverage
+        if coverage <= 0:
+            raise ValueError(f"Coverage must be positive, got: {coverage}")
+        if coverage > 100:
+            logger.warning(
+                f"Very high coverage requested ({coverage}x). "
+                f"This may take hours and produce large files (>10 GB)."
+            )
+            if coverage > 500:
+                raise ValueError(
+                    f"Coverage {coverage}x exceeds maximum allowed (500x). "
+                    f"If you really need this, use --n-reads directly."
+                )
+
         # Calculate total genome length for coverage calculation
         if n_reads is None:
             total_length = sum(len(record.seq) for record in sequences)
             # Calculate reads needed: (total_length * coverage) / (2 * read_length)
             # Factor of 2 because paired-end reads
             n_reads = int((total_length * coverage) / (2 * read_length))
+
+            # Validate calculated reads
+            if n_reads == 0:
+                raise ValueError(
+                    f"Calculated zero reads for {coverage}x coverage "
+                    f"(total genome length: {total_length:,} bp). "
+                    "Check your coverage and genome sizes."
+                )
+
+            if n_reads > 1_000_000_000:  # 1 billion reads = ~150 GB for 2x150bp
+                raise ValueError(
+                    f"Calculated read count ({n_reads:,}) exceeds reasonable limit "
+                    f"(1 billion reads). Reduce coverage or use smaller collection."
+                )
+
             logger.info(f"Calculated {n_reads:,} reads needed for {coverage}x coverage")
             logger.info(f"  Total genome length: {total_length:,} bp")
+            logger.info(f"  Estimated output size: ~{(n_reads * read_length * 4 / 1e9):.1f} GB")
+        else:
+            # Validate user-provided n_reads
+            if n_reads <= 0:
+                raise ValueError(f"n_reads must be positive, got: {n_reads}")
+            if n_reads > 1_000_000_000:
+                logger.warning(
+                    f"Very high read count requested ({n_reads:,}). "
+                    f"Estimated output size: ~{(n_reads * read_length * 4 / 1e9):.1f} GB"
+                )
 
         # Create abundance file for ISS using actual genome IDs
         abundance_file = self.metadata_dir / f"{self.collection_name}_abundances.txt"
@@ -312,6 +541,30 @@ class FASTQGenerator:
             if not r1_path.exists() or not r2_path.exists():
                 raise FileNotFoundError(f"ISS output files not found: {output_prefix}")
 
+            # Validate file sizes and format
+            for fastq_path in [r1_path, r2_path]:
+                file_size = fastq_path.stat().st_size
+                if file_size == 0:
+                    raise ValueError(f"ISS output file is empty: {fastq_path}")
+
+                # Quick read count check (first few lines)
+                with open(fastq_path) as f:
+                    try:
+                        # Check FASTQ format (first record)
+                        header = f.readline()
+                        if not header.startswith('@'):
+                            raise ValueError(
+                                f"Invalid FASTQ format in {fastq_path}: "
+                                f"Expected '@' header, got: {header[:50]}"
+                            )
+                    except Exception as e:
+                        raise ValueError(
+                            f"Failed to validate FASTQ format in {fastq_path}: {e}"
+                        )
+
+            logger.info(f"R1 file size: {r1_path.stat().st_size:,} bytes")
+            logger.info(f"R2 file size: {r2_path.stat().st_size:,} bytes")
+
             return r1_path, r2_path
 
         except subprocess.CalledProcessError as e:
@@ -325,41 +578,76 @@ class FASTQGenerator:
     def export_metadata(
         self,
         collection_meta: Dict,
-        genomes: List[Dict],
+        sequences: List[SeqRecord],
         abundances: List[float],
-        config: Dict
+        config: Dict,
+        enrichment_stats: Optional[Dict] = None
     ):
-        """Export complete ground truth metadata."""
+        """Export complete ground truth metadata including all sequences (viral + contaminants)."""
+
+        # Validate that sequences and abundances match
+        if len(sequences) != len(abundances):
+            raise ValueError(
+                f"Sequence count ({len(sequences)}) doesn't match "
+                f"abundance count ({len(abundances)})"
+            )
+
+        # Get counts from enrichment stats
+        n_viral = enrichment_stats.get('n_viral_genomes', len(sequences)) if enrichment_stats else len(sequences)
+        n_contaminants = enrichment_stats.get('n_contaminants', 0) if enrichment_stats else 0
+
         metadata = {
             'generation_info': {
                 'timestamp': datetime.now().isoformat(),
-                'viroforge_version': '0.3.0',
+                'viroforge_version': '0.4.0',
                 'random_seed': self.random_seed
             },
             'collection': {
                 'id': collection_meta['collection_id'],
                 'name': collection_meta['collection_name'],
                 'description': collection_meta.get('description', ''),
-                'n_genomes': len(genomes)
+                'n_viral_genomes': n_viral,
+                'n_contaminants': n_contaminants,
+                'total_sequences': len(sequences)
             },
             'configuration': config,
-            'genomes': []
+            'enrichment_stats': enrichment_stats,
+            'sequences': []
         }
 
-        # Add genome details
-        for genome, abundance in zip(genomes, abundances):
-            metadata['genomes'].append({
-                'genome_id': genome['genome_id'],
-                'genome_name': genome['genome_name'],
-                'length': genome['length'],
-                'gc_content': genome['gc_content'],
-                'genome_type': genome['genome_type'],
-                'family': genome.get('family'),
-                'genus': genome.get('genus'),
-                'species': genome.get('species'),
-                'relative_abundance': abundance,
-                'original_abundance': genome['relative_abundance']
-            })
+        # Add ALL sequence details (viral + contaminants)
+        for i, (seq, abundance) in enumerate(zip(sequences, abundances)):
+            seq_type = 'viral' if i < n_viral else 'contaminant'
+
+            # Parse description for metadata
+            # Format: "name | family | ..." or "name" for contaminants
+            desc_parts = seq.description.split('|')
+            seq_name = desc_parts[0].strip() if desc_parts else seq.id
+
+            seq_info = {
+                'genome_id': seq.id,
+                'genome_name': seq_name,
+                'sequence_type': seq_type,
+                'length': len(seq.seq),
+                'relative_abundance': abundance
+            }
+
+            # Add viral-specific taxonomy if available
+            if seq_type == 'viral' and len(desc_parts) >= 2:
+                # Try to parse taxonomy from description
+                for part in desc_parts[1:]:
+                    part = part.strip()
+                    if 'family:' in part.lower():
+                        seq_info['family'] = part.split(':')[-1].strip()
+                    elif 'genus:' in part.lower():
+                        seq_info['genus'] = part.split(':')[-1].strip()
+                    elif 'species:' in part.lower():
+                        seq_info['species'] = part.split(':')[-1].strip()
+                    elif not part.startswith('abundance='):
+                        # Assume it's family if no prefix
+                        seq_info['family'] = part
+
+            metadata['sequences'].append(seq_info)
 
         # Write metadata JSON
         metadata_path = self.metadata_dir / f"{self.collection_name}_metadata.json"
@@ -367,10 +655,11 @@ class FASTQGenerator:
             json.dump(metadata, f, indent=2)
 
         logger.info(f"Exported metadata to: {metadata_path}")
+        logger.info(f"  {n_viral} viral genomes + {n_contaminants} contaminants = {len(sequences)} total sequences")
 
         # Also write TSV for easy viewing
         import pandas as pd
-        df = pd.DataFrame(metadata['genomes'])
+        df = pd.DataFrame(metadata['sequences'])
         tsv_path = self.metadata_dir / f"{self.collection_name}_composition.tsv"
         df.to_csv(tsv_path, sep='\t', index=False)
         logger.info(f"Exported composition table to: {tsv_path}")
@@ -465,10 +754,25 @@ Examples:
     )
 
     parser.add_argument(
+        '--vlp-protocol',
+        choices=['tangential_flow', 'syringe', 'ultracentrifugation', 'norgen'],
+        default='tangential_flow',
+        help='VLP enrichment protocol (default: tangential_flow)'
+    )
+
+    parser.add_argument(
+        '--contamination-level',
+        choices=['clean', 'realistic', 'heavy'],
+        default='realistic',
+        help='Contamination level (default: realistic)'
+    )
+
+    # Keep for backward compatibility but deprecated
+    parser.add_argument(
         '--vlp-efficiency',
         type=float,
         default=0.95,
-        help='VLP nuclease efficiency (default: 0.95)'
+        help='[DEPRECATED] Use --vlp-protocol instead'
     )
 
     parser.add_argument(
@@ -525,12 +829,12 @@ Examples:
         random_seed=args.seed
     )
 
-    # Prepare genomes
-    apply_vlp = not args.no_vlp
-    sequences, abundances = generator.prepare_genomes(
+    # Prepare genomes with VLP enrichment
+    vlp_protocol = None if args.no_vlp else args.vlp_protocol
+    sequences, abundances, enrichment_stats = generator.prepare_genomes(
         genomes,
-        apply_vlp=apply_vlp,
-        vlp_efficiency=args.vlp_efficiency
+        vlp_protocol=vlp_protocol,
+        contamination_level=args.contamination_level
     )
 
     # Write FASTA
@@ -543,12 +847,18 @@ Examples:
         'read_length': args.read_length,
         'insert_size': args.insert_size,
         'platform': args.platform,
-        'vlp_enrichment': apply_vlp,
-        'vlp_efficiency': args.vlp_efficiency if apply_vlp else None
+        'vlp_protocol': vlp_protocol if vlp_protocol else 'none',
+        'contamination_level': args.contamination_level
     }
 
-    # Export metadata
-    generator.export_metadata(collection_meta, genomes, abundances, config)
+    # Export metadata with enrichment stats
+    generator.export_metadata(
+        collection_meta,
+        sequences,
+        abundances,
+        config,
+        enrichment_stats
+    )
 
     if args.dry_run:
         logger.info("Dry run complete - FASTQ generation skipped")
@@ -567,20 +877,27 @@ Examples:
         n_reads=args.n_reads
     )
 
-    logger.info(f"""
+    # Format output message
+    output_msg = f"""
 ✓ FASTQ generation complete!
   Collection: {collection_meta['collection_name']}
-  Genomes: {len(genomes)}
+  Viral genomes: {enrichment_stats['n_viral_genomes']}
+  Contaminants: {enrichment_stats['n_contaminants']}
+  Total sequences: {enrichment_stats['n_viral_genomes'] + enrichment_stats['n_contaminants']}
   Coverage: {args.coverage}x
   Platform: {args.platform}
-  VLP enrichment: {apply_vlp}
+  VLP protocol: {vlp_protocol if vlp_protocol else 'none (bulk metagenome)'}
+  Contamination level: {args.contamination_level}
+  Viral fraction: {enrichment_stats['viral_fraction']*100:.2f}%
+  Contamination: {enrichment_stats['contamination_fraction']*100:.2f}%
 
   Output files:
     - R1: {r1_path}
     - R2: {r2_path}
     - FASTA: {fasta_path}
     - Metadata: {generator.metadata_dir}
-""")
+"""
+    logger.info(output_msg)
 
 
 if __name__ == '__main__':
