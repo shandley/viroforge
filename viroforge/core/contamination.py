@@ -87,20 +87,50 @@ class ContaminantGenome:
 
     def _calculate_gc_content(self) -> float:
         """
-        Calculate GC content percentage.
+        Calculate GC content percentage, handling ambiguous bases.
+
+        Ambiguous bases contribute fractionally:
+        - S (G/C): 1.0 GC
+        - R (A/G), K (G/T): 0.5 GC
+        - Y (C/T), M (A/C): 0.5 GC
+        - Other ambiguous: weighted by GC probability
+        - N: excluded from both numerator and denominator
 
         Returns:
             GC content as percentage (0-100)
         """
         seq_str = str(self.sequence).upper()
-        g_count = seq_str.count('G')
-        c_count = seq_str.count('C')
-        total = len(seq_str)
 
-        if total == 0:
+        # IUPAC ambiguity code GC contributions
+        gc_weights = {
+            'G': 1.0, 'C': 1.0,
+            'A': 0.0, 'T': 0.0, 'U': 0.0,
+            'R': 0.5,  # A or G
+            'Y': 0.5,  # C or T
+            'M': 0.5,  # A or C
+            'K': 0.5,  # G or T
+            'S': 1.0,  # G or C
+            'W': 0.0,  # A or T
+            'B': 0.67, # C/G/T (not A)
+            'D': 0.33, # A/G/T (not C)
+            'H': 0.33, # A/C/T (not G)
+            'V': 0.67, # A/C/G (not T)
+            'N': None  # Exclude from calculation
+        }
+
+        gc_sum = 0.0
+        valid_bases = 0
+
+        for base in seq_str:
+            weight = gc_weights.get(base, None)
+            if weight is not None:
+                gc_sum += weight
+                valid_bases += 1
+
+        if valid_bases == 0:
             return 0.0
 
-        return ((g_count + c_count) / total) * 100
+        return (gc_sum / valid_bases) * 100
 
     def to_dict(self) -> Dict:
         """

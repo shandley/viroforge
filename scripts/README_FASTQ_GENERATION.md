@@ -87,7 +87,6 @@ Platform-specific error models:
 #### VLP Enrichment
 
 - `--no-vlp` - Skip VLP enrichment simulation (generate bulk metagenome)
-- `--vlp-efficiency FLOAT` - VLP nuclease efficiency (default: 0.95)
 
 #### Other Options
 

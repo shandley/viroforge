@@ -22,6 +22,14 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+# Biological constants (literature-based)
+TYPICAL_VIRION_SIZE_NM = 100.0  # Median phage size (Danovaro et al. 2011)
+COLUMN_SIZE_NORMALIZATION_NM = 80.0  # Size at which column retention = 1.0
+                                      # Based on typical protein A column binding
+TECHNICAL_VARIATION_CV = 0.05  # 5% CV typical for VLP protocols (Lim et al. 2020)
+BACTERIAL_LYSIS_FRACTION = 0.30  # 30% cells lysed during VLP prep (Thurber et al. 2009)
+
+
 @dataclass
 class VirionSizeEstimate:
     """Estimated virion physical properties"""
@@ -328,9 +336,7 @@ class VLPEnrichment:
 
     Usage:
         vlp = VLPEnrichment(protocol=VLPProtocol.tangential_flow_standard())
-        enriched_abundances = vlp.apply_enrichment(
-            genomes, abundances, contamination_level='clean'
-        )
+        enriched_abundances, stats = vlp.apply_enrichment(genomes, abundances)
     """
 
     def __init__(
@@ -353,9 +359,7 @@ class VLPEnrichment:
     def apply_enrichment(
         self,
         genomes: List[Dict],
-        abundances: np.ndarray,
-        add_contamination: bool = True,
-        contamination_level: str = 'clean'
+        abundances: np.ndarray
     ) -> Tuple[np.ndarray, Dict]:
         """
         Apply VLP enrichment to genome abundances
@@ -363,8 +367,6 @@ class VLPEnrichment:
         Args:
             genomes: List of genome dictionaries with 'length' and 'genome_type'
             abundances: Numpy array of relative abundances (must sum to 1.0)
-            add_contamination: Whether to add contamination based on protocol efficiency
-            contamination_level: 'clean', 'realistic', 'heavy' (if add_contamination=True)
 
         Returns:
             Tuple of (enriched_abundances, enrichment_stats)
@@ -409,7 +411,7 @@ class VLPEnrichment:
                     # Column-based or other methods without pore size
                     # Use moderate size-dependent retention
                     # Smaller viruses retained less efficiently
-                    size_factor = min(1.0, size_est.estimated_diameter_nm / 100.0)
+                    size_factor = min(1.0, size_est.estimated_diameter_nm / TYPICAL_VIRION_SIZE_NM)
                     enrichment_factors[i] = 0.5 + 0.5 * size_factor
 
         elif self.protocol.filtration_method == 'column':
@@ -424,14 +426,14 @@ class VLPEnrichment:
                 size_estimates.append(size_est)
 
                 # Modest size bias (larger viruses bind better to columns)
-                size_factor = min(1.0, size_est.estimated_diameter_nm / 80.0)
+                size_factor = min(1.0, size_est.estimated_diameter_nm / COLUMN_SIZE_NORMALIZATION_NM)
                 enrichment_factors[i] = 0.6 + 0.4 * size_factor
 
         # Apply recovery rate (overall loss during processing)
         enrichment_factors *= self.protocol.recovery_rate
 
         # Add stochastic variation (biological and technical variability)
-        variation = self.rng.normal(1.0, 0.05, n_genomes)  # 5% CV
+        variation = self.rng.normal(1.0, TECHNICAL_VARIATION_CV, n_genomes)
         enrichment_factors *= variation
 
         # Apply enrichment
@@ -523,7 +525,7 @@ class VLPEnrichment:
                 if self.protocol.nuclease_treatment:
                     base_removal = self.protocol.nuclease_efficiency
                     # Add some variation (biological + technical)
-                    removal = base_removal * self.rng.normal(1.0, 0.05)
+                    removal = base_removal * self.rng.normal(1.0, TECHNICAL_VARIATION_CV)
                     removal = np.clip(removal, 0.85, 0.99)
                 else:
                     # Without nuclease, only filtration helps (minimal for free DNA)
@@ -560,7 +562,7 @@ class VLPEnrichment:
                 # Nuclease also helps if cells are lysed
                 if self.protocol.nuclease_treatment:
                     # Assume ~30% of bacteria are lysed
-                    lysed_fraction = 0.30
+                    lysed_fraction = BACTERIAL_LYSIS_FRACTION
                     additional_removal = lysed_fraction * self.protocol.nuclease_efficiency * 0.5
                     removal = min(0.99, removal + additional_removal)
 

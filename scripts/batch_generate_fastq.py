@@ -45,35 +45,49 @@ PRESETS = {
         'collections': [16, 11, 10],  # Mouse gut, Skin, Oral (smallest collections)
         'coverage': 1,
         'platform': 'miseq',
-        'vlp': True
+        'vlp_protocol': 'tangential_flow',
+        'contamination_level': 'clean'
     },
     'benchmark-standard': {
         'description': 'Standard benchmark suite - all collections, 10x coverage',
         'collections': [9, 10, 11, 12, 13, 14, 15, 16],  # All collections
         'coverage': 10,
         'platform': 'novaseq',
-        'vlp': True
+        'vlp_protocol': 'tangential_flow',
+        'contamination_level': 'realistic'
     },
     'vlp-comparison': {
         'description': 'VLP vs bulk comparison for selected collections',
         'collections': [9, 13],  # Gut and Marine
         'coverage': 10,
         'platforms': ['novaseq'],
+        'vlp_protocol': 'tangential_flow',
+        'contamination_level': 'realistic',
         'generate_both': True  # Both VLP and non-VLP
+    },
+    'vlp-protocol-comparison': {
+        'description': 'Compare different VLP protocols on gut virome',
+        'collections': [9],  # Gut
+        'coverage': 10,
+        'platform': 'novaseq',
+        'contamination_level': 'realistic',
+        'vlp_protocols': ['tangential_flow', 'syringe', 'ultracentrifugation', 'norgen', None]
     },
     'platform-comparison': {
         'description': 'Cross-platform comparison',
         'collections': [9],  # Gut
         'coverage': 10,
         'platforms': ['novaseq', 'miseq', 'hiseq'],
-        'vlp': True
+        'vlp_protocol': 'tangential_flow',
+        'contamination_level': 'realistic'
     },
     'coverage-series': {
         'description': 'Coverage depth series for gut virome',
         'collections': [9],  # Gut
         'coverages': [1, 5, 10, 20, 50],
         'platform': 'novaseq',
-        'vlp': True
+        'vlp_protocol': 'tangential_flow',
+        'contamination_level': 'realistic'
     }
 }
 
@@ -102,12 +116,14 @@ class BatchGenerator:
         name: str,
         coverage: float,
         platform: str = 'novaseq',
-        vlp: bool = True,
+        vlp_protocol: str = None,
+        contamination_level: str = 'realistic',
         seed: int = 42
     ) -> Dict:
         """Generate single dataset."""
         # Create output path
-        dataset_name = f"{name}_cov{coverage}x_{platform}{'_vlp' if vlp else '_bulk'}"
+        protocol_suffix = vlp_protocol if vlp_protocol else 'bulk'
+        dataset_name = f"{name}_cov{coverage}x_{platform}_{protocol_suffix}"
         output_path = self.output_dir / dataset_name
 
         # Build command
@@ -117,11 +133,14 @@ class BatchGenerator:
             '--output', str(output_path),
             '--coverage', str(coverage),
             '--platform', platform,
+            '--contamination-level', contamination_level,
             '--seed', str(seed)
         ]
 
-        if not vlp:
+        if vlp_protocol is None:
             cmd.append('--no-vlp')
+        else:
+            cmd.extend(['--vlp-protocol', vlp_protocol])
 
         if self.dry_run:
             cmd.append('--dry-run')
@@ -130,14 +149,16 @@ class BatchGenerator:
         logger.info(f"  Collection: {collection_id}")
         logger.info(f"  Coverage: {coverage}x")
         logger.info(f"  Platform: {platform}")
-        logger.info(f"  VLP: {vlp}")
+        logger.info(f"  VLP protocol: {vlp_protocol if vlp_protocol else 'none (bulk)'}")
+        logger.info(f"  Contamination: {contamination_level}")
 
         result = {
             'dataset_name': dataset_name,
             'collection_id': collection_id,
             'coverage': coverage,
             'platform': platform,
-            'vlp': vlp,
+            'vlp_protocol': vlp_protocol,
+            'contamination_level': contamination_level,
             'output_path': str(output_path),
             'command': ' '.join(cmd),
             'start_time': datetime.now().isoformat()
@@ -178,13 +199,27 @@ class BatchGenerator:
         if 'generate_both' in preset and preset['generate_both']:
             # VLP comparison - generate both VLP and non-VLP
             for collection_id in preset['collections']:
-                for vlp in [True, False]:
+                for vlp_protocol in [preset.get('vlp_protocol', 'tangential_flow'), None]:
                     self.generate_dataset(
                         collection_id=collection_id,
                         name=f"collection_{collection_id}",
                         coverage=preset['coverage'],
                         platform=preset.get('platform', 'novaseq'),
-                        vlp=vlp
+                        vlp_protocol=vlp_protocol,
+                        contamination_level=preset.get('contamination_level', 'realistic')
+                    )
+
+        elif 'vlp_protocols' in preset:
+            # VLP protocol comparison
+            for collection_id in preset['collections']:
+                for vlp_protocol in preset['vlp_protocols']:
+                    self.generate_dataset(
+                        collection_id=collection_id,
+                        name=f"collection_{collection_id}",
+                        coverage=preset['coverage'],
+                        platform=preset.get('platform', 'novaseq'),
+                        vlp_protocol=vlp_protocol,
+                        contamination_level=preset.get('contamination_level', 'realistic')
                     )
 
         elif 'platforms' in preset:
@@ -196,7 +231,8 @@ class BatchGenerator:
                         name=f"collection_{collection_id}",
                         coverage=preset['coverage'],
                         platform=platform,
-                        vlp=preset.get('vlp', True)
+                        vlp_protocol=preset.get('vlp_protocol', 'tangential_flow'),
+                        contamination_level=preset.get('contamination_level', 'realistic')
                     )
 
         elif 'coverages' in preset:
@@ -208,7 +244,8 @@ class BatchGenerator:
                         name=f"collection_{collection_id}",
                         coverage=coverage,
                         platform=preset['platform'],
-                        vlp=preset.get('vlp', True)
+                        vlp_protocol=preset.get('vlp_protocol', 'tangential_flow'),
+                        contamination_level=preset.get('contamination_level', 'realistic')
                     )
 
         else:
@@ -219,7 +256,8 @@ class BatchGenerator:
                     name=f"collection_{collection_id}",
                     coverage=preset['coverage'],
                     platform=preset.get('platform', 'novaseq'),
-                    vlp=preset.get('vlp', True)
+                    vlp_protocol=preset.get('vlp_protocol', 'tangential_flow'),
+                    contamination_level=preset.get('contamination_level', 'realistic')
                 )
 
     def run_config(self, config_path: Path):
@@ -325,7 +363,13 @@ Examples:
         logger.info("\n✓ Batch generation complete!")
 
     except Exception as e:
-        logger.error(f"Batch generation failed: {e}")
+        logger.error(f"Batch generation encountered error: {e}")
+        # Still export partial summary
+        logger.info("Exporting partial results summary...")
+        try:
+            generator.export_summary()
+        except Exception as summary_error:
+            logger.error(f"Failed to export summary: {summary_error}")
         sys.exit(1)
 
 

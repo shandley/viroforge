@@ -767,14 +767,6 @@ Examples:
         help='Contamination level (default: realistic)'
     )
 
-    # Keep for backward compatibility but deprecated
-    parser.add_argument(
-        '--vlp-efficiency',
-        type=float,
-        default=0.95,
-        help='[DEPRECATED] Use --vlp-protocol instead'
-    )
-
     parser.add_argument(
         '--seed',
         type=int,
