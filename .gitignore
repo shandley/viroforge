@@ -28,6 +28,7 @@ venv/
 ENV/
 env/
 .venv
+.venv_test/
 
 # IDEs
 .vscode/
@@ -36,6 +37,9 @@ env/
 *.swo
 *~
 .DS_Store
+
+# Claude Code
+.claude/agents/
 
 # Testing
 .tox/
