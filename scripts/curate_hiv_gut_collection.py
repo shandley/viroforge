@@ -107,18 +107,22 @@ class HIVGutCurator:
         logger.info(f"  Anelloviridae (TTV): {len(anello)}")
 
         # Herpesviridae (reactivation) - 30% of eukaryotic
+        # Updated to Orthoherpesviridae after taxonomy fix
+        # CRITICAL: Select HUMAN herpesviruses for HIV+ collection
         query = """
         SELECT DISTINCT g.genome_id, g.genome_name, t.family, t.genus, t.species, g.length, g.gc_content
         FROM genomes g
         JOIN taxonomy t ON g.genome_id = t.genome_id
-        WHERE t.family = 'Herpesviridae'
-           OR t.genus LIKE '%Cytomegalovirus%'
-           OR t.genus LIKE '%Lymphocryptovirus%'
+        WHERE t.family IN ('Herpesviridae', 'Orthoherpesviridae', 'Alloherpesviridae')
+          AND (g.genome_name LIKE 'Human herpesvirus%'
+           OR g.genome_name LIKE 'Human betaherpesvirus%'
+           OR g.genome_name LIKE 'Human gammaherpesvirus%'
+           OR g.genome_name LIKE 'Human alphaherpesvirus%')
         ORDER BY RANDOM()
         LIMIT ?
         """
         herpes = [dict(row) for row in self.conn.execute(query, (int(n_target * 0.3),))]
-        logger.info(f"  Herpesviridae (CMV, EBV): {len(herpes)}")
+        logger.info(f"  Human Orthoherpesviridae (CMV, EBV, HHV): {len(herpes)}")
 
         # Adenoviridae - 20% of eukaryotic
         query = """
