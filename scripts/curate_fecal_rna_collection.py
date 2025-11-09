@@ -88,7 +88,7 @@ class FecalRNACurator:
         SELECT DISTINCT g.genome_id, g.genome_name, t.family, t.genus, t.species, g.length, g.gc_content
         FROM genomes g
         JOIN taxonomy t ON g.genome_id = t.genome_id
-        WHERE t.family = 'Reoviridae'
+        WHERE (t.family = 'Reoviridae' OR t.family = 'Sedoreoviridae')
           AND (g.genome_name LIKE '%Rotavirus%'
            OR g.genome_name LIKE '%rotavirus%'
            OR g.genome_name LIKE '%Reovirus%'
@@ -98,7 +98,7 @@ class FecalRNACurator:
         """
 
         reoviruses = [dict(row) for row in self.conn.execute(query, (n_target,))]
-        logger.info(f"  Reoviridae (Rotavirus, Reovirus): {len(reoviruses)}")
+        logger.info(f"  Sedoreoviridae/Reoviridae (Rotavirus, Reovirus): {len(reoviruses)}")
         return reoviruses
 
     def get_astroviruses(self, n_target: int = 8) -> List[Dict]:

@@ -87,7 +87,7 @@ idae, Picornaviridae
         astro = [dict(row) for row in self.conn.execute(query, (max(int(n_target * 0.10), 5),))]
         logger.info(f"  Astroviridae: {len(astro)}")
 
-        # Picornaviridae (Enterovirus, Poliovirus) - ~25% of enteric
+        # Picornaviridae (Enterovirus, Poliovirus) - ~20% of enteric
         query = """
         SELECT g.genome_id, g.genome_name, t.family, t.genus, t.species, g.length, g.gc_content
         FROM genomes g
@@ -96,10 +96,24 @@ idae, Picornaviridae
         ORDER BY RANDOM()
         LIMIT ?
         """
-        picorna = [dict(row) for row in self.conn.execute(query, (int(n_target * 0.25),))]
+        picorna = [dict(row) for row in self.conn.execute(query, (int(n_target * 0.20),))]
         logger.info(f"  Picornaviridae (Enterovirus, Polio): {len(picorna)}")
 
-        enteric = calici + adeno + astro + picorna
+        # Sedoreoviridae (Rotavirus) - ~5% of enteric (seasonal, newly available after taxonomy fix)
+        query = """
+        SELECT g.genome_id, g.genome_name, t.family, t.genus, t.species, g.length, g.gc_content
+        FROM genomes g
+        JOIN taxonomy t ON g.genome_id = t.genome_id
+        WHERE t.family = 'Sedoreoviridae'
+           OR g.genome_name LIKE '%Rotavirus%'
+           OR g.genome_name LIKE '%rotavirus%'
+        ORDER BY RANDOM()
+        LIMIT ?
+        """
+        rotavirus = [dict(row) for row in self.conn.execute(query, (max(int(n_target * 0.05), 5),))]
+        logger.info(f"  Sedoreoviridae (Rotavirus): {len(rotavirus)}")
+
+        enteric = calici + adeno + astro + picorna + rotavirus
         logger.info(f"  Total enteric viruses: {len(enteric)}")
         return enteric
 
