@@ -196,6 +196,66 @@ class TestFASTQGeneration:
         fastq_files = list((temp_output / 'fastq').glob('*.fastq'))
         assert len(fastq_files) == 0, "FASTQ files generated in dry-run mode"
 
+    def test_amplification_rdab(self, generation_script, temp_output):
+        """Test FASTQ generation with RdAB amplification"""
+        cmd = [
+            'python', str(generation_script),
+            '--collection-id', '16',
+            '--output', str(temp_output),
+            '--n-reads', '100',
+            '--vlp-protocol', 'tangential_flow',
+            '--contamination-level', 'clean',
+            '--amplification', 'rdab',
+            '--seed', '42'
+        ]
+
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        assert result.returncode == 0, f"RdAB generation failed: {result.stderr}"
+
+        # Check metadata includes amplification stats
+        metadata_file = list((temp_output / 'metadata').glob('*_metadata.json'))[0]
+        with open(metadata_file) as f:
+            metadata = json.load(f)
+
+        assert 'amplification_stats' in metadata, "Amplification stats missing"
+        assert metadata['amplification_stats']['method'] == 'rdab'
+        assert metadata['amplification_stats']['bias_applied'] == True
+        assert 'mean_fold_change' in metadata['amplification_stats']
+
+    def test_all_amplification_methods(self, generation_script, temp_output):
+        """Test that all amplification methods generate successfully"""
+        methods = ['none', 'rdab', 'rdab-30', 'mda', 'mda-long', 'linker']
+
+        for method in methods:
+            method_output = temp_output / method
+            cmd = [
+                'python', str(generation_script),
+                '--collection-id', '16',
+                '--output', str(method_output),
+                '--n-reads', '100',
+                '--vlp-protocol', 'tangential_flow',
+                '--contamination-level', 'clean',
+                '--amplification', method,
+                '--seed', '42'
+            ]
+
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            assert result.returncode == 0, f"Amplification method {method} failed: {result.stderr}"
+
+            # Check metadata
+            metadata_file = list((method_output / 'metadata').glob('*_metadata.json'))[0]
+            with open(metadata_file) as f:
+                metadata = json.load(f)
+
+            assert metadata['amplification_stats']['method'] == method
+
+            if method == 'none':
+                assert metadata['amplification_stats']['bias_applied'] == False
+            else:
+                assert metadata['amplification_stats']['bias_applied'] == True
+                # Should have non-trivial fold changes for biased methods
+                assert metadata['amplification_stats']['mean_fold_change'] > 0
+
 
 class TestVLPEnrichmentStats:
     """Test VLP enrichment statistics"""
@@ -363,6 +423,35 @@ class TestBatchGeneration:
         for protocol in expected_protocols:
             matches = [name for name in protocol_names if protocol in name]
             assert len(matches) >= 1, f"Protocol {protocol} not found in generated datasets"
+
+    def test_amplification_comparison_preset(self, batch_script, temp_output):
+        """Test amplification comparison preset"""
+        cmd = [
+            'python', str(batch_script),
+            '--preset', 'amplification-comparison',
+            '--output', str(temp_output),
+            '--dry-run'
+        ]
+
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        assert result.returncode == 0, f"Batch generation failed: {result.stderr}"
+
+        # Should generate 6 datasets (6 amplification methods)
+        datasets = list(temp_output.glob('collection_*'))
+        assert len(datasets) == 6, f"Expected 6 datasets, got {len(datasets)}"
+
+        # Check amplification method names in dataset folders
+        dataset_names = [d.name for d in datasets]
+        expected_methods = ['rdab', 'rdab-30', 'mda', 'mda-long', 'linker']
+
+        # Check that we have one baseline (no suffix for 'none')
+        baseline = [name for name in dataset_names if not any(method in name for method in expected_methods)]
+        assert len(baseline) == 1, f"Expected 1 baseline dataset (none), got {len(baseline)}"
+
+        # Check that all amplification methods are present
+        for method in expected_methods:
+            matches = [name for name in dataset_names if method in name]
+            assert len(matches) >= 1, f"Amplification method {method} not found in generated datasets"
 
 
 if __name__ == '__main__':

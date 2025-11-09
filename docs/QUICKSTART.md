@@ -97,6 +97,40 @@ python scripts/generate_fastq_dataset.py \
 
 Runtime: 10-15 minutes
 
+### Different VLP Protocols
+
+```bash
+# Tangential flow filtration (default - highest purity)
+python scripts/generate_fastq_dataset.py \
+    --collection-id 9 \
+    --output gut_tff \
+    --coverage 10 \
+    --vlp-protocol tangential_flow
+
+# Ultracentrifugation (highest recovery)
+python scripts/generate_fastq_dataset.py \
+    --collection-id 9 \
+    --output gut_ultra \
+    --coverage 10 \
+    --vlp-protocol ultracentrifugation
+
+# Syringe filter (field-friendly)
+python scripts/generate_fastq_dataset.py \
+    --collection-id 9 \
+    --output gut_syringe \
+    --coverage 10 \
+    --vlp-protocol syringe
+
+# Norgen kit (convenient)
+python scripts/generate_fastq_dataset.py \
+    --collection-id 9 \
+    --output gut_norgen \
+    --coverage 10 \
+    --vlp-protocol norgen
+```
+
+VLP Protocols: `tangential_flow`, `syringe`, `ultracentrifugation`, `norgen`
+
 ### Bulk Metagenome (No VLP)
 
 ```bash
@@ -107,6 +141,87 @@ python scripts/generate_fastq_dataset.py \
     --coverage 10 \
     --no-vlp
 ```
+
+### Contamination Levels
+
+```bash
+# Clean VLP enrichment (minimal contamination)
+python scripts/generate_fastq_dataset.py \
+    --collection-id 9 \
+    --output gut_clean \
+    --coverage 10 \
+    --contamination-level clean
+
+# Realistic VLP enrichment (typical contamination)
+python scripts/generate_fastq_dataset.py \
+    --collection-id 9 \
+    --output gut_realistic \
+    --coverage 10 \
+    --contamination-level realistic
+
+# Heavy contamination (sub-optimal VLP)
+python scripts/generate_fastq_dataset.py \
+    --collection-id 9 \
+    --output gut_heavy \
+    --coverage 10 \
+    --contamination-level heavy
+```
+
+Contamination Levels: `clean` (~0.7%), `realistic` (~7.4%), `heavy` (~27%)
+
+### Library Preparation Amplification ⭐ NEW (Phase 6)
+
+```bash
+# No amplification (default - high biomass samples)
+python scripts/generate_fastq_dataset.py \
+    --collection-id 9 \
+    --output gut_no_amp \
+    --coverage 10 \
+    --amplification none
+
+# RdAB with 40 cycles (standard virome protocol)
+python scripts/generate_fastq_dataset.py \
+    --collection-id 9 \
+    --output gut_rdab \
+    --coverage 10 \
+    --amplification rdab
+
+# RdAB with 30 cycles (moderate bias)
+python scripts/generate_fastq_dataset.py \
+    --collection-id 9 \
+    --output gut_rdab30 \
+    --coverage 10 \
+    --amplification rdab-30
+
+# MDA 4 hours (low biomass samples)
+python scripts/generate_fastq_dataset.py \
+    --collection-id 9 \
+    --output gut_mda \
+    --coverage 10 \
+    --amplification mda
+
+# MDA overnight (very low biomass)
+python scripts/generate_fastq_dataset.py \
+    --collection-id 9 \
+    --output gut_mda_long \
+    --coverage 10 \
+    --amplification mda-long
+
+# Linker-based (minimal bias, modern kits)
+python scripts/generate_fastq_dataset.py \
+    --collection-id 9 \
+    --output gut_linker \
+    --coverage 10 \
+    --amplification linker
+```
+
+Amplification Methods:
+- `none` - No amplification (control, high biomass)
+- `rdab` - RdAB 40 cycles (standard, length + GC bias)
+- `rdab-30` - RdAB 30 cycles (moderate bias)
+- `mda` - MDA 4h (extreme GC bias + stochasticity)
+- `mda-long` - MDA 16h (very extreme bias)
+- `linker` - Linker-based (minimal GC bias only)
 
 ### Different Sequencing Platform
 
@@ -130,13 +245,24 @@ Platforms: `novaseq`, `miseq`, `hiseq`
 python scripts/batch_generate_fastq.py \
     --preset benchmark-standard \
     --output benchmarks
+
+# Compare all VLP protocols (Phase 5)
+python scripts/batch_generate_fastq.py \
+    --preset vlp-protocol-comparison \
+    --output vlp_comparison
+
+# Compare amplification methods (Phase 6) ⭐ NEW
+python scripts/batch_generate_fastq.py \
+    --preset amplification-comparison \
+    --output amplification_comparison
 ```
 
-Runtime: Several hours
+Runtime: Several hours (benchmark-standard), 20-30 minutes (vlp-protocol-comparison)
 
 Other presets:
 - `quick-test` - Fast test (3 collections, 1x coverage)
-- `vlp-comparison` - VLP vs bulk
+- `vlp-protocol-comparison` - All 5 VLP protocols (tangential_flow, syringe, ultra, norgen, bulk)
+- `vlp-comparison` - VLP vs bulk for 2 collections
 - `platform-comparison` - NovaSeq vs MiSeq vs HiSeq
 - `coverage-series` - 1x, 5x, 10x, 20x, 50x
 
@@ -179,12 +305,17 @@ output_dir/
 ```
 
 **Ground truth metadata** contains:
-- Exact viral composition
+- Exact viral composition (viral genomes + contaminants)
 - Genome IDs, names, taxonomy
 - Relative abundances
 - Coverage and platform parameters
+- **VLP enrichment statistics** (Phase 5):
+  - Viral fraction before/after VLP
+  - Contamination reduction by type (host DNA, rRNA, bacteria, PhiX)
+  - Overall contamination removal percentage
+  - VLP protocol used
 
-Use this to validate your pipeline results.
+Use this to validate your pipeline results and understand VLP effects.
 
 ---
 
@@ -205,18 +336,28 @@ Use this to validate your pipeline results.
 --insert-size 350    # bp (default)
 ```
 
-### VLP Enrichment
+### VLP Enrichment (Phase 5 Enhanced)
 
 ```bash
-# With VLP (default)
+# With VLP (default: tangential flow filtration)
 (no flag needed)
 
-# Without VLP
+# Specify VLP protocol
+--vlp-protocol tangential_flow    # Highest purity (91% contamination reduction)
+--vlp-protocol ultracentrifugation # Highest recovery (90% viral recovery)
+--vlp-protocol syringe             # Field-friendly (60% recovery, 86% reduction)
+--vlp-protocol norgen              # Column-based kit (70% recovery, 87% reduction)
+
+# Without VLP (bulk metagenome)
 --no-vlp
 
-# Custom VLP efficiency
---vlp-efficiency 0.90
+# Specify contamination level
+--contamination-level clean        # ~0.7% initial contamination
+--contamination-level realistic    # ~7.4% initial (default)
+--contamination-level heavy        # ~27% initial
 ```
+
+See [VLP Protocol Comparison Tutorial](VLP_PROTOCOL_COMPARISON_TUTORIAL.md) for detailed protocol comparison.
 
 ### Reproducibility
 
@@ -341,14 +482,21 @@ See [USER_GUIDE.md](USER_GUIDE.md) for complete Python API documentation.
 
 ## Documentation
 
-**Detailed Guides**:
-- [FASTQ Generation](PHASE4_FASTQ_GENERATION.md) - Complete documentation
-- [Collection Implementation](COLLECTION_IMPLEMENTATION_GUIDE.md) - How collections were curated
+**Getting Started**:
+- **This guide** - Quick start in 5 minutes
+- [VLP Protocol Comparison Tutorial](VLP_PROTOCOL_COMPARISON_TUTORIAL.md) - Compare all VLP protocols (Phase 5)
+- [FASTQ Generation Guide](PHASE4_FASTQ_GENERATION.md) - Complete technical documentation
 - [Scripts README](../scripts/README_FASTQ_GENERATION.md) - All command-line options
+
+**Advanced Topics**:
+- [User Guide](USER_GUIDE.md) - Comprehensive Python API documentation
+- [Collection Implementation](COLLECTION_IMPLEMENTATION_GUIDE.md) - How collections were curated
+- [VLP Integration Guide](VLP_CONTAMINATION_INTEGRATION.md) - VLP enrichment technical details
+- [Phase 5 Validation Report](PHASE5_TASK3_VALIDATION_REPORT.md) - Literature validation results
 
 **Database**:
 - 14,423 RefSeq viral genomes
-- ICTV taxonomy integration
+- ICTV taxonomy integration (53.9% coverage)
 - 8 curated body site collections
 - Literature-validated compositions
 

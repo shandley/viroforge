@@ -87,7 +87,17 @@ PRESETS = {
         'coverages': [1, 5, 10, 20, 50],
         'platform': 'novaseq',
         'vlp_protocol': 'tangential_flow',
-        'contamination_level': 'realistic'
+        'contamination_level': 'realistic',
+        'amplification': 'none'
+    },
+    'amplification-comparison': {
+        'description': 'Compare library preparation amplification methods',
+        'collections': [9],  # Gut
+        'coverage': 10,
+        'platform': 'novaseq',
+        'vlp_protocol': 'tangential_flow',
+        'contamination_level': 'realistic',
+        'amplification_methods': ['none', 'rdab', 'rdab-30', 'mda', 'mda-long', 'linker']
     }
 }
 
@@ -118,12 +128,14 @@ class BatchGenerator:
         platform: str = 'novaseq',
         vlp_protocol: str = None,
         contamination_level: str = 'realistic',
+        amplification: str = 'none',
         seed: int = 42
     ) -> Dict:
         """Generate single dataset."""
         # Create output path
         protocol_suffix = vlp_protocol if vlp_protocol else 'bulk'
-        dataset_name = f"{name}_cov{coverage}x_{platform}_{protocol_suffix}"
+        amp_suffix = f"_{amplification}" if amplification != 'none' else ''
+        dataset_name = f"{name}_cov{coverage}x_{platform}_{protocol_suffix}{amp_suffix}"
         output_path = self.output_dir / dataset_name
 
         # Build command
@@ -134,6 +146,7 @@ class BatchGenerator:
             '--coverage', str(coverage),
             '--platform', platform,
             '--contamination-level', contamination_level,
+            '--amplification', amplification,
             '--seed', str(seed)
         ]
 
@@ -151,6 +164,7 @@ class BatchGenerator:
         logger.info(f"  Platform: {platform}")
         logger.info(f"  VLP protocol: {vlp_protocol if vlp_protocol else 'none (bulk)'}")
         logger.info(f"  Contamination: {contamination_level}")
+        logger.info(f"  Amplification: {amplification}")
 
         result = {
             'dataset_name': dataset_name,
@@ -159,6 +173,7 @@ class BatchGenerator:
             'platform': platform,
             'vlp_protocol': vlp_protocol,
             'contamination_level': contamination_level,
+            'amplification': amplification,
             'output_path': str(output_path),
             'command': ' '.join(cmd),
             'start_time': datetime.now().isoformat()
@@ -206,7 +221,8 @@ class BatchGenerator:
                         coverage=preset['coverage'],
                         platform=preset.get('platform', 'novaseq'),
                         vlp_protocol=vlp_protocol,
-                        contamination_level=preset.get('contamination_level', 'realistic')
+                        contamination_level=preset.get('contamination_level', 'realistic'),
+                        amplification=preset.get('amplification', 'none')
                     )
 
         elif 'vlp_protocols' in preset:
@@ -219,7 +235,8 @@ class BatchGenerator:
                         coverage=preset['coverage'],
                         platform=preset.get('platform', 'novaseq'),
                         vlp_protocol=vlp_protocol,
-                        contamination_level=preset.get('contamination_level', 'realistic')
+                        contamination_level=preset.get('contamination_level', 'realistic'),
+                        amplification=preset.get('amplification', 'none')
                     )
 
         elif 'platforms' in preset:
@@ -232,7 +249,8 @@ class BatchGenerator:
                         coverage=preset['coverage'],
                         platform=platform,
                         vlp_protocol=preset.get('vlp_protocol', 'tangential_flow'),
-                        contamination_level=preset.get('contamination_level', 'realistic')
+                        contamination_level=preset.get('contamination_level', 'realistic'),
+                        amplification=preset.get('amplification', 'none')
                     )
 
         elif 'coverages' in preset:
@@ -245,7 +263,22 @@ class BatchGenerator:
                         coverage=coverage,
                         platform=preset['platform'],
                         vlp_protocol=preset.get('vlp_protocol', 'tangential_flow'),
-                        contamination_level=preset.get('contamination_level', 'realistic')
+                        contamination_level=preset.get('contamination_level', 'realistic'),
+                        amplification=preset.get('amplification', 'none')
+                    )
+
+        elif 'amplification_methods' in preset:
+            # Amplification method comparison
+            for collection_id in preset['collections']:
+                for amplification_method in preset['amplification_methods']:
+                    self.generate_dataset(
+                        collection_id=collection_id,
+                        name=f"collection_{collection_id}",
+                        coverage=preset['coverage'],
+                        platform=preset.get('platform', 'novaseq'),
+                        vlp_protocol=preset.get('vlp_protocol', 'tangential_flow'),
+                        contamination_level=preset.get('contamination_level', 'realistic'),
+                        amplification=amplification_method
                     )
 
         else:
@@ -257,7 +290,8 @@ class BatchGenerator:
                     coverage=preset['coverage'],
                     platform=preset.get('platform', 'novaseq'),
                     vlp_protocol=preset.get('vlp_protocol', 'tangential_flow'),
-                    contamination_level=preset.get('contamination_level', 'realistic')
+                    contamination_level=preset.get('contamination_level', 'realistic'),
+                    amplification=preset.get('amplification', 'none')
                 )
 
     def run_config(self, config_path: Path):

@@ -1,8 +1,8 @@
 # Phase 4: FASTQ Generation Workflows
 
-**Status**: ✅ Completed
-**Date**: 2025-11-01
-**ViroForge Version**: 0.3.0
+**Status**: ✅ Completed (Enhanced in Phase 5 & 6)
+**Date**: 2025-11-01 (Updated: 2025-11-09)
+**ViroForge Version**: 0.5.0-dev
 
 ## Overview
 
@@ -18,19 +18,27 @@ Generates FASTQ files from a single body site collection with configurable param
 
 **Key Features**:
 - Loads genomes directly from SQLite database
-- Simulates VLP enrichment (optional)
+- Enhanced VLP enrichment with 5 protocols (Phase 5)
+- Size-based filtration and contamination reduction
 - Integrates with InSilicoSeq for realistic error profiles
 - Exports complete ground truth metadata (JSON + TSV)
 - Supports NovaSeq, MiSeq, and HiSeq platforms
 
 **Usage**:
 ```bash
-# Generate gut virome with VLP enrichment
+# Generate gut virome with VLP enrichment (default: tangential flow)
 python scripts/generate_fastq_dataset.py \
     --collection-id 9 \
     --output data/fastq/gut_virome \
     --coverage 10 \
     --platform novaseq
+
+# Specify VLP protocol
+python scripts/generate_fastq_dataset.py \
+    --collection-id 9 \
+    --output data/fastq/gut_ultracentrifuge \
+    --coverage 10 \
+    --vlp-protocol ultracentrifugation
 
 # List available collections
 python scripts/generate_fastq_dataset.py --list-collections
@@ -41,6 +49,27 @@ python scripts/generate_fastq_dataset.py \
     --output data/fastq/marine_bulk \
     --no-vlp \
     --coverage 10
+
+# Specify contamination level
+python scripts/generate_fastq_dataset.py \
+    --collection-id 9 \
+    --output data/fastq/gut_heavy_contam \
+    --coverage 10 \
+    --contamination-level heavy
+
+# Add amplification bias (Phase 6) ⭐ NEW
+python scripts/generate_fastq_dataset.py \
+    --collection-id 9 \
+    --output data/fastq/gut_rdab \
+    --coverage 10 \
+    --amplification rdab
+
+# MDA amplification for low biomass samples
+python scripts/generate_fastq_dataset.py \
+    --collection-id 9 \
+    --output data/fastq/gut_mda \
+    --coverage 10 \
+    --amplification mda
 ```
 
 **Key Classes**:
@@ -74,17 +103,29 @@ Automates generation of multiple datasets with different configurations.
    - Coverage: 10x
    - Platform: NovaSeq
 
-3. **`vlp-comparison`**: VLP vs bulk comparison
+3. **`vlp-protocol-comparison`**: Compare all VLP protocols (Phase 5)
+   - Collection: Gut
+   - Protocols: tangential_flow, syringe, ultracentrifugation, norgen, bulk
+   - Coverage: 10x
+   - Generates 5 datasets for direct comparison
+
+4. **`amplification-comparison`**: Compare amplification methods (Phase 6) ⭐ NEW
+   - Collection: Gut
+   - Methods: none, rdab, rdab-30, mda, mda-long, linker
+   - Coverage: 10x
+   - Generates 6 datasets for method comparison
+
+5. **`vlp-comparison`**: VLP vs bulk comparison
    - Collections: Gut and Marine
    - Generates both VLP and non-VLP versions
    - Coverage: 10x
 
-4. **`platform-comparison`**: Cross-platform comparison
+6. **`platform-comparison`**: Cross-platform comparison
    - Collection: Gut
    - Platforms: NovaSeq, MiSeq, HiSeq
    - Coverage: 10x
 
-5. **`coverage-series`**: Coverage depth series
+7. **`coverage-series`**: Coverage depth series
    - Collection: Gut
    - Coverages: 1x, 5x, 10x, 20x, 50x
    - Platform: NovaSeq
@@ -100,6 +141,11 @@ python scripts/batch_generate_fastq.py \
 python scripts/batch_generate_fastq.py \
     --preset benchmark-standard \
     --output data/benchmark_datasets
+
+# Compare VLP protocols (Phase 5)
+python scripts/batch_generate_fastq.py \
+    --preset vlp-protocol-comparison \
+    --output data/vlp_protocols
 
 # Use custom config file
 python scripts/batch_generate_fastq.py \
@@ -126,17 +172,42 @@ output_dir/
 
 ## Technical Details
 
-### VLP Enrichment Simulation
+### Enhanced VLP Enrichment Modeling (Phase 5)
 
-VLP (Virus-Like Particle) enrichment is simulated by adjusting relative abundances:
+VLP (Virus-Like Particle) enrichment now uses a comprehensive biological model with size-based filtration and type-specific contamination reduction.
 
-```python
-if apply_vlp:
-    # Increase viral recovery ~20% with variation
-    abundance = abundance * (1.0 + np.random.normal(0.2, 0.05))
-```
+#### Available VLP Protocols
 
-This simulates the enrichment effect of nuclease treatment that removes non-encapsidated DNA.
+| Protocol | Filtration Method | Pore Size | Nuclease Efficiency | Viral Recovery | Contamination Reduction |
+|----------|------------------|-----------|---------------------|----------------|------------------------|
+| **tangential_flow** | 0.2 μm TFF | 0.2 μm | 98% | 85% | 91.2% |
+| **syringe** | 0.22 μm syringe | 0.22 μm | 90% | 60% | 85.7% |
+| **ultracentrifugation** | Density gradient | N/A | 95% | 90% | 88.4% |
+| **norgen** | Column-based | N/A | 92% | 70% | 87.1% |
+| **none** (--no-vlp) | Bulk metagenome | N/A | 0% | 100% | 0% |
+
+#### VLP Enrichment Features
+
+**1. Virion Size Estimation**
+- Genome length and type (dsDNA, ssDNA, ssRNA, dsRNA) used to estimate virion diameter
+- Based on empirical relationships from literature (Cui et al. 2014, Nasir et al. 2017)
+
+**2. Size-Based Filtration**
+- Protocol-specific retention curves (sigmoid for TFF, step for syringe)
+- Smaller viruses partially lost during filtration
+- Larger contaminants (bacteria) highly removed
+
+**3. Type-Specific Contamination Reduction**
+- **Host DNA**: 90-98% removal (DNase treatment)
+- **rRNA**: 85-95% removal (RNase + size-based)
+- **Bacteria**: 94-99% removal (filtration)
+- **PhiX**: 10-40% retention (treated as small virus)
+
+**4. Stochastic Variation**
+- Realistic biological and technical variability
+- 5-15% coefficient of variation depending on mechanism
+
+See [VLP Integration Guide](VLP_CONTAMINATION_INTEGRATION.md) for detailed implementation.
 
 ### Coverage Calculation
 
@@ -193,30 +264,56 @@ ISS parameters used:
 
 ### Ground Truth Metadata Example
 
-**JSON** (`metadata.json`):
+**JSON** (`metadata.json`) - Enhanced with Phase 5 VLP Statistics:
 ```json
 {
   "generation_info": {
-    "timestamp": "2025-11-01T18:22:09.895652",
-    "viroforge_version": "0.3.0",
+    "timestamp": "2025-11-08T18:22:09.895652",
+    "viroforge_version": "0.4.0",
     "random_seed": 42
   },
   "collection": {
-    "id": 16,
-    "name": "Mouse Gut Virome - Laboratory (C57BL/6)",
-    "description": "Mouse gut virome from laboratory C57BL/6 mice...",
-    "n_genomes": 22
+    "id": 9,
+    "name": "Gut Virome - Adult Healthy (Western Diet)",
+    "description": "Gut virome from healthy adults...",
+    "n_genomes": 134
   },
   "configuration": {
-    "coverage": 1.0,
-    "n_reads": null,
+    "coverage": 10.0,
     "read_length": 150,
     "insert_size": 350,
-    "platform": "miseq",
-    "vlp_enrichment": true,
-    "vlp_efficiency": 0.95
+    "platform": "novaseq",
+    "vlp_protocol": "tangential_flow",
+    "contamination_level": "realistic"
   },
-  "genomes": [...]
+  "enrichment_statistics": {
+    "vlp_protocol": "tangential_flow",
+    "viral_fraction_before": 0.926,
+    "viral_fraction_after": 0.993,
+    "viral_enrichment_fold_change": 1.07,
+    "contamination_reduction": {
+      "overall_reduction": 0.912,
+      "host_dna_removal": 0.964,
+      "rrna_removal": 0.891,
+      "bacteria_removal": 0.990,
+      "phix_retention": 0.600
+    }
+  },
+  "sequences": [
+    {
+      "genome_id": "GCF_000001405.40",
+      "genome_name": "Enterobacteria phage T7",
+      "type": "viral",
+      "length": 39937,
+      "gc_content": 0.485,
+      "relative_abundance": 0.0234,
+      "taxonomy": {
+        "family": "Podoviridae",
+        "genus": "T7virus",
+        "species": "Enterobacteria phage T7"
+      }
+    }
+  ]
 }
 ```
 
@@ -274,14 +371,22 @@ List available collections:
 python scripts/generate_fastq_dataset.py --list-collections
 ```
 
-## Future Enhancements
+## Phase 5 Enhancements (Completed)
 
-1. **Advanced VLP Simulation**: Integrate full ViroForge enrichment framework
-2. **Amplification Bias**: Add MDA/SISPA amplification simulation
-3. **Contamination Simulation**: Add non-viral contaminants at configurable levels
-4. **Custom Abundance Distributions**: Support user-defined abundance profiles
-5. **Multi-Sample Generation**: Generate related samples for longitudinal studies
-6. **Quality Metrics**: Add read quality distribution controls
+✅ **Advanced VLP Simulation**: Full enrichment framework with 5 protocols
+✅ **Contamination Simulation**: Type-specific contaminants at 3 levels (clean, realistic, heavy)
+✅ **Size-Based Filtration**: Virion size estimation and protocol-specific retention
+✅ **Contamination Reduction**: Type-specific reduction (host DNA, rRNA, bacteria, PhiX)
+✅ **Literature Validation**: All parameters validated against published studies
+
+## Future Enhancement Opportunities
+
+1. **Amplification Bias**: Add RdAB/MDA amplification simulation to workflow
+2. **Custom Abundance Distributions**: Support user-defined abundance profiles
+3. **Multi-Sample Generation**: Generate related samples for longitudinal studies
+4. **Quality Metrics**: Add read quality distribution controls
+5. **Real Contamination Databases**: Integrate actual host genomes and SILVA rRNA
+6. **Performance Optimization**: Parallel FASTQ generation for large batches
 
 ## Integration with Hecatomb
 
@@ -313,12 +418,15 @@ python scripts/evaluate_results.py \
 
 ## Summary
 
-Phase 4 provides a complete infrastructure for generating realistic synthetic virome datasets with:
-- ✅ Database-driven collection loading
-- ✅ VLP enrichment simulation
-- ✅ Platform-specific error profiles
-- ✅ Complete ground truth tracking
-- ✅ Batch generation capabilities
-- ✅ Multiple use case presets
+Phase 4 (Enhanced in Phase 5) provides a complete infrastructure for generating realistic synthetic virome datasets with:
+- ✅ Database-driven collection loading (14,423 RefSeq genomes)
+- ✅ Enhanced VLP enrichment (5 protocols with size-based filtration)
+- ✅ Type-specific contamination reduction (literature-validated)
+- ✅ Platform-specific error profiles (NovaSeq, MiSeq, HiSeq)
+- ✅ Complete ground truth tracking (viral + contaminants)
+- ✅ Batch generation capabilities (6 presets)
+- ✅ Multiple use case presets (VLP comparison, platform comparison, coverage series)
 
-This enables systematic benchmarking of virome analysis tools with known composition datasets across different experimental conditions and sequencing platforms.
+This enables systematic benchmarking of virome analysis tools with known composition datasets across different VLP protocols, experimental conditions, and sequencing platforms.
+
+**Literature Validated**: All VLP parameters validated against peer-reviewed studies (Thurber et al. 2009, Shkoporov et al. 2018, Roux et al. 2016, Lim et al. 2020)

@@ -56,6 +56,14 @@ try:
         create_contamination_profile,
         ContaminationProfile
     )
+    from viroforge.amplification import (
+        rdab_40_cycles,
+        rdab_30_cycles,
+        mda_standard,
+        mda_overnight,
+        linker_standard,
+        no_amplification
+    )
 except ImportError as e:
     print(f"Error importing ViroForge modules: {e}")
     print("Make sure you're running from the ViroForge root directory")
@@ -400,6 +408,148 @@ class FASTQGenerator:
 
         return sequences, abundances.tolist()
 
+    def apply_amplification(
+        self,
+        sequences: List[SeqRecord],
+        abundances: List[float],
+        amplification_method: str
+    ) -> Tuple[List[float], Dict]:
+        """
+        Apply library preparation amplification bias to abundances.
+
+        Args:
+            sequences: List of SeqRecord objects
+            abundances: List of relative abundances
+            amplification_method: Method name (none, rdab, rdab-30, mda, mda-long, linker)
+
+        Returns:
+            Tuple of (modified_abundances, amplification_stats)
+        """
+        if amplification_method == 'none':
+            logger.info("No amplification bias applied")
+            return abundances, {'method': 'none', 'bias_applied': False}
+
+        logger.info(f"Applying amplification bias: {amplification_method}")
+
+        # Map method name to amplification function
+        method_map = {
+            'rdab': rdab_40_cycles,
+            'rdab-30': rdab_30_cycles,
+            'mda': mda_standard,
+            'mda-long': mda_overnight,
+            'linker': linker_standard
+        }
+
+        if amplification_method not in method_map:
+            raise ValueError(f"Unknown amplification method: {amplification_method}")
+
+        # Get amplification method instance
+        amp_method = method_map[amplification_method]()
+
+        # Convert sequences and abundances to format amplification code expects
+        # The amplification methods work on genome objects with length, gc_content, abundance
+        # We need to create temporary genome-like objects
+
+        # Calculate GC content for each sequence
+        abundances_array = np.array(abundances)
+        original_abundances = abundances_array.copy()
+
+        # Create genome-like dicts for amplification calculation
+        temp_genomes = []
+        for seq, ab in zip(sequences, abundances_array):
+            gc_content = (str(seq.seq).count('G') + str(seq.seq).count('C')) / len(seq.seq)
+            temp_genomes.append({
+                'genome_id': seq.id,
+                'length': len(seq.seq),
+                'gc_content': gc_content,
+                'abundance': ab
+            })
+
+        # Apply bias based on method type
+        if amplification_method in ['rdab', 'rdab-30']:
+            # RdAB: length and GC bias
+            from viroforge.amplification import RdABAmplification
+            biased_abundances = self._apply_rdab_bias(temp_genomes, amp_method)
+        elif amplification_method in ['mda', 'mda-long']:
+            # MDA: extreme GC bias and stochasticity
+            from viroforge.amplification import MDAAmplification
+            biased_abundances = self._apply_mda_bias(temp_genomes, amp_method)
+        elif amplification_method == 'linker':
+            # Linker: minimal GC bias only
+            from viroforge.amplification import LinkerAmplification
+            biased_abundances = self._apply_linker_bias(temp_genomes, amp_method)
+        else:
+            biased_abundances = abundances_array
+
+        # Renormalize to sum to 1.0
+        biased_abundances = biased_abundances / biased_abundances.sum()
+
+        # Calculate statistics
+        fold_changes = biased_abundances / (original_abundances + 1e-10)
+        stats = {
+            'method': amplification_method,
+            'bias_applied': True,
+            'mean_fold_change': float(np.mean(fold_changes)),
+            'max_fold_change': float(np.max(fold_changes)),
+            'min_fold_change': float(np.min(fold_changes)),
+            'abundance_correlation': float(np.corrcoef(original_abundances, biased_abundances)[0, 1])
+        }
+
+        logger.info(f"Amplification bias applied: mean fold change = {stats['mean_fold_change']:.2f}x")
+
+        return biased_abundances.tolist(), stats
+
+    def _apply_rdab_bias(self, genomes, amp_method):
+        """Apply RdAB amplification bias (length + GC)."""
+        abundances = np.array([g['abundance'] for g in genomes])
+
+        for i, genome in enumerate(genomes):
+            # Use the amplification method's own efficiency calculations
+            length_eff = amp_method.calculate_length_efficiency(genome['length'])
+            gc_eff = amp_method.calculate_gc_efficiency(genome['gc_content'])
+
+            # Combined efficiency per cycle, raised to number of cycles
+            cycle_efficiency = length_eff * gc_eff
+            amplification_factor = cycle_efficiency ** amp_method.cycles
+
+            abundances[i] *= amplification_factor
+
+        return abundances
+
+    def _apply_mda_bias(self, genomes, amp_method):
+        """Apply MDA amplification bias (extreme GC + stochasticity)."""
+        abundances = np.array([g['abundance'] for g in genomes])
+
+        for i, genome in enumerate(genomes):
+            # Use the amplification method's GC efficiency calculation
+            gc_eff = amp_method.calculate_gc_efficiency(genome['gc_content'])
+
+            # Add stochastic variation using the method's own function
+            final_eff = amp_method.add_stochastic_variation(gc_eff)
+
+            # Amplification scales with time
+            time_scaling = amp_method.amplification_time / 4.0  # Normalize to 4h standard
+            amplification_factor = final_eff ** time_scaling
+
+            abundances[i] *= amplification_factor
+
+        return abundances
+
+    def _apply_linker_bias(self, genomes, amp_method):
+        """Apply linker amplification bias (minimal GC only)."""
+        abundances = np.array([g['abundance'] for g in genomes])
+
+        for i, genome in enumerate(genomes):
+            # Use the amplification method's GC efficiency calculation
+            gc_eff = amp_method.calculate_gc_efficiency(genome['gc_content'])
+
+            # Amplification factor scales with cycles (no length bias for linker)
+            amplification_factor = gc_eff ** amp_method.cycles
+
+            abundances[i] *= amplification_factor
+
+        return abundances
+
     def write_fasta(
         self,
         sequences: List[SeqRecord],
@@ -581,7 +731,8 @@ class FASTQGenerator:
         sequences: List[SeqRecord],
         abundances: List[float],
         config: Dict,
-        enrichment_stats: Optional[Dict] = None
+        enrichment_stats: Optional[Dict] = None,
+        amplification_stats: Optional[Dict] = None
     ):
         """Export complete ground truth metadata including all sequences (viral + contaminants)."""
 
@@ -612,6 +763,7 @@ class FASTQGenerator:
             },
             'configuration': config,
             'enrichment_stats': enrichment_stats,
+            'amplification_stats': amplification_stats,
             'sequences': []
         }
 
@@ -768,6 +920,16 @@ Examples:
     )
 
     parser.add_argument(
+        '--amplification',
+        choices=['none', 'rdab', 'rdab-30', 'mda', 'mda-long', 'linker'],
+        default='none',
+        help='Library preparation amplification method (default: none). ' +
+             'rdab=RdAB 40 cycles (standard), rdab-30=RdAB 30 cycles (moderate), ' +
+             'mda=MDA 4h (low biomass), mda-long=MDA 16h (overnight), ' +
+             'linker=Linker-based (minimal bias), none=No amplification'
+    )
+
+    parser.add_argument(
         '--seed',
         type=int,
         default=42,
@@ -829,6 +991,13 @@ Examples:
         contamination_level=args.contamination_level
     )
 
+    # Apply amplification bias
+    abundances, amplification_stats = generator.apply_amplification(
+        sequences,
+        abundances,
+        args.amplification
+    )
+
     # Write FASTA
     fasta_path = generator.write_fasta(sequences, abundances)
 
@@ -840,16 +1009,18 @@ Examples:
         'insert_size': args.insert_size,
         'platform': args.platform,
         'vlp_protocol': vlp_protocol if vlp_protocol else 'none',
-        'contamination_level': args.contamination_level
+        'contamination_level': args.contamination_level,
+        'amplification': args.amplification
     }
 
-    # Export metadata with enrichment stats
+    # Export metadata with enrichment and amplification stats
     generator.export_metadata(
         collection_meta,
         sequences,
         abundances,
         config,
-        enrichment_stats
+        enrichment_stats,
+        amplification_stats
     )
 
     if args.dry_run:

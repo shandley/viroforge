@@ -6,7 +6,7 @@ A comprehensive mock metavirome data generator for testing and validating virome
 
 [![Tests](https://img.shields.io/badge/tests-28%20passing-brightgreen)](tests/)
 [![Phase](https://img.shields.io/badge/Phase%205-Complete-success)](lab-notebook/sessions/2025-11/)
-[![Collections](https://img.shields.io/badge/collections-8%20body%20sites-blue)](docs/COLLECTION_IMPLEMENTATION_GUIDE.md)
+[![Collections](https://img.shields.io/badge/collections-8%20environments-blue)](docs/COLLECTION_IMPLEMENTATION_GUIDE.md)
 [![Genomes](https://img.shields.io/badge/genomes-14%2C423%20RefSeq-blue)](docs/GENOME_DATABASE_DESIGN.md)
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
@@ -21,7 +21,9 @@ ViroForge generates realistic synthetic virome sequencing datasets with complete
 
 ### Key Features
 
-- **8 Curated Body Site Collections** - Literature-validated virome compositions (gut, oral, skin, respiratory, marine, soil, freshwater, mouse gut)
+- **8 Curated Virome Collections** - Literature-validated compositions from diverse environments:
+  - **Host-associated (5)**: Human gut, oral, skin, respiratory; mouse gut
+  - **Environmental (3)**: Marine, soil, freshwater ecosystems
 - **14,423 RefSeq Viral Genomes** - Complete database with ICTV taxonomy integration (53.9% coverage)
 - **Database-Driven FASTQ Generation** - Direct generation from curated collections with InSilicoSeq
 - **Enhanced VLP Enrichment Modeling** - Size-based filtration with 5 protocols (tangential flow, syringe, ultracentrifugation, Norgen, bulk)
@@ -218,13 +220,13 @@ See [scripts/README_FASTQ_GENERATION.md](scripts/README_FASTQ_GENERATION.md) for
 
 ViroForge models 5 VLP enrichment protocols with realistic size-based filtration and contamination reduction:
 
-| Protocol | Method | Filtration | Contamination Reduction | Use Case |
-|----------|--------|------------|-------------------------|----------|
-| `tangential_flow` | 0.2 μm TFF | Size-based (sigmoid) | 93.5% | Most common protocol |
-| `syringe` | 0.22 μm syringe | Size-based (step) | 90.2% | Field-friendly |
-| `ultracentrifugation` | Density gradient | Mild size bias | 91.8% | Traditional method |
-| `norgen` | Column-based | Modest size bias | 89.1% | Commercial kit |
-| `none` (--no-vlp) | Bulk metagenome | None | 0% | Control/comparison |
+| Protocol | Method | Filtration | Contamination Reduction | Viral Recovery | Use Case |
+|----------|--------|------------|-------------------------|----------------|----------|
+| `tangential_flow` | 0.2 μm TFF | Size-based (sigmoid) | 91.2% | 85% | Highest purity |
+| `ultracentrifugation` | Density gradient | Minimal size bias | 88.4% | 90% | Highest recovery |
+| `norgen` | Column-based | Modest size bias | 87.1% | 70% | Convenient |
+| `syringe` | 0.22 μm syringe | Size-based (step) | 85.7% | 60% | Field-friendly |
+| `none` (--no-vlp) | Bulk metagenome | None | 0% | 100% | Control/comparison |
 
 **Features:**
 - Virion size estimation from genome length and type (dsDNA, ssDNA, ssRNA, dsRNA)
@@ -236,7 +238,47 @@ ViroForge models 5 VLP enrichment protocols with realistic size-based filtration
   - PhiX: 0-20% (treated as small virus)
 - Literature-validated parameters (Lim et al. 2020, Thurber et al. 2009, Reyes et al. 2012)
 
-See [VLP Integration Guide](docs/VLP_CONTAMINATION_INTEGRATION.md) for details.
+### Contamination Levels
+
+ViroForge models realistic contamination profiles at three levels:
+
+| Level | Initial Contamination | After VLP (TFF) | Use Case |
+|-------|----------------------|-----------------|----------|
+| **Clean** | ~0.7% | ~0.1% | Optimal VLP enrichment |
+| **Realistic** | ~7.4% | ~0.7% | Typical virome prep (default) |
+| **Heavy** | ~27.1% | ~2.0% | Sub-optimal or failed VLP |
+
+**Contaminant types**: Host DNA, rRNA, reagent bacteria, PhiX control
+
+See [VLP Integration Guide](docs/VLP_CONTAMINATION_INTEGRATION.md) and [VLP Protocol Comparison Tutorial](docs/VLP_PROTOCOL_COMPARISON_TUTORIAL.md) for details.
+
+---
+
+## Virome Collections
+
+ViroForge includes 8 curated virome collections representing diverse viral ecosystems:
+
+### Host-Associated Viromes (5 collections)
+
+| ID | Collection | Genomes | Description |
+|----|------------|---------|-------------|
+| 9 | Human Gut Virome | 134 | Adult healthy (Western diet) gut-associated viruses |
+| 10 | Human Oral Virome | 47 | Saliva from healthy individuals |
+| 11 | Human Skin Virome | 15 | Sebaceous sites (healthy skin) |
+| 12 | Human Respiratory Virome | 41 | Nasopharynx (healthy respiratory tract) |
+| 16 | Mouse Gut Virome | 22 | Laboratory C57BL/6 mice |
+
+### Environmental Viromes (3 collections)
+
+| ID | Collection | Genomes | Description |
+|----|------------|---------|-------------|
+| 13 | Marine Virome | 448 | Coastal surface water |
+| 14 | Soil Virome | 291 | Agricultural soil |
+| 15 | Freshwater Virome | 200 | Lake surface water |
+
+**Total**: 1,198 genomes across 8 environments, all with literature-validated compositions and taxonomic annotations.
+
+See [Collection Implementation Guide](docs/COLLECTION_IMPLEMENTATION_GUIDE.md) for detailed curation rationale.
 
 ---
 
@@ -273,19 +315,24 @@ See [Phase 4 Documentation](docs/PHASE4_FASTQ_GENERATION.md) for output format d
 
 ## Documentation
 
-### User Guides
-- **[Quick Start](docs/QUICKSTART.md)** - Quick start for script-based workflow
-- **[FASTQ Generation Guide](scripts/README_FASTQ_GENERATION.md)** - Generate datasets from collections
-- **[Database Exploration Tools](scripts/README_EXPLORATION_TOOLS.md)** - Explore genome database
+### Getting Started
+- **[Quick Start](docs/QUICKSTART.md)** - Generate your first dataset in 5 minutes
+- **[FASTQ Generation Guide](scripts/README_FASTQ_GENERATION.md)** - Complete command-line reference
+- **[VLP Protocol Comparison Tutorial](docs/VLP_PROTOCOL_COMPARISON_TUTORIAL.md)** - Compare all 5 VLP protocols ⭐ NEW
+- **[Workflow Diagrams](docs/WORKFLOW_DIAGRAMS.md)** - Visual guide to data flow ⭐ NEW
 
 ### Technical Documentation
 - **[Collection Implementation Guide](docs/COLLECTION_IMPLEMENTATION_GUIDE.md)** - Collection curation rationale
 - **[Genome Database Design](docs/GENOME_DATABASE_DESIGN.md)** - Database schema
-- **[Phase 4: FASTQ Generation](docs/PHASE4_FASTQ_GENERATION.md)** - FASTQ workflow
+- **[Phase 4: FASTQ Generation](docs/PHASE4_FASTQ_GENERATION.md)** - Complete FASTQ workflow
 - **[Phase 5: VLP Integration](docs/PHASE5_TASK2_FASTQ_INTEGRATION.md)** - VLP enrichment integration
-- **[Phase 5: Validation Report](docs/PHASE5_TASK3_VALIDATION_REPORT.md)** - Comprehensive validation
-- **[VLP Integration Guide](docs/VLP_CONTAMINATION_INTEGRATION.md)** - Usage guide
+- **[Phase 5: Validation Report](docs/PHASE5_TASK3_VALIDATION_REPORT.md)** - Literature validation results
+- **[VLP Integration Guide](docs/VLP_CONTAMINATION_INTEGRATION.md)** - Technical implementation details
 - **[Validation Test Suite](docs/VALIDATION_TEST_SUITE.md)** - Pipeline validation
+
+### Database Tools
+- **[Database Exploration Tools](scripts/README_EXPLORATION_TOOLS.md)** - Interactive genome database tools
+- **[Helper Utilities](scripts/README_HELPER_UTILITIES.md)** - Collection validation and QC
 
 ### API Documentation (Legacy)
 - **[Tutorial](docs/TUTORIAL.md)** - Step-by-step programmatic API tutorial
@@ -319,7 +366,7 @@ See [Phase 4 Documentation](docs/PHASE4_FASTQ_GENERATION.md) for output format d
 **Phase 3: Genome Database & Collections (Complete)**
 - RefSeq viral genome database (14,423 genomes)
 - ICTV taxonomy integration (53.9% coverage)
-- 8 curated body site collections (1,198 genomes)
+- 8 curated virome collections (1,198 genomes from host-associated and environmental sources)
 - Literature-validated compositions
 - Automated curation workflows
 
@@ -404,7 +451,11 @@ pytest tests/test_fastq_integration.py -v --tb=short
 
 ## Citation
 
-### Software
+If you use ViroForge in your research, please cite:
+
+**Handley, Scott, and ViroForge Contributors. (2025). ViroForge: A Synthetic Virome Data Generator with Enhanced VLP Modeling (Version 0.4.0) [Computer software]. https://github.com/shandley/viroforge**
+
+### BibTeX
 
 ```bibtex
 @software{viroforge2025,
@@ -415,6 +466,10 @@ pytest tests/test_fastq_integration.py -v --tb=short
   version = {0.4.0}
 }
 ```
+
+### Citation File
+
+See [CITATION.cff](CITATION.cff) for complete citation metadata in Citation File Format, including references to key literature used in ViroForge validation.
 
 ### Publication
 
@@ -462,12 +517,12 @@ ViroForge was developed to support virome analysis pipeline validation and bench
 
 ViroForge is ready for use in benchmarking studies. All core functionality is complete and thoroughly tested:
 
-- 8 curated body site collections with literature-validated compositions
-- 14,423 RefSeq viral genomes with ICTV taxonomy
-- Enhanced VLP enrichment modeling with size-based filtration
-- Type-specific contamination reduction
+- 8 curated virome collections spanning host-associated and environmental samples
+- 14,423 RefSeq viral genomes with ICTV taxonomy (53.9% coverage)
+- Enhanced VLP enrichment modeling with size-based filtration (5 protocols)
+- Type-specific contamination reduction (host DNA, rRNA, bacteria, PhiX)
 - Database-driven FASTQ generation with complete ground truth
 - Platform-specific error models (NovaSeq, MiSeq, HiSeq)
-- Comprehensive documentation and validation
+- Comprehensive documentation and literature validation
 
 **Last Updated**: 2025-11-08

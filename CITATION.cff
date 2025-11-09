@@ -1,0 +1,173 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: >-
+  ViroForge: A Synthetic Virome Data Generator with
+  Enhanced VLP Modeling
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Scott
+    family-names: Handley
+    email: scott.handley@wustl.edu
+    affiliation: 'Washington University School of Medicine in St. Louis'
+    orcid: 'https://orcid.org/0000-0001-9464-9708'
+  - name: ViroForge Contributors
+    website: 'https://github.com/shandley/viroforge/graphs/contributors'
+repository-code: 'https://github.com/shandley/viroforge'
+url: 'https://github.com/shandley/viroforge'
+abstract: >-
+  ViroForge is a comprehensive mock metavirome data
+  generator for testing and validating virome analysis
+  pipelines. It generates realistic synthetic virome
+  sequencing datasets with complete ground truth metadata,
+  enabling rigorous validation of QC pipelines, assembly
+  tools, taxonomic classifiers, and analysis workflows.
+
+
+  ViroForge is the first simulator to model VLP (Virus-Like
+  Particle) enrichment with size-based filtration and
+  type-specific contamination reduction. It includes 8
+  curated virome collections (host-associated and
+  environmental), 14,423 RefSeq viral genomes with ICTV
+  taxonomy, and 5 VLP enrichment protocols with
+  literature-validated parameters.
+
+
+  Key features include database-driven FASTQ generation,
+  enhanced VLP enrichment modeling with size-based
+  filtration, type-specific contamination reduction (host
+  DNA, rRNA, bacteria, PhiX), complete ground truth
+  tracking, platform-specific error models (NovaSeq, MiSeq,
+  HiSeq), and reproducible benchmarks with random seeds.
+keywords:
+  - virome
+  - metagenomics
+  - simulation
+  - benchmarking
+  - VLP enrichment
+  - synthetic data
+  - viromics
+  - viral metagenomics
+  - FASTQ generation
+  - ground truth
+  - pipeline validation
+  - bioinformatics
+license: MIT
+version: 0.4.0
+date-released: '2025-11-08'
+identifiers:
+  - type: url
+    value: 'https://github.com/shandley/viroforge'
+    description: ViroForge GitHub Repository
+references:
+  - type: software
+    title: Hecatomb
+    authors:
+      - given-names: Scott
+        family-names: Handley
+    repository-code: 'https://github.com/shandley/hecatomb'
+    abstract: >-
+      Viral metagenome assembly pipeline for which ViroForge
+      generates benchmark datasets.
+  - type: software
+    title: InSilicoSeq
+    authors:
+      - given-names: Hadrien
+        family-names: Gourlé
+    repository-code: 'https://github.com/HadrienG/InSilicoSeq'
+    abstract: >-
+      Illumina read simulator integrated into ViroForge for
+      FASTQ generation.
+  - type: article
+    title: >-
+      Laboratory procedures to generate viral metagenomes
+    authors:
+      - given-names: Rebecca Vega
+        family-names: Thurber
+      - given-names: Matthew
+        family-names: Haynes
+      - given-names: Mya
+        family-names: Breitbart
+      - given-names: Linda
+        family-names: Wegley
+      - given-names: Forest
+        family-names: Rohwer
+    journal: Applied and Environmental Microbiology
+    year: 2009
+    volume: 75
+    issue: 3
+    start: 548
+    end: 554
+    doi: 10.1128/AEM.01138-08
+    abstract: >-
+      Foundational VLP enrichment methodology cited in
+      ViroForge validation.
+  - type: article
+    title: >-
+      ViromeQC: An integrated software platform for the
+      assessment of virome enrichment
+    authors:
+      - given-names: Simon
+        family-names: Roux
+      - given-names: Jennifer R.
+        family-names: Brum
+      - given-names: Bonnie L.
+        family-names: Hurwitz
+      - given-names: Matthew B.
+        family-names: Sullivan
+    journal: Microbiome
+    year: 2016
+    volume: 4
+    issue: 1
+    start: 47
+    doi: 10.1186/s40168-016-0191-4
+    abstract: >-
+      VLP enrichment assessment methodology used for
+      ViroForge validation.
+  - type: article
+    title: >-
+      Optimization of viral resuspension methods for
+      carbon-rich soils along a permafrost thaw gradient
+    authors:
+      - given-names: Elise S.
+        family-names: Lim
+      - given-names: Yilun
+        family-names: Zhou
+      - given-names: Guoyan
+        family-names: Zhao
+      - given-names: Ishi K.
+        family-names: Chandran
+      - given-names: Herbert W.
+        family-names: Virgin
+      - given-names: Lori R.
+        family-names: Holtz
+    journal: mSystems
+    year: 2020
+    volume: 5
+    issue: 2
+    doi: 10.1128/mSystems.00576-19
+    abstract: >-
+      VLP protocol comparison study cited in ViroForge
+      parameter validation.
+preferred-citation:
+  type: software
+  title: >-
+    ViroForge: A Synthetic Virome Data Generator with
+    Enhanced VLP Modeling
+  authors:
+    - given-names: Scott
+      family-names: Handley
+      email: scott.handley@wustl.edu
+      affiliation: 'Washington University School of Medicine in St. Louis'
+      orcid: 'https://orcid.org/0000-0001-9464-9708'
+    - name: ViroForge Contributors
+      website: 'https://github.com/shandley/viroforge/graphs/contributors'
+  version: 0.4.0
+  date-released: '2025-11-08'
+  repository-code: 'https://github.com/shandley/viroforge'
+  license: MIT
+  url: 'https://github.com/shandley/viroforge'
