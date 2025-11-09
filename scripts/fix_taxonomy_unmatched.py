@@ -133,17 +133,18 @@ class TaxonomyFixer:
         Match by virus name patterns to infer family.
 
         Common patterns:
-        - *herpesvirus* -> Orthoherpesviridae, Alloherpesviridae
+        - *herpesvirus*, *cytomegalovirus* -> Orthoherpesviridae, Alloherpesviridae
         - *papillomavirus* -> Papillomaviridae
-        - *adenovirus*, *mastadenovirus*, *adeno-associated* -> Adenoviridae or Parvoviridae
-        - *parvovirus*, *densovirus* -> Parvoviridae
         - *polyomavirus* -> Polyomaviridae
+        - *adenovirus*, *mastadenovirus* -> Adenoviridae
+        - *adeno-associated*, *parvovirus*, *densovirus* -> Parvoviridae
         - *poxvirus*, *fibroma virus*, *myxoma* -> Poxviridae
         - *retrovirus*, *lentivirus* -> Retroviridae
         - *nucleopolyhedrovirus*, *granulovirus* -> Baculoviridae
         - *picornavirus*, *enterovirus*, *cardiovirus* -> Picornaviridae
         - *respirovirus*, *morbillivirus* -> Paramyxoviridae
-        - *cytomegalovirus* -> Orthoherpesviridae
+        - *rotavirus* -> Sedoreoviridae (CRITICAL for enteric collections)
+        - *norovirus* -> Caliciviridae (CRITICAL for enteric collections)
         """
         species_lower = species_name.lower()
 
@@ -186,6 +187,10 @@ class TaxonomyFixer:
             # Paramyxoviruses
             'respirovirus': ['Paramyxoviridae'],
             'morbillivirus': ['Paramyxoviridae'],
+
+            # Enteric viruses - CRITICAL for Collections 17, 18, 23
+            'rotavirus': ['Sedoreoviridae'],  # Rotavirus A, B, C, etc.
+            'norovirus': ['Caliciviridae'],   # Norovirus GI, GII, etc. (Norwalk virus)
         }
 
         for pattern, families in family_patterns.items():
