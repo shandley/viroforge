@@ -105,7 +105,7 @@ class CFRespiratoryCurator:
         """
         logger.info("Selecting respiratory viruses...")
 
-        # Orthomyxoviridae (Influenza) - 30%
+        # Orthomyxoviridae (Influenza) - get all available (10 total after taxonomy fix)
         query = """
         SELECT DISTINCT g.genome_id, g.genome_name, t.family, t.genus, t.species, g.length, g.gc_content
         FROM genomes g
@@ -114,7 +114,7 @@ class CFRespiratoryCurator:
         ORDER BY RANDOM()
         LIMIT ?
         """
-        influenza = [dict(row) for row in self.conn.execute(query, (max(int(n_target * 0.3), 3),))]
+        influenza = [dict(row) for row in self.conn.execute(query, (max(int(n_target * 0.5), 10),))]
         logger.info(f"  Influenza: {len(influenza)}")
 
         # Picornaviridae (Rhinovirus, Enterovirus) - 30%
