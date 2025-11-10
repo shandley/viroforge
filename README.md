@@ -17,6 +17,16 @@ A comprehensive mock metavirome data generator for testing and validating virome
 
 ## 🆕 What's New in v0.9.0
 
+### Phase 11: Hybrid Assembly Support 🔬🧬 (November 2025)
+- **🎯 Matched dataset generation** - Short + long reads with identical compositions
+  - Convenience script: `generate_hybrid_dataset.py`
+  - Validation utility: `validate_hybrid_composition.py`
+- **📚 Hybrid assembler support** - Unicycler, SPAdes hybrid mode, MaSuRCA
+- **📖 Complete tutorial** - `docs/HYBRID_ASSEMBLY_TUTORIAL.md`
+- **✅ Composition validation** - Verify datasets match for hybrid assembly
+
+See [Hybrid Assembly Tutorial](docs/HYBRID_ASSEMBLY_TUTORIAL.md) for complete guide.
+
 ### Phase 10: Long-Read Sequencing Support 🔬 (November 2025)
 - **🚀 PacBio HiFi simulation** - High-accuracy reads (>99.9%, QV20+)
   - Multi-pass CCS workflow via PBSIM3 and ccs
@@ -243,6 +253,47 @@ output/
 ```
 
 See [FASTQ Generation Guide](scripts/README_FASTQ_GENERATION.md) for detailed documentation.
+
+### Generate Hybrid Dataset 🆕 NEW (Short + Long Reads)
+
+Hybrid assembly combines short-read accuracy with long-read length for superior assemblies:
+
+```bash
+# Generate matched NovaSeq + PacBio HiFi datasets
+python scripts/generate_hybrid_dataset.py \
+    --collection-id 9 \
+    --output data/gut_hybrid \
+    --short-platform novaseq \
+    --long-platform pacbio-hifi \
+    --coverage 30 \
+    --depth 15 \
+    --seed 42
+
+# Output: matched short + long reads with identical compositions
+```
+
+**Then assemble with hybrid assemblers**:
+```bash
+# Unicycler (recommended)
+unicycler \
+    -1 data/gut_hybrid/short_reads/fastq/*_R1.fastq \
+    -2 data/gut_hybrid/short_reads/fastq/*_R2.fastq \
+    -l data/gut_hybrid/long_reads/fastq/*.fastq.gz \
+    -o results/unicycler
+
+# SPAdes hybrid mode
+spades.py --meta \
+    -1 data/gut_hybrid/short_reads/fastq/*_R1.fastq \
+    -2 data/gut_hybrid/short_reads/fastq/*_R2.fastq \
+    --pacbio data/gut_hybrid/long_reads/fastq/*.fastq.gz \
+    -o results/spades
+```
+
+**See [Hybrid Assembly Tutorial](docs/HYBRID_ASSEMBLY_TUTORIAL.md) for:**
+- Supported hybrid assemblers (Unicycler, SPAdes, MaSuRCA)
+- Benchmarking workflows
+- Coverage optimization
+- Validation utilities
 
 ---
 
