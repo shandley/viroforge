@@ -5,8 +5,8 @@
 A comprehensive mock metavirome data generator for testing and validating virome analysis pipelines, now with **RNA virome support** and critical disease/environmental collections.
 
 [![Tests](https://img.shields.io/badge/tests-70%2B%20passing-brightgreen)](tests/)
-[![Phase](https://img.shields.io/badge/Phase%209-In%20Progress-yellow)](ROADMAP.md)
-[![Collections](https://img.shields.io/badge/collections-27%20curated-blue)](docs/COLLECTION_IMPLEMENTATION_GUIDE.md)
+[![Phase](https://img.shields.io/badge/Phase%209-Complete-brightgreen)](ROADMAP.md)
+[![Collections](https://img.shields.io/badge/collections-28%20curated-blue)](docs/COLLECTION_IMPLEMENTATION_GUIDE.md)
 [![Genomes](https://img.shields.io/badge/genomes-14%2C423%20RefSeq-blue)](docs/GENOME_DATABASE_DESIGN.md)
 [![Taxonomy](https://img.shields.io/badge/taxonomy-57.1%25%20ICTV-blue)](docs/TAXONOMY_BUG_FIX.md)
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue)](https://www.python.org/)
@@ -306,8 +306,12 @@ ViroForge includes **23 curated virome collections** representing diverse viral 
     - TTV (5 - DOMINANT 70% in tissues), Bacteriophages (8 - Propionibacterium, Streptococcus, Haemophilus, Pseudomonas), Respiratory viruses (13 - RSV, rhinovirus, influenza A, coronavirus, metapneumovirus, bocavirus, adenovirus), Herpesviruses (4 - CMV, EBV, HSV, VZV), Papillomaviruses (2)
     - Applications: Pneumonia diagnosis, COPD monitoring, lung transplant surveillance
     - Note: Different from upper respiratory tract; CMV/EBV critical for transplant
+28. **Urinary Virome (Healthy)** (20 genomes) - Kidney transplant monitoring
+    - HPV (5 - DOMINANT 95% prevalence), BK polyomavirus (1 - CRITICAL 60-100% in transplant complications), JC polyomavirus (1), Anelloviruses/TTV (3 - 53% in transplant patients), Adenoviruses (2 - hemorrhagic cystitis), Herpesviruses (2 - CMV, EBV for transplant), Bacteriophages (6 - E. coli, Enterococcus, Staphylococcus, Lactobacillus)
+    - Applications: BK nephritis monitoring, kidney transplant surveillance, UTI diagnosis, hemorrhagic cystitis detection
+    - Note: BK viremia critical biomarker (60-80% in complications, 100% in BK nephritis)
 
-**Total**: 1,539 genomes across 27 diverse environments, all with literature-validated compositions.
+**Total**: 1,559 genomes across 28 diverse environments, all with literature-validated compositions.
 
 See [Collection Implementation Guide](docs/COLLECTION_IMPLEMENTATION_GUIDE.md) for detailed curation rationale.
 
