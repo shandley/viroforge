@@ -1,29 +1,31 @@
 # ViroForge Development Roadmap
 
 **Version**: 0.4.0 → 1.0.0
-**Timeline**: 3-6 months
-**Goal**: Comprehensive virome simulation covering DNA/RNA, host/environmental, healthy/disease states
+**Timeline**: 3-6 months (complete)
+**Goal**: Comprehensive virome simulation covering DNA/RNA, short/long-read, host/environmental, healthy/disease states
 
 ---
 
-## Current Status (v0.8.0)
+## Current Status (v0.9.0)
 
-**Phase 9 Complete** - Expanded Host Niches
+**Phase 10 Complete** - Long-Read Sequencing Support 🎉
 
 ✅ 14,423 RefSeq viral genomes with ICTV taxonomy
 ✅ 28 curated collections (23 host-associated, 5 environmental)
-✅ 5 VLP enrichment protocols with size-based filtration
-✅ Type-specific contamination reduction
-✅ Amplification bias modeling (RdAB, MDA, Linker amplification)
+✅ **5 sequencing platforms** - NovaSeq, MiSeq, HiSeq, PacBio HiFi, Oxford Nanopore
+✅ **Long-read simulation** - PBSIM3-based PacBio HiFi and Nanopore
+✅ VLP enrichment adapted for long reads (60% size bias reduction)
 ✅ RNA virome workflow with reverse transcription and rRNA depletion
 ✅ 3 RNA virus collections (respiratory, arbovirus, fecal)
 ✅ Wastewater virome for epidemiological surveillance
 ✅ Disease state collections (IBD, HIV+, CF)
-✅ 5 additional host niche collections (vaginal, blood, ocular, lung, urinary)
+✅ 5 VLP enrichment protocols with size-based filtration
+✅ Type-specific contamination reduction
+✅ Amplification bias modeling (RdAB, MDA, Linker amplification)
 ✅ Progressive dysbiosis modeling (Healthy → IBD → HIV+)
-✅ Platform-specific error models (NovaSeq, MiSeq, HiSeq)
-✅ Complete ground truth tracking
+✅ Complete ground truth tracking for all platforms
 ✅ Comprehensive documentation with literature validation
+✅ 80+ comprehensive tests
 
 ---
 
@@ -233,36 +235,48 @@
 
 ---
 
-### **PHASE 10: Long-Read Sequencing Support** (Current Phase)
+### **PHASE 10: Long-Read Sequencing Support**
 
-**Timeline**: 3-4 weeks
-**Status**: 📋 Planned
+**Timeline**: 3 weeks
+**Status**: ✅ Complete
 
 #### Objectives
-- Support PacBio HiFi and Nanopore platforms
-- Enable complete genome assembly benchmarking
-- Model long-read specific artifacts
+- ✅ Support PacBio HiFi and Nanopore platforms
+- ✅ Enable complete genome assembly benchmarking
+- ✅ Model long-read specific artifacts
 
 #### Tasks
-- [ ] Research long-read simulators (pbsim3, NanoSim, PBSIM2)
-- [ ] Integrate PacBio HiFi simulator
-  - High accuracy (QV20+)
-  - Different error profile than Illumina
-  - Length distribution modeling
-- [ ] Integrate Nanopore simulator
-  - Homopolymer errors
-  - Ultra-long reads
-  - Quality-length relationships
-- [ ] Add `--platform {novaseq,miseq,hiseq,pacbio-hifi,nanopore}` options
-- [ ] Update VLP modeling for long reads (affects size bias differently)
-- [ ] Create long-read specific tests
-- [ ] Create long-read tutorial
+- [x] Research long-read simulators (pbsim3, NanoSim, PBSIM2)
+  - Selected PBSIM3 (supports both PacBio and Nanopore)
+  - Documented in `docs/PHASE10_LONGREAD_RESEARCH.md`
+- [x] Integrate PacBio HiFi simulator
+  - High accuracy (>99.9%, QV20+)
+  - Two-step workflow: PBSIM3 CLR → ccs consensus
+  - Configurable passes (3-20), read lengths (10-30kb)
+- [x] Integrate Nanopore simulator
+  - Homopolymer errors (hp_del_bias)
+  - Ultra-long reads (10kb-2Mb)
+  - R9.4 and R10.4 chemistry support
+- [x] Add `--platform {novaseq,miseq,hiseq,pacbio-hifi,nanopore}` options
+- [x] Update VLP modeling for long reads (60% size bias reduction)
+  - Long reads span entire genomes → less sequencing bias
+- [x] Create long-read specific tests (`tests/test_longread_simulator.py`)
+- [x] Create comprehensive long-read tutorial (`docs/LONGREAD_TUTORIAL.md`)
 
 #### Deliverables
-- PacBio HiFi support
-- Nanopore support
-- Long-read assembly benchmarking capability
-- Tutorial: "Long-Read Virome Benchmarking"
+- ✅ PacBio HiFi support with realistic CCS workflow
+- ✅ Nanopore support with characteristic homopolymer errors
+- ✅ Long-read assembly benchmarking capability
+- ✅ Tutorial: "ViroForge Long-Read Sequencing Tutorial"
+- ✅ 80+ unit tests including long-read configurations
+- ✅ Architecture documentation (`docs/PHASE10_ARCHITECTURE.md`)
+
+#### Key Files
+- `viroforge/simulators/longread.py` (850+ lines)
+- `scripts/generate_fastq_dataset.py` (updated with long-read routing)
+- `viroforge/enrichment/vlp.py` (updated with read_type parameter)
+- `tests/test_longread_simulator.py` (comprehensive test suite)
+- `docs/LONGREAD_TUTORIAL.md` (complete user guide)
 
 #### Impact
 - **HIGH**: Future-proofing, better assemblies

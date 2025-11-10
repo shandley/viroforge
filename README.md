@@ -2,19 +2,40 @@
 
 **Forging synthetic viromes for benchmarking and validation**
 
-A comprehensive mock metavirome data generator for testing and validating virome analysis pipelines, now with **RNA virome support** and critical disease/environmental collections.
+A comprehensive mock metavirome data generator for testing and validating virome analysis pipelines, with **long-read sequencing**, **RNA virome support**, and critical disease/environmental collections.
 
-[![Tests](https://img.shields.io/badge/tests-70%2B%20passing-brightgreen)](tests/)
-[![Phase](https://img.shields.io/badge/Phase%209-Complete-brightgreen)](ROADMAP.md)
+[![Tests](https://img.shields.io/badge/tests-80%2B%20passing-brightgreen)](tests/)
+[![Phase](https://img.shields.io/badge/Phase%2010-Complete-brightgreen)](ROADMAP.md)
 [![Collections](https://img.shields.io/badge/collections-28%20curated-blue)](docs/COLLECTION_IMPLEMENTATION_GUIDE.md)
 [![Genomes](https://img.shields.io/badge/genomes-14%2C423%20RefSeq-blue)](docs/GENOME_DATABASE_DESIGN.md)
+[![Platforms](https://img.shields.io/badge/platforms-5%20supported-blue)](docs/LONGREAD_TUTORIAL.md)
 [![Taxonomy](https://img.shields.io/badge/taxonomy-57.1%25%20ICTV-blue)](docs/TAXONOMY_BUG_FIX.md)
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 ---
 
-## 🆕 What's New in v0.6.0
+## 🆕 What's New in v0.9.0
+
+### Phase 10: Long-Read Sequencing Support 🔬 (November 2025)
+- **🚀 PacBio HiFi simulation** - High-accuracy reads (>99.9%, QV20+)
+  - Multi-pass CCS workflow via PBSIM3 and ccs
+  - Configurable passes (3-20), read lengths (10-30kb)
+- **🧬 Oxford Nanopore simulation** - Ultra-long reads (10kb-2Mb)
+  - R9.4 and R10.4 chemistry support
+  - Characteristic homopolymer error profiles
+- **📊 5 sequencing platforms** - NovaSeq, MiSeq, HiSeq, PacBio HiFi, Nanopore
+- **🔧 VLP size bias adaptation** - Long-read specific modeling (60% reduction)
+- **📖 Complete tutorial** - `docs/LONGREAD_TUTORIAL.md` with benchmarking workflows
+
+See [Long-Read Tutorial](docs/LONGREAD_TUTORIAL.md) for complete guide.
+
+### Phase 9: Complete Collection Coverage (November 2025)
+- **🦠 28 total collections** - Vaginal, blood, ocular, lung, urinary viromes added
+- **🎯 Proactive taxonomy rescanning** - All collections verified for critical biomarker viruses
+- **✅ Phase 9 complete** - Comprehensive body site and environmental coverage
+
+## 🆕 What's New in v0.8.0
 
 ### Phase 8: RNA Virome Workflow (November 2025)
 - **✨ RNA virome support** - Complete workflow for RNA virus sequencing
@@ -49,20 +70,24 @@ ViroForge generates realistic synthetic virome sequencing datasets with complete
 
 ### Key Features
 
-- **27 Curated Virome Collections** - Literature-validated compositions:
-  - **Host-associated (19)**: Healthy gut/oral/skin/respiratory/vaginal/blood/ocular/lung, disease states (IBD, HIV+, CF), VLP comparisons
+- **28 Curated Virome Collections** - Literature-validated compositions:
+  - **Host-associated (20)**: Healthy gut/oral/skin/respiratory/vaginal/blood/ocular/lung/urinary, disease states (IBD, HIV+, CF), VLP comparisons
   - **Environmental (5)**: Marine, soil, freshwater, wastewater
   - **RNA viromes (3)**: Respiratory RNA, arbovirus, fecal RNA
 - **14,423 RefSeq Viral Genomes** - Complete database with enhanced ICTV taxonomy (57.1% coverage after fix)
+- **5 Sequencing Platforms** 🆕 - Short-read and long-read support
+  - **Short-read**: NovaSeq, MiSeq, HiSeq (Illumina)
+  - **Long-read**: PacBio HiFi (>99.9%), Oxford Nanopore (95-99%)
 - **DNA & RNA Virome Workflows** - Complete support for both molecule types
   - DNA: VLP enrichment, amplification bias, sequencing artifacts
   - RNA: Reverse transcription, rRNA depletion (Ribo-Zero), RNA degradation
 - **Enhanced VLP Enrichment Modeling** - Size-based filtration with 5 protocols
+  - Long-read specific: 60% size bias reduction (reads span entire genomes)
 - **Type-Specific Contamination Reduction** - DNA and RNA-specific profiles
 - **Complete Ground Truth** - Taxonomic composition, abundance tables, workflow statistics
-- **Platform-Specific Error Models** - NovaSeq, MiSeq, HiSeq with realistic artifacts
+- **Platform-Specific Error Models** - Realistic artifacts for all 5 platforms
 - **Reproducible Benchmarks** - Random seeds, complete metadata, known composition
-- **Production Ready** - 70+ comprehensive tests, literature-validated parameters
+- **Production Ready** - 80+ comprehensive tests, literature-validated parameters
 
 ---
 
@@ -93,6 +118,7 @@ ViroForge enables:
 
 ### Installation
 
+#### Short-Read Only (Illumina)
 ```bash
 # Clone repository
 git clone https://github.com/shandley/viroforge.git
@@ -104,8 +130,22 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install dependencies
 pip install biopython numpy pandas
-pip install insilicoseq  # For FASTQ generation
+pip install insilicoseq  # For short-read FASTQ generation
 ```
+
+#### Long-Read Support (PacBio HiFi, Nanopore) 🆕
+```bash
+# Create conda environment with long-read dependencies
+conda create -n viroforge-longread \
+    python=3.9 biopython numpy pandas \
+    pbsim3 pbccs samtools
+conda activate viroforge-longread
+
+# Install ViroForge
+pip install -e .
+```
+
+See [Long-Read Tutorial](docs/LONGREAD_TUTORIAL.md) for detailed installation guide.
 
 ### Generate DNA Virome Dataset
 
@@ -148,14 +188,54 @@ python scripts/generate_fastq_dataset.py \
 - RNA degradation and fragmentation
 - RNA-specific contamination profiles
 
-Output:
+### Generate Long-Read Dataset 🆕 NEW
+
+#### PacBio HiFi (High-Accuracy)
+```bash
+# Generate gut virome with PacBio HiFi (>99.9% accuracy)
+python scripts/generate_fastq_dataset.py \
+    --collection-id 9 \
+    --output data/fastq/gut_hifi \
+    --depth 15 \
+    --platform pacbio-hifi \
+    --pacbio-passes 15 \
+    --pacbio-read-length 18000 \
+    --vlp-protocol tangential_flow
+```
+
+**Output**: Single HiFi FASTQ file with 15-20kb reads at >99.9% accuracy
+
+#### Oxford Nanopore (Ultra-Long)
+```bash
+# Generate soil virome with Nanopore ultra-long reads
+python scripts/generate_fastq_dataset.py \
+    --collection-id 1 \
+    --output data/fastq/soil_nanopore \
+    --depth 20 \
+    --platform nanopore \
+    --ont-chemistry R10.4 \
+    --ont-read-length 30000 \
+    --vlp-protocol tangential_flow
+```
+
+**Output**: Single Nanopore FASTQ file with 20-40kb reads at ~95% accuracy
+
+**See [Long-Read Tutorial](docs/LONGREAD_TUTORIAL.md) for:**
+- Platform comparison (PacBio vs Nanopore)
+- Configuration guide (passes, read length, chemistry)
+- Benchmarking workflows (assembly, SV detection)
+- Troubleshooting and FAQ
+
+### Output Structure
 ```
 output/
 ├── fasta/
-│   └── collection_21.fasta  # Reference genomes
+│   └── collection.fasta  # Reference genomes
 ├── fastq/
-│   ├── collection_21_R1.fastq  # Forward reads
-│   └── collection_21_R2.fastq  # Reverse reads
+│   ├── collection_R1.fastq  # Forward reads (short-read)
+│   ├── collection_R2.fastq  # Reverse reads (short-read)
+│   ├── collection_hifi.fastq.gz  # PacBio HiFi (long-read)
+│   └── collection.fastq  # Nanopore (long-read)
 └── metadata/
     ├── collection_21_metadata.json  # Complete ground truth + RNA workflow stats
     ├── collection_21_composition.tsv  # Abundance table
