@@ -6,21 +6,24 @@
 
 ---
 
-## Current Status (v0.6.0)
+## Current Status (v0.8.0)
 
-**Phase 7 Complete** - Critical Collections
+**Phase 9 Complete** - Expanded Host Niches
 
 ✅ 14,423 RefSeq viral genomes with ICTV taxonomy
-✅ 12 curated collections (9 host-associated, 3 environmental)
+✅ 28 curated collections (23 host-associated, 5 environmental)
 ✅ 5 VLP enrichment protocols with size-based filtration
 ✅ Type-specific contamination reduction
 ✅ Amplification bias modeling (RdAB, MDA, Linker amplification)
+✅ RNA virome workflow with reverse transcription and rRNA depletion
+✅ 3 RNA virus collections (respiratory, arbovirus, fecal)
 ✅ Wastewater virome for epidemiological surveillance
 ✅ Disease state collections (IBD, HIV+, CF)
+✅ 5 additional host niche collections (vaginal, blood, ocular, lung, urinary)
 ✅ Progressive dysbiosis modeling (Healthy → IBD → HIV+)
 ✅ Platform-specific error models (NovaSeq, MiSeq, HiSeq)
 ✅ Complete ground truth tracking
-✅ Comprehensive documentation with corrected citations
+✅ Comprehensive documentation with literature validation
 
 ---
 
@@ -121,10 +124,10 @@
 
 ---
 
-### **PHASE 8: RNA Virome Workflow** (Current Phase)
+### **PHASE 8: RNA Virome Workflow**
 
 **Timeline**: 3-4 weeks
-**Status**: 🚧 In Progress
+**Status**: ✅ Complete
 
 #### Objectives
 - Support RNA virus sequencing workflows
@@ -184,7 +187,7 @@
 ### **PHASE 9: Additional Host Niches**
 
 **Timeline**: 2-3 weeks
-**Status**: 📋 Planned
+**Status**: ✅ Complete
 
 #### Collections to Add
 
@@ -230,10 +233,10 @@
 
 ---
 
-### **PHASE 10: Long-Read Sequencing Support**
+### **PHASE 10: Long-Read Sequencing Support** (Current Phase)
 
 **Timeline**: 3-4 weeks
-**Status**: 📋 Planned (Future)
+**Status**: 📋 Planned
 
 #### Objectives
 - Support PacBio HiFi and Nanopore platforms
