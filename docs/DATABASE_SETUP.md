@@ -6,18 +6,20 @@
 
 ## Overview
 
-The ViroForge database contains 14,568 RefSeq viral genomes with rich metadata including ICTV taxonomy, genome characteristics, and curated body site collections. The database is not included in the repository due to its size (~2 GB) and must be built locally.
+The ViroForge database contains RefSeq viral genomes with rich metadata including ICTV taxonomy, genome characteristics, and curated body site collections. The database is not included in the repository due to its size (~500 MB) and must be built locally.
+
+**Note:** Exact numbers vary based on RefSeq/ICTV versions at download time. Values below reflect the November 2025 snapshot (~14,400 genomes, 57% ICTV coverage).
 
 ## Requirements
 
 ### System Requirements
-- **Disk Space:** ~2-2.5 GB
+- **Disk Space:** ~1-1.2 GB
   - RefSeq downloads (compressed): ~198 MB
   - Parsed genome data: ~300 MB
-  - SQLite database: ~1.7 GB
+  - SQLite database: ~500 MB
   - ICTV VMR file: ~3.5 MB
 - **RAM:** 2 GB minimum (4 GB recommended)
-- **Time:** ~3 hours for full database with ICTV taxonomy
+- **Time:** ~2 hours for full database with ICTV taxonomy
 - **Internet:** Stable connection for NCBI downloads and ICTV VMR
 
 ### Software Requirements
@@ -72,7 +74,7 @@ python scripts/download_refseq.py --output data/refseq --all
 5. Automatic retry on failures (3 attempts)
 6. Resume capability (skips existing files)
 
-**Output:**
+**Output (November 2025 snapshot):**
 ```
 Step 1: Downloading assembly summary...
 ✓ Downloaded assembly summary: data/refseq/assembly_summary.txt
@@ -85,6 +87,8 @@ Progress: 100/14568 (0.7%) | Success: 100 | Failed: 0 | Skipped: 0
 Progress: 200/14568 (1.4%) | Success: 200 | Failed: 0 | Skipped: 0
 ...
 ```
+
+**Note:** Genome count varies by RefSeq version (typically 14,000-15,000).
 
 **Time:** ~90-120 minutes (depends on internet speed)
 
@@ -165,10 +169,11 @@ Progress: 200/14423 | Success: 200
 
 ### Step 5: Download and Integrate ICTV Taxonomy
 
-Downloads the official ICTV Virus Metadata Resource (VMR) and maps taxonomy to genomes.
+Downloads the official ICTV Virus Metadata Resource (VMR) and performs initial taxonomy mapping.
 
 ```bash
 # Download ICTV VMR (3.5 MB)
+# Check https://ictv.global/vmr for latest version
 mkdir -p data/ictv
 curl -L -o data/ictv/VMR_MSL40_v2.xlsx \
   "https://ictv.global/sites/default/files/VMR/VMR_MSL40.v2.20251013.xlsx"
@@ -182,23 +187,62 @@ python scripts/parse_ictv_taxonomy.py \
 ```
 
 **What it does:**
-1. Downloads ICTV Master Species List 40 (17,925 virus records)
+1. Downloads ICTV Master Species List (VMR)
 2. Parses ICTV taxonomy hierarchy (realm → species)
-3. Maps ICTV species names to RefSeq genomes (~69% match rate)
-4. Updates database taxonomy table with proper viral families
+3. Maps ICTV species names to RefSeq genomes using exact matching
+4. Updates database taxonomy table with viral families
 
-**Output:**
+**Output (November 2025 snapshot):**
 ```
 Parsed 17925 virus taxonomy records
 Unique families: 368
 Mapping Statistics:
-  Total genomes: 14,423
-  Matched: 9,962 (69.1%)
-  With ICTV family: 7,773 (53.9%)
+  Total genomes: ~14,400
+  With ICTV family: ~7,800 (54%)
 ✓ Database taxonomy updated
 ```
 
 **Time:** ~1 minute
+
+**Note:** Initial matching rate is ~54%. Step 5b improves this to ~57% using enhanced fuzzy matching.
+
+---
+
+### Step 5b: Apply Enhanced Taxonomy Matching
+
+Improves taxonomy coverage using fuzzy matching for strain-specific names (e.g., "Influenza A virus (A/California/07/2009)").
+
+```bash
+python scripts/fix_taxonomy_unmatched.py \
+  --database viroforge/data/viral_genomes.db \
+  --ictv data/ictv/ictv_taxonomy.json
+```
+
+**What it does:**
+1. Finds genomes with 'Unknown' families (~6,600 genomes)
+2. Applies pattern-based matching (20+ virus family patterns)
+3. Handles strain-specific nomenclature differences between RefSeq and ICTV
+4. Updates ~470 additional genomes with correct families
+
+**Output (November 2025 snapshot):**
+```
+Found 6650 genomes with Unknown family
+Matching results:
+  Fixed: 469 (7.1%)
+  Still unmatched: 6181 (92.9%)
+
+Example fixes:
+  1. Influenza B virus (B/Lee/1940)                     -> Orthomyxoviridae
+  2. Human gammaherpesvirus 8                          -> Orthoherpesviridae
+  3. Human papillomavirus type 60                      -> Papillomaviridae
+  ...
+
+✓ Database updated
+```
+
+**Time:** ~30 seconds
+
+**Why this is needed:** RefSeq uses strain-specific names while ICTV uses general species names, causing initial matching failures for important human pathogens (influenza, herpesviruses, etc.). This step recovers them. See [Taxonomy Bug Fix Documentation](TAXONOMY_BUG_FIX.md) for details.
 
 ---
 
@@ -383,8 +427,8 @@ OSError: [Errno 28] No space left on device
 ```
 
 **Solution:**
-1. Ensure you have 2.5 GB free before starting
-2. You can delete `data/refseq/` and `data/parsed/` after Step 4 completes (saves ~550 MB)
+1. Ensure you have 1.5 GB free before starting
+2. You can delete `data/refseq/` and `data/parsed/` after Step 5b completes (saves ~500 MB)
 3. The database file (`viroforge/data/viral_genomes.db`) is the only required file
 
 **To clean up after setup:**
@@ -433,36 +477,36 @@ After setup completes, check statistics:
 python scripts/viroforge_qc.py --database viroforge/data/viral_genomes.db
 ```
 
-**Expected output:**
+**Expected output (November 2025 snapshot):**
 ```
 ViroForge Database Quality Report
 ================================================================================
 
 Overall Statistics
 ------------------
-Total genomes: 14,423
-Total families: 145
+Total genomes: ~14,400
+Total families: ~145
 Total collections: 8
 Schema version: 1.0.0
 
 Genome Characteristics
 ----------------------
-Length range: 1,028 - 499,997 bp
-Mean length: 52,431 bp
-GC content: 15.0% - 74.8%
-Mean GC: 45.3%
+Length range: ~1,000 - 500,000 bp
+Mean length: ~52,000 bp
+GC content: 15.0% - 75.0%
+Mean GC: ~45%
 
 Genome Types
 ------------
-dsDNA: 13,891 (96.3%)
-ssDNA: 387 (2.7%)
-dsRNA: 98 (0.7%)
-ssRNA: 47 (0.3%)
+dsDNA: ~13,900 (96%)
+ssDNA: ~390 (3%)
+dsRNA: ~100 (1%)
+ssRNA: ~50 (<1%)
 
 ICTV Taxonomy Coverage
 ----------------------
-With ICTV taxonomy: 10,756 (74.6%)
-Missing taxonomy: 3,667 (25.4%)
+With ICTV family: ~8,200 (57%)
+Still unknown: ~6,200 (43%)
 
 Body Site Collections
 ---------------------
@@ -476,16 +520,18 @@ Freshwater Virome: 200 genomes
 Mouse Gut Virome: 22 genomes
 ```
 
+**Note:** Numbers vary by RefSeq/ICTV version. Collections remain stable across versions.
+
 ---
 
 ## Database Schema
 
 The SQLite database contains 8 tables:
 
-1. **genomes** - Core genome data (14,423 rows)
+1. **genomes** - Core genome data (~14,400 rows)
    - genome_id, accession, species, length, gc_content, sequence, etc.
 
-2. **taxonomy** - ICTV taxonomy (10,756 genomes with taxonomy)
+2. **taxonomy** - ICTV taxonomy (~8,200 genomes with families assigned)
    - realm, kingdom, phylum, class, order, family, genus, species
 
 3. **host_associations** - Virus-host relationships
@@ -561,21 +607,31 @@ Once database setup is complete:
 - Share it with collaborators
 - Back it up for archival
 
-**Note:** It's 1.7 GB, so use cloud storage or external drives.
+**Note:** It's ~500 MB, so use cloud storage or external drives.
 
 ### How do I update to new RefSeq releases?
 
 ```bash
-# Delete old downloads
+# Delete old downloads and database
 rm -rf data/refseq/ data/parsed/
+rm viroforge/data/viral_genomes.db
 
-# Re-run setup pipeline
+# Re-run full setup pipeline
+python viroforge/data/database_schema.py viroforge/data/viral_genomes.db
 python scripts/download_refseq.py --output data/refseq --all
 python scripts/parse_genomes.py --input data/refseq --output data/parsed
-python scripts/populate_database.py --input data/parsed --database viroforge/data/viral_genomes.db --force
+python scripts/populate_database.py --input data/parsed --database viroforge/data/viral_genomes.db
+
+# Re-download latest ICTV VMR and apply taxonomy
+curl -L -o data/ictv/VMR_latest.xlsx "https://ictv.global/vmr"
+python scripts/parse_ictv_taxonomy.py --vmr data/ictv/VMR_latest.xlsx --output data/ictv --database viroforge/data/viral_genomes.db --update-db
+python scripts/fix_taxonomy_unmatched.py --database viroforge/data/viral_genomes.db --ictv data/ictv/ictv_taxonomy.json
+
+# Re-curate collections
+python scripts/curate_body_site_collections.py --all
 ```
 
-RefSeq is updated monthly, but ViroForge doesn't require the absolute latest version.
+RefSeq is updated monthly, ICTV annually. ViroForge doesn't require the absolute latest versions.
 
 ### Can I add custom genomes?
 
@@ -596,5 +652,6 @@ If you encounter issues not covered here:
 
 ---
 
-**Last Updated:** 2025-11-06
-**Version:** 1.0
+**Last Updated:** 2025-11-10
+**Version:** 1.1
+**Snapshot Date:** November 2025 (RefSeq/ICTV versions)
