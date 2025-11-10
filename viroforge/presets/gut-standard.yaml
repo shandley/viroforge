@@ -1,0 +1,26 @@
+name: gut-standard
+description: Standard human gut virome with VLP enrichment (NovaSeq, 30x coverage)
+category: virome_type
+
+parameters:
+  collection_id: 9
+  platform: novaseq
+  coverage: 30
+  read_length: 150
+  insert_size: 350
+  vlp_protocol: tangential_flow
+  contamination_level: realistic
+  amplification: none
+
+metadata:
+  recommended_for:
+    - Gut microbiome analysis
+    - VLP enrichment comparison
+    - Phage-bacteria interaction studies
+  estimated_time: "5-10 minutes"
+  estimated_size: "4-5 GB"
+  tags:
+    - gut
+    - host-associated
+    - standard
+    - popular

@@ -40,6 +40,7 @@ setup(
         "biopython>=1.79",
         "pyyaml>=5.4.0",
         "scipy>=1.7.0",
+        "rich>=13.0.0",
     ],
     extras_require={
         "dev": [

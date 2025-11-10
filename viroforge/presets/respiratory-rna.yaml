@@ -1,0 +1,25 @@
+name: respiratory-rna
+description: Respiratory RNA virome (NovaSeq, 40x coverage, Ribo-Zero depletion)
+category: virome_type
+
+parameters:
+  collection_id: 21
+  platform: novaseq
+  coverage: 40
+  read_length: 150
+  insert_size: 350
+  molecule_type: rna
+  rna_depletion: ribo_zero
+  contamination_level: realistic
+
+metadata:
+  recommended_for:
+    - Respiratory virome analysis
+    - RNA virus detection
+    - rRNA depletion comparison
+  estimated_time: "7-12 minutes"
+  estimated_size: "6-7 GB"
+  tags:
+    - respiratory
+    - rna
+    - host-associated

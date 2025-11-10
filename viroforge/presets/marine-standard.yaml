@@ -1,0 +1,25 @@
+name: marine-standard
+description: Marine virome with VLP enrichment (MiSeq, 30x coverage)
+category: virome_type
+
+parameters:
+  collection_id: 13
+  platform: miseq
+  coverage: 30
+  read_length: 250
+  insert_size: 400
+  vlp_protocol: tangential_flow
+  contamination_level: realistic
+  amplification: none
+
+metadata:
+  recommended_for:
+    - Marine virome analysis
+    - Environmental virome studies
+    - Technology comparison with gut viromes
+  estimated_time: "6-12 minutes"
+  estimated_size: "5-6 GB"
+  tags:
+    - marine
+    - environmental
+    - standard

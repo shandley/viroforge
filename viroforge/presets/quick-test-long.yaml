@@ -1,0 +1,25 @@
+name: quick-test-long
+description: Quick test dataset for long reads (low depth for fast testing)
+category: testing
+
+parameters:
+  collection_id: 9
+  platform: pacbio-hifi
+  depth: 5
+  pacbio_passes: 10
+  pacbio_read_length: 15000
+  vlp_protocol: tangential_flow
+  contamination_level: clean
+
+metadata:
+  recommended_for:
+    - Quick testing
+    - Long-read pipeline validation
+    - Development
+  estimated_time: "2-4 minutes"
+  estimated_size: "300-500 MB"
+  tags:
+    - testing
+    - quick
+    - long-reads
+    - low-depth

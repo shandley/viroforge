@@ -1,0 +1,25 @@
+name: hybrid-standard
+description: Standard hybrid dataset (NovaSeq 30x + PacBio HiFi 15x)
+category: assembly_benchmarking
+
+parameters:
+  collection_id: 9
+  short_platform: novaseq
+  long_platform: pacbio-hifi
+  coverage: 30
+  depth: 15
+  vlp_protocol: tangential_flow
+  contamination_level: realistic
+
+metadata:
+  recommended_for:
+    - Hybrid assembly benchmarking
+    - Unicycler/SPAdes hybrid mode
+    - Short vs long vs hybrid comparison
+  estimated_time: "12-20 minutes"
+  estimated_size: "6-7 GB"
+  tags:
+    - hybrid
+    - assembly
+    - benchmarking
+  note: "Requires generate_hybrid_dataset.py script"

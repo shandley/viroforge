@@ -1,0 +1,24 @@
+name: quick-test-short
+description: Quick test dataset for short reads (low coverage for fast testing)
+category: testing
+
+parameters:
+  collection_id: 9
+  platform: miseq
+  coverage: 5
+  read_length: 150
+  insert_size: 350
+  vlp_protocol: tangential_flow
+  contamination_level: clean
+
+metadata:
+  recommended_for:
+    - Quick testing
+    - Pipeline validation
+    - Development
+  estimated_time: "1-2 minutes"
+  estimated_size: "500 MB - 1 GB"
+  tags:
+    - testing
+    - quick
+    - low-coverage

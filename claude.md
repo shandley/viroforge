@@ -1,8 +1,8 @@
 # ViroForge - Claude Development Context
 
 **Last Updated**: 2025-11-10
-**Current Version**: v0.9.0
-**Current Phase**: Phase 10 COMPLETE ✅
+**Current Version**: v0.10.0 (Phase 12 in progress)
+**Current Phase**: Phase 12 - CLI Enhancements 🎨
 
 ## Project Overview
 
@@ -33,6 +33,24 @@ ViroForge is a comprehensive mock metavirome data generator for benchmarking vir
 - ✅ Comprehensive testing (`tests/test_longread_simulator.py`)
 - ✅ Complete documentation (`docs/LONGREAD_TUTORIAL.md`)
 - **Timeline**: Completed in 3 weeks (originally planned 3-4 weeks)
+
+**Phase 11**: ✅ COMPLETE (November 2025) - Hybrid Assembly Support
+- ✅ Convenience script for matched short+long datasets
+- ✅ Composition validation utility
+- ✅ Complete hybrid assembly tutorial
+- ✅ Support for Unicycler, SPAdes hybrid mode, MaSuRCA
+- **Timeline**: Completed in 1 day
+
+**Phase 12**: 🟡 IN PROGRESS (November 2025) - CLI Enhancements
+- ✅ Unified `viroforge` CLI command
+- ✅ Interactive collection browser (`viroforge browse`)
+- ✅ Configuration presets system (8 built-in presets)
+- ✅ Beautiful terminal UI with `rich` library
+- ✅ Database utilities for CLI
+- ⏳ Progress reporting (stub)
+- ⏳ Batch generation (stub)
+- ⏳ Result reporting (stub)
+- **Timeline**: Initial implementation complete (2-3 days)
 
 ## Database
 

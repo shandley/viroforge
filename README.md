@@ -5,7 +5,7 @@
 A comprehensive mock metavirome data generator for testing and validating virome analysis pipelines, with **long-read sequencing**, **RNA virome support**, and critical disease/environmental collections.
 
 [![Tests](https://img.shields.io/badge/tests-80%2B%20passing-brightgreen)](tests/)
-[![Phase](https://img.shields.io/badge/Phase%2010-Complete-brightgreen)](ROADMAP.md)
+[![Phase](https://img.shields.io/badge/Phase%2012-In%20Progress-yellow)](ROADMAP.md)
 [![Collections](https://img.shields.io/badge/collections-28%20curated-blue)](docs/COLLECTION_IMPLEMENTATION_GUIDE.md)
 [![Genomes](https://img.shields.io/badge/genomes-14%2C423%20RefSeq-blue)](docs/GENOME_DATABASE_DESIGN.md)
 [![Platforms](https://img.shields.io/badge/platforms-5%20supported-blue)](docs/LONGREAD_TUTORIAL.md)
@@ -14,6 +14,24 @@ A comprehensive mock metavirome data generator for testing and validating virome
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 ---
+
+## 🆕 What's New in v0.10.0
+
+### Phase 12: CLI Enhancements 🎨 (November 2025)
+- **🎯 Interactive collection browser** - `viroforge browse`
+  - Beautiful terminal UI with search/filter
+  - Detailed collection views with composition stats
+  - Direct dataset generation from browser
+- **📦 Configuration presets** - `viroforge presets`
+  - 8 built-in presets (gut-standard, marine-standard, etc.)
+  - Custom preset creation from datasets
+  - Easy parameter overrides
+- **🚀 Unified CLI** - Single `viroforge` command
+  - Browse, generate, report, compare, batch subcommands
+  - Consistent interface across all operations
+  - Rich terminal formatting with colors and tables
+
+See documentation below for complete usage guide.
 
 ## 🆕 What's New in v0.9.0
 
@@ -158,6 +176,44 @@ pip install -e .
 See [Long-Read Tutorial](docs/LONGREAD_TUTORIAL.md) for detailed installation guide.
 
 ### Generate DNA Virome Dataset
+
+#### New CLI Interface 🆕 (Phase 12)
+
+**Interactive Collection Browser:**
+```bash
+# Launch interactive browser
+viroforge browse
+
+# Navigate with arrow keys, press Enter for details
+# Press 'G' to generate directly from browser
+```
+
+**Using Presets:**
+```bash
+# List available presets
+viroforge presets list
+
+# Generate using preset
+viroforge generate --preset gut-standard
+
+# Override specific parameters
+viroforge generate --preset gut-standard --seed 123 --output my_data
+
+# Show preset details
+viroforge presets show gut-standard
+```
+
+**Available Presets:**
+- `gut-standard` - Human gut virome (NovaSeq, 30x, VLP enrichment)
+- `gut-bulk` - Gut bulk metagenome (NovaSeq, 50x, no VLP)
+- `marine-standard` - Marine virome (MiSeq, 30x)
+- `respiratory-rna` - Respiratory RNA virome (NovaSeq, 40x)
+- `quick-test-short` - Fast test dataset (5x coverage)
+- `quick-test-long` - Fast long-read test (5x depth)
+- `hybrid-standard` - Hybrid assembly (NovaSeq 30x + HiFi 15x)
+- `assembly-high-coverage` - High coverage for assembly (100x)
+
+#### Classic Script Interface
 
 **Step 1: List Available Collections**
 

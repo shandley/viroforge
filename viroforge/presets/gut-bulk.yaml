@@ -1,0 +1,25 @@
+name: gut-bulk
+description: Human gut virome without VLP enrichment (bulk metagenome, NovaSeq, 50x)
+category: virome_type
+
+parameters:
+  collection_id: 9
+  platform: novaseq
+  coverage: 50
+  read_length: 150
+  insert_size: 350
+  no_vlp: true
+  contamination_level: heavy
+  amplification: none
+
+metadata:
+  recommended_for:
+    - Bulk metagenome analysis
+    - VLP vs bulk comparison
+    - Contamination studies
+  estimated_time: "8-15 minutes"
+  estimated_size: "7-8 GB"
+  tags:
+    - gut
+    - bulk
+    - no-vlp
