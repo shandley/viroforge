@@ -1,8 +1,8 @@
 # ViroForge - Claude Development Context
 
 **Last Updated**: 2025-11-10
-**Current Version**: v0.8.0
-**Current Phase**: Phase 10 (Long-Read Sequencing Support)
+**Current Version**: v0.9.0 (in development)
+**Current Phase**: Phase 10 (Long-Read Sequencing Support) - Week 1 of 3-4
 
 ## Project Overview
 
@@ -23,10 +23,14 @@ ViroForge is a comprehensive mock metavirome data generator for benchmarking vir
 - All collections use proactive taxonomy rescanning protocol
 - Total: 28 collections across diverse environments
 
-**Phase 10**: 📋 Next (Long-Read Sequencing Support)
-- PacBio HiFi and Nanopore platform support
-- Complete genome assembly benchmarking
-- Timeline: 3-4 weeks
+**Phase 10**: 🚧 IN PROGRESS (Long-Read Sequencing Support) - 33% Complete
+- ✅ PBSIM3 research and architecture design complete
+- ✅ Core simulator module implemented (`viroforge/simulators/longread.py`)
+- ✅ PacBio HiFi and Nanopore support functional
+- ⏳ VLP modeling updates for long reads
+- ⏳ Integration with generate_fastq_dataset.py
+- ⏳ Testing and documentation
+- Timeline: Week 1 of 3-4
 
 ## Database
 
@@ -170,23 +174,70 @@ git push
 
 **Note**: Database file (`viral_genomes.db`) is in `.gitignore`
 
-## Next Steps (Phase 10)
+## Phase 10 Progress (Week 1 of 3-4)
 
-1. Research long-read simulators (pbsim3, NanoSim, PBSIM2)
-2. Integrate PacBio HiFi simulator (QV20+, different error profile)
-3. Integrate Nanopore simulator (homopolymer errors, ultra-long reads)
-4. Add `--platform {novaseq,miseq,hiseq,pacbio-hifi,nanopore}` options
-5. Update VLP modeling for long reads
-6. Create long-read tests and tutorial
+### Completed ✅
+1. ✅ Research long-read simulators → **PBSIM3 selected**
+2. ✅ Design integration architecture → `docs/PHASE10_ARCHITECTURE.md`
+3. ✅ Implement `viroforge/simulators/longread.py` (850+ lines)
+4. ✅ PacBio HiFi support (two-step: PBSIM3 CLR → ccs consensus)
+5. ✅ Nanopore support (single-step: PBSIM3 with ONT error model)
+6. ✅ Configuration classes (PacBioHiFiConfig, NanoporeConfig)
+7. ✅ Ground truth tracking extended for long reads
+8. ✅ Lab notebook entry created
+
+### Next Steps (Week 1-2)
+1. ⏳ Update VLP modeling for long-read size bias (`viroforge/enrichment/vlp.py`)
+2. ⏳ Integrate with `generate_fastq_dataset.py` (add `--platform` flag)
+3. ⏳ Create integration tests (`tests/test_longread_simulator.py`)
+4. ⏳ Write user tutorial (`docs/LONGREAD_TUTORIAL.md`)
+
+### Long-Read Simulator API
+
+```python
+from viroforge.simulators import (
+    generate_long_reads,
+    LongReadPlatform,
+    PacBioHiFiConfig,
+    NanoporeConfig
+)
+
+# PacBio HiFi with custom configuration
+config = PacBioHiFiConfig(passes=15, read_length_mean=20000)
+output = generate_long_reads(
+    composition=composition,
+    output_prefix='data/hifi_reads',
+    platform=LongReadPlatform.PACBIO_HIFI,
+    depth=10.0,
+    platform_config=config,
+    random_seed=42
+)
+# Returns: {'reads': Path('hifi.fastq.gz'), 'ground_truth': Path('ground_truth.tsv')}
+
+# Nanopore with defaults
+output = generate_long_reads(
+    composition=composition,
+    output_prefix='data/nanopore_reads',
+    platform=LongReadPlatform.NANOPORE,
+    depth=15.0,
+    random_seed=42
+)
+# Returns: {'reads': Path('nanopore.fastq'), 'ground_truth': Path('ground_truth.tsv')}
+```
 
 ## Important Files
 
 - `ROADMAP.md`: Development roadmap and timelines
 - `README.md`: User-facing documentation
 - `docs/COLLECTION_IMPLEMENTATION_GUIDE.md`: Collection curation details
+- `docs/PHASE10_LONGREAD_RESEARCH.md`: Long-read simulator evaluation
+- `docs/PHASE10_ARCHITECTURE.md`: Long-read integration architecture
 - `scripts/curate_*_virome_collection.py`: Collection curation scripts
 - `scripts/generate_fastq_dataset.py`: Main data generation script
+- `viroforge/simulators/longread.py`: PacBio HiFi and Nanopore simulator
+- `viroforge/simulators/illumina.py`: Short-read simulator
 - `viroforge/data/viral_genomes.db`: SQLite database (NOT in git)
+- `lab-notebook/sessions/2025-11/20251110-001-IMPLEMENTATION-phase10-longread-simulator.md`: Phase 10 lab notebook
 
 ## References
 
