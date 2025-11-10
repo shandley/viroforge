@@ -935,7 +935,7 @@ More even than gut dysbiosis collections, reflecting stable chronic infection st
 
 **Phase**: 9 (Additional Host Niches)
 **Collection ID**: 24
-**Target**: 20-30 genomes (achieved: 13 genomes)
+**Target**: 20-30 genomes (achieved: 26 genomes)
 **Status**: ✅ Complete
 
 ### Rationale
@@ -974,59 +974,64 @@ The vaginal virome is an understudied but clinically important microbial communi
 **Genome Selection**:
 ```
 - Papillomaviridae: 5 genomes (HPV types including high-risk 16/18 equivalents)
+- Orthoherpesviridae: 5 genomes (HSV-1, VZV, EBV, CMV, HHV-6A/6B, HHV-7, KSHV)
+- Lactobacillus phages: 8 genomes (Herelleviridae + Unknown family)
 - Anelloviridae: 3 genomes (Torque teno virus family)
-- Microviridae: 2 genomes (bacteriophages)
+- Microviridae: 2 genomes (additional bacteriophages)
 - Polyomaviridae: 2 genomes (BK polyomavirus, HPV-7)
 - Adenoviridae: 1 genome (Human adenovirus F)
-Total: 13 genomes
+Total: 26 genomes
 ```
 
-**Database Limitations**:
-- **No herpesviruses found**: HSV-1, HSV-2, CMV, EBV not in RefSeq viral database or not matched
-- **No Lactobacillus-specific phages**: Lactobacillus Siphoviridae/Myoviridae not available in database
-- **Generic bacteriophages used**: Microviridae phages serve as bacteriophage representatives
-- **Below target size**: 13 vs 20-30 genomes (limited by database content)
+**Taxonomy Investigation Notes**:
+- **Herpesviruses**: Modern ICTV taxonomy uses family "Orthoherpesviridae" (not "Herpesviridae"). Found 9 human herpesviruses in RefSeq (5 selected)
+- **Lactobacillus phages**: ICTV abolished morphology-based families (Siphoviridae, Myoviridae, Podoviridae) in 2022. Replaced with genome-based families like Herelleviridae. Found 64 Lactobacillus phages in RefSeq (8 selected)
+- **Database content**: Taxonomy investigation revealed genomes were present but required modern ICTV family names
 
 ### Abundance Assignment
 
 Used **moderately skewed log-normal distribution** (bacteriophage-dominated) to simulate:
-- Bacteriophages dominant (~81% - Microviridae representatives)
-- HPV moderate abundance (11.2% - high prevalence species)
-- Anelloviruses moderate (6.1% - ubiquitous commensals)
-- Polyomaviruses low (1.1% - occasional detection)
-- Adenoviruses low (0.7% - rare)
+- Bacteriophages dominant (~75% - Lactobacillus phages + Microviridae)
+- HPV moderate abundance (~14% - high prevalence species)
+- Anelloviruses moderate (~7% - ubiquitous commensals)
+- Herpesviruses low (~3% - episodic shedding)
+- Other viruses low (~1% - polyomaviruses, adenoviruses)
 
-**Abundance Distribution**:
-| Virus Family | Genomes | Abundance | Ecological Role |
-|--------------|---------|-----------|----------------|
-| Microviridae (phages) | 2 | 80.9% | Dominant bacteriophages |
-| Papillomaviridae (HPV) | 5 | 11.2% | High prevalence eukaryotic virus |
-| Anelloviridae | 3 | 6.1% | Ubiquitous commensal |
-| Polyomaviridae | 2 | 1.1% | BK/JC viruses |
-| Adenoviridae | 1 | 0.7% | Occasional detection |
+**Abundance Distribution** (stochastic, approximate):
+| Virus Family | Genomes | Target Abundance | Ecological Role |
+|--------------|---------|------------------|----------------|
+| Lactobacillus phages | 8 | ~58% | Dominant bacteriophages (Herelleviridae, Unknown) |
+| Microviridae (phages) | 2 | ~17% | Additional bacteriophages |
+| Papillomaviridae (HPV) | 5 | ~14% | High prevalence eukaryotic virus |
+| Anelloviridae | 3 | ~7% | Ubiquitous commensal |
+| Orthoherpesviridae | 5 | ~3% | HSV-1, VZV, EBV, CMV, KSHV |
+| Polyomaviridae | 2 | ~0.8% | BK/JC viruses |
+| Adenoviridae | 1 | ~0.2% | Occasional detection |
 
-Distribution shape reflects healthy vaginal virome where bacteriophages dominate, HPV is highly prevalent, and other eukaryotic viruses are less abundant.
+Distribution shape reflects healthy vaginal virome where bacteriophages (particularly Lactobacillus phages) dominate at ~75%, matching literature reports of ~80% bacteriophage abundance.
 
 ### Comparison to Literature
 
 | Metric | Literature | Collection 24 | Match Quality |
 |--------|-----------|---------------|---------------|
-| Bacteriophage dominance | ~80% | 80.9% | ✅ Excellent |
+| Bacteriophage dominance | ~80% | ~75% | ✅ Excellent |
 | HPV prevalence | 78.3% | Present (5 types) | ✅ Good |
 | Anellovirus prevalence | 69.6% | Present (3 types) | ✅ Good |
-| Herpesviruses | Moderate | ❌ Not found | Limited by database |
-| Lactobacillus phages | Dominant | ❌ Not available | Limited by database |
+| Herpesviruses | Moderate | ✅ Present (5 types) | ✅ Good |
+| Lactobacillus phages | Dominant | ✅ Present (8 genomes) | ✅ Excellent |
 
 ### Validation
 
-**Test Generation**: Verified in database (13 genomes, Collection ID 24)
+**Test Generation**: Verified in database (26 genomes, Collection ID 24)
 
 **Composition Summary**:
-- HPV: 5 genomes (types 11, 41, 52, 96, 140, 154)
-- Anelloviruses: 3 genomes (TTV, TTMV, rodent TTV)
-- Bacteriophages: 2 genomes (Microviridae - Spiroplasma phage, Enterobacteria phage)
-- Polyomaviruses: 2 genomes (BK polyomavirus, HPV-7)
-- Adenoviruses: 1 genome (Human adenovirus F)
+- Lactobacillus phages: 8 genomes (Herelleviridae, Unknown family)
+- HPV: 5 genomes (Papillomaviridae - types 11, 41, 52, 96, 140, 154)
+- Herpesviruses: 5 genomes (Orthoherpesviridae - HSV-1, VZV, EBV, CMV, HHV-6A/6B, HHV-7, KSHV)
+- Anelloviruses: 3 genomes (Anelloviridae - TTV, TTMV, rodent TTV)
+- Microviridae phages: 2 genomes (additional bacteriophages)
+- Polyomaviruses: 2 genomes (Polyomaviridae - BK polyomavirus, HPV-7)
+- Adenoviruses: 1 genome (Adenoviridae - Human adenovirus F)
 
 **Use Cases**:
 1. **HPV Detection Benchmarking**: Test HPV typing accuracy in clinical pipelines
@@ -1034,27 +1039,35 @@ Distribution shape reflects healthy vaginal virome where bacteriophages dominate
 3. **Women's Health Pipeline Validation**: Benchmark cervicovaginal sample analysis
 4. **Anellovirus Quantification**: Test detection of immune status markers
 
-### Known Limitations
+### Taxonomy Investigation and Resolution
 
-1. **Missing Key Components**:
-   - No herpesviruses (HSV-1/2, CMV, EBV) - not in database
-   - No Lactobacillus-specific Siphoviridae/Myoviridae phages - not available
-   - Generic Microviridae phages used as bacteriophage representatives
+**Initial Challenge**: First curation attempt yielded only 13 genomes with no herpesviruses or Lactobacillus-specific phages, suggesting database limitations.
 
-2. **Below Target Size**: 13 genomes vs 20-30 target (constrained by database content)
+**Investigation Findings**:
 
-3. **Cannot Model**:
-   - Bacterial vaginosis (BV) - would require altered phageome and reduced Lactobacillus phages
-   - Herpes simplex virus (HSV) infection episodes
-   - Lactobacillus species-specific phage dynamics
+1. **Herpesviruses - Taxonomy Name Change**:
+   - Old family name: "Herpesviridae"
+   - Modern ICTV name: "Orthoherpesviridae"
+   - Database content: 9 human herpesviruses available
+   - Selected: 5 genomes (HSV-1, VZV, EBV, CMV, HHV-6A/6B, HHV-7, KSHV)
+   - Note: HSV-2 (HHV-2) genuinely not in RefSeq database
 
-4. **Future Improvements**:
-   - Add herpesviruses when available in RefSeq
-   - Add Lactobacillus-specific bacteriophages
-   - Expand to 20-30 genomes as database grows
-   - Consider adding second collection for BV state (altered virome)
+2. **Lactobacillus Phages - ICTV 2022 Taxonomy Revolution**:
+   - Old approach: Searched for morphology-based families (Siphoviridae, Myoviridae, Podoviridae)
+   - ICTV change: These families abolished in 2022, replaced with genome-based classification
+   - New families: Herelleviridae (class Caudoviricetes) and many with "Unknown" family (awaiting reclassification)
+   - Database content: 64 Lactobacillus phages available (12 Herelleviridae, 52 Unknown)
+   - Selected: 8 genomes (mixed Herelleviridae and Unknown families)
 
-Despite these limitations, Collection 24 provides a viable benchmark for vaginal virome analysis, particularly for HPV detection, anellovirus quantification, and general women's health applications.
+3. **Impact**: Collection size doubled from 13 to 26 genomes after using modern ICTV taxonomy
+
+**Key Lesson**: Modern viral taxonomy evolves rapidly. Always verify current ICTV family names when querying viral databases. Morphology-based bacteriophage families are obsolete as of 2022.
+
+### Future Enhancements
+
+1. **Bacterial Vaginosis (BV) Collection**: Create second collection modeling altered virome (reduced Lactobacillus phages, increased Gardnerella phages)
+2. **HSV-2 Addition**: Add when available in RefSeq
+3. **Expanded Phage Diversity**: Include more Lactobacillus phage families as ICTV reclassification progresses
 
 ---
 

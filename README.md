@@ -290,11 +290,12 @@ ViroForge includes **23 curated virome collections** representing diverse viral 
     - **MAJOR FIX**: Now includes rotavirus (12) and norovirus (15) - +81% size
 
 ### Phase 9: Additional Host Niches (Current Phase) ✨ NEW
-24. **Vaginal Virome (Healthy)** (13 genomes) - Women's health applications
-    - HPV (5), Anelloviruses (3), Polyomaviruses (BK/JC), Microviridae phages
+24. **Vaginal Virome (Healthy)** (26 genomes) - Women's health applications
+    - Lactobacillus phages (8), HPV (5), Herpesviruses (5), Anelloviruses (3), Polyomaviruses, Microviridae
     - Applications: Cervical cancer screening, bacterial vaginosis, pregnancy outcomes
+    - Note: Collection doubled after ICTV taxonomy investigation (Orthoherpesviridae, Herelleviridae families)
 
-**Total**: 1,457 genomes across 24 diverse environments, all with literature-validated compositions.
+**Total**: 1,470 genomes across 24 diverse environments, all with literature-validated compositions.
 
 See [Collection Implementation Guide](docs/COLLECTION_IMPLEMENTATION_GUIDE.md) for detailed curation rationale.
 
