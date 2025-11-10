@@ -6,7 +6,7 @@ A comprehensive mock metavirome data generator for testing and validating virome
 
 [![Tests](https://img.shields.io/badge/tests-70%2B%20passing-brightgreen)](tests/)
 [![Phase](https://img.shields.io/badge/Phase%209-In%20Progress-yellow)](ROADMAP.md)
-[![Collections](https://img.shields.io/badge/collections-26%20curated-blue)](docs/COLLECTION_IMPLEMENTATION_GUIDE.md)
+[![Collections](https://img.shields.io/badge/collections-27%20curated-blue)](docs/COLLECTION_IMPLEMENTATION_GUIDE.md)
 [![Genomes](https://img.shields.io/badge/genomes-14%2C423%20RefSeq-blue)](docs/GENOME_DATABASE_DESIGN.md)
 [![Taxonomy](https://img.shields.io/badge/taxonomy-57.1%25%20ICTV-blue)](docs/TAXONOMY_BUG_FIX.md)
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue)](https://www.python.org/)
@@ -30,7 +30,7 @@ A comprehensive mock metavirome data generator for testing and validating virome
 - **🐛 Major taxonomy bug fixed** - Enhanced fuzzy matching fixed 469 genomes (7.1% of unmatched)
   - **CRITICAL**: HIV+ collection now includes herpesviruses (EBV, KSHV)
   - **MAJOR**: Fecal RNA collection +81% size with rotavirus/norovirus
-- **📊 26 total collections** - From 8 to 26 curated virome collections (Phase 9 ongoing)
+- **📊 27 total collections** - From 8 to 27 curated virome collections (Phase 9 ongoing)
 
 See [Taxonomy Bug Fix Documentation](docs/TAXONOMY_BUG_FIX.md) for complete details.
 
@@ -49,8 +49,8 @@ ViroForge generates realistic synthetic virome sequencing datasets with complete
 
 ### Key Features
 
-- **26 Curated Virome Collections** - Literature-validated compositions:
-  - **Host-associated (18)**: Healthy gut/oral/skin/respiratory/vaginal/blood/ocular, disease states (IBD, HIV+, CF), VLP comparisons
+- **27 Curated Virome Collections** - Literature-validated compositions:
+  - **Host-associated (19)**: Healthy gut/oral/skin/respiratory/vaginal/blood/ocular/lung, disease states (IBD, HIV+, CF), VLP comparisons
   - **Environmental (5)**: Marine, soil, freshwater, wastewater
   - **RNA viromes (3)**: Respiratory RNA, arbovirus, fecal RNA
 - **14,423 RefSeq Viral Genomes** - Complete database with enhanced ICTV taxonomy (57.1% coverage after fix)
@@ -302,8 +302,12 @@ ViroForge includes **23 curated virome collections** representing diverse viral 
     - TTV (3 - DOMINANT 65% prevalence), Adenoviruses (3 - most common infection), Herpesviruses (4 - HSV-1, VZV, EBV, CMV), Bacteriophages (5 - Staphylococcus, Propionibacterium, Corynebacterium), Merkel cell polyomavirus, HPV
     - Applications: Infectious keratitis diagnosis, ocular health monitoring
     - Note: Paucibacterial environment (91% bacterial, 5% viral reads)
+27. **Lower Respiratory (Lung) Virome (Healthy)** (31 genomes) - Pneumonia and lung transplant
+    - TTV (5 - DOMINANT 70% in tissues), Bacteriophages (8 - Propionibacterium, Streptococcus, Haemophilus, Pseudomonas), Respiratory viruses (13 - RSV, rhinovirus, influenza A, coronavirus, metapneumovirus, bocavirus, adenovirus), Herpesviruses (4 - CMV, EBV, HSV, VZV), Papillomaviruses (2)
+    - Applications: Pneumonia diagnosis, COPD monitoring, lung transplant surveillance
+    - Note: Different from upper respiratory tract; CMV/EBV critical for transplant
 
-**Total**: 1,508 genomes across 26 diverse environments, all with literature-validated compositions.
+**Total**: 1,539 genomes across 27 diverse environments, all with literature-validated compositions.
 
 See [Collection Implementation Guide](docs/COLLECTION_IMPLEMENTATION_GUIDE.md) for detailed curation rationale.
 
