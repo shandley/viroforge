@@ -895,6 +895,433 @@ def create_contamination_profile(
     return profile
 
 
+def add_host_rna_contamination(
+    profile: ContaminationProfile,
+    host_organism: str = "human",
+    abundance_pct_before_depletion: float = 90.0,
+    abundance_pct_after_depletion: float = 10.0,
+    rrna_fraction: float = 0.95,
+    transcriptome_path: Optional[Path] = None,
+    n_transcripts: int = 100,
+    random_seed: Optional[int] = None
+) -> ContaminationProfile:
+    """
+    Add host RNA contamination to a profile (for RNA viromes).
+
+    RNA viromes have DRAMATICALLY different contamination than DNA viromes:
+    - 80-95% rRNA (vs ~5% for DNA) BEFORE rRNA depletion
+    - 5-15% rRNA AFTER rRNA depletion (Ribo-Zero/RiboMinus)
+    - Host mRNA transcripts (much more diverse than DNA fragments)
+
+    This function models BOTH pre- and post-depletion states.
+
+    Args:
+        profile: ContaminationProfile to add host RNA to
+        host_organism: Host organism ("human", "mouse", etc.)
+        abundance_pct_before_depletion: Total host RNA % before Ribo-Zero (default: 90%)
+        abundance_pct_after_depletion: Total host RNA % after Ribo-Zero (default: 10%)
+        rrna_fraction: Fraction of host RNA that is rRNA (default: 0.95 = 95%)
+        transcriptome_path: Optional path to host transcriptome FASTA
+        n_transcripts: Number of mRNA transcripts to sample
+        random_seed: Random seed for reproducibility
+
+    Returns:
+        Updated ContaminationProfile
+
+    Example:
+        >>> # Model post-Ribo-Zero contamination (typical for RNA viromes)
+        >>> profile = ContaminationProfile()
+        >>> add_host_rna_contamination(
+        ...     profile,
+        ...     "human",
+        ...     abundance_pct_before_depletion=90.0,  # Was 90% before depletion
+        ...     abundance_pct_after_depletion=10.0,   # Now 10% after depletion
+        ...     rrna_fraction=0.95
+        ... )
+        >>> # Result: ~9.5% rRNA + ~0.5% mRNA = 10% total host RNA
+    """
+    # Use local RNG instead of global state for thread safety
+    if random_seed is not None:
+        rng = np.random.default_rng(random_seed)
+        random.seed(random_seed)
+    else:
+        rng = np.random.default_rng()
+
+    # Map organism to RNA info
+    host_info = {
+        'human': {
+            'organism': 'Homo sapiens',
+            'source': 'GRCh38_transcriptome',
+            'gc_content': 41.0,
+            'rrna_genes': ['18S', '28S', '5.8S', '5S']
+        },
+        'mouse': {
+            'organism': 'Mus musculus',
+            'source': 'GRCm39_transcriptome',
+            'gc_content': 42.0,
+            'rrna_genes': ['18S', '28S', '5.8S', '5S']
+        }
+    }
+
+    organism_info = host_info.get(host_organism.lower(), {
+        'organism': host_organism,
+        'source': 'Unknown',
+        'gc_content': 42.0,
+        'rrna_genes': ['18S', '28S', '5.8S', '5S']
+    })
+
+    logger.info(
+        f"Adding RNA contamination from {organism_info['organism']}: "
+        f"{abundance_pct_before_depletion}% → {abundance_pct_after_depletion}% "
+        f"(post-Ribo-Zero)"
+    )
+
+    # Calculate rRNA and mRNA contributions AFTER depletion
+    # Before depletion: 90% total, 95% of that is rRNA = 85.5% rRNA, 4.5% mRNA
+    # After depletion: 10% total, rRNA reduced 90-95%, mRNA unchanged
+    # Result: ~10% rRNA, ~4.5% mRNA (but we normalize to 10% total)
+
+    rrna_abundance_after = abundance_pct_after_depletion * rrna_fraction
+    mrna_abundance_after = abundance_pct_after_depletion * (1 - rrna_fraction)
+
+    # Add rRNA contaminants (post-depletion, some slips through)
+    n_rrna = 20  # Fewer rRNA sequences (most removed by Ribo-Zero)
+    abundance_per_rrna = (rrna_abundance_after / 100.0) / n_rrna
+
+    rrna_lengths = {
+        '18S': 1800,
+        '28S': 3400,
+        '5.8S': 160,
+        '5S': 121
+    }
+
+    for gene in organism_info['rrna_genes']:
+        for i in range(n_rrna // len(organism_info['rrna_genes'])):
+            length = rrna_lengths.get(gene, 2000)
+            seq = _generate_sequence_with_gc(length, 55.0)  # rRNA is GC-rich
+
+            contaminant = ContaminantGenome(
+                genome_id=f"host_rna_rrna_{gene}_{i:04d}",
+                sequence=seq,
+                contaminant_type=ContaminantType.RRNA,
+                organism=organism_info['organism'],
+                source=f"{organism_info['source']}_{gene}_rRNA",
+                abundance=abundance_per_rrna,
+                description=f"Host {gene} rRNA (post-Ribo-Zero)"
+            )
+            profile.add_contaminant(contaminant)
+
+    # Add mRNA transcripts (unchanged by Ribo-Zero)
+    abundance_per_mrna = (mrna_abundance_after / 100.0) / n_transcripts
+
+    if transcriptome_path is not None and transcriptome_path.exists():
+        # Sample from actual transcriptome
+        logger.info(f"Sampling host mRNA from {transcriptome_path}")
+        records = list(SeqIO.parse(transcriptome_path, 'fasta'))
+        sampled_records = random.sample(records, min(n_transcripts, len(records)))
+
+        for i, record in enumerate(sampled_records):
+            contaminant = ContaminantGenome(
+                genome_id=f"host_rna_mrna_{i:04d}",
+                sequence=record.seq,
+                contaminant_type=ContaminantType.HOST_DNA,  # Reuse HOST_DNA type for RNA
+                organism=organism_info['organism'],
+                source=organism_info['source'],
+                abundance=abundance_per_mrna,
+                description=f"Host mRNA transcript: {record.id}"
+            )
+            profile.add_contaminant(contaminant)
+    else:
+        # Create synthetic mRNA transcripts
+        logger.info("No transcriptome path provided, creating synthetic mRNA transcripts")
+
+        for i in range(n_transcripts):
+            # mRNA transcript lengths: 500-5000 bp (excluding UTRs)
+            length = int(rng.uniform(500, 5000))
+            gc_content = rng.normal(organism_info['gc_content'], 5.0)
+            gc_content = np.clip(gc_content, 30.0, 60.0)
+
+            seq = _generate_sequence_with_gc(length, gc_content)
+
+            contaminant = ContaminantGenome(
+                genome_id=f"host_rna_mrna_{i:04d}",
+                sequence=seq,
+                contaminant_type=ContaminantType.HOST_DNA,
+                organism=organism_info['organism'],
+                source=organism_info['source'],
+                abundance=abundance_per_mrna,
+                description=f"Host mRNA transcript {i}"
+            )
+            profile.add_contaminant(contaminant)
+
+    return profile
+
+
+def add_bacterial_rna_contamination(
+    profile: ContaminationProfile,
+    abundance_pct: float = 5.0,
+    rrna_fraction: float = 0.80,
+    microbiome_type: str = "gut",
+    n_transcripts: int = 50,
+    random_seed: Optional[int] = None
+) -> ContaminationProfile:
+    """
+    Add bacterial RNA contamination (for RNA viromes from microbiome samples).
+
+    RNA virome preparations from microbiome-rich samples (gut, oral, skin)
+    contain bacterial RNA, including:
+    - Bacterial 16S/23S rRNA (partially removed by Ribo-Zero)
+    - Bacterial mRNA transcripts
+    - Abundant in samples with high bacterial loads
+
+    Args:
+        profile: ContaminationProfile to add bacterial RNA to
+        abundance_pct: Percentage of total abundance (0-100)
+        rrna_fraction: Fraction of bacterial RNA that is rRNA (default: 0.80 = 80%)
+        microbiome_type: Microbiome type ("gut", "oral", "skin", etc.)
+        n_transcripts: Number of bacterial mRNA transcripts to sample
+        random_seed: Random seed for reproducibility
+
+    Returns:
+        Updated ContaminationProfile
+
+    Example:
+        >>> profile = ContaminationProfile()
+        >>> add_bacterial_rna_contamination(
+        ...     profile,
+        ...     abundance_pct=5.0,
+        ...     microbiome_type="gut"
+        ... )
+    """
+    # Use local RNG instead of global state for thread safety
+    if random_seed is not None:
+        rng = np.random.default_rng(random_seed)
+        random.seed(random_seed)
+    else:
+        rng = np.random.default_rng()
+
+    logger.info(f"Adding {abundance_pct}% bacterial RNA contamination ({microbiome_type})")
+
+    # Calculate rRNA and mRNA contributions
+    rrna_abundance = abundance_pct * rrna_fraction
+    mrna_abundance = abundance_pct * (1 - rrna_fraction)
+
+    # Common bacterial taxa by microbiome type
+    bacterial_taxa = {
+        'gut': [
+            'Bacteroides', 'Faecalibacterium', 'Prevotella',
+            'Clostridium', 'Escherichia'
+        ],
+        'oral': [
+            'Streptococcus', 'Actinomyces', 'Veillonella',
+            'Prevotella', 'Porphyromonas'
+        ],
+        'skin': [
+            'Staphylococcus', 'Corynebacterium', 'Propionibacterium',
+            'Cutibacterium', 'Micrococcus'
+        ]
+    }
+
+    taxa = bacterial_taxa.get(microbiome_type, bacterial_taxa['gut'])
+
+    # Add bacterial rRNA (16S and 23S)
+    n_rrna = 30
+    abundance_per_rrna = (rrna_abundance / 100.0) / n_rrna
+
+    for i in range(n_rrna):
+        genus = random.choice(taxa)
+        rrna_type = random.choice(['16S', '23S'])
+        length = 1500 if rrna_type == '16S' else 2900
+
+        # Bacterial rRNA is GC-rich
+        gc_content = rng.normal(55.0, 5.0)
+        gc_content = np.clip(gc_content, 45.0, 65.0)
+
+        seq = _generate_sequence_with_gc(length, gc_content)
+
+        contaminant = ContaminantGenome(
+            genome_id=f"bacterial_rna_rrna_{genus}_{rrna_type}_{i:04d}",
+            sequence=seq,
+            contaminant_type=ContaminantType.RRNA,
+            organism=f"{genus} sp.",
+            source=f"{microbiome_type}_microbiome",
+            abundance=abundance_per_rrna,
+            description=f"Bacterial {rrna_type} rRNA from {genus}"
+        )
+        profile.add_contaminant(contaminant)
+
+    # Add bacterial mRNA transcripts
+    abundance_per_mrna = (mrna_abundance / 100.0) / n_transcripts
+
+    for i in range(n_transcripts):
+        genus = random.choice(taxa)
+
+        # Bacterial mRNA: 300-3000 bp
+        length = int(rng.uniform(300, 3000))
+        gc_content = rng.uniform(40.0, 60.0)
+
+        seq = _generate_sequence_with_gc(length, gc_content)
+
+        contaminant = ContaminantGenome(
+            genome_id=f"bacterial_rna_mrna_{genus}_{i:04d}",
+            sequence=seq,
+            contaminant_type=ContaminantType.REAGENT_BACTERIA,
+            organism=f"{genus} sp.",
+            source=f"{microbiome_type}_microbiome",
+            abundance=abundance_per_mrna,
+            description=f"Bacterial mRNA from {genus}"
+        )
+        profile.add_contaminant(contaminant)
+
+    return profile
+
+
+def create_rna_contamination_profile(
+    profile_type: str = "realistic",
+    ribo_depletion: bool = True,
+    microbiome_rich: bool = True,
+    random_seed: Optional[int] = None,
+    **kwargs
+) -> ContaminationProfile:
+    """
+    Create a pre-defined RNA contamination profile.
+
+    RNA viromes have VERY different contamination than DNA viromes:
+    - 80-95% rRNA BEFORE Ribo-Zero depletion
+    - 5-15% rRNA AFTER Ribo-Zero depletion (most workflows)
+    - Higher host mRNA/microbiome RNA than DNA
+
+    Args:
+        profile_type: Type of profile to create:
+            - 'clean': Excellent Ribo-Zero, low contamination
+            - 'realistic': Typical RNA virome (post-Ribo-Zero)
+            - 'heavy': Poor Ribo-Zero or high sample contamination
+            - 'failed': Ribo-Zero failed, rRNA dominates
+        ribo_depletion: Whether Ribo-Zero was applied (default: True)
+        microbiome_rich: Whether sample is microbiome-rich (gut, oral, etc.)
+        random_seed: Random seed for reproducibility
+        **kwargs: Override default parameters
+
+    Returns:
+        ContaminationProfile for RNA virome
+
+    Example:
+        >>> # Typical RNA virome (post-Ribo-Zero)
+        >>> profile = create_rna_contamination_profile('realistic')
+        >>> # Result: ~10% host rRNA, ~5% bacterial RNA, ~0.5% reagent, 0.1% PhiX
+        >>> # = ~85% viral reads (vs ~1% without Ribo-Zero!)
+    """
+    # Use local RNG
+    if random_seed is not None:
+        rng = np.random.default_rng(random_seed)
+        random.seed(random_seed)
+    else:
+        rng = np.random.default_rng()
+
+    # RNA contamination profiles (assuming Ribo-Zero applied)
+    rna_profile_configs = {
+        'clean': {
+            'name': 'clean_rna_virome',
+            'description': 'Excellent Ribo-Zero, low contamination',
+            'host_rna_before': 90.0,   # Before Ribo-Zero
+            'host_rna_after': 5.0,     # After Ribo-Zero (excellent!)
+            'bacterial_rna': 2.0,      # Some bacterial RNA remains
+            'reagent_pct': 0.1,
+            'phix_pct': 0.1,
+        },
+        'realistic': {
+            'name': 'realistic_rna_virome',
+            'description': 'Typical RNA virome (post-Ribo-Zero)',
+            'host_rna_before': 90.0,
+            'host_rna_after': 10.0,    # Typical Ribo-Zero
+            'bacterial_rna': 5.0,      # Moderate bacterial RNA
+            'reagent_pct': 0.5,
+            'phix_pct': 0.1,
+        },
+        'heavy': {
+            'name': 'heavy_rna_contamination',
+            'description': 'Poor Ribo-Zero or high contamination',
+            'host_rna_before': 95.0,
+            'host_rna_after': 20.0,    # Poor Ribo-Zero (only 79% removal)
+            'bacterial_rna': 10.0,     # High bacterial load
+            'reagent_pct': 2.0,
+            'phix_pct': 0.1,
+        },
+        'failed': {
+            'name': 'failed_rna_virome',
+            'description': 'Ribo-Zero failed, rRNA dominates',
+            'host_rna_before': 95.0,
+            'host_rna_after': 90.0,    # Ribo-Zero failed (<10% removal)
+            'bacterial_rna': 5.0,
+            'reagent_pct': 1.0,
+            'phix_pct': 0.1,
+        }
+    }
+
+    if profile_type not in rna_profile_configs:
+        raise ValueError(
+            f"Unknown profile type: {profile_type}. "
+            f"Choose from: {', '.join(rna_profile_configs.keys())}"
+        )
+
+    config = rna_profile_configs[profile_type]
+
+    # Override with kwargs
+    host_rna_before = kwargs.get('host_rna_before', config['host_rna_before'])
+    host_rna_after = kwargs.get('host_rna_after', config['host_rna_after'])
+    bacterial_rna = kwargs.get('bacterial_rna', config['bacterial_rna'])
+    reagent_pct = kwargs.get('reagent_pct', config['reagent_pct'])
+    phix_pct = kwargs.get('phix_pct', config['phix_pct'])
+
+    # If Ribo-Zero not applied, use before values
+    if not ribo_depletion:
+        host_rna_after = host_rna_before
+        logger.warning("No Ribo-Zero: rRNA will dominate (~90% of reads)")
+
+    # Create profile
+    profile = ContaminationProfile(name=config['name'])
+
+    # Add host RNA contamination (post-Ribo-Zero state)
+    add_host_rna_contamination(
+        profile,
+        host_organism=kwargs.get('host_organism', 'human'),
+        abundance_pct_before_depletion=host_rna_before,
+        abundance_pct_after_depletion=host_rna_after,
+        random_seed=random_seed
+    )
+
+    # Add bacterial RNA if microbiome-rich sample
+    if microbiome_rich:
+        add_bacterial_rna_contamination(
+            profile,
+            abundance_pct=bacterial_rna,
+            microbiome_type=kwargs.get('microbiome_type', 'gut'),
+            random_seed=random_seed
+        )
+
+    # Add reagent contamination (same as DNA)
+    add_reagent_contamination(
+        profile,
+        abundance_pct=reagent_pct,
+        random_seed=random_seed
+    )
+
+    # Add PhiX control
+    add_phix_control(
+        profile,
+        abundance_pct=phix_pct
+    )
+
+    logger.info(
+        f"Created RNA '{profile_type}' contamination profile: "
+        f"Host RNA={host_rna_after}% (was {host_rna_before}%), "
+        f"Bacterial RNA={bacterial_rna}%, "
+        f"Reagent={reagent_pct}%, PhiX={phix_pct}%"
+    )
+
+    return profile
+
+
 def _generate_sequence_with_gc(length: int, gc_content: float) -> str:
     """
     Generate a random DNA sequence with specified GC content.

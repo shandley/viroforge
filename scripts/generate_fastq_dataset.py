@@ -54,6 +54,7 @@ try:
     from viroforge.enrichment.vlp import VLPEnrichment, VLPProtocol
     from viroforge.core.contamination import (
         create_contamination_profile,
+        create_rna_contamination_profile,
         ContaminationProfile
     )
     from viroforge.amplification import (
@@ -63,6 +64,16 @@ try:
         mda_overnight,
         linker_standard,
         no_amplification
+    )
+    from viroforge.workflows.rna_virome import (
+        RNAViromeWorkflow,
+        ReverseTranscription,
+        RiboDepletion,
+        RNADegradation,
+        RNAVirusType,
+        PrimerType,
+        RiboDepleteMethod,
+        infer_virus_type_from_taxonomy
     )
 except ImportError as e:
     print(f"Error importing ViroForge modules: {e}")
@@ -163,11 +174,17 @@ class FASTQGenerator:
         self,
         output_dir: Path,
         collection_name: str,
+        molecule_type: str = 'dna',
         random_seed: int = 42
     ):
         self.output_dir = Path(output_dir)
         self.collection_name = collection_name
+        self.molecule_type = molecule_type.lower()
         self.random_seed = random_seed
+
+        # Validate molecule type
+        if self.molecule_type not in ['dna', 'rna']:
+            raise ValueError(f"molecule_type must be 'dna' or 'rna', got: {molecule_type}")
 
         # Create output directories
         self.output_dir.mkdir(parents=True, exist_ok=True)
@@ -180,20 +197,29 @@ class FASTQGenerator:
 
         np.random.seed(random_seed)
 
+        logger.info(f"Initialized FASTQGenerator for {molecule_type.upper()} virome")
+
     def prepare_genomes(
         self,
         genomes: List[Dict],
         vlp_protocol: Optional[str] = 'tangential_flow',
-        contamination_level: str = 'realistic'
+        contamination_level: str = 'realistic',
+        rna_workflow_params: Optional[Dict] = None
     ) -> Tuple[List[SeqRecord], List[float], Dict]:
         """
         Prepare genome sequences with VLP enrichment and contamination.
+
+        For RNA viromes, also applies:
+        - Reverse transcription (RNA → cDNA)
+        - rRNA depletion (Ribo-Zero/RiboMinus)
+        - RNA degradation modeling
 
         Args:
             genomes: List of genome dictionaries
             vlp_protocol: VLP protocol name (tangential_flow, syringe, ultracentrifugation,
                          norgen, none) or None for no VLP
             contamination_level: Contamination level (clean, realistic, heavy)
+            rna_workflow_params: Optional parameters for RNA workflow (primer_type, ribo_method, etc.)
 
         Returns:
             Tuple of (sequence_records, abundances, enrichment_stats)
@@ -215,15 +241,78 @@ class FASTQGenerator:
 
         viral_abundances = np.array(viral_abundances)
 
+        # ===================================================================
+        # RNA VIROME WORKFLOW (if molecule_type='rna')
+        # ===================================================================
+        rna_workflow_stats = None
+        if self.molecule_type == 'rna':
+            logger.info("=" * 80)
+            logger.info("APPLYING RNA VIROME WORKFLOW")
+            logger.info("=" * 80)
+
+            # Set default RNA workflow parameters
+            if rna_workflow_params is None:
+                rna_workflow_params = {}
+
+            primer_type = rna_workflow_params.get('primer_type', PrimerType.RANDOM_HEXAMER)
+            ribo_method = rna_workflow_params.get('ribo_method', RiboDepleteMethod.RIBO_ZERO)
+            degradation_rate = rna_workflow_params.get('degradation_rate', 0.20)
+
+            # Create virus type mapping for RNA workflow
+            virus_types = {}
+            for genome in genomes:
+                taxonomy = {
+                    'family': genome.get('family', 'Unknown'),
+                    'genus': genome.get('genus', 'Unknown'),
+                    'species': genome.get('species', 'Unknown'),
+                    'genome_name': genome.get('genome_name', '')
+                }
+                virus_types[genome['genome_id']] = infer_virus_type_from_taxonomy(taxonomy)
+
+            # Create RNA virome workflow
+            rna_workflow = RNAViromeWorkflow(
+                reverse_transcription=ReverseTranscription(
+                    primer_type=primer_type,
+                    random_seed=self.random_seed
+                ),
+                ribo_depletion=RiboDepletion(
+                    method=ribo_method,
+                    random_seed=self.random_seed
+                ),
+                rna_degradation=RNADegradation(
+                    degradation_rate=degradation_rate,
+                    random_seed=self.random_seed
+                ),
+                random_seed=self.random_seed
+            )
+
+            # Apply RNA workflow (degradation, RT, rRNA depletion)
+            viral_sequences, rna_workflow_stats = rna_workflow.apply(
+                sequences=viral_sequences,
+                virus_types=virus_types,
+                rrna_abundance_before=0.90  # 90% rRNA before Ribo-Zero
+            )
+
+            logger.info("RNA workflow complete")
+            logger.info("=" * 80)
+
         # If no VLP protocol specified, return viral genomes only
         if vlp_protocol is None or vlp_protocol == 'none':
             logger.info("No VLP enrichment applied (bulk metagenome mode)")
 
-            # Still add contamination (not reduced by VLP)
-            contam_profile = create_contamination_profile(
-                contamination_level,
-                random_seed=self.random_seed
-            )
+            # Create contamination profile (RNA or DNA specific)
+            if self.molecule_type == 'rna':
+                contam_profile = create_rna_contamination_profile(
+                    contamination_level,
+                    ribo_depletion=True,  # Assume Ribo-Zero applied
+                    microbiome_rich=True,
+                    random_seed=self.random_seed
+                )
+            else:
+                contam_profile = create_contamination_profile(
+                    contamination_level,
+                    random_seed=self.random_seed
+                )
 
             # Combine viral + contamination
             sequences, abundances = self._combine_viral_and_contamination(
@@ -233,12 +322,14 @@ class FASTQGenerator:
             )
 
             stats = {
+                'molecule_type': self.molecule_type,
                 'vlp_protocol': 'none',
                 'contamination_level': contamination_level,
                 'viral_fraction': float(viral_abundances.sum()),
                 'contamination_fraction': float(contam_profile.get_total_abundance()),
                 'n_viral_genomes': len(viral_sequences),
-                'n_contaminants': len(contam_profile)
+                'n_contaminants': len(contam_profile),
+                'rna_workflow': rna_workflow_stats if rna_workflow_stats else None
             }
 
             return sequences, abundances, stats
@@ -305,12 +396,20 @@ class FASTQGenerator:
             abundances=viral_abundances
         )
 
-        # Create contamination profile
-        logger.info(f"Creating contamination profile: {contamination_level}")
-        contam_profile = create_contamination_profile(
-            contamination_level,
-            random_seed=self.random_seed
-        )
+        # Create contamination profile (RNA or DNA specific)
+        logger.info(f"Creating contamination profile: {contamination_level} ({self.molecule_type.upper()})")
+        if self.molecule_type == 'rna':
+            contam_profile = create_rna_contamination_profile(
+                contamination_level,
+                ribo_depletion=True,  # Assume Ribo-Zero applied
+                microbiome_rich=True,
+                random_seed=self.random_seed
+            )
+        else:
+            contam_profile = create_contamination_profile(
+                contamination_level,
+                random_seed=self.random_seed
+            )
 
         # Apply contamination reduction
         logger.info("Applying VLP contamination reduction...")
@@ -920,6 +1019,29 @@ Examples:
     )
 
     parser.add_argument(
+        '--molecule-type',
+        choices=['dna', 'rna'],
+        default='dna',
+        help='Molecule type: dna (default) or rna. ' +
+             'RNA viromes include reverse transcription, rRNA depletion (Ribo-Zero), ' +
+             'and RNA degradation modeling.'
+    )
+
+    parser.add_argument(
+        '--rna-primer',
+        choices=['random_hexamer', 'random_octamer', 'oligo_dt', 'specific'],
+        default='random_hexamer',
+        help='RT primer type for RNA viromes (default: random_hexamer)'
+    )
+
+    parser.add_argument(
+        '--rna-depletion',
+        choices=['ribo_zero', 'ribominus', 'none'],
+        default='ribo_zero',
+        help='rRNA depletion method for RNA viromes (default: ribo_zero)'
+    )
+
+    parser.add_argument(
         '--amplification',
         choices=['none', 'rdab', 'rdab-30', 'mda', 'mda-long', 'linker'],
         default='none',
@@ -980,15 +1102,39 @@ Examples:
     generator = FASTQGenerator(
         output_dir=args.output,
         collection_name=collection_name,
+        molecule_type=args.molecule_type,
         random_seed=args.seed
     )
+
+    # Prepare RNA workflow parameters (if RNA virome)
+    rna_workflow_params = None
+    if args.molecule_type == 'rna':
+        # Map string args to enum values
+        primer_map = {
+            'random_hexamer': PrimerType.RANDOM_HEXAMER,
+            'random_octamer': PrimerType.RANDOM_OCTAMER,
+            'oligo_dt': PrimerType.OLIGO_DT,
+            'specific': PrimerType.SPECIFIC
+        }
+        ribo_map = {
+            'ribo_zero': RiboDepleteMethod.RIBO_ZERO,
+            'ribominus': RiboDepleteMethod.RIBOMINUS,
+            'none': RiboDepleteMethod.NONE
+        }
+
+        rna_workflow_params = {
+            'primer_type': primer_map[args.rna_primer],
+            'ribo_method': ribo_map[args.rna_depletion],
+            'degradation_rate': 0.20  # Default 20% degradation
+        }
 
     # Prepare genomes with VLP enrichment
     vlp_protocol = None if args.no_vlp else args.vlp_protocol
     sequences, abundances, enrichment_stats = generator.prepare_genomes(
         genomes,
         vlp_protocol=vlp_protocol,
-        contamination_level=args.contamination_level
+        contamination_level=args.contamination_level,
+        rna_workflow_params=rna_workflow_params
     )
 
     # Apply amplification bias
@@ -1008,10 +1154,16 @@ Examples:
         'read_length': args.read_length,
         'insert_size': args.insert_size,
         'platform': args.platform,
+        'molecule_type': args.molecule_type,
         'vlp_protocol': vlp_protocol if vlp_protocol else 'none',
         'contamination_level': args.contamination_level,
         'amplification': args.amplification
     }
+
+    # Add RNA-specific parameters if applicable
+    if args.molecule_type == 'rna':
+        config['rna_primer'] = args.rna_primer
+        config['rna_depletion'] = args.rna_depletion
 
     # Export metadata with enrichment and amplification stats
     generator.export_metadata(
