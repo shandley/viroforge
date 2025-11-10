@@ -2,20 +2,22 @@
 
 **Project**: ViroForge - Synthetic Virome Data Generator
 **Started**: January 30, 2025
-**Last Updated**: November 9, 2025
+**Last Updated**: November 10, 2025
 
 ---
 
 ## Quick Stats
 
-**Total Entries**: 10
+**Total Entries**: 11
 **Phase 1**: Complete (100%) ✅
 **Phase 2**: Complete (100%) ✅
 **Phase 3**: Complete (100%) ✅
 **Phase 5**: Complete (100%) ✅
 **Phase 7**: Complete (100%) ✅ (Critical collections & taxonomy fix)
 **Phase 8.2**: Complete (100%) ✅ (RNA virome workflow)
-**Total Collections**: 23 (15 host-associated, 5 environmental, 3 RNA)
+**Phase 9**: Complete (100%) ✅ (28 total collections)
+**Phase 10**: In Progress (33%) 🚧 (Long-read sequencing support)
+**Total Collections**: 28 (23 host-associated, 5 environmental)
 **Genomes**: 14,423 RefSeq viral genomes
 **Taxonomy Coverage**: 57.1% (8,241 genomes with ICTV taxonomy)
 **Tests**: 70+ passing
@@ -26,7 +28,24 @@
 
 ## Active Status
 
-### ✅ Phase 8.2 Complete - RNA Virome Workflow (CURRENT)
+### 🚧 Phase 10 In Progress - Long-Read Sequencing Support (CURRENT)
+
+**Status**: Core module implemented (Week 1 of 3-4)
+- ✅ PBSIM3 simulator research complete
+- ✅ Integration architecture designed
+- ✅ PacBio HiFi simulation implemented
+- ✅ Oxford Nanopore simulation implemented
+- ⏳ VLP modeling updates for long reads
+- ⏳ Integration with generate_fastq_dataset.py
+- ⏳ Testing and documentation
+
+**Week 1-2**: Implement core simulator module
+**Week 2-3**: Integration and VLP updates
+**Week 3-4**: Testing, documentation, tutorials
+
+**Latest Entry**: 20251110-001-IMPLEMENTATION (Long-read simulator module)
+
+### ✅ Phase 8.2 Complete - RNA Virome Workflow
 
 **Status**: Production Ready
 - ✅ Complete RNA virome workflow implemented
