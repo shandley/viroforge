@@ -204,7 +204,8 @@ class FASTQGenerator:
         genomes: List[Dict],
         vlp_protocol: Optional[str] = 'tangential_flow',
         contamination_level: str = 'realistic',
-        rna_workflow_params: Optional[Dict] = None
+        rna_workflow_params: Optional[Dict] = None,
+        read_type: str = "short"
     ) -> Tuple[List[SeqRecord], List[float], Dict]:
         """
         Prepare genome sequences with VLP enrichment and contamination.
@@ -220,6 +221,7 @@ class FASTQGenerator:
                          norgen, none) or None for no VLP
             contamination_level: Contamination level (clean, realistic, heavy)
             rna_workflow_params: Optional parameters for RNA workflow (primer_type, ribo_method, etc.)
+            read_type: Read type ("short" or "long") for VLP size bias modeling
 
         Returns:
             Tuple of (sequence_records, abundances, enrichment_stats)
@@ -341,7 +343,8 @@ class FASTQGenerator:
             viral_abundances,
             genomes,
             vlp_protocol,
-            contamination_level
+            contamination_level,
+            read_type
         )
 
         return sequences, abundances, stats
@@ -352,7 +355,8 @@ class FASTQGenerator:
         viral_abundances: np.ndarray,
         genomes: List[Dict],
         vlp_protocol: str,
-        contamination_level: str
+        contamination_level: str,
+        read_type: str = "short"
     ) -> Tuple[List[SeqRecord], List[float], Dict]:
         """
         Apply VLP enrichment protocol with size-based enrichment and contamination reduction.
@@ -363,6 +367,7 @@ class FASTQGenerator:
             genomes: Genome metadata dictionaries
             vlp_protocol: VLP protocol name
             contamination_level: Contamination level
+            read_type: Read type ("short" or "long") for size bias modeling
 
         Returns:
             Tuple of (combined_sequences, combined_abundances, enrichment_stats)
@@ -390,10 +395,11 @@ class FASTQGenerator:
         )
 
         # Apply size-based enrichment to viral genomes
-        logger.info("Applying size-based viral enrichment...")
+        logger.info(f"Applying size-based viral enrichment (read_type={read_type})...")
         enriched_viral_abundances, viral_stats = vlp.apply_enrichment(
             genomes=genomes,
-            abundances=viral_abundances
+            abundances=viral_abundances,
+            read_type=read_type
         )
 
         # Create contamination profile (RNA or DNA specific)
@@ -993,9 +999,45 @@ Examples:
 
     parser.add_argument(
         '--platform',
-        choices=['novaseq', 'miseq', 'hiseq'],
+        choices=['novaseq', 'miseq', 'hiseq', 'pacbio-hifi', 'nanopore'],
         default='novaseq',
-        help='Sequencing platform (default: novaseq)'
+        help='Sequencing platform (default: novaseq). ' +
+             'Short-read: novaseq, miseq, hiseq. ' +
+             'Long-read: pacbio-hifi, nanopore'
+    )
+
+    # Long-read specific options
+    lr_group = parser.add_argument_group('long-read options (PacBio HiFi, Nanopore)')
+    lr_group.add_argument(
+        '--depth',
+        type=float,
+        default=10.0,
+        help='Sequencing depth for long reads (default: 10x). ' +
+             'Note: --coverage is for short reads, --depth is for long reads'
+    )
+    lr_group.add_argument(
+        '--pacbio-passes',
+        type=int,
+        default=10,
+        help='Number of CCS passes for PacBio HiFi (default: 10)'
+    )
+    lr_group.add_argument(
+        '--pacbio-read-length',
+        type=int,
+        default=15000,
+        help='Mean read length for PacBio HiFi in bp (default: 15000)'
+    )
+    lr_group.add_argument(
+        '--ont-chemistry',
+        choices=['R9.4', 'R10.4'],
+        default='R10.4',
+        help='Nanopore chemistry version (default: R10.4)'
+    )
+    lr_group.add_argument(
+        '--ont-read-length',
+        type=int,
+        default=20000,
+        help='Mean read length for Nanopore in bp (default: 20000)'
     )
 
     parser.add_argument(
@@ -1128,13 +1170,20 @@ Examples:
             'degradation_rate': 0.20  # Default 20% degradation
         }
 
+    # Determine read type based on platform
+    is_long_read = args.platform in ['pacbio-hifi', 'nanopore']
+    read_type = "long" if is_long_read else "short"
+
+    logger.info(f"Platform: {args.platform} (read_type={read_type})")
+
     # Prepare genomes with VLP enrichment
     vlp_protocol = None if args.no_vlp else args.vlp_protocol
     sequences, abundances, enrichment_stats = generator.prepare_genomes(
         genomes,
         vlp_protocol=vlp_protocol,
         contamination_level=args.contamination_level,
-        rna_workflow_params=rna_workflow_params
+        rna_workflow_params=rna_workflow_params,
+        read_type=read_type
     )
 
     # Apply amplification bias
@@ -1179,22 +1228,217 @@ Examples:
         logger.info("Dry run complete - FASTQ generation skipped")
         return
 
-    # Generate FASTQs
-    logger.info("Generating FASTQ files...")
-    r1_path, r2_path = generator.generate_fastq_with_iss(
-        fasta_path=fasta_path,
-        sequences=sequences,
-        abundances=abundances,
-        coverage=args.coverage,
-        read_length=args.read_length,
-        insert_size=args.insert_size,
-        platform=args.platform,
-        n_reads=args.n_reads
-    )
+    # Route to appropriate sequencing simulator based on platform
+    if is_long_read:
+        # ===============================================================
+        # LONG-READ SEQUENCING (PacBio HiFi, Nanopore)
+        # ===============================================================
+        logger.info(f"Generating long-read FASTQ files ({args.platform})...")
+
+        # Import long-read config classes
+        from viroforge.simulators.longread import (
+            PacBioHiFiConfig,
+            NanoporeConfig
+        )
+        import tempfile
+
+        # Calculate average depth for PBSIM3
+        total_length = sum(len(seq.seq) for seq in sequences)
+        weighted_depth = sum(args.depth * abundance for abundance in abundances)
+
+        output_prefix = str(generator.fastq_dir / collection_name)
+
+        # Determine platform and run simulation
+        if args.platform == 'pacbio-hifi':
+            platform_config = PacBioHiFiConfig(
+                passes=args.pacbio_passes,
+                read_length_mean=args.pacbio_read_length
+            )
+            logger.info(f"  PacBio HiFi config: {platform_config.passes} passes, "
+                       f"{platform_config.read_length_mean}bp mean read length")
+            logger.info(f"  Depth: {args.depth}x")
+
+            # Step 1: Generate CLR with PBSIM3
+            logger.info("  Step 1/2: Generating CLR reads with PBSIM3...")
+            clr_sam = Path(output_prefix + '_clr.sam')
+
+            pbsim_cmd = [
+                'pbsim',
+                '--strategy', 'wgs',
+                '--method', 'qshmm',
+                '--qshmm', platform_config.accuracy_model,
+                '--depth', str(weighted_depth),
+                '--genome', str(fasta_path),
+                '--pass-num', str(platform_config.passes),
+                '--length-mean', str(platform_config.read_length_mean),
+                '--length-sd', str(platform_config.read_length_sd),
+                '--accuracy-mean', str(1.0 - platform_config.clr_error_rate),
+                '--prefix', output_prefix + '_clr'
+            ]
+
+            if args.seed:
+                pbsim_cmd.extend(['--seed', str(args.seed)])
+
+            try:
+                result = subprocess.run(pbsim_cmd, capture_output=True, text=True, check=True)
+                logger.info("  PBSIM3 CLR generation complete")
+            except subprocess.CalledProcessError as e:
+                logger.error(f"PBSIM3 failed: {e.stderr}")
+                raise
+            except FileNotFoundError:
+                logger.error("PBSIM3 (pbsim) not found in PATH")
+                logger.error("Install with: conda install -c bioconda pbsim3")
+                raise
+
+            # Step 2: Convert SAM to BAM and run ccs
+            logger.info("  Step 2/2: Generating HiFi consensus with ccs...")
+            clr_bam = Path(output_prefix + '_clr.bam')
+            hifi_fastq = Path(output_prefix + '_hifi.fastq.gz')
+
+            # SAM → BAM
+            sam_to_bam_cmd = ['samtools', 'view', '-b', '-o', str(clr_bam), str(clr_sam)]
+            try:
+                subprocess.run(sam_to_bam_cmd, capture_output=True, text=True, check=True)
+            except subprocess.CalledProcessError as e:
+                logger.error(f"samtools failed: {e.stderr}")
+                raise
+
+            # Run ccs
+            ccs_cmd = [
+                'ccs',
+                str(clr_bam),
+                str(hifi_fastq),
+                '--min-passes', str(platform_config.min_passes),
+                '--min-rq', '0.99',
+                '--log-level', 'INFO'
+            ]
+
+            try:
+                subprocess.run(ccs_cmd, capture_output=True, text=True, check=True)
+                logger.info("  PacBio ccs complete")
+            except subprocess.CalledProcessError as e:
+                logger.error(f"PacBio ccs failed: {e.stderr}")
+                raise
+            except FileNotFoundError:
+                logger.error("PacBio ccs not found in PATH")
+                logger.error("Install with: conda install -c bioconda pbccs")
+                raise
+
+            reads_path = hifi_fastq
+
+            # Clean up intermediate files
+            clr_sam.unlink(missing_ok=True)
+            clr_bam.unlink(missing_ok=True)
+
+        else:  # nanopore
+            platform_config = NanoporeConfig(
+                chemistry=args.ont_chemistry,
+                read_length_mean=args.ont_read_length
+            )
+            logger.info(f"  Nanopore config: {platform_config.chemistry} chemistry, "
+                       f"{platform_config.read_length_mean}bp mean read length")
+            logger.info(f"  Depth: {args.depth}x")
+
+            # Generate Nanopore reads with PBSIM3
+            logger.info("  Generating Nanopore reads with PBSIM3...")
+            nanopore_fastq = Path(output_prefix + '.fastq')
+
+            pbsim_cmd = [
+                'pbsim',
+                '--strategy', 'wgs',
+                '--method', 'errhmm',
+                '--errhmm', f'ERRHMM-{platform_config.chemistry}',
+                '--depth', str(weighted_depth),
+                '--genome', str(fasta_path),
+                '--length-mean', str(platform_config.read_length_mean),
+                '--length-sd', str(platform_config.read_length_sd),
+                '--accuracy-mean', str(1.0 - platform_config.error_rate),
+                '--hp-del-bias', str(platform_config.hp_del_bias),
+                '--prefix', output_prefix
+            ]
+
+            if args.seed:
+                pbsim_cmd.extend(['--seed', str(args.seed)])
+
+            try:
+                result = subprocess.run(pbsim_cmd, capture_output=True, text=True, check=True)
+                logger.info("  PBSIM3 Nanopore generation complete")
+            except subprocess.CalledProcessError as e:
+                logger.error(f"PBSIM3 failed: {e.stderr}")
+                raise
+            except FileNotFoundError:
+                logger.error("PBSIM3 (pbsim) not found in PATH")
+                logger.error("Install with: conda install -c bioconda pbsim3")
+                raise
+
+            reads_path = nanopore_fastq
+
+        # Create ground truth file
+        ground_truth_path = generator.fastq_dir / f"{collection_name}_ground_truth.tsv"
+        ground_truth_data = []
+        for i, (seq, abundance) in enumerate(zip(sequences, abundances)):
+            seq_type = 'viral' if i < enrichment_stats['n_viral_genomes'] else 'contaminant'
+            ground_truth_data.append({
+                'genome_id': seq.id,
+                'genome_type': seq_type,
+                'length': len(seq.seq),
+                'relative_abundance': abundance,
+                'platform': args.platform,
+                'read_type': 'long'
+            })
+
+        import pandas as pd
+        pd.DataFrame(ground_truth_data).to_csv(ground_truth_path, sep='\t', index=False)
+
+        logger.info(f"Long-read generation complete!")
+        logger.info(f"  Reads: {reads_path}")
+        logger.info(f"  Ground truth: {ground_truth_path}")
+
+        # Update output message for long reads
+        r1_path = reads_path
+        r2_path = None  # No R2 for long reads
+
+    else:
+        # ===============================================================
+        # SHORT-READ SEQUENCING (Illumina: NovaSeq, MiSeq, HiSeq)
+        # ===============================================================
+        logger.info(f"Generating short-read FASTQ files ({args.platform})...")
+
+        r1_path, r2_path = generator.generate_fastq_with_iss(
+            fasta_path=fasta_path,
+            sequences=sequences,
+            abundances=abundances,
+            coverage=args.coverage,
+            read_length=args.read_length,
+            insert_size=args.insert_size,
+            platform=args.platform,
+            n_reads=args.n_reads
+        )
 
     # Format output message
-    output_msg = f"""
-✓ FASTQ generation complete!
+    if is_long_read:
+        output_msg = f"""
+✓ Long-read FASTQ generation complete!
+  Collection: {collection_meta['collection_name']}
+  Viral genomes: {enrichment_stats['n_viral_genomes']}
+  Contaminants: {enrichment_stats['n_contaminants']}
+  Total sequences: {enrichment_stats['n_viral_genomes'] + enrichment_stats['n_contaminants']}
+  Depth: {args.depth}x
+  Platform: {args.platform}
+  VLP protocol: {vlp_protocol if vlp_protocol else 'none (bulk metagenome)'}
+  Contamination level: {args.contamination_level}
+  Viral fraction: {enrichment_stats['viral_fraction']*100:.2f}%
+  Contamination: {enrichment_stats['contamination_fraction']*100:.2f}%
+
+  Output files:
+    - Reads: {r1_path}
+    - Ground truth: {ground_truth_path}
+    - FASTA: {fasta_path}
+    - Metadata: {generator.metadata_dir}
+"""
+    else:
+        output_msg = f"""
+✓ Short-read FASTQ generation complete!
   Collection: {collection_meta['collection_name']}
   Viral genomes: {enrichment_stats['n_viral_genomes']}
   Contaminants: {enrichment_stats['n_contaminants']}
