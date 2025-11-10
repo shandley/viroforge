@@ -359,7 +359,8 @@ class VLPEnrichment:
     def apply_enrichment(
         self,
         genomes: List[Dict],
-        abundances: np.ndarray
+        abundances: np.ndarray,
+        read_type: str = "short"
     ) -> Tuple[np.ndarray, Dict]:
         """
         Apply VLP enrichment to genome abundances
@@ -367,9 +368,20 @@ class VLPEnrichment:
         Args:
             genomes: List of genome dictionaries with 'length' and 'genome_type'
             abundances: Numpy array of relative abundances (must sum to 1.0)
+            read_type: Read type ("short" or "long") - affects size bias modeling
+                      Short reads (150-300bp): Strong size bias from sequencing
+                      Long reads (10-30kb): Size bias primarily from VLP enrichment only
 
         Returns:
             Tuple of (enriched_abundances, enrichment_stats)
+
+        Note:
+            Long-read sequencing (PacBio HiFi, Nanopore) has reduced size bias
+            compared to short-read sequencing because:
+            - Read lengths (10-30kb) span entire small viral genomes
+            - Minimal fragmentation-related bias
+            - Size bias comes from VLP capsid filtration, not sequencing step
+            - Reduced by ~50-70% compared to short reads
         """
         n_genomes = len(genomes)
         enriched_abundances = abundances.copy()
@@ -432,6 +444,23 @@ class VLPEnrichment:
         # Apply recovery rate (overall loss during processing)
         enrichment_factors *= self.protocol.recovery_rate
 
+        # Reduce size bias for long reads
+        if read_type == "long":
+            # Long reads (10-30kb) have reduced size bias compared to short reads (150-300bp)
+            # Size bias primarily from VLP enrichment, not sequencing
+            # Reduce size-dependent variation by 50-70%
+            size_bias_reduction_factor = 0.6  # Keep 40% of size bias
+
+            # Calculate deviation from mean enrichment
+            mean_enrichment = np.mean(enrichment_factors)
+            deviations = enrichment_factors - mean_enrichment
+
+            # Reduce deviations (compress toward mean)
+            reduced_deviations = deviations * size_bias_reduction_factor
+            enrichment_factors = mean_enrichment + reduced_deviations
+
+            logger.info(f"Applied long-read size bias reduction (60% reduction)")
+
         # Add stochastic variation (biological and technical variability)
         variation = self.rng.normal(1.0, TECHNICAL_VARIATION_CV, n_genomes)
         enrichment_factors *= variation
@@ -447,6 +476,7 @@ class VLPEnrichment:
         # Calculate enrichment statistics
         stats = {
             'protocol': self.protocol.name,
+            'read_type': read_type,
             'mean_enrichment_factor': float(np.mean(enrichment_factors)),
             'median_enrichment_factor': float(np.median(enrichment_factors)),
             'enrichment_range': (float(np.min(enrichment_factors)), float(np.max(enrichment_factors))),
@@ -454,7 +484,8 @@ class VLPEnrichment:
             'nuclease_efficiency': self.protocol.nuclease_efficiency if self.protocol.nuclease_treatment else 0.0,
             'contamination_reduction': self.protocol.contamination_reduction,
             'n_genomes_retained': int(np.sum(enriched_abundances > 0.0001)),  # >0.01% abundance
-            'size_bias': self._calculate_size_bias(size_estimates, enrichment_factors)
+            'size_bias': self._calculate_size_bias(size_estimates, enrichment_factors),
+            'size_bias_reduction_applied': read_type == "long"
         }
 
         logger.info(f"VLP enrichment applied: {stats['n_genomes_retained']}/{n_genomes} genomes retained")
@@ -681,16 +712,22 @@ class VLPEnrichment:
     def compare_to_bulk(
         self,
         genomes: List[Dict],
-        abundances: np.ndarray
+        abundances: np.ndarray,
+        read_type: str = "short"
     ) -> Dict:
         """
         Compare VLP-enriched to bulk (no VLP) composition
+
+        Args:
+            genomes: List of genome dictionaries
+            abundances: Original abundances
+            read_type: Read type ("short" or "long")
 
         Returns:
             Dictionary with comparison metrics
         """
         # Get VLP-enriched abundances
-        vlp_abundances, vlp_stats = self.apply_enrichment(genomes, abundances)
+        vlp_abundances, vlp_stats = self.apply_enrichment(genomes, abundances, read_type=read_type)
 
         # Calculate fold-changes
         fold_changes = np.where(abundances > 0, vlp_abundances / abundances, 0)
