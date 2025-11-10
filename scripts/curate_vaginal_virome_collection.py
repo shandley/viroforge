@@ -111,129 +111,82 @@ class VaginalViromeCurator:
         logger.info(f"  Anelloviridae (TTV): {len(anelloviruses)}")
         return anelloviruses
 
-    def get_herpesviruses(self, n_target: int = 3) -> List[Dict]:
+    def get_herpesviruses(self, n_target: int = 5) -> List[Dict]:
         """
         Get human herpesviruses.
 
-        Includes HSV-1, HSV-2 (genital herpes), CMV, EBV, VZV.
-        HSV-2 is sexually transmitted, common in reproductive tract.
-        HSV-1 also increasingly detected in genital infections.
+        Includes HSV-1 (HHV-1), VZV (HHV-3), EBV (HHV-4), CMV (HHV-5),
+        HHV-6A/6B, HHV-7, KSHV (HHV-8).
+        NOTE: HSV-2 (HHV-2) is not in RefSeq database.
 
+        Family: Orthoherpesviridae (modern ICTV name, not "Herpesviridae")
         Genome type: dsDNA linear
         """
-        logger.info("Selecting herpesviruses (HSV-1/2, CMV, EBV)...")
+        logger.info("Selecting human herpesviruses (HSV-1, VZV, EBV, CMV, KSHV)...")
 
         query = """
         SELECT DISTINCT g.genome_id, g.genome_name, t.family, t.genus, t.species, g.length, g.gc_content
         FROM genomes g
-        JOIN taxonomy t ON g.genome_id = t.genome_id
-        WHERE t.family = 'Herpesviridae'
-          AND (g.genome_name LIKE '%Human alphaherpesvirus 1%'  -- HSV-1
-           OR g.genome_name LIKE '%Human alphaherpesvirus 2%'   -- HSV-2
-           OR g.genome_name LIKE '%herpes simplex%'
-           OR g.genome_name LIKE '%Human betaherpesvirus 5%'    -- CMV
-           OR g.genome_name LIKE '%cytomegalovirus%'
-           OR g.genome_name LIKE '%Human gammaherpesvirus 4%'   -- EBV
-           OR g.genome_name LIKE '%Epstein-Barr%'
-           OR t.genus IN ('Simplexvirus', 'Cytomegalovirus', 'Lymphocryptovirus'))
+        LEFT JOIN taxonomy t ON g.genome_id = t.genome_id
+        WHERE (g.genome_name LIKE '%Human%herpesvirus%'
+           OR g.genome_name LIKE '%Human%herpes%'
+           OR g.genome_name LIKE '%Human betaherpes%'
+           OR g.genome_name LIKE '%Human gammaherpes%'
+           OR g.genome_name LIKE '%Human alphaherpes%')
         ORDER BY RANDOM()
         LIMIT ?
         """
 
         herpesviruses = [dict(row) for row in self.conn.execute(query, (n_target,))]
-        logger.info(f"  Herpesviridae: {len(herpesviruses)}")
+        logger.info(f"  Orthoherpesviridae (Human): {len(herpesviruses)}")
+
+        # Log what we found
+        for hv in herpesviruses:
+            logger.info(f"    - {hv['genome_name'][:60]}")
+
         return herpesviruses
 
-    def get_lactobacillus_siphoviruses(self, n_target: int = 4) -> List[Dict]:
+    def get_lactobacillus_phages(self, n_target: int = 8) -> List[Dict]:
         """
-        Get Lactobacillus Siphoviridae phages.
+        Get Lactobacillus bacteriophages.
 
-        Siphoviridae is the dominant phage family in healthy vaginal microbiome.
+        NOTE: Old morphology-based families (Siphoviridae, Myoviridae, Podoviridae)
+        were abolished by ICTV in 2022 and replaced with genome-based families.
+        Lactobacillus phages now classified in families like Herelleviridae or
+        have "Unknown" family (not yet reclassified).
+
+        64 Lactobacillus phages available in database:
+        - 12 in Herelleviridae (genome-based family)
+        - 52 with Unknown family (awaiting reclassification)
+
         Targets Lactobacillus (L. crispatus, L. iners, L. jensenii, L. gasseri).
-        Reduced in bacterial vaginosis.
+        Dominant in healthy vaginal microbiome, reduced in bacterial vaginosis.
 
         Genome type: dsDNA
         """
-        logger.info("Selecting Lactobacillus Siphoviridae phages...")
+        logger.info("Selecting Lactobacillus bacteriophages...")
 
         query = """
         SELECT DISTINCT g.genome_id, g.genome_name, t.family, t.genus, t.species, g.length, g.gc_content
         FROM genomes g
-        JOIN taxonomy t ON g.genome_id = t.genome_id
-        WHERE t.family = 'Siphoviridae'
-          AND (g.genome_name LIKE '%Lactobacillus%'
-           OR g.genome_name LIKE '%lactobacillus%')
+        LEFT JOIN taxonomy t ON g.genome_id = t.genome_id
+        WHERE (g.genome_name LIKE '%Lactobacillus phage%'
+           OR g.genome_name LIKE '%Lactobacillus prophage%'
+           OR g.genome_name LIKE '%lactobacillus phage%')
         ORDER BY RANDOM()
         LIMIT ?
         """
 
-        siphoviruses = [dict(row) for row in self.conn.execute(query, (n_target,))]
-        logger.info(f"  Siphoviridae (Lactobacillus): {len(siphoviruses)}")
+        lactobacillus_phages = [dict(row) for row in self.conn.execute(query, (n_target,))]
+        logger.info(f"  Lactobacillus phages: {len(lactobacillus_phages)}")
 
-        # If no specific Lactobacillus phages, get general Siphoviridae
-        if len(siphoviruses) < n_target:
-            additional = n_target - len(siphoviruses)
-            logger.info(f"  Finding {additional} additional Siphoviridae phages...")
+        # Log family distribution
+        from collections import Counter
+        families = Counter(p.get('family') or 'Unknown' for p in lactobacillus_phages)
+        for family, count in families.most_common():
+            logger.info(f"    - {family}: {count} phages")
 
-            query = """
-            SELECT DISTINCT g.genome_id, g.genome_name, t.family, t.genus, t.species, g.length, g.gc_content
-            FROM genomes g
-            JOIN taxonomy t ON g.genome_id = t.genome_id
-            WHERE t.family = 'Siphoviridae'
-            ORDER BY RANDOM()
-            LIMIT ?
-            """
-
-            additional_phages = [dict(row) for row in self.conn.execute(query, (additional,))]
-            siphoviruses.extend(additional_phages)
-            logger.info(f"  Added {len(additional_phages)} general Siphoviridae")
-
-        return siphoviruses
-
-    def get_lactobacillus_myoviruses(self, n_target: int = 2) -> List[Dict]:
-        """
-        Get Lactobacillus Myoviridae phages.
-
-        Myoviridae is another major phage family in vaginal virome.
-        Also targets Lactobacillus species.
-
-        Genome type: dsDNA
-        """
-        logger.info("Selecting Lactobacillus Myoviridae phages...")
-
-        query = """
-        SELECT DISTINCT g.genome_id, g.genome_name, t.family, t.genus, t.species, g.length, g.gc_content
-        FROM genomes g
-        JOIN taxonomy t ON g.genome_id = t.genome_id
-        WHERE t.family = 'Myoviridae'
-          AND (g.genome_name LIKE '%Lactobacillus%'
-           OR g.genome_name LIKE '%lactobacillus%')
-        ORDER BY RANDOM()
-        LIMIT ?
-        """
-
-        myoviruses = [dict(row) for row in self.conn.execute(query, (n_target,))]
-        logger.info(f"  Myoviridae (Lactobacillus): {len(myoviruses)}")
-
-        # If no specific Lactobacillus phages, get general Myoviridae
-        if len(myoviruses) < n_target:
-            additional = n_target - len(myoviruses)
-            logger.info(f"  Finding {additional} additional Myoviridae phages...")
-
-            query = """
-            SELECT DISTINCT g.genome_id, g.genome_name, t.family, t.genus, t.species, g.length, g.gc_content
-            FROM genomes g
-            JOIN taxonomy t ON g.genome_id = t.genome_id
-            WHERE t.family = 'Myoviridae'
-            ORDER BY RANDOM()
-            LIMIT ?
-            """
-
-            additional_phages = [dict(row) for row in self.conn.execute(query, (additional,))]
-            myoviruses.extend(additional_phages)
-            logger.info(f"  Added {len(additional_phages)} general Myoviridae")
-
-        return myoviruses
+        return lactobacillus_phages
 
     def get_microviridae_phages(self, n_target: int = 2) -> List[Dict]:
         """
@@ -344,37 +297,46 @@ class VaginalViromeCurator:
 
         for genome in genomes:
             family = genome.get('family', '')
+            genome_name = genome.get('genome_name', '')
 
-            if family in ['Siphoviridae', 'Myoviridae', 'Podoviridae', 'Microviridae']:
+            # Determine category by content, not just family name
+            # (since many phages have Unknown family)
+            is_phage = ('Lactobacillus phage' in genome_name or
+                        'phage' in genome_name.lower() or
+                        family in ['Herelleviridae', 'Microviridae'])
+
+            if is_phage:
                 # Bacteriophages: 80% total, distributed among phages
+                # Note: Many Lactobacillus phages have "Unknown" family
                 n_phages = categories['bacteriophages']
-                base_abundance = bacteriophages_abundance / n_phages
+                base_abundance = bacteriophages_abundance / n_phages if n_phages > 0 else 0
                 # Add variation: log-normal distribution
-                abundance = base_abundance * np.random.lognormal(0, 0.5)
+                abundance = base_abundance * np.random.lognormal(0, 0.5) if n_phages > 0 else 0
 
             elif family == 'Papillomaviridae':
                 # Papillomaviruses: 10% total
                 n_hpv = categories['papillomaviruses']
-                base_abundance = papilloma_abundance / n_hpv
-                abundance = base_abundance * np.random.lognormal(0, 0.3)
+                base_abundance = papilloma_abundance / n_hpv if n_hpv > 0 else 0
+                abundance = base_abundance * np.random.lognormal(0, 0.3) if n_hpv > 0 else 0
 
             elif family == 'Anelloviridae':
                 # Anelloviruses: 5% total
                 n_anello = categories['anelloviruses']
-                base_abundance = anello_abundance / n_anello
-                abundance = base_abundance * np.random.lognormal(0, 0.3)
+                base_abundance = anello_abundance / n_anello if n_anello > 0 else 0
+                abundance = base_abundance * np.random.lognormal(0, 0.3) if n_anello > 0 else 0
 
-            elif family == 'Herpesviridae':
+            elif family == 'Orthoherpesviridae' or 'herpesvirus' in genome_name.lower():
                 # Herpesviruses: 3% total (episodic shedding)
+                # Note: Modern ICTV name is "Orthoherpesviridae"
                 n_herpes = categories['herpesviruses']
-                base_abundance = herpes_abundance / n_herpes
-                abundance = base_abundance * np.random.lognormal(0, 0.4)
+                base_abundance = herpes_abundance / n_herpes if n_herpes > 0 else 0
+                abundance = base_abundance * np.random.lognormal(0, 0.4) if n_herpes > 0 else 0
 
             else:
-                # Other viruses: 2% total
+                # Other viruses: 2% total (polyoma, adeno)
                 n_other = categories['other']
-                base_abundance = other_abundance / n_other
-                abundance = base_abundance * np.random.lognormal(0, 0.3)
+                base_abundance = other_abundance / n_other if n_other > 0 else 0
+                abundance = base_abundance * np.random.lognormal(0, 0.3) if n_other > 0 else 0
 
             abundances.append(abundance)
 
@@ -407,9 +369,8 @@ class VaginalViromeCurator:
         # Collect genomes by category
         papillomaviruses = self.get_papillomaviruses(n_target=5)
         anelloviruses = self.get_anelloviruses(n_target=3)
-        herpesviruses = self.get_herpesviruses(n_target=3)
-        siphoviruses = self.get_lactobacillus_siphoviruses(n_target=4)
-        myoviruses = self.get_lactobacillus_myoviruses(n_target=2)
+        herpesviruses = self.get_herpesviruses(n_target=5)  # Increased from 3
+        lactobacillus_phages = self.get_lactobacillus_phages(n_target=8)  # NEW: Replaces sipho/myo
         microviridae = self.get_microviridae_phages(n_target=2)
         polyomaviruses = self.get_polyomaviruses(n_target=2)
         adenoviruses = self.get_adenoviruses(n_target=1)
@@ -419,8 +380,7 @@ class VaginalViromeCurator:
             papillomaviruses +
             anelloviruses +
             herpesviruses +
-            siphoviruses +
-            myoviruses +
+            lactobacillus_phages +  # NEW
             microviridae +
             polyomaviruses +
             adenoviruses
@@ -437,7 +397,7 @@ class VaginalViromeCurator:
             'papillomaviruses': len(papillomaviruses),
             'anelloviruses': len(anelloviruses),
             'herpesviruses': len(herpesviruses),
-            'bacteriophages': len(siphoviruses) + len(myoviruses) + len(microviridae),
+            'bacteriophages': len(lactobacillus_phages) + len(microviridae),  # Updated
             'other': len(polyomaviruses) + len(adenoviruses)
         }
 
@@ -448,13 +408,13 @@ class VaginalViromeCurator:
         collection_meta = {
             'collection_id': 24,
             'collection_name': 'Vaginal Virome (Healthy)',
-            'description': 'Healthy human vaginal/cervicovaginal virome with papillomaviruses, anelloviruses, herpesviruses, and Lactobacillus bacteriophages. Bacteriophages ~80% (Lactobacillus-targeting), HPV 78.3% prevalence, Anelloviruses 69.6% prevalence. Host: Homo sapiens, Body site: Vagina. Women\'s health applications: cervical cancer screening, bacterial vaginosis, pregnancy outcomes.',
+            'description': f'Healthy human vaginal/cervicovaginal virome with {len(all_genomes)} genomes. Includes papillomaviruses (HPV), human herpesviruses (HSV-1, VZV, EBV, CMV, KSHV), anelloviruses, Lactobacillus bacteriophages, polyomaviruses, and adenoviruses. Bacteriophages ~80% abundance (literature-consistent), HPV 78.3% prevalence, Anelloviruses 69.6% prevalence. Host: Homo sapiens, Body site: Vagina. Women\'s health applications: cervical cancer screening, bacterial vaginosis, pregnancy outcomes, anellovirus immune markers.',
             'n_genomes': len(all_genomes),
-            'selection_criteria': 'Literature-validated composition from Wylie et al. 2014 (BMC Biol), Dols et al. 2016, Nature Microbiology 2024 VMGC study, Frontiers 2025. Includes HPV (high prevalence 78.3%), anelloviruses (69.6%), herpesviruses (HSV-1/2), and Lactobacillus bacteriophages.',
+            'selection_criteria': 'Literature-validated composition from Wylie et al. 2014 (BMC Biol), Dols et al. 2016, Nature Microbiology 2024 VMGC study (4,263 viral OTUs, 85.8% vaginal-specific), Frontiers 2025 (267 women). Includes HPV (5 types), human herpesviruses (HSV-1, VZV, EBV, CMV, HHV-6A/6B, HHV-7, KSHV), anelloviruses (3 types), and Lactobacillus bacteriophages (64 available in RefSeq). NOTE: Family names updated for ICTV 2022 taxonomy (Orthoherpesviridae, Herelleviridae).',
             'curated_by': 'ViroForge Development Team',
             'curation_date': '2025-11-09',
-            'literature_references': 'Wylie et al. 2014 BMC Biol: Metagenomic analysis of dsDNA viruses; Dols et al. 2016: Vaginal virome and BV; Nature Microbiology 2024: Vaginal Microbial Genome Collection; Frontiers 2025: Vaginal virome diversity',
-            'version': 1
+            'literature_references': 'Wylie et al. 2014 BMC Biol; Dols et al. 2016; Fu et al. 2024 Nat Microbiol (VMGC); Zhang et al. 2025 Front Cell Infect Microbiol; ICTV 2022 taxonomy update (bacteriophage families)',
+            'version': 2
         }
 
         # Insert into database
