@@ -5,7 +5,7 @@
 A comprehensive mock metavirome data generator for testing and validating virome analysis pipelines, with **long-read sequencing**, **RNA virome support**, and critical disease/environmental collections.
 
 [![Tests](https://img.shields.io/badge/tests-80%2B%20passing-brightgreen)](tests/)
-[![Phase](https://img.shields.io/badge/Phase%2012-In%20Progress-yellow)](ROADMAP.md)
+[![Phase](https://img.shields.io/badge/Phase%2012.2-Complete-brightgreen)](ROADMAP.md)
 [![Collections](https://img.shields.io/badge/collections-28%20curated-blue)](docs/COLLECTION_IMPLEMENTATION_GUIDE.md)
 [![Genomes](https://img.shields.io/badge/genomes-14%2C423%20RefSeq-blue)](docs/GENOME_DATABASE_DESIGN.md)
 [![Platforms](https://img.shields.io/badge/platforms-5%20supported-blue)](docs/LONGREAD_TUTORIAL.md)
@@ -35,6 +35,21 @@ A comprehensive mock metavirome data generator for testing and validating virome
   - Real-time progress reporting
   - Beautiful progress bars and status updates
   - Verbose mode for detailed output
+- **🔄 Batch generation** - `viroforge batch` (Phase 12.2)
+  - YAML-based batch configurations
+  - Parameter sweep support (all combinations)
+  - Sequential or parallel execution
+  - 5 example configs (technology comparison, coverage sweep, VLP protocols)
+- **📊 Dataset reporting** - `viroforge report` (Phase 12.2)
+  - Comprehensive quality reports
+  - Composition analysis with top genomes
+  - VLP/RNA workflow statistics
+  - Terminal or JSON export formats
+- **🔍 Dataset comparison** - `viroforge compare` (Phase 12.2)
+  - Side-by-side comparison of multiple datasets
+  - Composition consistency checking
+  - Intelligent recommendations (hybrid assembly, platform comparison)
+  - Batch result analysis
 
 See documentation below for complete usage guide.
 
@@ -210,6 +225,28 @@ viroforge presets show gut-standard
 # Verbose mode for detailed progress
 viroforge generate --preset gut-standard --verbose
 ```
+
+**Batch Generation (NEW - Phase 12.2):**
+```bash
+# Generate multiple datasets from YAML config
+viroforge batch examples/batch_configs/technology_comparison.yaml
+
+# Run in parallel (4 workers)
+viroforge batch examples/batch_configs/coverage_sweep.yaml --parallel 4
+
+# Generate quality report
+viroforge report data/gut-standard
+
+# Compare multiple datasets
+viroforge compare data/gut_novaseq data/gut_hiseq data/gut_pacbio_hifi
+```
+
+**Example Batch Configs:**
+- `technology_comparison.yaml` - All 5 platforms with same composition
+- `coverage_sweep.yaml` - Parameter sweep: 5x, 10x, 20x, 30x, 50x, 100x
+- `vlp_comparison.yaml` - All VLP protocols vs bulk metagenome
+- `reproducibility_study.yaml` - Multiple replicates with different seeds
+- `multi_collection.yaml` - Multiple body sites and environments
 
 **Available Presets:**
 - `gut-standard` - Human gut virome (NovaSeq, 30x, VLP enrichment)

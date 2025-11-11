@@ -1,0 +1,18 @@
+# Reproducibility Study
+# Generate replicates with different random seeds
+
+batch_name: "Reproducibility Study"
+output_base: "data/reproducibility"
+
+parameter_sweep:
+  name_template: "gut_replicate_{seed}"
+
+  base_config:
+    collection_id: 9
+    platform: novaseq
+    coverage: 30
+    vlp_protocol: tangential_flow
+    contamination_level: realistic
+
+  sweep_parameters:
+    seed: [42, 123, 456, 789, 999]

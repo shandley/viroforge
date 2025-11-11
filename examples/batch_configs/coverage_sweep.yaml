@@ -1,0 +1,19 @@
+# Coverage Optimization Study
+# Test different coverage levels to find optimal assembly coverage
+
+batch_name: "Coverage Optimization Study"
+output_base: "data/coverage_study"
+
+# Parameter sweep: automatically generates datasets for each coverage value
+parameter_sweep:
+  name_template: "gut_cov_{coverage}x"
+
+  base_config:
+    collection_id: 9
+    platform: novaseq
+    vlp_protocol: tangential_flow
+    contamination_level: realistic
+    seed: 42
+
+  sweep_parameters:
+    coverage: [5, 10, 20, 30, 50, 100]

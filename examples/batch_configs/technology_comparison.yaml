@@ -1,0 +1,53 @@
+# Technology Comparison Batch Configuration
+# Compare all 5 sequencing platforms with the same collection
+
+batch_name: "Technology Comparison - All Platforms"
+output_base: "data/tech_comparison"
+random_seed: 42
+
+datasets:
+  # Short-read platforms
+  - name: gut_novaseq
+    collection_id: 9
+    platform: novaseq
+    coverage: 30
+    vlp_protocol: tangential_flow
+    contamination_level: realistic
+    seed: 42
+
+  - name: gut_miseq
+    collection_id: 9
+    platform: miseq
+    coverage: 30
+    vlp_protocol: tangential_flow
+    contamination_level: realistic
+    seed: 42
+
+  - name: gut_hiseq
+    collection_id: 9
+    platform: hiseq
+    coverage: 30
+    vlp_protocol: tangential_flow
+    contamination_level: realistic
+    seed: 42
+
+  # Long-read platforms
+  - name: gut_pacbio_hifi
+    collection_id: 9
+    platform: pacbio-hifi
+    depth: 15
+    pacbio_passes: 10
+    pacbio_read_length: 15000
+    vlp_protocol: tangential_flow
+    contamination_level: realistic
+    seed: 42
+
+  - name: gut_nanopore
+    collection_id: 9
+    platform: nanopore
+    depth: 20
+    ont_chemistry: R10.4
+    ont_read_length: 20000
+    vlp_protocol: tangential_flow
+    contamination_level: realistic
+    seed: 42

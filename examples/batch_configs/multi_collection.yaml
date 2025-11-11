@@ -1,0 +1,42 @@
+# Multi-Collection Batch
+# Generate datasets from multiple body site collections
+
+batch_name: "Multi-Collection Study"
+output_base: "data/multi_collection"
+
+datasets:
+  - name: gut_virome
+    collection_id: 9
+    platform: novaseq
+    coverage: 30
+    vlp_protocol: tangential_flow
+    seed: 42
+
+  - name: oral_virome
+    collection_id: 10
+    platform: novaseq
+    coverage: 30
+    vlp_protocol: tangential_flow
+    seed: 42
+
+  - name: skin_virome
+    collection_id: 11
+    platform: novaseq
+    coverage: 30
+    vlp_protocol: tangential_flow
+    seed: 42
+
+  - name: marine_virome
+    collection_id: 13
+    platform: miseq
+    coverage: 30
+    vlp_protocol: tangential_flow
+    seed: 42
+
+  - name: respiratory_rna
+    collection_id: 21
+    platform: novaseq
+    coverage: 40
+    molecule_type: rna
+    rna_depletion: ribo_zero
+    seed: 42
