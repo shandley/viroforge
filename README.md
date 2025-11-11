@@ -5,7 +5,7 @@
 A comprehensive mock metavirome data generator for testing and validating virome analysis pipelines, with **long-read sequencing**, **RNA virome support**, and critical disease/environmental collections.
 
 [![Tests](https://img.shields.io/badge/tests-80%2B%20passing-brightgreen)](tests/)
-[![Phase](https://img.shields.io/badge/Phase%2012.2-Complete-brightgreen)](ROADMAP.md)
+[![Phase](https://img.shields.io/badge/Phase%2012.3-Complete-brightgreen)](ROADMAP.md)
 [![Collections](https://img.shields.io/badge/collections-28%20curated-blue)](docs/COLLECTION_IMPLEMENTATION_GUIDE.md)
 [![Genomes](https://img.shields.io/badge/genomes-14%2C423%20RefSeq-blue)](docs/GENOME_DATABASE_DESIGN.md)
 [![Platforms](https://img.shields.io/badge/platforms-5%20supported-blue)](docs/LONGREAD_TUTORIAL.md)
@@ -50,6 +50,13 @@ A comprehensive mock metavirome data generator for testing and validating virome
   - Composition consistency checking
   - Intelligent recommendations (hybrid assembly, platform comparison)
   - Batch result analysis
+- **🌐 Web interface** - `viroforge web` (Phase 12.3)
+  - Modern browser-based UI with Bootstrap 5
+  - Visual collection browser with search/filter
+  - Interactive dataset generation with progress monitoring
+  - Batch configuration builder with YAML editor
+  - Dataset reporting and comparison dashboards
+  - RESTful API for programmatic access
 
 See documentation below for complete usage guide.
 
@@ -226,7 +233,7 @@ viroforge presets show gut-standard
 viroforge generate --preset gut-standard --verbose
 ```
 
-**Batch Generation (NEW - Phase 12.2):**
+**Batch Generation (Phase 12.2):**
 ```bash
 # Generate multiple datasets from YAML config
 viroforge batch examples/batch_configs/technology_comparison.yaml
@@ -247,6 +254,21 @@ viroforge compare data/gut_novaseq data/gut_hiseq data/gut_pacbio_hifi
 - `vlp_comparison.yaml` - All VLP protocols vs bulk metagenome
 - `reproducibility_study.yaml` - Multiple replicates with different seeds
 - `multi_collection.yaml` - Multiple body sites and environments
+
+**Web Interface (NEW - Phase 12.3):**
+```bash
+# Launch web interface (opens browser automatically)
+viroforge web
+
+# Access at http://127.0.0.1:5000
+
+# Features:
+# - Visual collection browser with search/filter
+# - Interactive dataset generation with presets
+# - Batch configuration builder with YAML editor
+# - Dataset reporting and comparison dashboards
+# - Real-time progress monitoring
+```
 
 **Available Presets:**
 - `gut-standard` - Human gut virome (NovaSeq, 30x, VLP enrichment)

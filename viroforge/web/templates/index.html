@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold mb-3">
+            <i class="bi bi-virus"></i> ViroForge
+        </h1>
+        <p class="lead mb-4">
+            Synthetic Virome Data Generator for Benchmarking and Validation
+        </p>
+        <p class="mb-4">
+            Generate realistic mock metavirome datasets with complete ground truth for testing and validating virome analysis pipelines
+        </p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="/collections" class="btn btn-light btn-lg">
+                <i class="bi bi-collection"></i> Browse Collections
+            </a>
+            <a href="/generate" class="btn btn-outline-light btn-lg">
+                <i class="bi bi-play-circle"></i> Generate Dataset
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="container my-5">
+    <h2 class="text-center mb-5">Key Features</h2>
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card h-100 text-center p-4">
+                <div class="feature-icon text-primary">
+                    <i class="bi bi-collection-fill"></i>
+                </div>
+                <h4>28 Curated Collections</h4>
+                <p class="text-muted">
+                    Literature-validated virome compositions across diverse environments: gut, oral, skin, marine, wastewater, and more
+                </p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 text-center p-4">
+                <div class="feature-icon text-success">
+                    <i class="bi bi-hdd-stack"></i>
+                </div>
+                <h4>14,423 Viral Genomes</h4>
+                <p class="text-muted">
+                    Complete RefSeq viral genome database with ICTV taxonomy (57.1% coverage)
+                </p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 text-center p-4">
+                <div class="feature-icon text-info">
+                    <i class="bi bi-cpu"></i>
+                </div>
+                <h4>5 Sequencing Platforms</h4>
+                <p class="text-muted">
+                    NovaSeq, MiSeq, HiSeq, PacBio HiFi, and Oxford Nanopore with realistic error models
+                </p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 text-center p-4">
+                <div class="feature-icon text-warning">
+                    <i class="bi bi-diagram-3"></i>
+                </div>
+                <h4>VLP Enrichment</h4>
+                <p class="text-muted">
+                    5 protocols modeled: Tangential flow, ultracentrifugation, Norgen kit, syringe filter, or bulk metagenome
+                </p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 text-center p-4">
+                <div class="feature-icon text-danger">
+                    <i class="bi bi-virus2"></i>
+                </div>
+                <h4>RNA Virome Support</h4>
+                <p class="text-muted">
+                    Complete RNA workflow: Reverse transcription, rRNA depletion, RNA degradation modeling
+                </p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 text-center p-4">
+                <div class="feature-icon text-primary">
+                    <i class="bi bi-check2-circle"></i>
+                </div>
+                <h4>Complete Ground Truth</h4>
+                <p class="text-muted">
+                    Taxonomic composition, abundance tables, workflow statistics for rigorous validation
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Start Section -->
+<div class="bg-light py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">Quick Start</h2>
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="bi bi-1-circle-fill text-primary"></i> Browse Collections
+                        </h5>
+                        <p class="card-text">
+                            Explore 28 curated virome collections representing diverse environments and disease states
+                        </p>
+                        <a href="/collections" class="btn btn-outline-primary">
+                            <i class="bi bi-arrow-right"></i> View Collections
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="bi bi-2-circle-fill text-primary"></i> Generate Dataset
+                        </h5>
+                        <p class="card-text">
+                            Use presets or custom parameters to generate synthetic FASTQ datasets with complete ground truth
+                        </p>
+                        <a href="/generate" class="btn btn-outline-primary">
+                            <i class="bi bi-arrow-right"></i> Start Generating
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="bi bi-3-circle-fill text-primary"></i> Batch Generation
+                        </h5>
+                        <p class="card-text">
+                            Create multiple datasets at once using YAML configuration with parameter sweeps
+                        </p>
+                        <a href="/batch" class="btn btn-outline-primary">
+                            <i class="bi bi-arrow-right"></i> Build Batch
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="bi bi-4-circle-fill text-primary"></i> Analyze Results
+                        </h5>
+                        <p class="card-text">
+                            View quality reports and compare multiple datasets side-by-side
+                        </p>
+                        <a href="/reports" class="btn btn-outline-primary">
+                            <i class="bi bi-arrow-right"></i> View Reports
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Section -->
+<div class="container my-5">
+    <h2 class="text-center mb-5">ViroForge By The Numbers</h2>
+    <div class="row g-4">
+        <div class="col-md-3">
+            <div class="card stats-card h-100 p-4 text-center">
+                <h2 class="display-4 text-primary mb-0">28</h2>
+                <p class="text-muted mb-0">Virome Collections</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card h-100 p-4 text-center">
+                <h2 class="display-4 text-success mb-0">14,423</h2>
+                <p class="text-muted mb-0">Viral Genomes</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card h-100 p-4 text-center">
+                <h2 class="display-4 text-info mb-0">5</h2>
+                <p class="text-muted mb-0">Sequencing Platforms</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card h-100 p-4 text-center">
+                <h2 class="display-4 text-warning mb-0">80+</h2>
+                <p class="text-muted mb-0">Tests Passing</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Use Cases Section -->
+<div class="bg-light py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">Use Cases</h2>
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="bi bi-graph-up text-primary"></i> Benchmark Pipelines</h5>
+                        <p class="card-text small">
+                            Test QC tools, assemblers, and classifiers with known ground truth
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="bi bi-rulers text-success"></i> Parameter Optimization</h5>
+                        <p class="card-text small">
+                            Find optimal coverage, VLP protocols, and workflow parameters
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="bi bi-shield-check text-info"></i> Method Validation</h5>
+                        <p class="card-text small">
+                            Validate new analysis methods against established benchmarks
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

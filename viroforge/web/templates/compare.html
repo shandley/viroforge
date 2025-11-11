@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Compare Datasets{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h1><i class="bi bi-bar-chart"></i> Compare Datasets</h1>
+    <p class="text-muted">Side-by-side comparison of multiple datasets</p>
+
+    <div class="card mt-4">
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="form-label">Dataset Paths (one per line)</label>
+                <textarea id="datasetPaths" class="form-control" rows="5" placeholder="data/gut_novaseq&#10;data/gut_hiseq&#10;data/gut_pacbio_hifi"></textarea>
+            </div>
+            <button class="btn btn-vf-primary" onclick="compareDatasets()">
+                <i class="bi bi-bar-chart"></i> Compare Datasets
+            </button>
+        </div>
+    </div>
+
+    <div id="comparisonCard" class="card mt-4 d-none">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="bi bi-table"></i> Comparison Results</h5>
+        </div>
+        <div class="card-body">
+            <div id="comparisonBody"></div>
+            <div id="recommendations" class="mt-4"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function compareDatasets() {
+    const paths = document.getElementById('datasetPaths').value.split('\n').filter(p => p.trim());
+    if (paths.length < 2) {
+        alert('Please provide at least 2 dataset paths');
+        return;
+    }
+
+    fetch('/api/compare', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({datasets: paths})
+    })
+    .then(r => r.json())
+    .then(data => {
+        document.getElementById('comparisonCard').classList.remove('d-none');
+
+        let html = '<table class="table table-striped"><thead><tr><th>Dataset</th><th>Collection</th><th>Platform</th><th>Seed</th></tr></thead><tbody>';
+        data.datasets.forEach(d => {
+            html += `<tr>
+                <td>${d._name}</td>
+                <td>${d.collection?.name || 'N/A'}</td>
+                <td>${d.platform?.name?.toUpperCase() || 'N/A'}</td>
+                <td>${d.generation_info?.random_seed || 'N/A'}</td>
+            </tr>`;
+        });
+        html += '</tbody></table>';
+
+        document.getElementById('comparisonBody').innerHTML = html;
+
+        let recHtml = '<h6>Recommendations:</h6>';
+        data.recommendations.forEach(rec => {
+            const badgeClass = rec.type === 'success' ? 'success' : rec.type === 'info' ? 'info' : 'warning';
+            recHtml += `<div class="alert alert-${badgeClass}">
+                <strong>${rec.title}</strong>
+                <ul class="mb-0">`;
+            rec.details.forEach(detail => {
+                recHtml += `<li>${detail}</li>`;
+            });
+            recHtml += '</ul></div>';
+        });
+
+        document.getElementById('recommendations').innerHTML = recHtml;
+    })
+    .catch(error => {
+        alert('Error comparing datasets: ' + error.message);
+    });
+}
+</script>
+{% endblock %}

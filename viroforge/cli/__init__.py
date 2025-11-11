@@ -13,6 +13,7 @@ Usage:
     viroforge compare <datasets>  # Compare multiple datasets
     viroforge batch <config>      # Batch generation
     viroforge presets             # Manage presets
+    viroforge web                 # Launch web interface
 
 Author: ViroForge Development Team
 Date: 2025-11-10
@@ -36,6 +37,7 @@ Examples:
   viroforge report data/gut_virome    View dataset report
   viroforge compare data/gut_*        Compare multiple datasets
   viroforge batch config.yaml         Generate from batch config
+  viroforge web                       Launch web interface
 
 For more information: https://github.com/hecatomb/viroforge
         """
@@ -230,6 +232,36 @@ For more information: https://github.com/hecatomb/viroforge
         help='Create preset from existing dataset metadata'
     )
 
+    # ========================================================================
+    # WEB command
+    # ========================================================================
+    web_parser = subparsers.add_parser(
+        'web',
+        help='Launch web interface',
+        description='Start ViroForge web interface for browser-based interactions'
+    )
+    web_parser.add_argument(
+        '--host',
+        default='127.0.0.1',
+        help='Host to bind to (default: 127.0.0.1)'
+    )
+    web_parser.add_argument(
+        '--port',
+        type=int,
+        default=5000,
+        help='Port to bind to (default: 5000)'
+    )
+    web_parser.add_argument(
+        '--debug',
+        action='store_true',
+        help='Enable debug mode'
+    )
+    web_parser.add_argument(
+        '--no-browser',
+        action='store_true',
+        help='Don\'t open browser automatically'
+    )
+
     # Parse arguments
     args = parser.parse_args()
 
@@ -258,6 +290,9 @@ For more information: https://github.com/hecatomb/viroforge
         elif args.command == 'presets':
             from .presets import run_presets
             return run_presets(args)
+        elif args.command == 'web':
+            from .web import run_web
+            return run_web(args)
         else:
             parser.print_help()
             return 1

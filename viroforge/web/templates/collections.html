@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+
+{% block title %}Collections{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1><i class="bi bi-collection"></i> Virome Collections</h1>
+            <p class="text-muted">Browse 28 curated virome collections from diverse environments</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="/generate" class="btn btn-vf-primary">
+                <i class="bi bi-play-circle"></i> Generate Dataset
+            </a>
+        </div>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <input type="text"
+                           id="searchInput"
+                           class="form-control"
+                           placeholder="Search collections...">
+                </div>
+                <div class="col-md-3 mb-3">
+                    <select id="environmentFilter" class="form-select">
+                        <option value="">All Environments</option>
+                        <option value="host">Host-Associated</option>
+                        <option value="environmental">Environmental</option>
+                        <option value="disease">Disease State</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <select id="moleculeFilter" class="form-select">
+                        <option value="">All Molecule Types</option>
+                        <option value="dna">DNA</option>
+                        <option value="rna">RNA</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Collections Grid -->
+    <div id="collectionsGrid" class="row">
+        {% for collection in collections %}
+        <div class="col-md-6 col-lg-4 mb-4 collection-card"
+             data-environment="{{ collection.environment|default('host') }}"
+             data-molecule="{{ collection.molecule_type|default('dna') }}"
+             data-name="{{ collection.name|lower }}">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-folder"></i> {{ collection.name }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        <strong>ID:</strong> {{ collection.id }}<br>
+                        <strong>Genomes:</strong> {{ collection.n_genomes }}<br>
+                        <strong>Version:</strong> {{ collection.version }}
+                    </p>
+                    {% if collection.description %}
+                    <p class="text-muted small">{{ collection.description[:100] }}...</p>
+                    {% endif %}
+
+                    <!-- Badges -->
+                    <div class="mb-2">
+                        {% if collection.molecule_type == 'rna' %}
+                        <span class="badge bg-danger">RNA</span>
+                        {% else %}
+                        <span class="badge bg-info">DNA</span>
+                        {% endif %}
+
+                        {% if collection.environment %}
+                        <span class="badge bg-secondary">{{ collection.environment|title }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-footer bg-light">
+                    <button class="btn btn-sm btn-outline-primary w-100"
+                            onclick="viewCollection({{ collection.id }})">
+                        <i class="bi bi-eye"></i> View Details
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div id="noResults" class="alert alert-info d-none">
+        <i class="bi bi-info-circle"></i> No collections match your search criteria
+    </div>
+</div>
+
+<!-- Collection Details Modal -->
+<div class="modal fade" id="collectionModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalTitle">Collection Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="/generate" class="btn btn-primary">
+                    <i class="bi bi-play-circle"></i> Generate from this Collection
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Search and filter functionality
+const searchInput = document.getElementById('searchInput');
+const environmentFilter = document.getElementById('environmentFilter');
+const moleculeFilter = document.getElementById('moleculeFilter');
+const collectionCards = document.querySelectorAll('.collection-card');
+const noResults = document.getElementById('noResults');
+
+function filterCollections() {
+    const searchTerm = searchInput.value.toLowerCase();
+    const envFilter = environmentFilter.value;
+    const molFilter = moleculeFilter.value;
+
+    let visibleCount = 0;
+
+    collectionCards.forEach(card => {
+        const name = card.dataset.name;
+        const environment = card.dataset.environment;
+        const molecule = card.dataset.molecule;
+
+        const matchesSearch = name.includes(searchTerm);
+        const matchesEnv = !envFilter || environment === envFilter;
+        const matchesMol = !molFilter || molecule === molFilter;
+
+        if (matchesSearch && matchesEnv && matchesMol) {
+            card.style.display = '';
+            visibleCount++;
+        } else {
+            card.style.display = 'none';
+        }
+    });
+
+    noResults.classList.toggle('d-none', visibleCount > 0);
+}
+
+searchInput.addEventListener('input', filterCollections);
+environmentFilter.addEventListener('change', filterCollections);
+moleculeFilter.addEventListener('change', filterCollections);
+
+// View collection details
+function viewCollection(collectionId) {
+    const modal = new bootstrap.Modal(document.getElementById('collectionModal'));
+    const modalBody = document.getElementById('modalBody');
+    const modalTitle = document.getElementById('modalTitle');
+
+    modal.show();
+
+    // Fetch collection details
+    fetch(`/api/collection/${collectionId}`)
+        .then(response => response.json())
+        .then(data => {
+            modalTitle.textContent = data.name;
+
+            let html = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Basic Information</h6>
+                        <table class="table table-sm">
+                            <tr><th>Collection ID</th><td>${data.id}</td></tr>
+                            <tr><th>Genomes</th><td>${data.n_genomes}</td></tr>
+                            <tr><th>Version</th><td>${data.version}</td></tr>
+                            <tr><th>Molecule Type</th><td>${data.molecule_type || 'DNA'}</td></tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Composition</h6>
+                        <div id="compositionChart" style="height: 200px;">
+                            <canvas id="genomeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            if (data.description) {
+                html += `
+                    <div class="mt-3">
+                        <h6>Description</h6>
+                        <p class="text-muted">${data.description}</p>
+                    </div>
+                `;
+            }
+
+            if (data.top_genomes && data.top_genomes.length > 0) {
+                html += `
+                    <div class="mt-3">
+                        <h6>Top 5 Most Abundant Genomes</h6>
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Genome</th>
+                                    <th>Abundance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+
+                data.top_genomes.slice(0, 5).forEach((genome, i) => {
+                    html += `
+                        <tr>
+                            <td>${i + 1}</td>
+                            <td>${genome.name}</td>
+                            <td>${(genome.abundance * 100).toFixed(2)}%</td>
+                        </tr>
+                    `;
+                });
+
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }
+
+            modalBody.innerHTML = html;
+        })
+        .catch(error => {
+            modalBody.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle"></i> Error loading collection details: ${error.message}
+                </div>
+            `;
+        });
+}
+</script>
+{% endblock %}

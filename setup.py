@@ -54,6 +54,9 @@ setup(
             "sphinx>=4.0.0",
             "sphinx-rtd-theme>=0.5.2",
         ],
+        "web": [
+            "flask>=2.0.0",
+        ],
     },
     entry_points={
         "console_scripts": [

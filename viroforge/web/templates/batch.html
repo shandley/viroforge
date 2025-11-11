@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}Batch Generation{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h1><i class="bi bi-stack"></i> Batch Generation</h1>
+    <p class="text-muted">Generate multiple datasets from a YAML configuration</p>
+
+    <div class="row mt-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-file-earmark-code"></i> Batch Configuration (YAML)</h5>
+                </div>
+                <div class="card-body">
+                    <textarea id="yamlConfig" class="form-control font-monospace" rows="15" placeholder="Paste your YAML configuration here..."></textarea>
+
+                    <div class="mt-3">
+                        <label class="form-label">Parallel Workers</label>
+                        <input type="number" id="parallelWorkers" class="form-control" value="1" min="1" max="8">
+                        <small class="text-muted">Number of datasets to generate simultaneously</small>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-3">
+                        <button class="btn btn-outline-primary" onclick="validateBatch()">
+                            <i class="bi bi-check-circle"></i> Validate Configuration
+                        </button>
+                        <button class="btn btn-vf-primary" onclick="startBatch()">
+                            <i class="bi bi-play-circle"></i> Start Batch Generation
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="validationResult" class="card mt-3 d-none">
+                <div class="card-header" id="validationHeader"></div>
+                <div class="card-body" id="validationBody"></div>
+            </div>
+
+            <div id="batchProgress" class="card mt-3 d-none">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-gear-fill"></i> Batch In Progress</h5>
+                </div>
+                <div class="card-body">
+                    <div class="progress" style="height: 30px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%">Processing...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="bi bi-lightbulb"></i> Example Configs</h5>
+                </div>
+                <div class="card-body">
+                    <button class="btn btn-sm btn-outline-primary w-100 mb-2" onclick="loadExample('technology')">
+                        Technology Comparison
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary w-100 mb-2" onclick="loadExample('coverage')">
+                        Coverage Sweep
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary w-100 mb-2" onclick="loadExample('vlp')">
+                        VLP Comparison
+                    </button>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0"><i class="bi bi-info-circle"></i> YAML Format</h6>
+                </div>
+                <div class="card-body small">
+                    <pre>batch_name: "Study Name"
+output_base: "data/output"
+
+datasets:
+  - name: dataset1
+    collection_id: 9
+    platform: novaseq
+    coverage: 30
+    seed: 42</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function validateBatch() {
+    const yaml = document.getElementById('yamlConfig').value;
+    fetch('/api/batch/validate', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({yaml})
+    })
+    .then(r => r.json())
+    .then(data => {
+        const card = document.getElementById('validationResult');
+        card.classList.remove('d-none');
+
+        if (data.valid) {
+            document.getElementById('validationHeader').className = 'card-header bg-success text-white';
+            document.getElementById('validationHeader').textContent = '✓ Valid Configuration';
+            document.getElementById('validationBody').innerHTML = `
+                <p><strong>Batch Name:</strong> ${data.batch_name}</p>
+                <p><strong>Total Datasets:</strong> ${data.total_datasets}</p>
+                <p><strong>Datasets:</strong> ${data.datasets.join(', ')}</p>
+            `;
+        } else {
+            document.getElementById('validationHeader').className = 'card-header bg-danger text-white';
+            document.getElementById('validationHeader').textContent = '✗ Invalid Configuration';
+            document.getElementById('validationBody').innerHTML = `<p class="text-danger">${data.error}</p>`;
+        }
+    });
+}
+
+function startBatch() {
+    const yaml = document.getElementById('yamlConfig').value;
+    const parallel = document.getElementById('parallelWorkers').value;
+
+    document.getElementById('batchProgress').classList.remove('d-none');
+
+    fetch('/api/batch/generate', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({yaml, parallel})
+    })
+    .then(r => r.json())
+    .then(data => {
+        console.log('Batch started:', data);
+    });
+}
+
+function loadExample(type) {
+    const examples = {
+        technology: `batch_name: "Technology Comparison"
+output_base: "data/tech_comparison"
+
+datasets:
+  - name: gut_novaseq
+    collection_id: 9
+    platform: novaseq
+    coverage: 30
+    seed: 42
+
+  - name: gut_pacbio_hifi
+    collection_id: 9
+    platform: pacbio-hifi
+    depth: 15
+    seed: 42`,
+        coverage: `batch_name: "Coverage Optimization"
+output_base: "data/coverage_study"
+
+parameter_sweep:
+  name_template: "gut_cov_{coverage}x"
+  base_config:
+    collection_id: 9
+    platform: novaseq
+    seed: 42
+  sweep_parameters:
+    coverage: [5, 10, 20, 30, 50, 100]`,
+        vlp: `batch_name: "VLP Protocol Comparison"
+output_base: "data/vlp_comparison"
+
+datasets:
+  - name: tangential_flow
+    collection_id: 9
+    platform: novaseq
+    coverage: 30
+    vlp_protocol: tangential_flow
+    seed: 42
+
+  - name: bulk_metagenome
+    collection_id: 9
+    platform: novaseq
+    coverage: 30
+    no_vlp: true
+    seed: 42`
+    };
+
+    document.getElementById('yamlConfig').value = examples[type];
+}
+</script>
+{% endblock %}

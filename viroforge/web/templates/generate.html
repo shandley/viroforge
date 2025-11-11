@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+
+{% block title %}Generate Dataset{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h1><i class="bi bi-play-circle"></i> Generate Dataset</h1>
+    <p class="text-muted">Create a synthetic virome dataset using presets or custom parameters</p>
+
+    <div class="row mt-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <ul class="nav nav-pills mb-4" role="tablist">
+                        <li class="nav-item">
+                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#presetTab">
+                                <i class="bi bi-bookmark"></i> Use Preset
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#customTab">
+                                <i class="bi bi-sliders"></i> Custom Parameters
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content">
+                        <!-- Preset Tab -->
+                        <div class="tab-pane fade show active" id="presetTab">
+                            <div class="mb-3">
+                                <label class="form-label">Select Preset</label>
+                                <select class="form-select" id="presetSelect">
+                                    <option value="">Choose a preset...</option>
+                                    {% for preset in presets %}
+                                    <option value="{{ preset.name }}">{{ preset.name }} - {{ preset.description }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div id="presetDetails" class="d-none">
+                                <div class="alert alert-info">
+                                    <h6>Preset Details:</h6>
+                                    <div id="presetInfo"></div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Output Directory (optional override)</label>
+                                    <input type="text" class="form-control" id="presetOutput" placeholder="data/my-dataset">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Random Seed (optional override)</label>
+                                    <input type="number" class="form-control" id="presetSeed" placeholder="42">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Custom Tab -->
+                        <div class="tab-pane fade" id="customTab">
+                            <div class="mb-3">
+                                <label class="form-label">Collection *</label>
+                                <select class="form-select" id="collectionId" required>
+                                    <option value="">Select a collection...</option>
+                                    {% for collection in collections %}
+                                    <option value="{{ collection.id }}">{{ collection.id }} - {{ collection.name }} ({{ collection.n_genomes }} genomes)</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Platform *</label>
+                                <select class="form-select" id="platform" required>
+                                    <option value="novaseq">NovaSeq (Illumina short-read)</option>
+                                    <option value="miseq">MiSeq (Illumina short-read)</option>
+                                    <option value="hiseq">HiSeq (Illumina short-read)</option>
+                                    <option value="pacbio-hifi">PacBio HiFi (long-read)</option>
+                                    <option value="nanopore">Oxford Nanopore (long-read)</option>
+                                </select>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Coverage (short-read)</label>
+                                    <input type="number" class="form-control" id="coverage" placeholder="30">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Depth (long-read)</label>
+                                    <input type="number" class="form-control" id="depth" placeholder="15">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Output Directory *</label>
+                                <input type="text" class="form-control" id="customOutput" placeholder="data/my-dataset" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">VLP Protocol</label>
+                                <select class="form-select" id="vlpProtocol">
+                                    <option value="">None (bulk metagenome)</option>
+                                    <option value="tangential_flow">Tangential Flow Filtration</option>
+                                    <option value="ultracentrifugation">Ultracentrifugation</option>
+                                    <option value="norgen">Norgen Kit</option>
+                                    <option value="syringe">Syringe Filter</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Random Seed</label>
+                                <input type="number" class="form-control" id="customSeed" placeholder="42">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-vf-primary btn-lg" onclick="startGeneration()">
+                            <i class="bi bi-play-circle"></i> Start Generation
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Card -->
+            <div id="progressCard" class="card mt-4 d-none">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-gear-fill"></i> Generation In Progress</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-2">
+                        <strong>Command:</strong>
+                        <pre id="generationCommand" class="mb-0"></pre>
+                    </div>
+                    <div class="progress" style="height: 30px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated"
+                             role="progressbar"
+                             style="width: 100%"
+                             id="progressBar">Generating...</div>
+                    </div>
+                    <p class="text-muted small mt-2 mb-0" id="progressStatus">Starting generation...</p>
+                </div>
+            </div>
+
+            <!-- Result Card -->
+            <div id="resultCard" class="card mt-4 d-none">
+                <div class="card-header" id="resultHeader">
+                    <h5 class="mb-0"><i class="bi bi-check-circle"></i> Generation Result</h5>
+                </div>
+                <div class="card-body" id="resultBody"></div>
+            </div>
+        </div>
+
+        <!-- Info Sidebar -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Quick Guide</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Presets</h6>
+                    <p class="small">Use pre-configured settings for common scenarios. Great for quick testing.</p>
+
+                    <h6>Custom Parameters</h6>
+                    <p class="small">Full control over collection, platform, coverage, and VLP protocol.</p>
+
+                    <h6>Platforms</h6>
+                    <ul class="small">
+                        <li><strong>NovaSeq/MiSeq/HiSeq:</strong> Illumina short reads</li>
+                        <li><strong>PacBio HiFi:</strong> High-accuracy long reads</li>
+                        <li><strong>Nanopore:</strong> Ultra-long reads</li>
+                    </ul>
+
+                    <h6>VLP Protocols</h6>
+                    <p class="small">Virus-like particle enrichment methods for reducing contamination.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let generationId = null;
+let statusCheckInterval = null;
+
+// Preset selection
+document.getElementById('presetSelect').addEventListener('change', function() {
+    const presetName = this.value;
+    if (presetName) {
+        fetch(`/api/preset/${presetName}`)
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('presetDetails').classList.remove('d-none');
+                document.getElementById('presetInfo').innerHTML = `
+                    <strong>Collection:</strong> ${data.parameters.collection_id}<br>
+                    <strong>Platform:</strong> ${data.parameters.platform}<br>
+                    <strong>Coverage/Depth:</strong> ${data.parameters.coverage || data.parameters.depth}x
+                `;
+            });
+    } else {
+        document.getElementById('presetDetails').classList.add('d-none');
+    }
+});
+
+function startGeneration() {
+    const activeTab = document.querySelector('.nav-link.active').getAttribute('data-bs-target');
+    let requestData = {};
+
+    if (activeTab === '#presetTab') {
+        const preset = document.getElementById('presetSelect').value;
+        if (!preset) {
+            alert('Please select a preset');
+            return;
+        }
+        requestData.preset = preset;
+        if (document.getElementById('presetOutput').value) {
+            requestData.output = document.getElementById('presetOutput').value;
+        }
+        if (document.getElementById('presetSeed').value) {
+            requestData.seed = parseInt(document.getElementById('presetSeed').value);
+        }
+    } else {
+        const collectionId = document.getElementById('collectionId').value;
+        const output = document.getElementById('customOutput').value;
+        if (!collectionId || !output) {
+            alert('Please fill in required fields');
+            return;
+        }
+        requestData = {
+            collection_id: parseInt(collectionId),
+            platform: document.getElementById('platform').value,
+            output: output
+        };
+        if (document.getElementById('coverage').value) {
+            requestData.coverage = parseFloat(document.getElementById('coverage').value);
+        }
+        if (document.getElementById('depth').value) {
+            requestData.depth = parseFloat(document.getElementById('depth').value);
+        }
+        if (document.getElementById('vlpProtocol').value) {
+            requestData.vlp_protocol = document.getElementById('vlpProtocol').value;
+        }
+        if (document.getElementById('customSeed').value) {
+            requestData.seed = parseInt(document.getElementById('customSeed').value);
+        }
+    }
+
+    // Start generation
+    fetch('/api/generate', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(requestData)
+    })
+    .then(r => r.json())
+    .then(data => {
+        generationId = data.generation_id;
+        document.getElementById('progressCard').classList.remove('d-none');
+        document.getElementById('generationCommand').textContent = data.command;
+        checkStatus();
+        statusCheckInterval = setInterval(checkStatus, 2000);
+    })
+    .catch(error => {
+        alert('Error starting generation: ' + error.message);
+    });
+}
+
+function checkStatus() {
+    if (!generationId) return;
+
+    fetch(`/api/generation/${generationId}/status`)
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'running') {
+                document.getElementById('progressStatus').textContent = 'Generation in progress...';
+            } else {
+                clearInterval(statusCheckInterval);
+                document.getElementById('progressCard').classList.add('d-none');
+                document.getElementById('resultCard').classList.remove('d-none');
+
+                if (data.status === 'success') {
+                    document.getElementById('resultHeader').className = 'card-header bg-success text-white';
+                    document.getElementById('resultBody').innerHTML = `
+                        <p><i class="bi bi-check-circle-fill"></i> Dataset generated successfully!</p>
+                        <p class="mb-0"><strong>Command:</strong><br><pre>${data.command}</pre></p>
+                    `;
+                } else {
+                    document.getElementById('resultHeader').className = 'card-header bg-danger text-white';
+                    document.getElementById('resultBody').innerHTML = `
+                        <p><i class="bi bi-x-circle-fill"></i> Generation failed</p>
+                        <p><strong>Error:</strong><br><pre>${data.stderr}</pre></p>
+                    `;
+                }
+            }
+        });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Error{% endblock %}
+
+{% block content %}
+<div class="container my-5 text-center">
+    <div class="alert alert-danger">
+        <h1><i class="bi bi-exclamation-triangle"></i> Error</h1>
+        <p class="mb-0">{{ error }}</p>
+    </div>
+    <a href="/" class="btn btn-primary">
+        <i class="bi bi-house"></i> Return Home
+    </a>
+</div>
+{% endblock %}

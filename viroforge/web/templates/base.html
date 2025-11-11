@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ViroForge{% endblock %} | Synthetic Virome Generator</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --vf-primary: #0d6efd;
+            --vf-secondary: #6c757d;
+            --vf-success: #198754;
+            --vf-info: #0dcaf0;
+            --vf-warning: #ffc107;
+            --vf-danger: #dc3545;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+
+        .navbar-brand i {
+            color: var(--vf-primary);
+        }
+
+        main {
+            flex: 1;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4rem 0;
+        }
+
+        .card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        footer {
+            background-color: #f8f9fa;
+            padding: 2rem 0;
+            margin-top: auto;
+        }
+
+        .badge-collection {
+            font-size: 0.875rem;
+        }
+
+        .stats-card {
+            border-left: 4px solid var(--vf-primary);
+        }
+
+        .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        pre {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-radius: 0.25rem;
+            border: 1px solid #dee2e6;
+        }
+
+        .nav-pills .nav-link.active {
+            background-color: var(--vf-primary);
+        }
+
+        .progress {
+            height: 1.5rem;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(0,0,0,0.02);
+        }
+
+        .btn-vf-primary {
+            background-color: var(--vf-primary);
+            border-color: var(--vf-primary);
+            color: white;
+        }
+
+        .btn-vf-primary:hover {
+            background-color: #0257d5;
+            border-color: #0252cc;
+            color: white;
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-virus"></i> ViroForge
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">
+                            <i class="bi bi-house-door"></i> Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/collections">
+                            <i class="bi bi-collection"></i> Collections
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/generate">
+                            <i class="bi bi-play-circle"></i> Generate
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/batch">
+                            <i class="bi bi-stack"></i> Batch
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/reports">
+                            <i class="bi bi-file-earmark-text"></i> Reports
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/compare">
+                            <i class="bi bi-bar-chart"></i> Compare
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/about">
+                            <i class="bi bi-info-circle"></i> About
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5><i class="bi bi-virus"></i> ViroForge</h5>
+                    <p class="text-muted">Synthetic virome data generator for benchmarking and validation</p>
+                    <p class="text-muted small">Version 0.10.0 | Phase 12.3: Web Interface</p>
+                </div>
+                <div class="col-md-3">
+                    <h6>Documentation</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="https://github.com/shandley/viroforge" class="text-decoration-none">GitHub</a></li>
+                        <li><a href="#" class="text-decoration-none">User Guide</a></li>
+                        <li><a href="#" class="text-decoration-none">API Reference</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h6>Quick Links</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="/collections" class="text-decoration-none">Browse Collections</a></li>
+                        <li><a href="/generate" class="text-decoration-none">Generate Dataset</a></li>
+                        <li><a href="/about" class="text-decoration-none">About ViroForge</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr>
+            <div class="row">
+                <div class="col-12 text-center text-muted small">
+                    <p>&copy; 2025 ViroForge Development Team | Washington University in St. Louis</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
