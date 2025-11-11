@@ -47,10 +47,14 @@ ViroForge is a comprehensive mock metavirome data generator for benchmarking vir
 - ✅ Configuration presets system (8 built-in presets)
 - ✅ Beautiful terminal UI with `rich` library
 - ✅ Database utilities for CLI
-- ⏳ Progress reporting (stub)
-- ⏳ Batch generation (stub)
-- ⏳ Result reporting (stub)
-- **Timeline**: Initial implementation complete (2-3 days)
+- ✅ **Phase 12.1 COMPLETE**: Full generate command with progress reporting
+  - ✅ Preset-based generation (`viroforge generate --preset`)
+  - ✅ Real-time progress bars and status updates
+  - ✅ Parameter override system
+  - ✅ Verbose mode for detailed output
+- ⏳ Batch generation (stub - Phase 12.2)
+- ⏳ Result reporting (stub - Phase 12.2)
+- **Timeline**: Phase 12.1 complete (1 day), Phase 12.2 next
 
 ## Database
 

@@ -30,6 +30,11 @@ A comprehensive mock metavirome data generator for testing and validating virome
   - Browse, generate, report, compare, batch subcommands
   - Consistent interface across all operations
   - Rich terminal formatting with colors and tables
+- **✨ Full generate command** - `viroforge generate` (Phase 12.1)
+  - Preset-based generation with overrides
+  - Real-time progress reporting
+  - Beautiful progress bars and status updates
+  - Verbose mode for detailed output
 
 See documentation below for complete usage guide.
 
@@ -193,7 +198,7 @@ viroforge browse
 # List available presets
 viroforge presets list
 
-# Generate using preset
+# Generate using preset (with progress!)
 viroforge generate --preset gut-standard
 
 # Override specific parameters
@@ -201,6 +206,9 @@ viroforge generate --preset gut-standard --seed 123 --output my_data
 
 # Show preset details
 viroforge presets show gut-standard
+
+# Verbose mode for detailed progress
+viroforge generate --preset gut-standard --verbose
 ```
 
 **Available Presets:**
