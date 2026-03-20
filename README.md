@@ -1,388 +1,100 @@
 # ViroForge
 
-**Forging synthetic viromes for benchmarking and validation**
+Synthetic virome dataset generator for benchmarking and validating virome analysis pipelines.
 
-A comprehensive mock metavirome data generator for testing and validating virome analysis pipelines, with **long-read sequencing**, **RNA virome support**, and critical disease/environmental collections.
+ViroForge creates realistic FASTQ sequencing data from curated viral genome collections with complete ground truth metadata. Use it to test QC tools, assemblers, taxonomic classifiers, and end-to-end virome workflows against datasets where every read's origin is known.
 
-[![Tests](https://img.shields.io/badge/tests-80%2B%20passing-brightgreen)](tests/)
-[![Phase](https://img.shields.io/badge/Phase%2012.3-Complete-brightgreen)](ROADMAP.md)
-[![Collections](https://img.shields.io/badge/collections-28%20curated-blue)](docs/COLLECTION_IMPLEMENTATION_GUIDE.md)
-[![Genomes](https://img.shields.io/badge/genomes-14%2C423%20RefSeq-blue)](docs/GENOME_DATABASE_DESIGN.md)
-[![Platforms](https://img.shields.io/badge/platforms-5%20supported-blue)](docs/LONGREAD_TUTORIAL.md)
-[![Taxonomy](https://img.shields.io/badge/taxonomy-57.1%25%20ICTV-blue)](docs/TAXONOMY_BUG_FIX.md)
-[![Python](https://img.shields.io/badge/python-3.9%2B-blue)](https://www.python.org/)
-[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+## Features
 
----
+- 28 curated virome collections (human body sites, disease states, environmental)
+- 14,423 RefSeq viral genomes with ICTV taxonomy
+- 5 sequencing platforms (NovaSeq, MiSeq, HiSeq, PacBio HiFi, Oxford Nanopore)
+- DNA and RNA virome workflows
+- VLP enrichment modeling (5 protocols)
+- Realistic contamination, amplification bias, and error profiles
+- Complete ground truth metadata for every dataset
 
-## 🆕 What's New in v0.10.0
+## Installation
 
-### Phase 12: CLI Enhancements 🎨 (November 2025)
-- **🎯 Interactive collection browser** - `viroforge browse`
-  - Beautiful terminal UI with search/filter
-  - Detailed collection views with composition stats
-  - Direct dataset generation from browser
-- **📦 Configuration presets** - `viroforge presets`
-  - 8 built-in presets (gut-standard, marine-standard, etc.)
-  - Custom preset creation from datasets
-  - Easy parameter overrides
-- **🚀 Unified CLI** - Single `viroforge` command
-  - Browse, generate, report, compare, batch subcommands
-  - Consistent interface across all operations
-  - Rich terminal formatting with colors and tables
-- **✨ Full generate command** - `viroforge generate` (Phase 12.1)
-  - Preset-based generation with overrides
-  - Real-time progress reporting
-  - Beautiful progress bars and status updates
-  - Verbose mode for detailed output
-- **🔄 Batch generation** - `viroforge batch` (Phase 12.2)
-  - YAML-based batch configurations
-  - Parameter sweep support (all combinations)
-  - Sequential or parallel execution
-  - 5 example configs (technology comparison, coverage sweep, VLP protocols)
-- **📊 Dataset reporting** - `viroforge report` (Phase 12.2)
-  - Comprehensive quality reports
-  - Composition analysis with top genomes
-  - VLP/RNA workflow statistics
-  - Terminal or JSON export formats
-- **🔍 Dataset comparison** - `viroforge compare` (Phase 12.2)
-  - Side-by-side comparison of multiple datasets
-  - Composition consistency checking
-  - Intelligent recommendations (hybrid assembly, platform comparison)
-  - Batch result analysis
-- **🌐 Web interface** - `viroforge web` (Phase 12.3)
-  - Modern browser-based UI with Bootstrap 5
-  - Visual collection browser with search/filter
-  - Interactive dataset generation with progress monitoring
-  - Batch configuration builder with YAML editor
-  - Dataset reporting and comparison dashboards
-  - RESTful API for programmatic access
-
-See documentation below for complete usage guide.
-
-## 🆕 What's New in v0.9.0
-
-### Phase 11: Hybrid Assembly Support 🔬🧬 (November 2025)
-- **🎯 Matched dataset generation** - Short + long reads with identical compositions
-  - Convenience script: `generate_hybrid_dataset.py`
-  - Validation utility: `validate_hybrid_composition.py`
-- **📚 Hybrid assembler support** - Unicycler, SPAdes hybrid mode, MaSuRCA
-- **📖 Complete tutorial** - `docs/HYBRID_ASSEMBLY_TUTORIAL.md`
-- **✅ Composition validation** - Verify datasets match for hybrid assembly
-
-See [Hybrid Assembly Tutorial](docs/HYBRID_ASSEMBLY_TUTORIAL.md) for complete guide.
-
-### Phase 10: Long-Read Sequencing Support 🔬 (November 2025)
-- **🚀 PacBio HiFi simulation** - High-accuracy reads (>99.9%, QV20+)
-  - Multi-pass CCS workflow via PBSIM3 and ccs
-  - Configurable passes (3-20), read lengths (10-30kb)
-- **🧬 Oxford Nanopore simulation** - Ultra-long reads (10kb-2Mb)
-  - R9.4 and R10.4 chemistry support
-  - Characteristic homopolymer error profiles
-- **📊 5 sequencing platforms** - NovaSeq, MiSeq, HiSeq, PacBio HiFi, Nanopore
-- **🔧 VLP size bias adaptation** - Long-read specific modeling (60% reduction)
-- **📖 Complete tutorial** - `docs/LONGREAD_TUTORIAL.md` with benchmarking workflows
-
-See [Long-Read Tutorial](docs/LONGREAD_TUTORIAL.md) for complete guide.
-
-### Phase 9: Complete Collection Coverage (November 2025)
-- **🦠 28 total collections** - Vaginal, blood, ocular, lung, urinary viromes added
-- **🎯 Proactive taxonomy rescanning** - All collections verified for critical biomarker viruses
-- **✅ Phase 9 complete** - Comprehensive body site and environmental coverage
-
-## 🆕 What's New in v0.8.0
-
-### Phase 8: RNA Virome Workflow (November 2025)
-- **✨ RNA virome support** - Complete workflow for RNA virus sequencing
-  - Reverse transcription modeling with virus-type specific efficiency (40-90%)
-  - rRNA depletion (Ribo-Zero/RiboMinus) with 10-20x viral enrichment
-  - RNA degradation and fragmentation modeling
-- **🧬 3 RNA virus collections** - Respiratory, arbovirus, fecal RNA viromes
-- **🔬 RNA-specific contamination** - Realistic rRNA profiles (90% → 10% post-depletion)
-
-### Phase 7: Critical Collections & Taxonomy Fix (November 2025)
-- **🏥 Disease state collections** - IBD, HIV+, CF respiratory viromes
-- **🌊 Wastewater virome** - Epidemiological surveillance applications
-- **🐛 Major taxonomy bug fixed** - Enhanced fuzzy matching fixed 469 genomes (7.1% of unmatched)
-  - **CRITICAL**: HIV+ collection now includes herpesviruses (EBV, KSHV)
-  - **MAJOR**: Fecal RNA collection +81% size with rotavirus/norovirus
-- **📊 27 total collections** - From 8 to 27 curated virome collections (Phase 9 ongoing)
-
-See [Taxonomy Bug Fix Documentation](docs/TAXONOMY_BUG_FIX.md) for complete details.
-
----
-
-## Overview
-
-ViroForge generates realistic synthetic virome sequencing datasets with complete ground truth metadata, enabling rigorous validation of QC pipelines, assembly tools, taxonomic classifiers, and analysis workflows.
-
-**What makes ViroForge unique?**
-- First simulator to model VLP enrichment with size-based filtration
-- **NEW**: First simulator with RNA virome workflow (RT, rRNA depletion, degradation)
-- Complete ground truth for both DNA and RNA viromes
-- Disease state and environmental surveillance collections
-- Enhanced taxonomy with fuzzy matching for strain-specific names
-
-### Key Features
-
-- **28 Curated Virome Collections** - Literature-validated compositions:
-  - **Host-associated (20)**: Healthy gut/oral/skin/respiratory/vaginal/blood/ocular/lung/urinary, disease states (IBD, HIV+, CF), VLP comparisons
-  - **Environmental (5)**: Marine, soil, freshwater, wastewater
-  - **RNA viromes (3)**: Respiratory RNA, arbovirus, fecal RNA
-- **14,423 RefSeq Viral Genomes** - Complete database with enhanced ICTV taxonomy (57.1% coverage after fix)
-- **5 Sequencing Platforms** 🆕 - Short-read and long-read support
-  - **Short-read**: NovaSeq, MiSeq, HiSeq (Illumina)
-  - **Long-read**: PacBio HiFi (>99.9%), Oxford Nanopore (95-99%)
-- **DNA & RNA Virome Workflows** - Complete support for both molecule types
-  - DNA: VLP enrichment, amplification bias, sequencing artifacts
-  - RNA: Reverse transcription, rRNA depletion (Ribo-Zero), RNA degradation
-- **Enhanced VLP Enrichment Modeling** - Size-based filtration with 5 protocols
-  - Long-read specific: 60% size bias reduction (reads span entire genomes)
-- **Type-Specific Contamination Reduction** - DNA and RNA-specific profiles
-- **Complete Ground Truth** - Taxonomic composition, abundance tables, workflow statistics
-- **Platform-Specific Error Models** - Realistic artifacts for all 5 platforms
-- **Reproducible Benchmarks** - Random seeds, complete metadata, known composition
-- **Production Ready** - 80+ comprehensive tests, literature-validated parameters
-
----
-
-## Why ViroForge?
-
-### The Problem
-
-Current virome analysis tool validation approaches are limited:
-- **Physical synthetic communities**: Expensive ($10k+), time-consuming, limited complexity
-- **Existing simulators**: Bacterial-focused (CAMISIM), don't model VLP enrichment or RNA workflows
-- **Real datasets**: Unknown ground truth, can't systematically test edge cases
-- **RNA viromes**: No existing tools model RT efficiency, rRNA depletion, or RNA degradation
-
-### The Solution
-
-ViroForge enables:
-- Unlimited synthetic datasets with complete ground truth (DNA and RNA)
-- VLP enrichment vs bulk metagenome comparisons
-- RNA virome workflows with Ribo-Zero modeling (90% rRNA → 10%)
-- Realistic contamination profiles with protocol-dependent reduction
-- Disease state and environmental surveillance benchmarking
-- Cross-platform reproducibility testing (NovaSeq, MiSeq, HiSeq)
-- Standardized benchmarking datasets for the community
-
----
-
-## Quick Start
-
-### Installation
-
-#### Short-Read Only (Illumina)
 ```bash
-# Clone repository
 git clone https://github.com/shandley/viroforge.git
 cd viroforge
-
-# Create virtual environment (recommended)
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install biopython numpy pandas
-pip install insilicoseq  # For short-read FASTQ generation
-```
-
-#### Long-Read Support (PacBio HiFi, Nanopore) 🆕
-```bash
-# Create conda environment with long-read dependencies
-conda create -n viroforge-longread \
-    python=3.9 biopython numpy pandas \
-    pbsim3 pbccs samtools
-conda activate viroforge-longread
-
-# Install ViroForge
 pip install -e .
 ```
 
-See [Long-Read Tutorial](docs/LONGREAD_TUTORIAL.md) for detailed installation guide.
+For long-read support (PacBio HiFi, Oxford Nanopore), you also need pbsim3, pbccs, and samtools. See [Long-Read Tutorial](docs/LONGREAD_TUTORIAL.md) for details.
 
-### Generate DNA Virome Dataset
+For the web interface:
 
-#### New CLI Interface 🆕 (Phase 12)
-
-**Interactive Collection Browser:**
 ```bash
-# Launch interactive browser
-viroforge browse
-
-# Navigate with arrow keys, press Enter for details
-# Press 'G' to generate directly from browser
+pip install -e ".[web]"
 ```
 
-**Using Presets:**
+## Quick start
+
+### Browse available collections
+
 ```bash
-# List available presets
+viroforge browse
+```
+
+### Generate a dataset using a preset
+
+```bash
+# List presets
 viroforge presets list
 
-# Generate using preset (with progress!)
+# Generate
 viroforge generate --preset gut-standard
 
-# Override specific parameters
+# Override parameters
 viroforge generate --preset gut-standard --seed 123 --output my_data
-
-# Show preset details
-viroforge presets show gut-standard
-
-# Verbose mode for detailed progress
-viroforge generate --preset gut-standard --verbose
 ```
 
-**Batch Generation (Phase 12.2):**
-```bash
-# Generate multiple datasets from YAML config
-viroforge batch examples/batch_configs/technology_comparison.yaml
-
-# Run in parallel (4 workers)
-viroforge batch examples/batch_configs/coverage_sweep.yaml --parallel 4
-
-# Generate quality report
-viroforge report data/gut-standard
-
-# Compare multiple datasets
-viroforge compare data/gut_novaseq data/gut_hiseq data/gut_pacbio_hifi
-```
-
-**Example Batch Configs:**
-- `technology_comparison.yaml` - All 5 platforms with same composition
-- `coverage_sweep.yaml` - Parameter sweep: 5x, 10x, 20x, 30x, 50x, 100x
-- `vlp_comparison.yaml` - All VLP protocols vs bulk metagenome
-- `reproducibility_study.yaml` - Multiple replicates with different seeds
-- `multi_collection.yaml` - Multiple body sites and environments
-
-**Web Interface (NEW - Phase 12.3):**
-```bash
-# Launch web interface (opens browser automatically)
-viroforge web
-
-# Access at http://127.0.0.1:5000
-
-# Features:
-# - Visual collection browser with search/filter
-# - Interactive dataset generation with presets
-# - Batch configuration builder with YAML editor
-# - Dataset reporting and comparison dashboards
-# - Real-time progress monitoring
-```
-
-**Available Presets:**
-- `gut-standard` - Human gut virome (NovaSeq, 30x, VLP enrichment)
-- `gut-bulk` - Gut bulk metagenome (NovaSeq, 50x, no VLP)
-- `marine-standard` - Marine virome (MiSeq, 30x)
-- `respiratory-rna` - Respiratory RNA virome (NovaSeq, 40x)
-- `quick-test-short` - Fast test dataset (5x coverage)
-- `quick-test-long` - Fast long-read test (5x depth)
-- `hybrid-standard` - Hybrid assembly (NovaSeq 30x + HiFi 15x)
-- `assembly-high-coverage` - High coverage for assembly (100x)
-
-#### Classic Script Interface
-
-**Step 1: List Available Collections**
+### Generate a dataset with full control
 
 ```bash
-python scripts/generate_fastq_dataset.py --list-collections
-```
-
-**Step 2: Generate FASTQ Dataset with VLP Enrichment**
-
-```bash
-# Generate gut virome with tangential flow VLP enrichment
-python scripts/generate_fastq_dataset.py \
+viroforge generate \
     --collection-id 9 \
-    --output data/fastq/gut_virome \
-    --molecule-type dna \
-    --coverage 10 \
+    --output data/gut \
     --platform novaseq \
+    --coverage 30 \
     --vlp-protocol tangential_flow
 ```
 
-### Generate RNA Virome Dataset ✨ NEW
+### Generate an RNA virome dataset
 
 ```bash
-# Generate respiratory RNA virome with Ribo-Zero depletion
-python scripts/generate_fastq_dataset.py \
+viroforge generate \
     --collection-id 21 \
-    --output data/fastq/respiratory_rna \
+    --output data/respiratory_rna \
     --molecule-type rna \
-    --rna-primer random_hexamer \
     --rna-depletion ribo_zero \
-    --coverage 10 \
-    --platform novaseq
+    --platform novaseq \
+    --coverage 10
 ```
 
-**RNA workflow includes:**
-- Reverse transcription with virus-type specific efficiency
-- rRNA depletion (90% → 10% with Ribo-Zero)
-- RNA degradation and fragmentation
-- RNA-specific contamination profiles
+### Generate long-read data
 
-### Generate Long-Read Dataset 🆕 NEW
-
-#### PacBio HiFi (High-Accuracy)
 ```bash
-# Generate gut virome with PacBio HiFi (>99.9% accuracy)
-python scripts/generate_fastq_dataset.py \
+# PacBio HiFi
+viroforge generate \
     --collection-id 9 \
-    --output data/fastq/gut_hifi \
-    --depth 15 \
+    --output data/gut_hifi \
     --platform pacbio-hifi \
-    --pacbio-passes 15 \
-    --pacbio-read-length 18000 \
-    --vlp-protocol tangential_flow
-```
+    --depth 15
 
-**Output**: Single HiFi FASTQ file with 15-20kb reads at >99.9% accuracy
-
-#### Oxford Nanopore (Ultra-Long)
-```bash
-# Generate soil virome with Nanopore ultra-long reads
-python scripts/generate_fastq_dataset.py \
-    --collection-id 1 \
-    --output data/fastq/soil_nanopore \
-    --depth 20 \
+# Oxford Nanopore
+viroforge generate \
+    --collection-id 7 \
+    --output data/soil_nanopore \
     --platform nanopore \
-    --ont-chemistry R10.4 \
-    --ont-read-length 30000 \
-    --vlp-protocol tangential_flow
+    --depth 20
 ```
 
-**Output**: Single Nanopore FASTQ file with 20-40kb reads at ~95% accuracy
-
-**See [Long-Read Tutorial](docs/LONGREAD_TUTORIAL.md) for:**
-- Platform comparison (PacBio vs Nanopore)
-- Configuration guide (passes, read length, chemistry)
-- Benchmarking workflows (assembly, SV detection)
-- Troubleshooting and FAQ
-
-### Output Structure
-```
-output/
-├── fasta/
-│   └── collection.fasta  # Reference genomes
-├── fastq/
-│   ├── collection_R1.fastq  # Forward reads (short-read)
-│   ├── collection_R2.fastq  # Reverse reads (short-read)
-│   ├── collection_hifi.fastq.gz  # PacBio HiFi (long-read)
-│   └── collection.fastq  # Nanopore (long-read)
-└── metadata/
-    ├── collection_21_metadata.json  # Complete ground truth + RNA workflow stats
-    ├── collection_21_composition.tsv  # Abundance table
-    └── collection_21_abundances.txt  # ISS abundance file
-```
-
-See [FASTQ Generation Guide](scripts/README_FASTQ_GENERATION.md) for detailed documentation.
-
-### Generate Hybrid Dataset 🆕 NEW (Short + Long Reads)
-
-Hybrid assembly combines short-read accuracy with long-read length for superior assemblies:
+### Generate matched short + long reads for hybrid assembly
 
 ```bash
-# Generate matched NovaSeq + PacBio HiFi datasets
 python scripts/generate_hybrid_dataset.py \
     --collection-id 9 \
     --output data/gut_hybrid \
@@ -391,554 +103,167 @@ python scripts/generate_hybrid_dataset.py \
     --coverage 30 \
     --depth 15 \
     --seed 42
-
-# Output: matched short + long reads with identical compositions
 ```
 
-**Then assemble with hybrid assemblers**:
-```bash
-# Unicycler (recommended)
-unicycler \
-    -1 data/gut_hybrid/short_reads/fastq/*_R1.fastq \
-    -2 data/gut_hybrid/short_reads/fastq/*_R2.fastq \
-    -l data/gut_hybrid/long_reads/fastq/*.fastq.gz \
-    -o results/unicycler
-
-# SPAdes hybrid mode
-spades.py --meta \
-    -1 data/gut_hybrid/short_reads/fastq/*_R1.fastq \
-    -2 data/gut_hybrid/short_reads/fastq/*_R2.fastq \
-    --pacbio data/gut_hybrid/long_reads/fastq/*.fastq.gz \
-    -o results/spades
-```
-
-**See [Hybrid Assembly Tutorial](docs/HYBRID_ASSEMBLY_TUTORIAL.md) for:**
-- Supported hybrid assemblers (Unicycler, SPAdes, MaSuRCA)
-- Benchmarking workflows
-- Coverage optimization
-- Validation utilities
-
----
-
-## Use Cases
-
-### 1. Benchmark RNA Virome Analysis Pipelines ✨ NEW
+### Batch generation
 
 ```bash
-# Generate respiratory RNA virome with complete workflow
-python scripts/generate_fastq_dataset.py \
-    --collection-id 21 \
-    --output benchmarks/respiratory_rna_10x \
-    --molecule-type rna \
-    --rna-depletion ribo_zero \
-    --coverage 10
+# Run from a YAML config
+viroforge batch examples/batch_configs/technology_comparison.yaml
 
-# Run your pipeline
-your_pipeline benchmarks/respiratory_rna_10x/fastq/*_R{1,2}.fastq
-
-# Compare to ground truth (includes RT efficiency, rRNA depletion stats)
+# Run in parallel
+viroforge batch examples/batch_configs/coverage_sweep.yaml --parallel 4
 ```
 
-### 2. Compare Ribo-Zero Efficiency ✨ NEW
+### Reporting and comparison
 
 ```bash
-# Generate with Ribo-Zero
-python scripts/generate_fastq_dataset.py \
-    --collection-id 21 \
-    --output rna_with_ribozero \
-    --molecule-type rna \
-    --rna-depletion ribo_zero
+# View a dataset report
+viroforge report data/gut-standard
 
-# Generate without Ribo-Zero (failed depletion)
-python scripts/generate_fastq_dataset.py \
-    --collection-id 21 \
-    --output rna_no_ribozero \
-    --molecule-type rna \
-    --rna-depletion none
-
-# Compare: 90% rRNA vs 10% rRNA, 10-20x viral enrichment difference
+# Compare multiple datasets
+viroforge compare data/gut_novaseq data/gut_hiseq data/gut_pacbio_hifi
 ```
 
-### 3. Benchmark Disease State Detection
+### Web interface
 
 ```bash
-# Generate healthy vs disease state collections
-python scripts/generate_fastq_dataset.py --collection-id 9  --output healthy_gut  # Healthy
-python scripts/generate_fastq_dataset.py --collection-id 18 --output ibd_gut      # IBD
-python scripts/generate_fastq_dataset.py --collection-id 19 --output hiv_gut      # HIV+
-
-# Test pipeline's ability to detect virome dysbiosis
+viroforge web
+# Opens at http://127.0.0.1:5000
 ```
 
-### 4. Wastewater Surveillance Benchmarking ✨ NEW
+## Presets
+
+| Preset | Description |
+|--------|-------------|
+| `gut-standard` | Human gut virome, NovaSeq, 30x, VLP enrichment |
+| `gut-bulk` | Gut bulk metagenome, NovaSeq, 50x, no VLP |
+| `marine-standard` | Marine virome, MiSeq, 30x |
+| `respiratory-rna` | Respiratory RNA virome, NovaSeq, 40x |
+| `quick-test-short` | Fast test dataset, 5x coverage |
+| `quick-test-long` | Fast long-read test, 5x depth |
+| `hybrid-standard` | Hybrid assembly, NovaSeq 30x + HiFi 15x |
+| `assembly-high-coverage` | High coverage for assembly, 100x |
+
+## Collections
+
+### Host-associated
+
+| ID | Collection | Genomes | Notes |
+|----|-----------|---------|-------|
+| 1 | Healthy Human Gut | 134 | Western diet, adult |
+| 2 | Healthy Human Skin | 42 | Sebaceous sites |
+| 3 | Healthy Human Oral | 67 | Saliva |
+| 4 | Healthy Human Urogenital | 31 | Vaginal virome |
+| 5 | Healthy Human Respiratory | 58 | Nasopharynx |
+| 24 | Vaginal (Healthy) | 26 | Women's health |
+| 25 | Blood/Plasma (Healthy) | 21 | Viremia, blood safety |
+| 26 | Ocular Surface (Healthy) | 17 | Ophthalmology |
+| 27 | Lower Respiratory/Lung (Healthy) | 31 | Pneumonia, transplant |
+| 28 | Urinary (Healthy) | 20 | Kidney transplant |
+
+### Disease states
+
+| ID | Collection | Genomes | Notes |
+|----|-----------|---------|-------|
+| 18 | IBD Gut | 90 | Inflammatory bowel disease |
+| 19 | HIV+ Gut | 55 | Includes herpesviruses |
+| 20 | CF Respiratory | 81 | Cystic fibrosis lung |
+
+### Environmental
+
+| ID | Collection | Genomes | Notes |
+|----|-----------|---------|-------|
+| 6 | Marine | 78 | Coastal surface water |
+| 7 | Soil | 82 | Agricultural |
+| 8 | Freshwater | 71 | Lake surface water |
+| 17 | Wastewater | 352 | Epidemiological surveillance |
+
+### RNA viromes
+
+| ID | Collection | Genomes | Notes |
+|----|-----------|---------|-------|
+| 21 | Human Respiratory RNA | 56 | Influenza, RSV, coronaviruses |
+| 22 | Arbovirus Environmental | 39 | Flaviviruses, alphaviruses |
+| 23 | Fecal RNA | 58 | Rotavirus, norovirus |
+
+### VLP protocol comparisons (9-15)
+
+Collections 9-15 provide matched compositions under different VLP enrichment conditions (baseline, high/low bacterial lysis, prophage induction, eukaryotic virus shedding).
+
+### Amplification control (16)
+
+Collection 16 is a pre-amplification control for method comparisons (100 genomes).
+
+## VLP enrichment protocols
+
+| Protocol | Method | Contamination reduction | Viral recovery |
+|----------|--------|------------------------|----------------|
+| `tangential_flow` | 0.2 um TFF | 91% | 85% |
+| `ultracentrifugation` | Density gradient | 88% | 90% |
+| `norgen` | Column-based | 87% | 70% |
+| `syringe` | 0.22 um syringe | 86% | 60% |
+| `none` | Bulk metagenome | 0% | 100% |
+
+## RNA virome workflow
+
+ViroForge models complete RNA virome library preparation:
+
+- **Reverse transcription** with virus-type specific efficiency (40-90% depending on ssRNA+, ssRNA-, dsRNA)
+- **rRNA depletion** via Ribo-Zero or RiboMinus (90% rRNA reduced to 10%, with 10-20x viral enrichment)
+- **RNA degradation** and fragmentation modeling
+
+Use `--molecule-type rna` with `--rna-depletion ribo_zero` to enable the full RNA workflow.
+
+## Output structure
+
+```
+output/
+  fasta/
+    collection.fasta          # Reference genomes
+  fastq/
+    collection_R1.fastq       # Forward reads (Illumina)
+    collection_R2.fastq       # Reverse reads (Illumina)
+    collection_hifi.fastq.gz  # PacBio HiFi reads
+    collection.fastq          # Nanopore reads
+  metadata/
+    metadata.json             # Ground truth (composition, taxonomy, workflow stats)
+    composition.tsv           # Abundance table
+    abundances.txt            # InSilicoSeq abundance file
+```
+
+## Requirements
+
+- Python 3.9+
+- numpy, pandas, biopython, scipy, pyyaml, rich
+- InSilicoSeq (for Illumina read simulation)
+- PBSIM3, pbccs, samtools (for long-read simulation, optional)
+- Flask (for web interface, optional)
+
+## Testing
 
 ```bash
-# Generate wastewater virome for epidemiological surveillance
-python scripts/generate_fastq_dataset.py \
-    --collection-id 17 \
-    --output wastewater_surveillance \
-    --coverage 10
-
-# Test pathogen detection (SARS-CoV-2, rotavirus, norovirus, etc.)
-```
-
-### 5. VLP vs Bulk Metagenome Comparison
-
-```bash
-# Generate with VLP enrichment
-python scripts/generate_fastq_dataset.py \
-    --collection-id 13 \
-    --output marine_vlp \
-    --coverage 10 \
-    --vlp-protocol tangential_flow
-
-# Generate bulk metagenome (no VLP)
-python scripts/generate_fastq_dataset.py \
-    --collection-id 13 \
-    --output marine_bulk \
-    --coverage 10 \
-    --no-vlp
-
-# Compare viral recovery rates and contamination levels
-```
-
----
-
-## Virome Collections
-
-ViroForge includes **23 curated virome collections** representing diverse viral ecosystems:
-
-### Original Collections (1-8)
-1. **Healthy Human Gut** (134 genomes) - Western diet, adult
-2. **Healthy Human Skin** (42 genomes) - Sebaceous sites
-3. **Healthy Human Oral** (67 genomes) - Saliva
-4. **Healthy Human Urogenital** (31 genomes) - Vaginal virome
-5. **Healthy Human Respiratory** (58 genomes) - Nasopharynx
-6. **Marine Virome** (78 genomes) - Coastal surface water
-7. **Soil Virome** (82 genomes) - Agricultural
-8. **Freshwater Virome** (71 genomes) - Lake surface water
-
-### VLP Comparison Collections (9-15)
-9-15. **VLP Protocol Comparisons** - Test different enrichment methods
-- Baseline, high/low bacterial lysis, prophage induction, eukaryotic virus shedding
-
-### Amplification Comparison (16)
-16. **Pre-Amplification Control** (100 genomes) - Method comparison baseline
-
-### Critical Collections - Phase 7 ✨ NEW (17-20)
-17. **Wastewater Virome** (352 genomes) - Epidemiological surveillance
-    - Enteric viruses, bacteriophages, emerging pathogens (SARS-CoV-2, mpox)
-18. **IBD Gut Virome** (90 genomes) - Inflammatory bowel disease dysbiosis
-    - Reduced diversity, altered Caudovirales, increased temperate phages
-19. **HIV+ Gut Virome** (55 genomes) - HIV-associated gut dysbiosis
-    - **CRITICAL FIX**: Now includes human herpesviruses (EBV, KSHV, HSV-1, VZV)
-20. **CF Respiratory Virome** (81 genomes) - Cystic fibrosis lung
-    - Pseudomonas/Staphylococcus phages, respiratory viruses (influenza, RSV)
-
-### RNA Virome Collections - Phase 8 ✨ NEW (21-23)
-21. **Human Respiratory RNA Virome** (56 genomes) - RNA respiratory viruses
-    - Influenza, RSV, coronaviruses, rhinoviruses, enteroviruses
-22. **Arbovirus Environmental** (39 genomes) - Mosquito-associated RNA viruses
-    - Flaviviruses, alphaviruses, bunyaviruses
-23. **Fecal RNA Virome** (58 genomes) - Enteric RNA viruses
-    - **MAJOR FIX**: Now includes rotavirus (12) and norovirus (15) - +81% size
-
-### Phase 9: Additional Host Niches (Current Phase) ✨ NEW
-24. **Vaginal Virome (Healthy)** (26 genomes) - Women's health applications
-    - Lactobacillus phages (8), HPV (5), Herpesviruses (5), Anelloviruses (3), Polyomaviruses, Microviridae
-    - Applications: Cervical cancer screening, bacterial vaginosis, pregnancy outcomes
-    - Note: Collection doubled after ICTV taxonomy investigation (Orthoherpesviridae, Herelleviridae families)
-25. **Blood/Plasma Virome (Healthy)** (21 genomes) - Viremia and blood safety
-    - Anelloviruses (5 - most abundant), Herpesviruses (6 - HHV-7, EBV, CMV), Polyomaviruses (3 - BK, JC), Parvovirus B19, HCV, HIV, HPV, Adenovirus
-    - Applications: Transplant monitoring, blood safety screening, viremia detection
-    - Note: Human HBV not available in RefSeq (only animal HBV); HCV has family="Unknown" in database
-26. **Ocular Surface Virome (Healthy)** (17 genomes) - Ophthalmology and infectious keratitis
-    - TTV (3 - DOMINANT 65% prevalence), Adenoviruses (3 - most common infection), Herpesviruses (4 - HSV-1, VZV, EBV, CMV), Bacteriophages (5 - Staphylococcus, Propionibacterium, Corynebacterium), Merkel cell polyomavirus, HPV
-    - Applications: Infectious keratitis diagnosis, ocular health monitoring
-    - Note: Paucibacterial environment (91% bacterial, 5% viral reads)
-27. **Lower Respiratory (Lung) Virome (Healthy)** (31 genomes) - Pneumonia and lung transplant
-    - TTV (5 - DOMINANT 70% in tissues), Bacteriophages (8 - Propionibacterium, Streptococcus, Haemophilus, Pseudomonas), Respiratory viruses (13 - RSV, rhinovirus, influenza A, coronavirus, metapneumovirus, bocavirus, adenovirus), Herpesviruses (4 - CMV, EBV, HSV, VZV), Papillomaviruses (2)
-    - Applications: Pneumonia diagnosis, COPD monitoring, lung transplant surveillance
-    - Note: Different from upper respiratory tract; CMV/EBV critical for transplant
-28. **Urinary Virome (Healthy)** (20 genomes) - Kidney transplant monitoring
-    - HPV (5 - DOMINANT 95% prevalence), BK polyomavirus (1 - CRITICAL 60-100% in transplant complications), JC polyomavirus (1), Anelloviruses/TTV (3 - 53% in transplant patients), Adenoviruses (2 - hemorrhagic cystitis), Herpesviruses (2 - CMV, EBV for transplant), Bacteriophages (6 - E. coli, Enterococcus, Staphylococcus, Lactobacillus)
-    - Applications: BK nephritis monitoring, kidney transplant surveillance, UTI diagnosis, hemorrhagic cystitis detection
-    - Note: BK viremia critical biomarker (60-80% in complications, 100% in BK nephritis)
-
-**Total**: 1,559 genomes across 28 diverse environments, all with literature-validated compositions.
-
-See [Collection Implementation Guide](docs/COLLECTION_IMPLEMENTATION_GUIDE.md) for detailed curation rationale.
-
----
-
-## RNA Virome Workflow ✨ NEW
-
-ViroForge is the first simulator to model complete RNA virome workflows:
-
-### Reverse Transcription
-- **Virus-type specific efficiency**:
-  - ssRNA+ (positive sense): 70-90% (norovirus, poliovirus, coronaviruses)
-  - ssRNA- (negative sense): 50-70% (influenza, RSV, paramyxoviruses)
-  - dsRNA: 40-80% (rotavirus, reovirus)
-- **RT artifacts**: Template switching (~2%), 5'/3' truncation (~15%)
-- **Primer types**: Random hexamer (default), random octamer, oligo-dT, specific
-
-### rRNA Depletion (Ribo-Zero/RiboMinus)
-- **Critical for RNA viromes**: 80-95% of RNA is rRNA (vs ~5% for DNA)
-- **Depletion efficiency**: 90-95% removal (Ribo-Zero), 85-90% (RiboMinus)
-- **Viral enrichment**: 10-20x increase in viral reads
-- **Before depletion**: 90% rRNA, 1% viral (unusable)
-- **After depletion**: 10% rRNA, 20% viral (excellent)
-
-### RNA Degradation
-- **10-100x faster than DNA**: RNase contamination, chemical instability
-- **Fragmentation**: 2-4 fragments per degraded sequence
-- **5'/3' bias**: 5' end more degraded, uneven coverage
-
-### RNA-Specific Contamination
-- **Host RNA**: 90% rRNA before depletion → 10% after
-- **Bacterial RNA**: 16S/23S rRNA + mRNA from microbiome
-- **Dramatically different from DNA**: >10x more contamination without Ribo-Zero
-
-**Command-line flags**:
-```bash
---molecule-type {dna,rna}                    # Select workflow
---rna-primer {random_hexamer,random_octamer,oligo_dt,specific}
---rna-depletion {ribo_zero,ribominus,none}   # rRNA depletion method
-```
-
-See [RNA Virome Workflow Documentation](viroforge/workflows/rna_virome.py) for technical details.
-
----
-
-## VLP Enrichment Protocols
-
-ViroForge models 5 VLP enrichment protocols with realistic size-based filtration and contamination reduction:
-
-| Protocol | Method | Filtration | Contamination Reduction | Viral Recovery | Use Case |
-|----------|--------|------------|-------------------------|----------------|----------|
-| `tangential_flow` | 0.2 μm TFF | Size-based (sigmoid) | 91.2% | 85% | Highest purity |
-| `ultracentrifugation` | Density gradient | Minimal size bias | 88.4% | 90% | Highest recovery |
-| `norgen` | Column-based | Modest size bias | 87.1% | 70% | Convenient |
-| `syringe` | 0.22 μm syringe | Size-based (step) | 85.7% | 60% | Field-friendly |
-| `none` (--no-vlp) | Bulk metagenome | None | 0% | 100% | Control/comparison |
-
-**Features:**
-- Virion size estimation from genome length and type (dsDNA, ssDNA, ssRNA, dsRNA)
-- Protocol-specific filtration curves
-- Type-specific contamination reduction:
-  - Host DNA/RNA: 95-99% (DNase treatment)
-  - rRNA: 90-98% (size-based removal + Ribo-Zero for RNA)
-  - Bacteria: 85-95% (filtration)
-  - PhiX: 0-20% (treated as small virus)
-
-### Contamination Levels
-
-| Level | DNA Initial | RNA Initial (no Ribo-Zero) | After VLP (TFF) | Use Case |
-|-------|------------|---------------------------|-----------------|----------|
-| **Clean** | ~0.7% | ~92% | ~0.1% / ~5% | Optimal prep |
-| **Realistic** | ~7.4% | ~95% | ~0.7% / ~10% | Typical (default) |
-| **Heavy** | ~27.1% | ~97% | ~2.0% / ~20% | Failed prep |
-
----
-
-## Taxonomy Bug Fix & Enhancement 🐛
-
-### Problem Discovered (November 2025)
-
-**46% of database (6,651/14,423 genomes) had `family='Unknown'`** due to mismatches between:
-- **RefSeq**: Strain-specific names (e.g., "Influenza A virus (A/California/07/2009(H1N1))")
-- **ICTV**: General species names (e.g., "influenza A virus")
-
-### Impact on Collections
-
-**CRITICAL - Collection 19 (HIV+ Gut)**:
-- Had **ZERO herpesviruses** (scientifically invalid - HIV+ patients show herpesvirus reactivation)
-- Fixed: 0 → 6 human herpesviruses (EBV, KSHV, HSV-1, VZV, HHV-6B, HHV-7)
-
-**MAJOR - Collection 23 (Fecal RNA)**:
-- Only 32 genomes, missing rotavirus/norovirus (primary enteric pathogens)
-- Fixed: 32 → 58 genomes (**+81%**), now has 15 norovirus + 12 rotavirus
-
-**Collections 17 (Wastewater) & 20 (CF Respiratory)**: Also fixed
-
-### Solution Applied
-
-Enhanced `scripts/fix_taxonomy_unmatched.py` with:
-1. **Pattern-based family matching** (20+ virus families)
-2. **Improved normalization** (remove "type", "strain", trailing numbers)
-3. **Fuzzy matching** for strain-specific nomenclature
-
-**Results**: Fixed **469 genomes (7.1% of unmatched)**
-
-**Current taxonomy coverage**: 8,241/14,423 genomes (57.1%) assigned
-
-See [Taxonomy Bug Fix Documentation](docs/TAXONOMY_BUG_FIX.md) for complete details, lessons learned, and prevention strategies.
-
----
-
-## Output Files
-
-### Ground Truth Metadata
-
-Every ViroForge dataset includes complete ground truth metadata:
-
-**`metadata.json`** - Complete information including:
-- Collection metadata (ID, name, environment)
-- Configuration (coverage, platform, VLP protocol, contamination level, **molecule type**)
-- All sequences (viral genomes + contaminants):
-  - Genome ID, name, type (viral/contaminant)
-  - Length, GC content, relative abundance
-  - Taxonomy (family, genus, species)
-- Enrichment statistics (VLP and/or **RNA workflow stats**)
-- **RNA-specific stats** (if applicable):
-  - RT efficiency by virus type
-  - rRNA depletion efficiency and viral enrichment
-  - RNA degradation statistics
-  - Overall recovery rate
-
-**`composition.tsv`** - Tab-separated abundance table
-
-**`abundances.txt`** - InSilicoSeq abundance file
-
----
-
-## Documentation
-
-### Getting Started
-- **[Quick Start](docs/QUICKSTART.md)** - Generate your first dataset in 5 minutes
-- **[FASTQ Generation Guide](scripts/README_FASTQ_GENERATION.md)** - Complete command-line reference
-- **[VLP Protocol Comparison Tutorial](docs/VLP_PROTOCOL_COMPARISON_TUTORIAL.md)** - Compare all 5 VLP protocols
-- **[RNA Virome Workflow](viroforge/workflows/rna_virome.py)** - RNA virome technical details ✨ NEW
-
-### Critical Documentation ⚠️
-- **[Taxonomy Bug Fix](docs/TAXONOMY_BUG_FIX.md)** - **READ THIS** if working with taxonomy ✨ NEW
-- **[Collection Implementation Guide](docs/COLLECTION_IMPLEMENTATION_GUIDE.md)** - All 23 collections documented
-
-### Technical Documentation
-- **[Genome Database Design](docs/GENOME_DATABASE_DESIGN.md)** - Database schema
-- **[Phase 4: FASTQ Generation](docs/PHASE4_FASTQ_GENERATION.md)** - Complete FASTQ workflow
-- **[Phase 5: VLP Integration](docs/PHASE5_TASK2_FASTQ_INTEGRATION.md)** - VLP enrichment integration
-- **[VLP Integration Guide](docs/VLP_CONTAMINATION_INTEGRATION.md)** - Technical implementation
-- **[Validation Test Suite](docs/VALIDATION_TEST_SUITE.md)** - Pipeline validation
-
----
-
-## Project Status
-
-**Current Version**: 0.6.0
-
-**Phase 8.2: Complete** | **Production Ready**
-
-### Completed Phases
-
-**Phase 1-2: Core Simulator (Complete)**
-- Viral community composition
-- Contamination profiles
-- FASTQ generation with ground truth
-- Amplification bias and platform artifacts
-
-**Phase 3-4: Database & FASTQ Generation (Complete)**
-- RefSeq viral genome database (14,423 genomes)
-- ICTV taxonomy integration
-- Database-driven FASTQ generation
-- InSilicoSeq integration
-
-**Phase 5: Enhanced VLP Modeling (Complete)**
-- Size-based filtration modeling
-- 5 VLP protocols with literature validation
-- Type-specific contamination reduction
-
-**Phase 6: Amplification Bias Integration (Complete)**
-- RdAB, MDA, Linker amplification methods
-- Amplification comparison tools
-
-**Phase 7: Critical Collections (Complete)** ✨
-- Wastewater virome (epidemiological surveillance)
-- Disease state collections (IBD, HIV+, CF)
-- Progressive dysbiosis modeling
-- **Taxonomy bug discovery and fix (469 genomes fixed)**
-
-**Phase 8: RNA Virome Workflow (Complete)** ✨
-- **Phase 8.1**: 3 RNA virome collections (respiratory, arbovirus, fecal)
-- **Phase 8.2**: Complete RNA workflow implementation
-  - Reverse transcription with virus-type specific efficiency
-  - rRNA depletion (Ribo-Zero/RiboMinus) modeling
-  - RNA degradation and fragmentation
-  - RNA-specific contamination profiles
-  - Full integration with FASTQ generation
-  - Comprehensive test suite (70+ tests)
-
-### Test Coverage
-
-```
-Unit Tests:               40+ RNA workflow tests
-Contamination Tests:      30+ RNA contamination tests
-Integration Tests:        12 FASTQ generation tests
-VLP Tests:                16 VLP/contamination tests
-Collection Validation:    23/23 collections validated
-Genomes:                  14,423 RefSeq viral genomes
-Taxonomy Coverage:        57.1% (8,241 genomes assigned)
-Literature Validation:    5/5 metrics validated
-```
-
----
-
-## Literature Validation
-
-All ViroForge parameters are validated against peer-reviewed literature:
-
-**VLP Enrichment and Contamination Reduction**
-- Lim et al. (2020) - VLP protocol comparison
-- Thurber et al. (2009) - Ultracentrifugation efficiency
-- Reyes et al. (2012) - DNase treatment efficiency
-- Kim et al. (2015) - Host DNA contamination reduction
-- Solonenko et al. (2013) - VLP enrichment factors
-
-**RNA Virome Workflows** ✨ NEW
-- Reverse transcription efficiency by virus type
-- rRNA contamination levels (Qin et al. 2010, Greninger et al. 2015)
-- Ribo-Zero depletion efficiency (Illumina technical documentation)
-- RNA degradation rates (Fleige & Pfaffl 2006)
-
-**Virion Size Relationships**
-- Cui et al. (2014) - Genome length to virion size
-- Nasir et al. (2017) - Virion size distributions
-- Danovaro et al. (2011) - Marine viral particle sizes
-
-See [Phase 5 Validation Report](docs/PHASE5_TASK3_VALIDATION_REPORT.md) for detailed validation results.
-
----
-
-## Roadmap
-
-### Completed (v0.1.0 - v0.6.0)
-- ✅ Core simulator with contamination modeling
-- ✅ 14,423 RefSeq viral genomes with ICTV taxonomy
-- ✅ 23 curated virome collections
-- ✅ Enhanced VLP enrichment (5 protocols)
-- ✅ Amplification bias integration
-- ✅ Critical disease/environmental collections
-- ✅ **RNA virome workflow (RT, rRNA depletion, degradation)**
-- ✅ **Taxonomy bug fix (469 genomes)**
-
-### Planned (v0.7.0+)
-- **Phase 9**: Additional host-associated collections (5+)
-  - Blood/plasma, ocular, lung, urinary viromes
-- **Phase 10**: Long-read sequencing support (PacBio HiFi, Nanopore)
-- **Phase 11**: Temporal dynamics modeling
-- **Phase 12**: Animal model collections (zebrafish, pig, chicken, primate)
-- **Phase 13**: Environmental diversity (hot spring, hypersaline, hospital, plant)
-
-See [ROADMAP.md](ROADMAP.md) for detailed development plans.
-
----
-
-## Contributing
-
-We welcome contributions! ViroForge is open-source (MIT License) and community-driven.
-
-### How to Contribute
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Write tests for your changes
-4. Ensure all tests pass (`pytest tests/ -v`)
-5. Commit your changes (`git commit -m 'Add amazing feature'`)
-6. Push to the branch (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
-
-### Development Setup
-
-```bash
-# Clone and install in development mode
-git clone https://github.com/shandley/viroforge.git
-cd viroforge
-pip install -e ".[dev]"
-
-# Run tests
 pytest tests/ -v
-
-# Run RNA workflow tests
-pytest tests/test_rna_workflow.py -v
-pytest tests/test_rna_contamination.py -v
 ```
-
----
 
 ## Citation
 
-If you use ViroForge in your research, please cite:
-
-**Handley, Scott, and ViroForge Contributors. (2025). ViroForge: A Synthetic Virome Data Generator with RNA Workflow Support and Enhanced VLP Modeling (Version 0.6.0) [Computer software]. https://github.com/shandley/viroforge**
-
-### BibTeX
-
 ```bibtex
 @software{viroforge2025,
-  title = {ViroForge: A Synthetic Virome Data Generator with RNA Workflow Support and Enhanced VLP Modeling},
+  title = {ViroForge: A Synthetic Virome Data Generator},
   author = {Handley, Scott and contributors},
   year = {2025},
   url = {https://github.com/shandley/viroforge},
-  version = {0.6.0},
-  note = {Includes DNA and RNA virome workflows, 23 curated collections, and enhanced taxonomy}
+  version = {0.11.0}
 }
 ```
 
-### Publication
-
-Manuscript in preparation. Check back soon for preprint!
-
----
-
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT. See [LICENSE](LICENSE).
 
----
+## Links
 
-## Acknowledgments
-
-ViroForge was developed to support virome analysis pipeline validation and benchmarking in the microbiome research community.
-
-### Related Projects
-
-- **[Hecatomb](https://github.com/shandley/hecatomb)** - Viral metagenome assembly pipeline
-- **[ViromeQC](https://github.com/SegataLab/viromeqc)** - Virome enrichment assessment
-- **[CAMISIM](https://github.com/CAMI-challenge/CAMISIM)** - Metagenome simulator
-- **[InSilicoSeq](https://github.com/HadrienG/InSilicoSeq)** - Illumina read simulator (integrated)
-
-### Team
-
-**Principal Investigator**: Scott Handley
-**Institution**: Washington University in St. Louis
-**Lab Website**: [Handley Lab](https://www.handleylab.org)
-**Development**: Claude Code (Anthropic) - Phase 7-8 RNA workflow & taxonomy fixes
-
----
-
-## Support
-
-- **Documentation**: Check `docs/` directory and `.claude/claude.md`
-- **Questions**: Open a [GitHub Discussion](https://github.com/shandley/viroforge/discussions)
-- **Bug Reports**: Open a [GitHub Issue](https://github.com/shandley/viroforge/issues)
-- **Email**: scott.handley@wustl.edu
-
----
-
-## Status
-
-**Production Ready** - Phase 8.2 Complete
-
-ViroForge is ready for use in benchmarking studies. All core functionality is complete and thoroughly tested:
-
-- **23 curated virome collections** spanning healthy, disease, and environmental samples
-- **14,423 RefSeq viral genomes** with enhanced ICTV taxonomy (57.1% coverage)
-- **DNA virome workflow**: VLP enrichment (5 protocols), amplification bias, sequencing artifacts
-- **RNA virome workflow**: Reverse transcription, rRNA depletion (Ribo-Zero), RNA degradation ✨ NEW
-- **Enhanced taxonomy**: Fuzzy matching fixed 469 genomes, critical for HIV+ and RNA collections
-- **Complete ground truth**: Taxonomic composition, abundance, workflow statistics
-- **Platform support**: NovaSeq, MiSeq, HiSeq with realistic error models
-- **Comprehensive testing**: 70+ tests covering all workflow components
-
-**Last Updated**: 2025-11-09
+- [Handley Lab](https://www.handleylab.org), Washington University in St. Louis
+- [Hecatomb](https://github.com/shandley/hecatomb) - Viral metagenome assembly pipeline
+- [Bug reports](https://github.com/shandley/viroforge/issues)
