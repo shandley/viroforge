@@ -366,3 +366,178 @@ class TestAdapterReadthrough:
         for record in SeqIO.parse(out_r1, "fastq"):
             assert len(record.seq) == 150
             assert len(record.letter_annotations["phred_quality"]) == 150
+
+
+# ---------------------------------------------------------------------------
+# Low-complexity artifact tests
+# ---------------------------------------------------------------------------
+
+
+class TestLowComplexityInjection:
+    """Test low-complexity artifact read injection."""
+
+    @pytest.fixture
+    def sample_fastq(self, tmp_path):
+        """Create minimal FASTQ files for testing."""
+        from Bio.SeqRecord import SeqRecord
+        from Bio.Seq import Seq
+        from Bio import SeqIO
+
+        r1_path = tmp_path / "test_R1.fastq"
+        r2_path = tmp_path / "test_R2.fastq"
+
+        rng = random.Random(42)
+        r1_records = []
+        r2_records = []
+        for i in range(200):
+            seq = "".join(rng.choice("ACGT") for _ in range(150))
+            qual = [30] * 150
+            r1 = SeqRecord(Seq(seq), id=f"read_{i}/1", description="")
+            r1.letter_annotations["phred_quality"] = qual
+            r1_records.append(r1)
+            r2 = SeqRecord(Seq(seq), id=f"read_{i}/2", description="")
+            r2.letter_annotations["phred_quality"] = qual
+            r2_records.append(r2)
+
+        SeqIO.write(r1_records, r1_path, "fastq")
+        SeqIO.write(r2_records, r2_path, "fastq")
+        return r1_path, r2_path
+
+    def test_basic_injection(self, sample_fastq, tmp_path):
+        from viroforge.simulators.low_complexity import add_low_complexity_reads
+
+        r1, r2 = sample_fastq
+        out_r1 = tmp_path / "out_R1.fastq"
+        out_r2 = tmp_path / "out_R2.fastq"
+
+        stats = add_low_complexity_reads(
+            r1, r2,
+            output_r1=out_r1,
+            output_r2=out_r2,
+            rate=0.05,
+            random_seed=42,
+        )
+
+        assert stats["reads_total"] == 200
+        assert stats["reads_modified"] == 10
+        assert len(stats["modified_read_ids"]) == 10
+        assert sum(stats["artifact_counts"].values()) == 10
+
+    def test_artifact_types_present(self, sample_fastq, tmp_path):
+        from viroforge.simulators.low_complexity import add_low_complexity_reads
+
+        r1, r2 = sample_fastq
+        out_r1 = tmp_path / "out_R1.fastq"
+        out_r2 = tmp_path / "out_R2.fastq"
+
+        stats = add_low_complexity_reads(
+            r1, r2,
+            output_r1=out_r1,
+            output_r2=out_r2,
+            rate=0.20,  # high rate to get all types
+            random_seed=42,
+        )
+
+        # With 40 modified reads, we should see multiple artifact types
+        assert len(stats["artifact_counts"]) >= 2
+
+    def test_header_tags(self, sample_fastq, tmp_path):
+        from viroforge.simulators.low_complexity import add_low_complexity_reads
+        from Bio import SeqIO
+
+        r1, r2 = sample_fastq
+        out_r1 = tmp_path / "out_R1.fastq"
+        out_r2 = tmp_path / "out_R2.fastq"
+
+        add_low_complexity_reads(
+            r1, r2,
+            output_r1=out_r1,
+            output_r2=out_r2,
+            rate=0.5,
+            random_seed=42,
+        )
+
+        tagged_count = 0
+        for record in SeqIO.parse(out_r1, "fastq"):
+            if "source=artifact_low_complexity" in record.description:
+                tagged_count += 1
+                assert "artifact_type=" in record.description
+
+        assert tagged_count > 0
+
+    def test_low_entropy_detectable(self, sample_fastq, tmp_path):
+        """Artifact reads should have low Shannon entropy."""
+        from viroforge.simulators.low_complexity import add_low_complexity_reads
+        from Bio import SeqIO
+        import math
+
+        r1, r2 = sample_fastq
+        out_r1 = tmp_path / "out_R1.fastq"
+        out_r2 = tmp_path / "out_R2.fastq"
+
+        add_low_complexity_reads(
+            r1, r2,
+            output_r1=out_r1,
+            output_r2=out_r2,
+            rate=0.5,
+            random_seed=42,
+        )
+
+        low_entropy_count = 0
+        for record in SeqIO.parse(out_r1, "fastq"):
+            if "source=artifact_low_complexity" in record.description:
+                seq = str(record.seq)
+                # Compute Shannon entropy
+                freqs = [seq.count(b) / len(seq) for b in "ACGT"]
+                entropy = -sum(f * math.log2(f) for f in freqs if f > 0)
+                # Low-complexity should have entropy < 1.5 (max is 2.0 for 4 bases)
+                if entropy < 1.5:
+                    low_entropy_count += 1
+
+        assert low_entropy_count > 0, "No low-entropy artifact reads detected"
+
+    def test_manifest_written(self, sample_fastq, tmp_path):
+        from viroforge.simulators.low_complexity import add_low_complexity_reads
+
+        r1, r2 = sample_fastq
+        manifest = tmp_path / "lc_manifest.tsv"
+
+        add_low_complexity_reads(
+            r1, r2,
+            rate=0.05,
+            random_seed=42,
+            in_place=True,
+            manifest_path=manifest,
+        )
+
+        assert manifest.exists()
+        lines = manifest.read_text().strip().split("\n")
+        assert lines[0] == "read_id\tartifact_type"
+        assert len(lines) == 11  # header + 10 reads
+
+    def test_rate_zero_skips(self, sample_fastq):
+        from viroforge.simulators.low_complexity import add_low_complexity_reads
+
+        r1, r2 = sample_fastq
+        stats = add_low_complexity_reads(r1, r2, rate=0.0)
+        assert stats["reads_modified"] == 0
+
+    def test_read_lengths_preserved(self, sample_fastq, tmp_path):
+        from viroforge.simulators.low_complexity import add_low_complexity_reads
+        from Bio import SeqIO
+
+        r1, r2 = sample_fastq
+        out_r1 = tmp_path / "out_R1.fastq"
+        out_r2 = tmp_path / "out_R2.fastq"
+
+        add_low_complexity_reads(
+            r1, r2,
+            output_r1=out_r1,
+            output_r2=out_r2,
+            rate=0.5,
+            random_seed=42,
+        )
+
+        for record in SeqIO.parse(out_r1, "fastq"):
+            assert len(record.seq) == 150
+            assert len(record.letter_annotations["phred_quality"]) == 150

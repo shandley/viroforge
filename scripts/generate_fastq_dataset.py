@@ -1351,6 +1351,15 @@ Examples:
         help='Force synthetic contamination sequences (old behavior). '
              'By default, ViroForge uses bundled real reference sequences.'
     )
+    contam_group.add_argument(
+        '--low-complexity-rate',
+        type=float,
+        default=0.0,
+        help='Fraction of reads replaced with low-complexity artifacts (0.0-1.0, '
+             'default: 0.0). Set to 0.01 for typical artifact rate. '
+             'Models homopolymer runs, dinucleotide repeats, simple repeats, '
+             'and low-entropy sequences from adapter dimers and PCR failures.'
+    )
 
     args = parser.parse_args()
 
@@ -1679,6 +1688,38 @@ Examples:
             logger.info("Labeling read headers with source types...")
             label_fastq_headers(r1_path, genome_source_map)
             label_fastq_headers(r2_path, genome_source_map)
+
+        # Post-process: inject low-complexity artifact reads
+        if args.low_complexity_rate > 0:
+            from viroforge.simulators.low_complexity import add_low_complexity_reads
+
+            lc_manifest = generator.metadata_dir / f"{collection_name}_low_complexity_manifest.tsv"
+            lc_stats = add_low_complexity_reads(
+                r1_path=r1_path,
+                r2_path=r2_path,
+                rate=args.low_complexity_rate,
+                random_seed=args.seed,
+                in_place=True,
+                manifest_path=lc_manifest,
+            )
+            logger.info(
+                f"Low-complexity artifacts: {lc_stats['reads_modified']}/{lc_stats['reads_total']} "
+                f"reads ({args.low_complexity_rate:.1%})"
+            )
+
+            # Append to metadata JSON
+            import glob as _glob
+            for mf in _glob.glob(str(generator.metadata_dir / "*_metadata.json")):
+                with open(mf) as f:
+                    metadata = json.load(f)
+                metadata["low_complexity_stats"] = {
+                    "rate": args.low_complexity_rate,
+                    "reads_modified": lc_stats["reads_modified"],
+                    "artifact_counts": lc_stats["artifact_counts"],
+                    "manifest_file": str(lc_manifest),
+                }
+                with open(mf, "w") as f:
+                    json.dump(metadata, f, indent=2)
 
         # Post-process: add adapter read-through contamination
         if args.adapter_rate > 0:
