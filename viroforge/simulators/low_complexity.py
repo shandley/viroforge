@@ -26,6 +26,7 @@ Usage:
 """
 
 import logging
+import math
 import random
 from pathlib import Path
 from typing import Optional
@@ -104,14 +105,89 @@ def _generate_low_entropy(length: int, rng: random.Random) -> str:
     return "".join(rng.choices(bases, weights=probs, k=length))
 
 
+def _shannon_entropy(seq: str) -> float:
+    """Compute Shannon entropy of a DNA sequence (bits, max 2.0 for 4 bases)."""
+    n = len(seq)
+    if n == 0:
+        return 0.0
+    freqs = [seq.count(b) / n for b in "ACGT"]
+    return -sum(f * math.log2(f) for f in freqs if f > 0)
+
+
+def _generate_target_entropy(
+    length: int, target_entropy: float, rng: random.Random
+) -> str:
+    """Generate a sequence with a specific target Shannon entropy.
+
+    Uses base frequency manipulation to achieve target entropy.
+    Shannon entropy H = -sum(p_i * log2(p_i)) for base frequencies p_i.
+    By controlling how skewed the base distribution is, we control entropy.
+
+    Args:
+        length: Sequence length.
+        target_entropy: Target Shannon entropy in bits (0.0 to 2.0).
+        rng: Random number generator.
+
+    Returns:
+        DNA sequence with entropy close to target.
+    """
+    target_entropy = max(0.05, min(1.95, target_entropy))
+
+    # Binary search for dominant base frequency that produces target entropy.
+    # With one dominant base at frequency p and the rest sharing (1-p)/3:
+    #   H = -p*log2(p) - 3*((1-p)/3)*log2((1-p)/3)
+    # Higher p = lower entropy.
+    lo, hi = 0.25, 0.99  # p range (0.25 = uniform = max entropy)
+    best_p = 0.25
+    best_diff = float("inf")
+
+    for _ in range(30):
+        mid = (lo + hi) / 2
+        other = (1.0 - mid) / 3.0
+        h = 0.0
+        for f in [mid, other, other, other]:
+            if f > 0:
+                h -= f * math.log2(f)
+        diff = abs(h - target_entropy)
+        if diff < best_diff:
+            best_diff = diff
+            best_p = mid
+        if h > target_entropy:
+            lo = mid  # need more skew (higher p) to lower entropy
+        else:
+            hi = mid
+        if best_diff < 0.005:
+            break
+
+    # Generate sequence with the computed base frequencies
+    dominant = rng.choice("ACGT")
+    others = [b for b in "ACGT" if b != dominant]
+    other_freq = (1.0 - best_p) / 3.0
+    bases = [dominant] + others
+    weights = [best_p, other_freq, other_freq, other_freq]
+
+    return "".join(rng.choices(bases, weights=weights, k=length))
+
+
 def _generate_artifact_sequence(
-    length: int, rng: random.Random
+    length: int,
+    rng: random.Random,
+    target_entropy: Optional[float] = None,
 ) -> tuple[str, str]:
     """Generate a low-complexity artifact sequence.
+
+    Args:
+        length: Read length.
+        rng: Random number generator.
+        target_entropy: If set, generate a sequence with this specific
+            Shannon entropy (0.0-2.0) instead of using artifact type weights.
 
     Returns:
         Tuple of (sequence, artifact_subtype).
     """
+    if target_entropy is not None:
+        return _generate_target_entropy(length, target_entropy, rng), "controlled_entropy"
+
     # Select artifact type by weight
     types = list(ARTIFACT_TYPES.keys())
     weights = [ARTIFACT_TYPES[t]["weight"] for t in types]
@@ -133,6 +209,7 @@ def add_low_complexity_reads(
     output_r1: Optional[Path] = None,
     output_r2: Optional[Path] = None,
     rate: float = 0.01,
+    entropy_range: Optional[tuple[float, float]] = None,
     random_seed: Optional[int] = None,
     in_place: bool = False,
     manifest_path: Optional[Path] = None,
@@ -149,6 +226,10 @@ def add_low_complexity_reads(
         output_r1: Output path for modified R1.
         output_r2: Output path for modified R2.
         rate: Fraction of read pairs to replace (0.0 to 1.0).
+        entropy_range: If set, generate reads with Shannon entropy uniformly
+            distributed across this range instead of using predefined artifact
+            types. Tuple of (min_entropy, max_entropy) in bits (0.0-2.0).
+            Useful for testing complexity filter threshold sensitivity.
         random_seed: Random seed for reproducibility.
         in_place: If True, modify files in place.
         manifest_path: If set, write a TSV manifest of replaced reads.
@@ -205,22 +286,34 @@ def add_low_complexity_reads(
     for i, (r1, r2) in enumerate(zip(r1_records, r2_records)):
         if i in modify_indices:
             # Generate artifact sequences for both R1 and R2
-            r1_artifact_seq, artifact_type = _generate_artifact_sequence(
-                read_length, rng
-            )
-            r2_artifact_seq, _ = _generate_artifact_sequence(read_length, rng)
+            if entropy_range is not None:
+                target = rng.uniform(entropy_range[0], entropy_range[1])
+                r1_artifact_seq, artifact_type = _generate_artifact_sequence(
+                    read_length, rng, target_entropy=target
+                )
+                r2_artifact_seq, _ = _generate_artifact_sequence(
+                    read_length, rng, target_entropy=target
+                )
+            else:
+                r1_artifact_seq, artifact_type = _generate_artifact_sequence(
+                    read_length, rng
+                )
+                r2_artifact_seq, _ = _generate_artifact_sequence(read_length, rng)
 
             # Low quality scores for artifact reads (Q10-Q20 typical)
             artifact_qual = [rng.randint(10, 20) for _ in range(read_length)]
 
+            actual_entropy = _shannon_entropy(r1_artifact_seq)
+
             source_tag = "source=artifact_low_complexity"
             type_tag = f"artifact_type={artifact_type}"
+            entropy_tag = f"entropy={actual_entropy:.3f}"
 
             new_r1 = SeqRecord(
                 Seq(r1_artifact_seq),
                 id=r1.id,
                 name=r1.name,
-                description=f"{r1.description} {source_tag} {type_tag}".strip(),
+                description=f"{r1.description} {source_tag} {type_tag} {entropy_tag}".strip(),
             )
             new_r1.letter_annotations["phred_quality"] = artifact_qual
 
@@ -228,7 +321,7 @@ def add_low_complexity_reads(
                 Seq(r2_artifact_seq),
                 id=r2.id,
                 name=r2.name,
-                description=f"{r2.description} {source_tag} {type_tag}".strip(),
+                description=f"{r2.description} {source_tag} {type_tag} {entropy_tag}".strip(),
             )
             new_r2.letter_annotations["phred_quality"] = artifact_qual[:]
 
@@ -239,6 +332,7 @@ def add_low_complexity_reads(
             manifest_rows.append({
                 "read_id": r1.id,
                 "artifact_type": artifact_type,
+                "entropy": round(actual_entropy, 3),
             })
         else:
             modified_r1.append(r1)
@@ -249,9 +343,9 @@ def add_low_complexity_reads(
 
     if manifest_path and manifest_rows:
         with open(manifest_path, "w") as f:
-            f.write("read_id\tartifact_type\n")
+            f.write("read_id\tartifact_type\tentropy\n")
             for row in manifest_rows:
-                f.write(f"{row['read_id']}\t{row['artifact_type']}\n")
+                f.write(f"{row['read_id']}\t{row['artifact_type']}\t{row['entropy']}\n")
         logger.info(f"Wrote low-complexity manifest: {manifest_path}")
 
     logger.info(

@@ -1360,6 +1360,15 @@ Examples:
              'Models homopolymer runs, dinucleotide repeats, simple repeats, '
              'and low-entropy sequences from adapter dimers and PCR failures.'
     )
+    contam_group.add_argument(
+        '--entropy-range',
+        type=str,
+        default=None,
+        help='Generate low-complexity reads with controlled Shannon entropy '
+             'instead of predefined artifact types. Format: MIN-MAX (e.g., '
+             '0.3-0.7). Entropy is in bits (0.0=homopolymer, 2.0=random). '
+             'Useful for testing complexity filter threshold sensitivity.'
+    )
 
     args = parser.parse_args()
 
@@ -1693,11 +1702,22 @@ Examples:
         if args.low_complexity_rate > 0:
             from viroforge.simulators.low_complexity import add_low_complexity_reads
 
+            # Parse entropy range if provided
+            entropy_range = None
+            if args.entropy_range:
+                try:
+                    lo, hi = args.entropy_range.split("-")
+                    entropy_range = (float(lo), float(hi))
+                except ValueError:
+                    logger.error(f"Invalid --entropy-range format: {args.entropy_range} (expected MIN-MAX, e.g. 0.3-0.7)")
+                    raise
+
             lc_manifest = generator.metadata_dir / f"{collection_name}_low_complexity_manifest.tsv"
             lc_stats = add_low_complexity_reads(
                 r1_path=r1_path,
                 r2_path=r2_path,
                 rate=args.low_complexity_rate,
+                entropy_range=entropy_range,
                 random_seed=args.seed,
                 in_place=True,
                 manifest_path=lc_manifest,

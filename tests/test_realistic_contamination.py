@@ -512,7 +512,7 @@ class TestLowComplexityInjection:
 
         assert manifest.exists()
         lines = manifest.read_text().strip().split("\n")
-        assert lines[0] == "read_id\tartifact_type"
+        assert lines[0] == "read_id\tartifact_type\tentropy"
         assert len(lines) == 11  # header + 10 reads
 
     def test_rate_zero_skips(self, sample_fastq):
@@ -541,3 +541,137 @@ class TestLowComplexityInjection:
         for record in SeqIO.parse(out_r1, "fastq"):
             assert len(record.seq) == 150
             assert len(record.letter_annotations["phred_quality"]) == 150
+
+
+class TestEntropyRange:
+    """Test controlled entropy spectrum for threshold sensitivity testing."""
+
+    @pytest.fixture
+    def sample_fastq(self, tmp_path):
+        from Bio.SeqRecord import SeqRecord
+        from Bio.Seq import Seq
+        from Bio import SeqIO
+
+        r1_path = tmp_path / "test_R1.fastq"
+        r2_path = tmp_path / "test_R2.fastq"
+
+        rng = random.Random(42)
+        r1_records = []
+        r2_records = []
+        for i in range(200):
+            seq = "".join(rng.choice("ACGT") for _ in range(150))
+            qual = [30] * 150
+            r1 = SeqRecord(Seq(seq), id=f"read_{i}/1", description="")
+            r1.letter_annotations["phred_quality"] = qual
+            r1_records.append(r1)
+            r2 = SeqRecord(Seq(seq), id=f"read_{i}/2", description="")
+            r2.letter_annotations["phred_quality"] = qual
+            r2_records.append(r2)
+
+        SeqIO.write(r1_records, r1_path, "fastq")
+        SeqIO.write(r2_records, r2_path, "fastq")
+        return r1_path, r2_path
+
+    def test_entropy_range_produces_controlled_entropy(self, sample_fastq, tmp_path):
+        from viroforge.simulators.low_complexity import add_low_complexity_reads
+        from viroforge.simulators.low_complexity import _shannon_entropy
+        from Bio import SeqIO
+
+        r1, r2 = sample_fastq
+        out_r1 = tmp_path / "out_R1.fastq"
+        out_r2 = tmp_path / "out_R2.fastq"
+
+        add_low_complexity_reads(
+            r1, r2,
+            output_r1=out_r1,
+            output_r2=out_r2,
+            rate=0.3,
+            entropy_range=(0.3, 0.7),
+            random_seed=42,
+        )
+
+        entropies = []
+        for record in SeqIO.parse(out_r1, "fastq"):
+            if "source=artifact_low_complexity" in record.description:
+                entropies.append(_shannon_entropy(str(record.seq)))
+
+        assert len(entropies) > 0
+        # Most entropies should be in the gray zone; allow some tolerance
+        # since the binary search approximation isn't perfect
+        in_range = sum(1 for e in entropies if 0.15 < e < 1.1)
+        assert in_range / len(entropies) >= 0.8, (
+            f"Only {in_range}/{len(entropies)} reads in expected entropy range"
+        )
+
+        mean_e = sum(entropies) / len(entropies)
+        assert 0.25 < mean_e < 0.85
+
+    def test_entropy_range_artifact_type_is_controlled(self, sample_fastq, tmp_path):
+        from viroforge.simulators.low_complexity import add_low_complexity_reads
+
+        r1, r2 = sample_fastq
+        out_r1 = tmp_path / "out_R1.fastq"
+        out_r2 = tmp_path / "out_R2.fastq"
+
+        stats = add_low_complexity_reads(
+            r1, r2,
+            output_r1=out_r1,
+            output_r2=out_r2,
+            rate=0.1,
+            entropy_range=(0.4, 0.6),
+            random_seed=42,
+        )
+
+        assert "controlled_entropy" in stats["artifact_counts"]
+        assert stats["artifact_counts"]["controlled_entropy"] == stats["reads_modified"]
+
+    def test_entropy_tag_in_header(self, sample_fastq, tmp_path):
+        from viroforge.simulators.low_complexity import add_low_complexity_reads
+        from Bio import SeqIO
+
+        r1, r2 = sample_fastq
+        out_r1 = tmp_path / "out_R1.fastq"
+        out_r2 = tmp_path / "out_R2.fastq"
+
+        add_low_complexity_reads(
+            r1, r2,
+            output_r1=out_r1,
+            output_r2=out_r2,
+            rate=0.3,
+            entropy_range=(0.3, 0.7),
+            random_seed=42,
+        )
+
+        found_entropy_tag = False
+        for record in SeqIO.parse(out_r1, "fastq"):
+            if "entropy=" in record.description:
+                found_entropy_tag = True
+                for part in record.description.split():
+                    if part.startswith("entropy="):
+                        val = float(part.split("=")[1])
+                        assert 0.0 <= val <= 2.0
+                break
+
+        assert found_entropy_tag
+
+    def test_manifest_includes_entropy(self, sample_fastq, tmp_path):
+        from viroforge.simulators.low_complexity import add_low_complexity_reads
+
+        r1, r2 = sample_fastq
+        manifest = tmp_path / "lc_manifest.tsv"
+
+        add_low_complexity_reads(
+            r1, r2,
+            rate=0.05,
+            entropy_range=(0.3, 0.7),
+            random_seed=42,
+            in_place=True,
+            manifest_path=manifest,
+        )
+
+        lines = manifest.read_text().strip().split("\n")
+        assert "entropy" in lines[0]
+        for line in lines[1:]:
+            parts = line.split("\t")
+            entropy = float(parts[2])
+            assert 0.0 <= entropy <= 2.0
