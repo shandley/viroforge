@@ -1702,6 +1702,24 @@ Examples:
                 f"{adapter_stats['mean_adapter_length']:.1f} bp"
             )
 
+            # Append adapter stats to metadata JSON
+            import glob
+            metadata_files = glob.glob(str(generator.metadata_dir / "*_metadata.json"))
+            for mf in metadata_files:
+                with open(mf) as f:
+                    metadata = json.load(f)
+                metadata["adapter_stats"] = {
+                    "adapter_rate": args.adapter_rate,
+                    "adapter_type": args.adapter_type,
+                    "reads_total": adapter_stats["reads_total"],
+                    "reads_modified": adapter_stats["reads_modified"],
+                    "mean_adapter_length": adapter_stats["mean_adapter_length"],
+                    "manifest_file": str(manifest),
+                }
+                with open(mf, "w") as f:
+                    json.dump(metadata, f, indent=2)
+                logger.info(f"Adapter stats saved to {mf}")
+
     # Format output message
     if is_long_read:
         output_msg = f"""
