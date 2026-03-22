@@ -88,6 +88,53 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+def label_fastq_headers(
+    fastq_path: Path,
+    genome_source_map: Dict[str, str],
+    output_path: Optional[Path] = None,
+) -> Path:
+    """Add source type labels to FASTQ read headers.
+
+    ISS encodes the source genome in read headers as @{genome_id}_{index}_{pair}/{read}.
+    This function appends source=viral/host_dna/rrna/phix/reagent to each header
+    so downstream tools can compute exact classification metrics.
+
+    Args:
+        fastq_path: Path to input FASTQ file.
+        genome_source_map: Dict mapping genome_id prefixes to source types.
+        output_path: Output path (default: overwrite in place).
+
+    Returns:
+        Path to labeled FASTQ file.
+    """
+    if output_path is None:
+        output_path = fastq_path
+
+    labeled_lines = []
+    with open(fastq_path) as f:
+        for line_num, line in enumerate(f):
+            if line_num % 4 == 0 and line.startswith("@"):
+                # Parse genome ID from ISS header: @{genome_id}_{index}_{pair}/{read}
+                header = line.rstrip()
+                read_id = header[1:]  # strip @
+
+                # Find matching genome ID (ISS uses genome_id as prefix)
+                source = "unknown"
+                for genome_id, src_type in genome_source_map.items():
+                    if read_id.startswith(genome_id):
+                        source = src_type
+                        break
+
+                labeled_lines.append(f"{header} source={source}\n")
+            else:
+                labeled_lines.append(line)
+
+    with open(output_path, "w") as f:
+        f.writelines(labeled_lines)
+
+    return output_path
+
+
 class CollectionLoader:
     """Load genomes from curated body site collections."""
 
@@ -1618,10 +1665,26 @@ Examples:
             n_reads=args.n_reads
         )
 
+        # Post-process: add source type labels to read headers
+        if contamination_profile is not None:
+            genome_source_map = {}
+            # Viral genomes
+            n_viral = enrichment_stats.get('n_viral_genomes', 0)
+            for seq in sequences[:n_viral]:
+                genome_source_map[seq.id] = "viral"
+            # Contaminant genomes
+            for contaminant in contamination_profile.contaminants:
+                genome_source_map[contaminant.genome_id] = contaminant.contaminant_type.value
+
+            logger.info("Labeling read headers with source types...")
+            label_fastq_headers(r1_path, genome_source_map)
+            label_fastq_headers(r2_path, genome_source_map)
+
         # Post-process: add adapter read-through contamination
         if args.adapter_rate > 0:
             from viroforge.simulators.adapters import add_adapter_readthrough
 
+            manifest = generator.metadata_dir / f"{collection_name}_adapter_manifest.tsv"
             adapter_stats = add_adapter_readthrough(
                 r1_path=r1_path,
                 r2_path=r2_path,
@@ -1631,6 +1694,7 @@ Examples:
                 adapter_type=args.adapter_type,
                 random_seed=args.seed,
                 in_place=True,
+                manifest_path=manifest,
             )
             logger.info(
                 f"Adapter contamination: {adapter_stats['reads_modified']}/{adapter_stats['reads_total']} "

@@ -362,6 +362,20 @@ sqlite3 viroforge/data/viral_genomes.db \
 - Status: Not implemented (low priority)
 - Workaround: Use `viroforge presets create <name> --from-dataset <path>`
 
+**ISS Read Count Deviation for Small Genomes**
+- InSilicoSeq `--mode basic` can produce fewer reads than expected for very small
+  genomes due to rounding and minimum-read effects. Example: PhiX174 at 0.06%
+  abundance with 537K total reads should produce ~322 reads but ISS generated 276.
+- Impact: Small (< 15% deviation), only affects genomes with very low abundance.
+- Workaround: Use actual output read counts rather than abundance-predicted counts
+  when computing benchmarking metrics.
+
+**PhiX174 Curation Fix (2026-03-22)**
+- GCF_000819615.1 (Escherichia phage phiX174) was removed from 8 collections
+  (9, 10, 12, 13, 14, 16, 17, 18) because it is the same lab phage used as
+  Illumina spike-in control. Including it as a natural virus causes QC tools
+  that remove PhiX to also remove "natural" community reads.
+
 ---
 
 ## Recent Bug Fixes (2025-11-16)

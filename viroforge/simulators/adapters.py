@@ -110,14 +110,19 @@ def add_adapter_readthrough(
     adapter_type: str = "truseq",
     min_insert: int = 50,
     max_insert: Optional[int] = None,
+    mean_insert: Optional[int] = None,
+    std_insert: int = 30,
     random_seed: Optional[int] = None,
     in_place: bool = False,
+    manifest_path: Optional[Path] = None,
 ) -> dict:
     """Post-process FASTQ files to add adapter read-through contamination.
 
     Simulates adapter contamination by replacing the 3' end of a fraction
-    of reads with adapter sequences. The amount of adapter in each
-    affected read varies based on a randomly sampled insert size.
+    of reads with adapter sequences. Insert sizes are drawn from a normal
+    distribution centered on mean_insert, producing realistic adapter
+    length patterns where most reads have small adapter tails and few
+    have large adapter content.
 
     Args:
         r1_path: Path to R1 FASTQ file.
@@ -129,8 +134,14 @@ def add_adapter_readthrough(
         min_insert: Minimum insert size for affected reads (bp).
         max_insert: Maximum insert size for affected reads. Defaults to
             read_length - 1 (at least 1 bp of adapter).
+        mean_insert: Mean insert size for normal distribution. Defaults to
+            (min_insert + max_insert) / 2. Most reads will have inserts near
+            this value, producing small adapter tails.
+        std_insert: Standard deviation of insert size distribution (default: 30).
         random_seed: Random seed for reproducibility.
         in_place: If True, modify files in place (overwrite originals).
+        manifest_path: If set, write a TSV manifest of modified reads with
+            columns: read_id, adapter_type, adapter_length, insert_size.
 
     Returns:
         Dict with statistics:
@@ -139,6 +150,7 @@ def add_adapter_readthrough(
             - adapter_type: Adapter type used
             - adapter_lengths: List of adapter contamination lengths
             - mean_adapter_length: Mean adapter bases per modified read
+            - modified_read_ids: List of modified read IDs
     """
     if adapter_type not in ADAPTER_SEQUENCES:
         raise ValueError(
@@ -192,18 +204,23 @@ def add_adapter_readthrough(
     read_length = len(r1_records[0].seq) if r1_records else 150
     if max_insert is None:
         max_insert = read_length - 1
+    if mean_insert is None:
+        mean_insert = (min_insert + max_insert) // 2
 
     # Select which read pairs to modify
     modify_indices = set(rng.sample(range(total_reads), min(n_to_modify, total_reads)))
 
     adapter_lengths = []
+    modified_read_ids = []
+    manifest_rows = []
     modified_r1 = []
     modified_r2 = []
 
     for i, (r1, r2) in enumerate(zip(r1_records, r2_records)):
         if i in modify_indices:
-            # Random insert size determines how much adapter appears
-            insert_size = rng.randint(min_insert, max_insert)
+            # Normal distribution for insert size (most reads have small adapter tails)
+            insert_size = int(rng.gauss(mean_insert, std_insert))
+            insert_size = max(min_insert, min(max_insert, insert_size))
             adapter_len = read_length - insert_size
 
             r1_seq = str(r1.seq)
@@ -221,12 +238,13 @@ def add_adapter_readthrough(
                 r2_seq, r2_qual_str, adapters["r2_adapter"], insert_size, rng
             )
 
-            # Create new records
+            # Create new records with adapter tag in description
+            adapter_tag = f"adapter_injected={adapter_type}:{adapter_len}bp"
             new_r1 = SeqRecord(
                 Seq(new_r1_seq),
                 id=r1.id,
                 name=r1.name,
-                description=r1.description,
+                description=f"{r1.description} {adapter_tag}".strip(),
             )
             new_r1.letter_annotations["phred_quality"] = [
                 ord(c) - 33 for c in new_r1_qual
@@ -236,7 +254,7 @@ def add_adapter_readthrough(
                 Seq(new_r2_seq),
                 id=r2.id,
                 name=r2.name,
-                description=r2.description,
+                description=f"{r2.description} {adapter_tag}".strip(),
             )
             new_r2.letter_annotations["phred_quality"] = [
                 ord(c) - 33 for c in new_r2_qual
@@ -245,6 +263,13 @@ def add_adapter_readthrough(
             modified_r1.append(new_r1)
             modified_r2.append(new_r2)
             adapter_lengths.append(adapter_len)
+            modified_read_ids.append(r1.id)
+            manifest_rows.append({
+                "read_id": r1.id,
+                "adapter_type": adapter_type,
+                "adapter_length": adapter_len,
+                "insert_size": insert_size,
+            })
         else:
             modified_r1.append(r1)
             modified_r2.append(r2)
@@ -252,6 +277,17 @@ def add_adapter_readthrough(
     # Write output
     SeqIO.write(modified_r1, output_r1, "fastq")
     SeqIO.write(modified_r2, output_r2, "fastq")
+
+    # Write manifest if requested
+    if manifest_path and manifest_rows:
+        with open(manifest_path, "w") as f:
+            f.write("read_id\tadapter_type\tadapter_length\tinsert_size\n")
+            for row in manifest_rows:
+                f.write(
+                    f"{row['read_id']}\t{row['adapter_type']}\t"
+                    f"{row['adapter_length']}\t{row['insert_size']}\n"
+                )
+        logger.info(f"Wrote adapter manifest: {manifest_path}")
 
     mean_adapter_len = (
         sum(adapter_lengths) / len(adapter_lengths) if adapter_lengths else 0.0
@@ -268,4 +304,5 @@ def add_adapter_readthrough(
         "adapter_type": adapter_type,
         "adapter_lengths": adapter_lengths,
         "mean_adapter_length": mean_adapter_len,
+        "modified_read_ids": modified_read_ids,
     }
