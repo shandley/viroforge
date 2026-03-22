@@ -72,10 +72,11 @@ htmlcov/
 *.gff
 *.gtf
 
-# Except example/test data
+# Except example/test data and bundled references
 !tests/data/**/*.fasta
 !tests/data/**/*.fastq.gz
 !examples/data/**/*.fasta
+!viroforge/data/references/*.fasta
 
 # Output directories
 output/
@@ -86,7 +87,7 @@ example_output/
 
 # Database directories
 databases/
-references/
+/references/
 genomes/
 
 # RefSeq data and parsed genomes (large, user-generated)

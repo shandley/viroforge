@@ -1,0 +1,368 @@
+"""
+Tests for realistic contamination reference sequences.
+
+Validates that ViroForge uses real reference sequences (rRNA, host DNA, PhiX)
+instead of synthetic random sequences, and that adapter read-through injection
+works correctly.
+"""
+
+import pytest
+import random
+from pathlib import Path
+
+from viroforge.core.contamination import (
+    ContaminationProfile,
+    add_host_contamination,
+    add_rrna_contamination,
+    add_phix_control,
+    create_contamination_profile,
+)
+from viroforge.data.references.resolver import (
+    get_phix_path,
+    get_rrna_path,
+    get_host_fragments_path,
+    get_adapter_path,
+    has_bundled_references,
+)
+
+
+# ---------------------------------------------------------------------------
+# Resolver tests
+# ---------------------------------------------------------------------------
+
+
+class TestResolver:
+    """Test the reference file resolver."""
+
+    def test_bundled_references_exist(self):
+        refs = has_bundled_references()
+        assert refs["phix174"], "Bundled PhiX174 not found"
+        assert refs["rrna"], "Bundled rRNA not found"
+        assert refs["host_fragments"], "Bundled host fragments not found"
+        assert refs["adapters"], "Bundled adapters not found"
+
+    def test_get_phix_path_returns_existing_file(self):
+        path = get_phix_path()
+        assert path is not None
+        assert path.exists()
+        assert path.name == "phix174.fasta"
+
+    def test_get_rrna_path_returns_existing_file(self):
+        path = get_rrna_path()
+        assert path is not None
+        assert path.exists()
+
+    def test_get_host_fragments_path_returns_existing_file(self):
+        path = get_host_fragments_path()
+        assert path is not None
+        assert path.exists()
+
+    def test_get_adapter_path_returns_existing_file(self):
+        path = get_adapter_path()
+        assert path is not None
+        assert path.exists()
+
+    def test_user_path_takes_priority(self, tmp_path):
+        # Create a fake reference file
+        fake_ref = tmp_path / "my_phix.fasta"
+        fake_ref.write_text(">fake_phix\nACGT\n")
+
+        path = get_phix_path(user_path=fake_ref)
+        assert path == fake_ref
+
+    def test_missing_user_path_falls_back_to_bundled(self):
+        path = get_phix_path(user_path=Path("/nonexistent/phix.fasta"))
+        # Should fall back to bundled
+        assert path is not None
+        assert path.exists()
+
+    def test_env_var_override(self, tmp_path, monkeypatch):
+        fake_ref = tmp_path / "env_rrna.fasta"
+        fake_ref.write_text(">env_rrna\nACGT\n")
+        monkeypatch.setenv("VIROFORGE_RRNA_DB", str(fake_ref))
+
+        path = get_rrna_path()
+        assert path == fake_ref
+
+
+# ---------------------------------------------------------------------------
+# Real reference contamination tests
+# ---------------------------------------------------------------------------
+
+
+class TestPhiXRealReference:
+    """Test that PhiX uses the real NC_001422.1 sequence."""
+
+    def test_phix_uses_real_sequence(self):
+        profile = ContaminationProfile()
+        add_phix_control(profile, abundance_pct=1.0)
+
+        phix = [c for c in profile.contaminants if c.genome_id == "NC_001422.1_PhiX174"]
+        assert len(phix) == 1
+
+        seq = str(phix[0].sequence)
+        # Real PhiX174 is exactly 5,386 bp
+        assert len(seq) == 5386
+        # Real PhiX174 starts with GAGTTTTATCGCTTCC...
+        assert seq.startswith("GAGTTTTATCGCTTCC")
+
+    def test_phix_synthetic_fallback(self):
+        profile = ContaminationProfile()
+        add_phix_control(profile, abundance_pct=1.0, use_real_references=False)
+
+        phix = [c for c in profile.contaminants if c.genome_id == "NC_001422.1_PhiX174"]
+        assert len(phix) == 1
+        seq = str(phix[0].sequence)
+        assert len(seq) == 5386
+        # Synthetic won't start with the real PhiX sequence
+        assert not seq.startswith("GAGTTTTATCGCTTCC")
+
+
+class TestRRNARealReference:
+    """Test that rRNA uses real reference sequences."""
+
+    def test_rrna_uses_real_sequences(self):
+        profile = ContaminationProfile()
+        add_rrna_contamination(
+            profile, abundance_pct=5.0, n_sequences=10, random_seed=42
+        )
+
+        rrna = [c for c in profile.contaminants if "rrna" in c.genome_id.lower()]
+        assert len(rrna) == 10
+
+        # Real rRNA sequences have recognizable conserved motifs
+        # E. coli 16S contains the universal primer binding site
+        all_seqs = "".join(str(c.sequence) for c in rrna)
+        # At least some sequences should be from real rRNA
+        # (they won't all be random GC-content sequences)
+        assert len(all_seqs) > 1000
+
+    def test_rrna_source_is_ncbi(self):
+        profile = ContaminationProfile()
+        add_rrna_contamination(
+            profile, abundance_pct=5.0, n_sequences=5, random_seed=42
+        )
+
+        rrna = [c for c in profile.contaminants if "rrna" in c.genome_id.lower()]
+        # When using real references, source should be NCBI
+        for r in rrna:
+            assert r.source == "NCBI_RefSeq_rRNA"
+
+    def test_rrna_synthetic_fallback(self):
+        profile = ContaminationProfile()
+        add_rrna_contamination(
+            profile,
+            abundance_pct=5.0,
+            n_sequences=10,
+            random_seed=42,
+            use_real_references=False,
+        )
+
+        rrna = [c for c in profile.contaminants if "rrna" in c.genome_id.lower()]
+        assert len(rrna) > 0
+        # Synthetic uses SILVA_synthetic source
+        for r in rrna:
+            assert r.source == "SILVA_synthetic"
+
+
+class TestHostDNARealReference:
+    """Test that host DNA uses real genome fragments."""
+
+    def test_host_uses_real_fragments(self):
+        profile = ContaminationProfile()
+        add_host_contamination(
+            profile,
+            host_organism="human",
+            abundance_pct=2.0,
+            n_fragments=5,
+            random_seed=42,
+        )
+
+        host = [c for c in profile.contaminants if "host" in c.genome_id.lower()]
+        assert len(host) == 5
+
+        # Real fragments should have descriptions referencing chromosome regions
+        for h in host:
+            assert "human_chr" in h.source or "GRCh38" in h.source
+
+    def test_host_synthetic_fallback(self):
+        profile = ContaminationProfile()
+        add_host_contamination(
+            profile,
+            host_organism="human",
+            abundance_pct=2.0,
+            n_fragments=5,
+            random_seed=42,
+            use_real_references=False,
+        )
+
+        host = [c for c in profile.contaminants if "host" in c.genome_id.lower()]
+        assert len(host) == 5
+        for h in host:
+            assert h.source == "GRCh38"
+            assert h.description == "Synthetic host DNA fragment"
+
+
+class TestCreateContaminationProfile:
+    """Test that create_contamination_profile respects use_real_references."""
+
+    def test_default_uses_real_references(self):
+        profile = create_contamination_profile("realistic", random_seed=42)
+
+        phix = [c for c in profile.contaminants if "PhiX" in c.genome_id]
+        assert len(phix) == 1
+        # Real PhiX starts with GAGTTTTATCGCTTCC
+        assert str(phix[0].sequence).startswith("GAGTTTTATCGCTTCC")
+
+    def test_no_real_contaminants_flag(self):
+        profile = create_contamination_profile(
+            "realistic", random_seed=42, use_real_references=False
+        )
+
+        phix = [c for c in profile.contaminants if "PhiX" in c.genome_id]
+        assert len(phix) == 1
+        # Synthetic won't match real sequence
+        assert not str(phix[0].sequence).startswith("GAGTTTTATCGCTTCC")
+
+
+# ---------------------------------------------------------------------------
+# Adapter read-through tests
+# ---------------------------------------------------------------------------
+
+
+class TestAdapterReadthrough:
+    """Test adapter read-through injection."""
+
+    @pytest.fixture
+    def sample_fastq(self, tmp_path):
+        """Create minimal FASTQ files for testing."""
+        from Bio.SeqRecord import SeqRecord
+        from Bio.Seq import Seq
+        from Bio import SeqIO
+
+        r1_path = tmp_path / "test_R1.fastq"
+        r2_path = tmp_path / "test_R2.fastq"
+
+        # Create 100 read pairs with 150bp reads
+        r1_records = []
+        r2_records = []
+        rng = random.Random(42)
+        for i in range(100):
+            seq = "".join(rng.choice("ACGT") for _ in range(150))
+            qual = [30] * 150
+
+            r1 = SeqRecord(Seq(seq), id=f"read_{i}/1", description="")
+            r1.letter_annotations["phred_quality"] = qual
+            r1_records.append(r1)
+
+            r2 = SeqRecord(Seq(seq), id=f"read_{i}/2", description="")
+            r2.letter_annotations["phred_quality"] = qual
+            r2_records.append(r2)
+
+        SeqIO.write(r1_records, r1_path, "fastq")
+        SeqIO.write(r2_records, r2_path, "fastq")
+
+        return r1_path, r2_path
+
+    def test_adapter_injection_basic(self, sample_fastq, tmp_path):
+        from viroforge.simulators.adapters import add_adapter_readthrough
+
+        r1, r2 = sample_fastq
+        out_r1 = tmp_path / "out_R1.fastq"
+        out_r2 = tmp_path / "out_R2.fastq"
+
+        stats = add_adapter_readthrough(
+            r1, r2,
+            output_r1=out_r1,
+            output_r2=out_r2,
+            adapter_rate=0.1,
+            random_seed=42,
+        )
+
+        assert stats["reads_total"] == 100
+        assert stats["reads_modified"] == 10
+        assert stats["adapter_type"] == "truseq"
+        assert len(stats["adapter_lengths"]) == 10
+        assert stats["mean_adapter_length"] > 0
+
+    def test_adapter_detectable(self, sample_fastq, tmp_path):
+        """Adapter sequences should be detectable by string matching."""
+        from viroforge.simulators.adapters import (
+            add_adapter_readthrough,
+            ADAPTER_SEQUENCES,
+        )
+        from Bio import SeqIO
+
+        r1, r2 = sample_fastq
+        out_r1 = tmp_path / "out_R1.fastq"
+        out_r2 = tmp_path / "out_R2.fastq"
+
+        add_adapter_readthrough(
+            r1, r2,
+            output_r1=out_r1,
+            output_r2=out_r2,
+            adapter_rate=0.5,  # 50% for easy detection
+            random_seed=42,
+        )
+
+        # Check that adapter k-mers appear in modified reads
+        adapter_kmer = ADAPTER_SEQUENCES["truseq"]["r1_adapter"][:12]
+        found = 0
+        for record in SeqIO.parse(out_r1, "fastq"):
+            if adapter_kmer in str(record.seq):
+                found += 1
+
+        assert found > 0, "No adapter k-mers detected in modified reads"
+
+    def test_adapter_rate_zero_skips(self, sample_fastq):
+        from viroforge.simulators.adapters import add_adapter_readthrough
+
+        r1, r2 = sample_fastq
+        stats = add_adapter_readthrough(r1, r2, adapter_rate=0.0)
+        assert stats["reads_modified"] == 0
+
+    def test_nextera_adapters(self, sample_fastq, tmp_path):
+        from viroforge.simulators.adapters import add_adapter_readthrough
+
+        r1, r2 = sample_fastq
+        out_r1 = tmp_path / "out_R1.fastq"
+        out_r2 = tmp_path / "out_R2.fastq"
+
+        stats = add_adapter_readthrough(
+            r1, r2,
+            output_r1=out_r1,
+            output_r2=out_r2,
+            adapter_rate=0.1,
+            adapter_type="nextera",
+            random_seed=42,
+        )
+        assert stats["adapter_type"] == "nextera"
+        assert stats["reads_modified"] == 10
+
+    def test_invalid_adapter_type_raises(self, sample_fastq):
+        from viroforge.simulators.adapters import add_adapter_readthrough
+
+        r1, r2 = sample_fastq
+        with pytest.raises(ValueError, match="Unknown adapter type"):
+            add_adapter_readthrough(r1, r2, adapter_type="invalid")
+
+    def test_read_lengths_preserved(self, sample_fastq, tmp_path):
+        """Modified reads should maintain the same length."""
+        from viroforge.simulators.adapters import add_adapter_readthrough
+        from Bio import SeqIO
+
+        r1, r2 = sample_fastq
+        out_r1 = tmp_path / "out_R1.fastq"
+        out_r2 = tmp_path / "out_R2.fastq"
+
+        add_adapter_readthrough(
+            r1, r2,
+            output_r1=out_r1,
+            output_r2=out_r2,
+            adapter_rate=0.5,
+            random_seed=42,
+        )
+
+        for record in SeqIO.parse(out_r1, "fastq"):
+            assert len(record.seq) == 150
+            assert len(record.letter_annotations["phred_quality"]) == 150

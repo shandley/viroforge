@@ -414,7 +414,8 @@ def add_host_contamination(
     genome_path: Optional[Path] = None,
     n_fragments: int = 100,
     fragment_length: int = 10000,
-    random_seed: Optional[int] = None
+    random_seed: Optional[int] = None,
+    use_real_references: bool = True,
 ) -> ContaminationProfile:
     """
     Add host DNA contamination to a profile.
@@ -430,6 +431,8 @@ def add_host_contamination(
         n_fragments: Number of genome fragments to sample
         fragment_length: Length of each fragment (bp)
         random_seed: Random seed for reproducibility
+        use_real_references: If True, try bundled real references before
+            falling back to synthetic sequences
 
     Returns:
         Updated ContaminationProfile
@@ -438,6 +441,11 @@ def add_host_contamination(
         >>> profile = ContaminationProfile()
         >>> add_host_contamination(profile, "human", abundance_pct=5.0)
     """
+    from viroforge.data.references.resolver import (
+        get_host_fragments_path,
+        get_host_genome_path,
+    )
+
     # Use local RNG instead of global state for thread safety
     if random_seed is not None:
         rng = np.random.default_rng(random_seed)
@@ -477,21 +485,34 @@ def add_host_contamination(
     # Calculate abundance per fragment
     abundance_per_fragment = (abundance_pct / 100.0) / n_fragments
 
-    if genome_path is not None and genome_path.exists():
-        # Sample from actual genome
-        logger.info(f"Sampling host DNA from {genome_path}")
-        records = list(SeqIO.parse(genome_path, 'fasta'))
+    # Resolve reference path: explicit > full genome > bundled fragments > synthetic
+    resolved_path = genome_path
+    use_fragments = False
+    if resolved_path is None and use_real_references:
+        resolved_path = get_host_genome_path()
+        if resolved_path is None:
+            resolved_path = get_host_fragments_path()
+            if resolved_path is not None:
+                use_fragments = True
+
+    if resolved_path is not None and resolved_path.exists():
+        # Sample from actual genome or pre-cut fragments
+        logger.info(f"Sampling host DNA from {resolved_path}")
+        records = list(SeqIO.parse(resolved_path, 'fasta'))
 
         for i in range(n_fragments):
-            # Randomly select a chromosome/contig
-            record = random.choice(records)
-
-            # Randomly select a position
-            if len(record.seq) > fragment_length:
-                start = random.randint(0, len(record.seq) - fragment_length)
-                fragment_seq = record.seq[start:start + fragment_length]
-            else:
+            if use_fragments:
+                # Pre-cut fragments: sample with replacement
+                record = random.choice(records)
                 fragment_seq = record.seq
+            else:
+                # Full genome: randomly select chromosome and position
+                record = random.choice(records)
+                if len(record.seq) > fragment_length:
+                    start = random.randint(0, len(record.seq) - fragment_length)
+                    fragment_seq = record.seq[start:start + fragment_length]
+                else:
+                    fragment_seq = record.seq
 
             contaminant = ContaminantGenome(
                 genome_id=f"host_{host_organism}_{i:04d}",
@@ -506,7 +527,7 @@ def add_host_contamination(
 
     else:
         # Create synthetic host DNA fragments
-        logger.info("No genome path provided, creating synthetic host DNA fragments")
+        logger.info("No host reference available, creating synthetic host DNA fragments")
 
         for i in range(n_fragments):
             # Generate random sequence with appropriate GC content
@@ -535,7 +556,8 @@ def add_rrna_contamination(
     rrna_database_path: Optional[Path] = None,
     domains: List[str] = ["bacteria", "archaea", "eukaryota"],
     n_sequences: int = 50,
-    random_seed: Optional[int] = None
+    random_seed: Optional[int] = None,
+    use_real_references: bool = True,
 ) -> ContaminationProfile:
     """
     Add rRNA contamination to a profile.
@@ -550,6 +572,8 @@ def add_rrna_contamination(
         domains: List of domains to include (bacteria, archaea, eukaryota)
         n_sequences: Number of rRNA sequences to sample
         random_seed: Random seed for reproducibility
+        use_real_references: If True, try bundled real references before
+            falling back to synthetic sequences
 
     Returns:
         Updated ContaminationProfile
@@ -558,6 +582,8 @@ def add_rrna_contamination(
         >>> profile = ContaminationProfile()
         >>> add_rrna_contamination(profile, abundance_pct=3.0)
     """
+    from viroforge.data.references.resolver import get_rrna_path
+
     # Use local RNG instead of global state for thread safety
     if random_seed is not None:
         rng = np.random.default_rng(random_seed)
@@ -570,12 +596,21 @@ def add_rrna_contamination(
     # Calculate abundance per sequence
     abundance_per_sequence = (abundance_pct / 100.0) / n_sequences
 
-    if rrna_database_path is not None and rrna_database_path.exists():
-        # Sample from actual database
-        logger.info(f"Sampling rRNA from {rrna_database_path}")
-        records = list(SeqIO.parse(rrna_database_path, 'fasta'))
+    # Resolve reference path: explicit > bundled > synthetic
+    resolved_path = rrna_database_path
+    if resolved_path is None and use_real_references:
+        resolved_path = get_rrna_path()
 
-        sampled_records = random.sample(records, min(n_sequences, len(records)))
+    if resolved_path is not None and resolved_path.exists():
+        # Sample from actual database
+        logger.info(f"Sampling rRNA from {resolved_path}")
+        records = list(SeqIO.parse(resolved_path, 'fasta'))
+
+        if len(records) >= n_sequences:
+            sampled_records = random.sample(records, n_sequences)
+        else:
+            # Sample with replacement when bundled set is smaller than requested
+            sampled_records = random.choices(records, k=n_sequences)
 
         for i, record in enumerate(sampled_records):
             contaminant = ContaminantGenome(
@@ -583,7 +618,7 @@ def add_rrna_contamination(
                 sequence=record.seq,
                 contaminant_type=ContaminantType.RRNA,
                 organism=record.id,
-                source="SILVA",
+                source="NCBI_RefSeq_rRNA",
                 abundance=abundance_per_sequence,
                 description=record.description
             )
@@ -591,7 +626,7 @@ def add_rrna_contamination(
 
     else:
         # Create synthetic rRNA sequences
-        logger.info("No database path provided, creating synthetic rRNA sequences")
+        logger.info("No rRNA reference available, creating synthetic rRNA sequences")
 
         # Typical rRNA lengths
         rrna_types = {
@@ -731,7 +766,8 @@ def add_reagent_contamination(
 def add_phix_control(
     profile: ContaminationProfile,
     abundance_pct: float = 0.1,
-    phix_sequence_path: Optional[Path] = None
+    phix_sequence_path: Optional[Path] = None,
+    use_real_references: bool = True,
 ) -> ContaminationProfile:
     """
     Add PhiX174 control spike-in to a profile.
@@ -742,6 +778,8 @@ def add_phix_control(
         profile: ContaminationProfile to add PhiX to
         abundance_pct: Percentage of total abundance (0-100)
         phix_sequence_path: Optional path to PhiX174 genome (NC_001422.1)
+        use_real_references: If True, try bundled real references before
+            falling back to synthetic sequences
 
     Returns:
         Updated ContaminationProfile
@@ -750,16 +788,22 @@ def add_phix_control(
         >>> profile = ContaminationProfile()
         >>> add_phix_control(profile, abundance_pct=1.0)
     """
+    from viroforge.data.references.resolver import get_phix_path
+
     logger.info(f"Adding {abundance_pct}% PhiX174 control")
 
-    if phix_sequence_path is not None and phix_sequence_path.exists():
+    # Resolve reference path: explicit > bundled > synthetic
+    resolved_path = phix_sequence_path
+    if resolved_path is None and use_real_references:
+        resolved_path = get_phix_path()
+
+    if resolved_path is not None and resolved_path.exists():
         # Read actual PhiX genome
-        record = next(SeqIO.parse(phix_sequence_path, 'fasta'))
+        record = next(SeqIO.parse(resolved_path, 'fasta'))
         phix_seq = record.seq
     else:
-        # Use known PhiX174 genome (NC_001422.1) - 5,386 bp, 44.8% GC
-        # For now, create synthetic sequence with correct properties
-        logger.info("No PhiX path provided, creating synthetic PhiX sequence")
+        # Fallback to synthetic PhiX174 (NC_001422.1) - 5,386 bp, 44.8% GC
+        logger.info("No PhiX reference available, creating synthetic PhiX sequence")
         phix_seq = _generate_sequence_with_gc(5386, 44.8)
 
     contaminant = ContaminantGenome(
@@ -780,6 +824,7 @@ def add_phix_control(
 def create_contamination_profile(
     profile_type: str = "realistic",
     random_seed: Optional[int] = None,
+    use_real_references: bool = True,
     **kwargs
 ) -> ContaminationProfile:
     """
@@ -792,6 +837,9 @@ def create_contamination_profile(
             - 'heavy': High contamination (VLP enrichment failed)
             - 'failed': Very high contamination (complete failure)
         random_seed: Random seed for reproducibility
+        use_real_references: If True, use bundled real reference sequences
+            for contamination (rRNA, host DNA, PhiX). If False, generate
+            synthetic sequences with correct GC content only.
         **kwargs: Override default parameters for contamination levels
 
     Returns:
@@ -866,13 +914,15 @@ def create_contamination_profile(
         profile,
         host_organism=kwargs.get('host_organism', 'human'),
         abundance_pct=host_dna_pct,
-        random_seed=random_seed
+        random_seed=random_seed,
+        use_real_references=use_real_references,
     )
 
     add_rrna_contamination(
         profile,
         abundance_pct=rrna_pct,
-        random_seed=random_seed
+        random_seed=random_seed,
+        use_real_references=use_real_references,
     )
 
     add_reagent_contamination(
@@ -883,7 +933,8 @@ def create_contamination_profile(
 
     add_phix_control(
         profile,
-        abundance_pct=phix_pct
+        abundance_pct=phix_pct,
+        use_real_references=use_real_references,
     )
 
     logger.info(
@@ -1181,6 +1232,7 @@ def create_rna_contamination_profile(
     ribo_depletion: bool = True,
     microbiome_rich: bool = True,
     random_seed: Optional[int] = None,
+    use_real_references: bool = True,
     **kwargs
 ) -> ContaminationProfile:
     """
@@ -1309,7 +1361,8 @@ def create_rna_contamination_profile(
     # Add PhiX control
     add_phix_control(
         profile,
-        abundance_pct=phix_pct
+        abundance_pct=phix_pct,
+        use_real_references=use_real_references,
     )
 
     logger.info(

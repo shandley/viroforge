@@ -11,7 +11,7 @@ ViroForge creates realistic FASTQ sequencing data from curated viral genome coll
 - 5 sequencing platforms (NovaSeq, MiSeq, HiSeq, PacBio HiFi, Oxford Nanopore)
 - DNA and RNA virome workflows
 - VLP enrichment modeling (5 protocols)
-- Realistic contamination, amplification bias, and error profiles
+- Real reference contamination sequences (rRNA, host DNA, PhiX, adapters)
 - Complete ground truth metadata for every dataset
 
 ## Installation
@@ -214,6 +214,37 @@ ViroForge models complete RNA virome library preparation:
 - **RNA degradation** and fragmentation modeling
 
 Use `--molecule-type rna` with `--rna-depletion ribo_zero` to enable the full RNA workflow.
+
+## Contamination modeling
+
+ViroForge generates contamination reads from real reference sequences, making them detectable by standard QC tools (SortMeRNA, fastp, BBDuk, Kraken2).
+
+**Bundled references (used by default):**
+
+| Type | Source | Size |
+|------|--------|------|
+| rRNA | 23 sequences from NCBI RefSeq (E. coli 16S/23S, human 18S/28S, gut bacteria) | 41 KB |
+| Host DNA | 48 fragments from T2T-CHM13v2.0 (all chromosomes, 10 kb each) | 481 KB |
+| PhiX174 | NC_001422.1 | 5.4 KB |
+| Adapters | TruSeq and Nextera (11 sequences) | <1 KB |
+
+**Adapter read-through** can be added to simulate insert-size-dependent adapter contamination:
+
+```bash
+python scripts/generate_fastq_dataset.py \
+    --collection-id 9 \
+    --output data/gut \
+    --adapter-rate 0.05 \
+    --adapter-type truseq
+```
+
+**Override references** with your own databases:
+
+```bash
+--host-genome /path/to/GRCh38.fasta
+--rrna-database /path/to/SILVA_138.fasta
+--no-real-contaminants   # revert to synthetic sequences
+```
 
 ## Output structure
 

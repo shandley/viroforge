@@ -1,8 +1,8 @@
 # ViroForge - Development Context
 
-**Last Updated**: 2025-11-10
-**Current Version**: v0.10.0
-**Status**: Phase 12 Complete (Production Ready)
+**Last Updated**: 2026-03-22
+**Current Version**: v0.12.0
+**Status**: Realistic Contamination Complete - Ready for Phase 13B
 
 ---
 
@@ -16,15 +16,44 @@ ViroForge is a comprehensive mock metavirome data generator for benchmarking vir
 - 5 sequencing platforms (NovaSeq, MiSeq, HiSeq, PacBio HiFi, Oxford Nanopore)
 - DNA and RNA virome workflows (RT, rRNA depletion, degradation)
 - VLP enrichment modeling (5 protocols)
-- Complete ground truth metadata for validation
+- Real reference contamination (rRNA from NCBI, host DNA from T2T, PhiX NC_001422.1, Illumina adapters)
+- Complete ground truth metadata for validation (v1.1)
 
 ---
 
 ## Current Status
 
+**Phase 13A: Benchmarking Metadata - COMPLETE**
+
+Metadata enhancements (2025-11-11):
+- Metadata schema v1.1 with benchmarking support
+- Contamination manifest export (all contaminant sources tracked)
+- Expected coverage calculation per genome (Lander-Waterman formula)
+- Coverage categorization (complete/high/partial/fragmented/missing)
+- CLI version updated to 0.11.0
+- HTML report format implemented
+- HTML comparison format implemented
+
+**Realistic Contamination Enhancement - COMPLETE (2026-03-22)**
+
+Contamination sequences now use real reference data instead of synthetic random sequences:
+- rRNA: 23 real sequences from NCBI RefSeq (E. coli, human, gut bacteria 16S/18S/23S/28S)
+- Host DNA: 48 fragments from T2T-CHM13v2.0 human genome (all chromosomes, 10 kb each)
+- PhiX174: Real NC_001422.1 genome (5,386 bp)
+- Adapters: TruSeq and Nextera Illumina adapter sequences (11 sequences)
+- Adapter read-through: Post-processing to inject adapter contamination at 3' ends
+
+Key files:
+- `viroforge/data/references/` - Bundled reference FASTA files (~528 KB total)
+- `viroforge/data/references/resolver.py` - Auto-discovers references (user > env var > bundled > synthetic)
+- `viroforge/simulators/adapters.py` - Adapter read-through post-processor
+- `scripts/curate_reference_sequences.py` - Provenance script for regenerating references
+
+New CLI args: `--adapter-rate`, `--adapter-type`, `--host-genome`, `--rrna-database`, `--no-real-contaminants`
+
 **Phase 12: CLI & Web Enhancements - COMPLETE**
 
-All three subphases delivered (3 days total):
+All subphases delivered:
 
 **Phase 12.1**: Full generate command with progress reporting
 - Preset-based generation system (8 built-in presets)
@@ -83,8 +112,17 @@ viroforge web                 # Launch web interface
 - `scripts/generate_fastq_dataset.py` - Main dataset generation script (all platforms)
 - `viroforge/simulators/longread.py` - PacBio HiFi and Nanopore simulator (850+ lines)
 - `viroforge/simulators/illumina.py` - Short-read simulator wrapper
+- `viroforge/simulators/adapters.py` - Adapter read-through post-processor
 - `viroforge/workflows/rna_virome.py` - RNA workflow (RT, rRNA depletion, degradation)
 - `viroforge/vlp_enrichment.py` - VLP protocol modeling
+
+### Contamination References
+- `viroforge/data/references/resolver.py` - Reference file auto-discovery
+- `viroforge/data/references/phix174.fasta` - Real PhiX174 genome (NC_001422.1)
+- `viroforge/data/references/rrna_representatives.fasta` - 23 real rRNA sequences
+- `viroforge/data/references/host_fragments.fasta` - 48 human genome fragments (T2T-CHM13v2.0)
+- `viroforge/data/references/adapters.fasta` - Illumina TruSeq/Nextera adapters
+- `scripts/curate_reference_sequences.py` - Downloads and curates reference sequences from NCBI
 
 ### CLI Application
 - `viroforge/cli/__init__.py` - Main CLI entry point and argument parsing
@@ -315,3 +353,107 @@ sqlite3 viroforge/data/viral_genomes.db \
    FROM body_site_collections
    ORDER BY collection_id;"
 ```
+
+---
+
+## Known Issues
+
+**Interactive Preset Creation**
+- Status: Not implemented (low priority)
+- Workaround: Use `viroforge presets create <name> --from-dataset <path>`
+
+---
+
+## Recent Bug Fixes (2025-11-16)
+
+**HTML Report/Comparison Empty (FIXED)**
+- Issue: HTML reports generated mostly empty content
+- Root cause: Metadata field name mismatch between v1.1 schema and HTML templates
+  - Templates accessed `metadata['platform']` - not present in v1.1
+  - Templates accessed `metadata['vlp_enrichment']` - renamed to `enrichment_stats` in v1.1
+- Fix: Updated both `report.py` and `compare.py` to use correct v1.1 field names
+  - Platform info: `configuration['platform']`
+  - VLP/enrichment info: `enrichment_stats['viral_enrichment']`, etc.
+- Status: RESOLVED
+- Files: `viroforge/cli/report.py:355-432`, `viroforge/cli/compare.py:294-337`
+
+---
+
+## Next Phase: Benchmarking Framework (Phase 13)
+
+**Status**: Phase 13A Complete | All CLI Features Working | Ready for Phase 13B
+**Timeline**: 6-8 weeks for MVP (2 weeks elapsed)
+**Priority**: VERY HIGH
+
+### Phase 13A Complete (v0.11.0)
+
+**Delivered**:
+- Metadata version 1.1 with benchmarking support
+- Contamination manifest export
+- Expected coverage calculation per genome
+- CLI version updated to 0.11.0
+- HTML report format (implemented and tested)
+- HTML comparison format (implemented and tested)
+
+See `docs/PHASE13A_IMPLEMENTATION_SUMMARY.md` for details.
+
+### Overview
+
+Transform ViroForge from a data generator to a **complete validation platform** by adding comprehensive benchmarking tools.
+
+**Phase 13A Achievement**: ViroForge now exports enhanced ground truth metadata that benchmarking tools (Phase 13B-D) will use to validate pipeline performance.
+
+**Solution**: Modular benchmarking framework matching virome analysis workflow:
+- Module 1: QC Benchmarking (contamination removal validation)
+- Module 2: Assembly Benchmarking (genome recovery, completeness)
+- Module 3: Binning Benchmarking (vMAG reconstruction)
+- Module 4: Taxonomy Benchmarking (read + contig classification)
+- Module 5: Completeness Analysis (genome recovery across coverage)
+- Module 6: Annotation Benchmarking (gene calling + function)
+- Module 7: Host Prediction Benchmarking
+- Module 8: Novel Discovery Benchmarking
+- Module 9: End-to-End Pipeline Benchmarking
+
+### Architecture
+
+```
+viroforge/
+├── benchmarking/              # NEW (optional: pip install viroforge[benchmark])
+│   ├── parsers/              # Kraken2, Centrifuge, DIAMOND, etc.
+│   ├── metrics/              # Precision, recall, F1, completeness, etc.
+│   ├── visualizations/       # Plots for HTML reports
+│   └── reports/              # HTML + JSON report generation
+```
+
+### CLI Commands (Planned)
+
+```bash
+viroforge benchmark qc          # Test contamination removal
+viroforge benchmark assembly    # Test assembly quality
+viroforge benchmark taxonomy    # Test classification accuracy
+viroforge benchmark pipeline    # Comprehensive end-to-end report
+```
+
+### ViroForge Enhancements Needed
+
+**Metadata Enhancements** (v0.11.0):
+1. Add `contamination_manifest` - Track all contaminant sources
+2. Add `expected_coverage` - Per-genome expected coverage/completeness
+3. Add `read_manifest` - Which genome each read came from (optional)
+4. Add `gene_annotations` - Export RefSeq CDS annotations (future)
+
+### Why This Matters
+
+- **For Pipeline Developers**: Rigorous validation before publication
+- **For Bioinformaticians**: Choose best tool for their data type
+- **For ViroForge**: Completes "generate → benchmark → publish" workflow
+- **For the Field**: Standardized virome pipeline benchmarking (CAMI-equivalent for viromes)
+
+### Implementation Phases
+
+**Phase 13A** (Weeks 1-2): Foundation + metadata enhancements
+**Phase 13B** (Weeks 3-5): QC + Assembly benchmarking
+**Phase 13C** (Weeks 6-8): Taxonomy + Completeness benchmarking
+**Phase 13D** (Future): Advanced modules (binning, annotation, host, discovery)
+
+See `ROADMAP.md` for complete Phase 13 specifications.

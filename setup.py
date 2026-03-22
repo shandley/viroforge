@@ -22,6 +22,10 @@ setup(
         "Source Code": "https://github.com/shandley/viroforge",
     },
     packages=find_packages(),
+    package_data={
+        "viroforge": ["data/references/*.fasta"],
+    },
+    include_package_data=True,
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
         "Intended Audience :: Science/Research",

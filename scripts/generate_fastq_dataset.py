@@ -205,8 +205,9 @@ class FASTQGenerator:
         vlp_protocol: Optional[str] = 'tangential_flow',
         contamination_level: str = 'realistic',
         rna_workflow_params: Optional[Dict] = None,
-        read_type: str = "short"
-    ) -> Tuple[List[SeqRecord], List[float], Dict]:
+        read_type: str = "short",
+        use_real_references: bool = True,
+    ) -> Tuple[List[SeqRecord], List[float], Dict, Optional[ContaminationProfile]]:
         """
         Prepare genome sequences with VLP enrichment and contamination.
 
@@ -224,7 +225,7 @@ class FASTQGenerator:
             read_type: Read type ("short" or "long") for VLP size bias modeling
 
         Returns:
-            Tuple of (sequence_records, abundances, enrichment_stats)
+            Tuple of (sequence_records, abundances, enrichment_stats, contamination_profile)
         """
         logger.info(f"Preparing {len(genomes)} viral genomes...")
 
@@ -308,12 +309,14 @@ class FASTQGenerator:
                     contamination_level,
                     ribo_depletion=True,  # Assume Ribo-Zero applied
                     microbiome_rich=True,
-                    random_seed=self.random_seed
+                    random_seed=self.random_seed,
+                    use_real_references=use_real_references,
                 )
             else:
                 contam_profile = create_contamination_profile(
                     contamination_level,
-                    random_seed=self.random_seed
+                    random_seed=self.random_seed,
+                    use_real_references=use_real_references,
                 )
 
             # Combine viral + contamination
@@ -334,20 +337,21 @@ class FASTQGenerator:
                 'rna_workflow': rna_workflow_stats if rna_workflow_stats else None
             }
 
-            return sequences, abundances, stats
+            return sequences, abundances, stats, contam_profile
 
         # Apply VLP enrichment workflow
         logger.info(f"Applying VLP enrichment: {vlp_protocol}")
-        sequences, abundances, stats = self._apply_vlp_enrichment(
+        sequences, abundances, stats, contam_profile = self._apply_vlp_enrichment(
             viral_sequences,
             viral_abundances,
             genomes,
             vlp_protocol,
             contamination_level,
-            read_type
+            read_type,
+            use_real_references=use_real_references,
         )
 
-        return sequences, abundances, stats
+        return sequences, abundances, stats, contam_profile
 
     def _apply_vlp_enrichment(
         self,
@@ -356,8 +360,9 @@ class FASTQGenerator:
         genomes: List[Dict],
         vlp_protocol: str,
         contamination_level: str,
-        read_type: str = "short"
-    ) -> Tuple[List[SeqRecord], List[float], Dict]:
+        read_type: str = "short",
+        use_real_references: bool = True,
+    ) -> Tuple[List[SeqRecord], List[float], Dict, ContaminationProfile]:
         """
         Apply VLP enrichment protocol with size-based enrichment and contamination reduction.
 
@@ -370,7 +375,7 @@ class FASTQGenerator:
             read_type: Read type ("short" or "long") for size bias modeling
 
         Returns:
-            Tuple of (combined_sequences, combined_abundances, enrichment_stats)
+            Tuple of (combined_sequences, combined_abundances, enrichment_stats, contamination_profile)
         """
         # Map protocol name to VLPProtocol
         protocol_map = {
@@ -409,12 +414,14 @@ class FASTQGenerator:
                 contamination_level,
                 ribo_depletion=True,  # Assume Ribo-Zero applied
                 microbiome_rich=True,
-                random_seed=self.random_seed
+                random_seed=self.random_seed,
+                use_real_references=use_real_references,
             )
         else:
             contam_profile = create_contamination_profile(
                 contamination_level,
-                random_seed=self.random_seed
+                random_seed=self.random_seed,
+                use_real_references=use_real_references,
             )
 
         # Apply contamination reduction
@@ -452,7 +459,7 @@ class FASTQGenerator:
         logger.info(f"  Final contamination: {stats['contamination_fraction']*100:.2f}%")
         logger.info(f"  Total genomes: {len(sequences)}")
 
-        return sequences, abundances, stats
+        return sequences, abundances, stats, reduced_contam_profile
 
     def _combine_viral_and_contamination(
         self,
@@ -655,6 +662,34 @@ class FASTQGenerator:
 
         return abundances
 
+    def _categorize_coverage(self, coverage: float) -> str:
+        """
+        Categorize coverage into quality bins for benchmarking.
+
+        Coverage categories match assembly quality standards:
+        - complete: ≥20x (expect ≥95% genome recovery)
+        - high_quality: ≥10x (expect ≥75% recovery)
+        - partial: ≥5x (expect ≥50% recovery)
+        - fragmented: ≥1x (expect <50% recovery)
+        - missing: <1x (unlikely to recover)
+
+        Args:
+            coverage: Expected coverage depth
+
+        Returns:
+            Coverage category string
+        """
+        if coverage >= 20:
+            return 'complete'
+        elif coverage >= 10:
+            return 'high_quality'
+        elif coverage >= 5:
+            return 'partial'
+        elif coverage >= 1:
+            return 'fragmented'
+        else:
+            return 'missing'
+
     def write_fasta(
         self,
         sequences: List[SeqRecord],
@@ -837,9 +872,23 @@ class FASTQGenerator:
         abundances: List[float],
         config: Dict,
         enrichment_stats: Optional[Dict] = None,
-        amplification_stats: Optional[Dict] = None
+        amplification_stats: Optional[Dict] = None,
+        contamination_profile: Optional[ContaminationProfile] = None,
+        enable_benchmarking: bool = True
     ):
-        """Export complete ground truth metadata including all sequences (viral + contaminants)."""
+        """
+        Export complete ground truth metadata including all sequences (viral + contaminants).
+
+        Args:
+            collection_meta: Collection metadata dictionary
+            sequences: List of all sequences (viral + contaminants)
+            abundances: Relative abundances for all sequences
+            config: Configuration parameters
+            enrichment_stats: VLP enrichment statistics
+            amplification_stats: Amplification bias statistics
+            contamination_profile: ContaminationProfile object (for benchmarking metadata)
+            enable_benchmarking: Enable benchmarking metadata export (default: True)
+        """
 
         # Validate that sequences and abundances match
         if len(sequences) != len(abundances):
@@ -853,9 +902,10 @@ class FASTQGenerator:
         n_contaminants = enrichment_stats.get('n_contaminants', 0) if enrichment_stats else 0
 
         metadata = {
+            'metadata_version': '1.1' if enable_benchmarking else '1.0',
             'generation_info': {
                 'timestamp': datetime.now().isoformat(),
-                'viroforge_version': '0.4.0',
+                'viroforge_version': '0.11.0',
                 'random_seed': self.random_seed
             },
             'collection': {
@@ -905,6 +955,105 @@ class FASTQGenerator:
                         seq_info['family'] = part
 
             metadata['sequences'].append(seq_info)
+
+        # ===================================================================
+        # BENCHMARKING METADATA (v1.1)
+        # ===================================================================
+        if enable_benchmarking:
+            logger.info("Generating benchmarking metadata (contamination manifest + expected coverage)...")
+
+            benchmarking = {}
+
+            # 1. Contamination Manifest
+            if contamination_profile is not None:
+                contamination_manifest = []
+                for contaminant in contamination_profile.contaminants:
+                    contam_dict = contaminant.to_dict()
+                    # Remove sequence (too large for JSON)
+                    contam_dict.pop('sequence', None)
+                    contamination_manifest.append(contam_dict)
+
+                benchmarking['contamination_manifest'] = {
+                    'profile_name': contamination_profile.name,
+                    'total_contamination_pct': float(contamination_profile.get_total_abundance() * 100),
+                    'n_contaminants': len(contamination_profile.contaminants),
+                    'contaminants': contamination_manifest
+                }
+                logger.info(f"  Contamination manifest: {len(contamination_manifest)} contaminants")
+            else:
+                benchmarking['contamination_manifest'] = None
+                logger.info("  Contamination manifest: None (no contamination profile)")
+
+            # 2. Expected Coverage per Genome
+            # Calculate expected coverage based on relative abundance and sequencing parameters
+            expected_coverage_list = []
+            total_genome_length = sum(len(seq.seq) for seq in sequences)
+
+            # Extract coverage/depth from config
+            coverage_param = config.get('coverage', config.get('depth', 10.0))
+            n_reads = config.get('n_reads')
+            read_length = config.get('read_length', 150)
+            platform = config.get('platform', 'novaseq')
+            is_long_read = platform in ['pacbio-hifi', 'nanopore']
+
+            # Calculate total sequencing output (in bp)
+            if n_reads is not None:
+                # User specified read count
+                if is_long_read:
+                    # Long-read: single-end, variable length
+                    # Approximate: use 80% of mean read length (accounting for length variation)
+                    effective_read_length = read_length * 0.8
+                    total_bp = n_reads * effective_read_length
+                else:
+                    # Short-read: paired-end
+                    total_bp = n_reads * read_length * 2
+            else:
+                # Calculate from coverage parameter
+                total_bp = total_genome_length * coverage_param
+
+            for i, (seq, abundance) in enumerate(zip(sequences, abundances)):
+                genome_length = len(seq.seq)
+                seq_type = 'viral' if i < n_viral else 'contaminant'
+
+                # Calculate expected reads for this genome
+                genome_bp = total_bp * abundance
+
+                # Expected coverage = (genome_bp) / genome_length
+                expected_coverage = genome_bp / genome_length if genome_length > 0 else 0.0
+
+                # Expected completeness (what fraction of genome we expect to recover)
+                # Using Lander-Waterman formula: C = 1 - e^(-coverage)
+                # For viruses, this is reasonable approximation
+                expected_completeness = 1.0 - np.exp(-expected_coverage)
+
+                expected_coverage_list.append({
+                    'genome_id': seq.id,
+                    'sequence_type': seq_type,
+                    'length': genome_length,
+                    'relative_abundance': float(abundance),
+                    'expected_coverage': float(expected_coverage),
+                    'expected_completeness': float(expected_completeness),
+                    'coverage_category': self._categorize_coverage(expected_coverage)
+                })
+
+            benchmarking['expected_coverage'] = {
+                'total_genome_length': total_genome_length,
+                'total_sequencing_bp': int(total_bp),
+                'coverage_parameter': float(coverage_param),
+                'read_length': read_length,
+                'platform': platform,
+                'per_genome': expected_coverage_list
+            }
+            logger.info(f"  Expected coverage: calculated for {len(expected_coverage_list)} genomes")
+
+            # 3. Notes on additional benchmarking metadata (for future phases)
+            benchmarking['notes'] = {
+                'read_manifest': 'Not implemented in Phase 13A (optional for advanced benchmarking)',
+                'gene_annotations': 'Not implemented in Phase 13A (planned for Phase 13D)'
+            }
+
+            metadata['benchmarking'] = benchmarking
+            logger.info("Benchmarking metadata generation complete")
 
         # Write metadata JSON
         metadata_path = self.metadata_dir / f"{self.collection_name}_metadata.json"
@@ -1106,6 +1255,56 @@ Examples:
         help='Show what would be generated without running ISS'
     )
 
+    parser.add_argument(
+        '--enable-benchmarking',
+        action='store_true',
+        default=True,
+        help='Enable benchmarking metadata export (contamination manifest, expected coverage). ' +
+             'Default: True. Use --no-enable-benchmarking to disable.'
+    )
+
+    parser.add_argument(
+        '--no-enable-benchmarking',
+        action='store_false',
+        dest='enable_benchmarking',
+        help='Disable benchmarking metadata export (smaller metadata files)'
+    )
+
+    # Contamination realism options
+    contam_group = parser.add_argument_group('contamination realism')
+    contam_group.add_argument(
+        '--adapter-rate',
+        type=float,
+        default=0.0,
+        help='Fraction of reads with adapter read-through (0.0-1.0, default: 0.0). '
+             'Set to 0.05 for typical adapter contamination.'
+    )
+    contam_group.add_argument(
+        '--adapter-type',
+        choices=['truseq', 'nextera'],
+        default='truseq',
+        help='Illumina adapter type (default: truseq)'
+    )
+    contam_group.add_argument(
+        '--host-genome',
+        type=str,
+        default=None,
+        help='Path to full host genome FASTA for host DNA contamination '
+             '(overrides bundled fragments)'
+    )
+    contam_group.add_argument(
+        '--rrna-database',
+        type=str,
+        default=None,
+        help='Path to rRNA database FASTA (overrides bundled rRNA references)'
+    )
+    contam_group.add_argument(
+        '--no-real-contaminants',
+        action='store_true',
+        help='Force synthetic contamination sequences (old behavior). '
+             'By default, ViroForge uses bundled real reference sequences.'
+    )
+
     args = parser.parse_args()
 
     # Load collections
@@ -1178,12 +1377,14 @@ Examples:
 
     # Prepare genomes with VLP enrichment
     vlp_protocol = None if args.no_vlp else args.vlp_protocol
-    sequences, abundances, enrichment_stats = generator.prepare_genomes(
+    use_real = not args.no_real_contaminants
+    sequences, abundances, enrichment_stats, contamination_profile = generator.prepare_genomes(
         genomes,
         vlp_protocol=vlp_protocol,
         contamination_level=args.contamination_level,
         rna_workflow_params=rna_workflow_params,
-        read_type=read_type
+        read_type=read_type,
+        use_real_references=use_real,
     )
 
     # Apply amplification bias
@@ -1221,7 +1422,9 @@ Examples:
         abundances,
         config,
         enrichment_stats,
-        amplification_stats
+        amplification_stats,
+        contamination_profile,
+        args.enable_benchmarking
     )
 
     if args.dry_run:
@@ -1414,6 +1617,26 @@ Examples:
             platform=args.platform,
             n_reads=args.n_reads
         )
+
+        # Post-process: add adapter read-through contamination
+        if args.adapter_rate > 0:
+            from viroforge.simulators.adapters import add_adapter_readthrough
+
+            adapter_stats = add_adapter_readthrough(
+                r1_path=r1_path,
+                r2_path=r2_path,
+                output_r1=r1_path,
+                output_r2=r2_path,
+                adapter_rate=args.adapter_rate,
+                adapter_type=args.adapter_type,
+                random_seed=args.seed,
+                in_place=True,
+            )
+            logger.info(
+                f"Adapter contamination: {adapter_stats['reads_modified']}/{adapter_stats['reads_total']} "
+                f"reads ({args.adapter_rate:.1%}), mean adapter length: "
+                f"{adapter_stats['mean_adapter_length']:.1f} bp"
+            )
 
     # Format output message
     if is_long_read:

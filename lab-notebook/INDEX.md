@@ -2,25 +2,27 @@
 
 **Project**: ViroForge - Synthetic Virome Data Generator
 **Started**: January 30, 2025
-**Last Updated**: November 10, 2025
+**Last Updated**: March 22, 2026
 
 ---
 
 ## Quick Stats
 
-**Total Entries**: 11
-**Phase 1**: Complete (100%) ✅
-**Phase 2**: Complete (100%) ✅
-**Phase 3**: Complete (100%) ✅
-**Phase 5**: Complete (100%) ✅
-**Phase 7**: Complete (100%) ✅ (Critical collections & taxonomy fix)
-**Phase 8.2**: Complete (100%) ✅ (RNA virome workflow)
-**Phase 9**: Complete (100%) ✅ (28 total collections)
-**Phase 10**: In Progress (33%) 🚧 (Long-read sequencing support)
+**Total Entries**: 12
+**Phase 1**: Complete (100%)
+**Phase 2**: Complete (100%)
+**Phase 3**: Complete (100%)
+**Phase 5**: Complete (100%)
+**Phase 7**: Complete (100%) (Critical collections & taxonomy fix)
+**Phase 8.2**: Complete (100%) (RNA virome workflow)
+**Phase 9**: Complete (100%) (28 total collections)
+**Phase 10-12**: Complete (100%) (Long-read, hybrid, CLI, web)
+**Phase 13A**: Complete (100%) (Benchmarking metadata)
+**Realistic Contamination**: Complete (100%) (Real reference sequences)
 **Total Collections**: 28 (23 host-associated, 5 environmental)
 **Genomes**: 14,423 RefSeq viral genomes
 **Taxonomy Coverage**: 57.1% (8,241 genomes with ICTV taxonomy)
-**Tests**: 70+ passing
+**Tests**: 80+ passing
 **Literature Papers**: 10+ reviewed
 **Publication Drafts**: 0
 
@@ -28,24 +30,16 @@
 
 ## Active Status
 
-### 🚧 Phase 10 In Progress - Long-Read Sequencing Support (CURRENT)
+### Realistic Contamination Complete (CURRENT)
 
-**Status**: Core module implemented (Week 1 of 3-4)
-- ✅ PBSIM3 simulator research complete
-- ✅ Integration architecture designed
-- ✅ PacBio HiFi simulation implemented
-- ✅ Oxford Nanopore simulation implemented
-- ⏳ VLP modeling updates for long reads
-- ⏳ Integration with generate_fastq_dataset.py
-- ⏳ Testing and documentation
+**Status**: Complete (2026-03-22)
+- Real reference sequences for rRNA, host DNA, PhiX, adapters
+- Adapter read-through post-processor
+- 23 new tests, all passing
 
-**Week 1-2**: Implement core simulator module
-**Week 2-3**: Integration and VLP updates
-**Week 3-4**: Testing, documentation, tutorials
+**Latest Entry**: 20260322-001-IMPLEMENTATION (Realistic contamination)
 
-**Latest Entry**: 20251110-001-IMPLEMENTATION (Long-read simulator module)
-
-### ✅ Phase 8.2 Complete - RNA Virome Workflow
+### Phase 8.2 Complete - RNA Virome Workflow
 
 **Status**: Production Ready
 - ✅ Complete RNA virome workflow implemented
@@ -632,6 +626,29 @@
 - Create RNA workflow tutorials
 - Consider Phase 9 (additional host-associated collections)
 - Community validation and publication preparation
+
+---
+
+### 2026-03-22
+
+---
+
+#### Entry 001: Realistic Contamination Reference Sequences
+**ID**: `20260322-001-IMPLEMENTATION-realistic-contamination.md`
+**Type**: IMPLEMENTATION
+**Phase**: Post-13A Enhancement
+**Status**: Complete
+
+**Purpose**: Replace synthetic random-GC contamination with real reference sequences detectable by QC tools
+
+**Key Outcomes**:
+- Bundled real rRNA (23 sequences from NCBI), host DNA (48 T2T-CHM13v2.0 fragments), PhiX (NC_001422.1), adapters (TruSeq/Nextera)
+- Reference resolver with priority chain (user > env var > bundled > synthetic)
+- Adapter read-through post-processor
+- 23 new tests, all 60 contamination tests passing
+- Backward compatible via --no-real-contaminants flag
+
+**Commits**: feat: realistic contamination with real reference sequences
 
 ---
 

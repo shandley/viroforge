@@ -5,33 +5,73 @@
 **ViroForge** is a synthetic viral metagenomics dataset generator for benchmarking virome analysis pipelines. It generates realistic FASTQ sequencing data with known ground truth for validation.
 
 **Key Features**:
-- 23 curated viral genome collections (body sites, disease states, environmental)
+- 28 curated viral genome collections (body sites, disease states, environmental)
 - Realistic abundance distributions (log-normal, power-law)
 - Multi-step library preparation modeling (VLP extraction, amplification bias, sequencing)
 - RNA and DNA virome workflows
 - 14,423 viral genomes from RefSeq with ICTV taxonomy
+- Real reference contamination (rRNA, host DNA, PhiX, Illumina adapters)
 
 **Target Users**: Bioinformatics researchers developing/benchmarking virome analysis tools
 
 ---
 
-## Current Status (v0.6.0)
+## Current Status (v0.12.0 - Realistic Contamination Complete)
 
 ### Phases Completed
 
 - ✅ **Phase 1-5**: Core infrastructure, 8 original collections, FASTQ generation
 - ✅ **Phase 6**: Amplification bias modeling (MDA, SISPA, TruSeq)
 - ✅ **Phase 7**: Critical collections (wastewater, IBD, HIV+, CF respiratory)
-- ✅ **Phase 8.1**: RNA virome collections (respiratory, arbovirus, fecal RNA)
+- ✅ **Phase 8**: RNA virome workflow (RT, rRNA depletion, degradation)
+- ✅ **Phase 9**: Additional host niches (vaginal, blood, ocular, lung, urinary)
+- ✅ **Phase 10**: Long-read sequencing (PacBio HiFi, Oxford Nanopore)
+- ✅ **Phase 11**: Hybrid assembly support (matched short + long reads)
+- ✅ **Phase 12**: CLI enhancements & web interface
 - ✅ **Taxonomy Bug Fix**: Enhanced fuzzy matching, fixed 469 genomes
+- ✅ **Realistic Contamination**: Real reference sequences for rRNA, host DNA, PhiX, adapters
 
-### Active Development
+### Project Status: Production Ready
 
-**Phase 8.2**: RNA Workflow Components (PENDING)
-- Reverse transcription modeling
-- rRNA depletion (Ribo-Zero)
-- RNA degradation modeling
-- `--molecule-type {dna,rna}` flag
+**28 curated collections** covering:
+- Host-associated viromes (gut, oral, skin, respiratory, vaginal, blood, etc.)
+- Environmental viromes (marine, soil, freshwater, wastewater)
+- Disease states (IBD, HIV+, CF)
+- RNA viromes (respiratory, arbovirus, fecal)
+
+**5 sequencing platforms**: NovaSeq, MiSeq, HiSeq, PacBio HiFi, Oxford Nanopore
+
+**Complete CLI** with 7 commands: browse, generate, batch, report, compare, presets, web
+
+### Next Phase: Benchmarking Framework (Phase 13)
+
+**Status**: Phase 13A Complete ✅ (2025-11-11) | Phase 13B In Progress
+**Timeline**: 6-8 weeks for MVP (2 weeks elapsed)
+**Priority**: VERY HIGH
+
+### Phase 13A Complete (v0.11.0)
+
+**Delivered**:
+- ✅ Metadata version 1.1 with benchmarking support
+- ✅ Contamination manifest export
+- ✅ Expected coverage calculation per genome
+- ✅ `--enable-benchmarking` CLI flag
+- ✅ Coverage categorization (complete/high/partial/fragmented/missing)
+- ✅ Unit tests for metadata enhancements
+
+ViroForge now exports enhanced ground truth metadata that benchmarking tools (Phase 13B-D) will use to validate pipeline performance.
+
+See `docs/PHASE13A_IMPLEMENTATION_SUMMARY.md` for complete implementation details.
+
+### Next: Phase 13B-D
+
+Modular benchmarking tools for:
+- QC validation (contamination removal)
+- Assembly quality (genome recovery, completeness)
+- Taxonomy accuracy (classification)
+- And 6 more modules...
+
+See `ROADMAP.md` and `docs/PHASE13_BENCHMARKING_FRAMEWORK.md` for complete specifications.
 
 ---
 
