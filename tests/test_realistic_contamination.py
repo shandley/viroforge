@@ -675,3 +675,222 @@ class TestEntropyRange:
             parts = line.split("\t")
             entropy = float(parts[2])
             assert 0.0 <= entropy <= 2.0
+
+
+# ---------------------------------------------------------------------------
+# PCR duplicate tests
+# ---------------------------------------------------------------------------
+
+
+class TestPCRDuplicates:
+    """Test PCR duplicate injection."""
+
+    @pytest.fixture
+    def sample_fastq(self, tmp_path):
+        from Bio.SeqRecord import SeqRecord
+        from Bio.Seq import Seq
+        from Bio import SeqIO
+
+        r1_path = tmp_path / "test_R1.fastq"
+        r2_path = tmp_path / "test_R2.fastq"
+
+        rng = random.Random(42)
+        r1_records = []
+        r2_records = []
+        for i in range(100):
+            seq = "".join(rng.choice("ACGT") for _ in range(150))
+            qual = [30] * 150
+            r1 = SeqRecord(Seq(seq), id=f"read_{i}/1", description="")
+            r1.letter_annotations["phred_quality"] = qual
+            r1_records.append(r1)
+            r2 = SeqRecord(Seq(seq), id=f"read_{i}/2", description="")
+            r2.letter_annotations["phred_quality"] = qual
+            r2_records.append(r2)
+
+        SeqIO.write(r1_records, r1_path, "fastq")
+        SeqIO.write(r2_records, r2_path, "fastq")
+        return r1_path, r2_path
+
+    def test_basic_duplicate_injection(self, sample_fastq, tmp_path):
+        from viroforge.simulators.duplicates import add_pcr_duplicates
+
+        r1, r2 = sample_fastq
+        out_r1 = tmp_path / "out_R1.fastq"
+        out_r2 = tmp_path / "out_R2.fastq"
+
+        stats = add_pcr_duplicates(
+            r1, r2,
+            output_r1=out_r1,
+            output_r2=out_r2,
+            duplicate_rate=0.20,
+            random_seed=42,
+        )
+
+        assert stats["reads_original"] == 100
+        assert stats["templates"] == 20
+        assert stats["copies_generated"] > 0
+        assert stats["reads_output"] == 100 + stats["copies_generated"]
+        assert stats["duplicate_fraction"] > 0
+
+    def test_output_has_more_reads(self, sample_fastq, tmp_path):
+        from viroforge.simulators.duplicates import add_pcr_duplicates
+        from Bio import SeqIO
+
+        r1, r2 = sample_fastq
+        out_r1 = tmp_path / "out_R1.fastq"
+        out_r2 = tmp_path / "out_R2.fastq"
+
+        stats = add_pcr_duplicates(
+            r1, r2,
+            output_r1=out_r1,
+            output_r2=out_r2,
+            duplicate_rate=0.30,
+            random_seed=42,
+        )
+
+        r1_count = sum(1 for _ in SeqIO.parse(out_r1, "fastq"))
+        r2_count = sum(1 for _ in SeqIO.parse(out_r2, "fastq"))
+
+        assert r1_count == stats["reads_output"]
+        assert r1_count == r2_count
+        assert r1_count > 100
+
+    def test_duplicate_header_tags(self, sample_fastq, tmp_path):
+        from viroforge.simulators.duplicates import add_pcr_duplicates
+        from Bio import SeqIO
+
+        r1, r2 = sample_fastq
+        out_r1 = tmp_path / "out_R1.fastq"
+        out_r2 = tmp_path / "out_R2.fastq"
+
+        add_pcr_duplicates(
+            r1, r2,
+            output_r1=out_r1,
+            output_r2=out_r2,
+            duplicate_rate=0.30,
+            random_seed=42,
+        )
+
+        dup_count = 0
+        for record in SeqIO.parse(out_r1, "fastq"):
+            if "pcr_duplicate=true" in record.description:
+                dup_count += 1
+                assert "duplicate_of=" in record.description
+                assert "copy_number=" in record.description
+
+        assert dup_count > 0
+
+    def test_duplicates_share_sequence(self, sample_fastq, tmp_path):
+        """Duplicates should be near-identical to their template."""
+        from viroforge.simulators.duplicates import add_pcr_duplicates
+        from Bio import SeqIO
+
+        r1, r2 = sample_fastq
+        out_r1 = tmp_path / "out_R1.fastq"
+        out_r2 = tmp_path / "out_R2.fastq"
+
+        add_pcr_duplicates(
+            r1, r2,
+            output_r1=out_r1,
+            output_r2=out_r2,
+            duplicate_rate=0.30,
+            error_rate=0.0,  # exact duplicates
+            random_seed=42,
+        )
+
+        # Build map of read_id -> sequence
+        seqs = {}
+        for record in SeqIO.parse(out_r1, "fastq"):
+            seqs[record.id] = str(record.seq)
+
+        # Check that duplicates match their templates
+        for record in SeqIO.parse(out_r1, "fastq"):
+            if "duplicate_of=" in record.description:
+                for part in record.description.split():
+                    if part.startswith("duplicate_of="):
+                        template_id = part.split("=")[1]
+                        if template_id in seqs:
+                            assert str(record.seq) == seqs[template_id]
+
+    def test_geometric_distribution(self, sample_fastq, tmp_path):
+        from viroforge.simulators.duplicates import add_pcr_duplicates
+
+        r1, r2 = sample_fastq
+        out_r1 = tmp_path / "out_R1.fastq"
+        out_r2 = tmp_path / "out_R2.fastq"
+
+        stats = add_pcr_duplicates(
+            r1, r2,
+            output_r1=out_r1,
+            output_r2=out_r2,
+            duplicate_rate=0.50,
+            max_copies=5,
+            copy_distribution="geometric",
+            random_seed=42,
+        )
+
+        dist = stats["copy_count_distribution"]
+        # Geometric: more templates with 1 copy than with many
+        if 1 in dist and len(dist) > 1:
+            assert dist[1] >= max(dist.get(k, 0) for k in dist if k > 1)
+
+    def test_manifest_written(self, sample_fastq, tmp_path):
+        from viroforge.simulators.duplicates import add_pcr_duplicates
+
+        r1, r2 = sample_fastq
+        manifest = tmp_path / "dup_manifest.tsv"
+
+        stats = add_pcr_duplicates(
+            r1, r2,
+            duplicate_rate=0.20,
+            random_seed=42,
+            in_place=True,
+            manifest_path=manifest,
+        )
+
+        assert manifest.exists()
+        lines = manifest.read_text().strip().split("\n")
+        assert lines[0] == "template_read_id\tcopy_read_id\tcopy_number\ttotal_copies"
+        assert len(lines) - 1 == stats["copies_generated"]
+
+    def test_rate_zero_skips(self, sample_fastq):
+        from viroforge.simulators.duplicates import add_pcr_duplicates
+
+        r1, r2 = sample_fastq
+        stats = add_pcr_duplicates(r1, r2, duplicate_rate=0.0)
+        assert stats["copies_generated"] == 0
+
+    def test_pcr_errors_introduce_variation(self, sample_fastq, tmp_path):
+        from viroforge.simulators.duplicates import add_pcr_duplicates
+        from Bio import SeqIO
+
+        r1, r2 = sample_fastq
+        out_r1 = tmp_path / "out_R1.fastq"
+        out_r2 = tmp_path / "out_R2.fastq"
+
+        add_pcr_duplicates(
+            r1, r2,
+            output_r1=out_r1,
+            output_r2=out_r2,
+            duplicate_rate=0.50,
+            error_rate=0.01,  # 1% error rate for visibility
+            random_seed=42,
+        )
+
+        seqs = {}
+        for record in SeqIO.parse(out_r1, "fastq"):
+            seqs[record.id] = str(record.seq)
+
+        # At least some copies should differ from their template
+        mismatches_found = False
+        for record in SeqIO.parse(out_r1, "fastq"):
+            if "duplicate_of=" in record.description:
+                for part in record.description.split():
+                    if part.startswith("duplicate_of="):
+                        template_id = part.split("=")[1]
+                        if template_id in seqs:
+                            if str(record.seq) != seqs[template_id]:
+                                mismatches_found = True
+                                break
+
+        assert mismatches_found, "No PCR errors detected at 1% error rate"

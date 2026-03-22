@@ -1369,6 +1369,27 @@ Examples:
              '0.3-0.7). Entropy is in bits (0.0=homopolymer, 2.0=random). '
              'Useful for testing complexity filter threshold sensitivity.'
     )
+    contam_group.add_argument(
+        '--duplicate-rate',
+        type=float,
+        default=0.0,
+        help='Fraction of reads that become PCR duplicate templates (0.0-1.0, '
+             'default: 0.0). Set to 0.10-0.30 for typical PCR duplicate rates. '
+             'Each template gets 1-5 copies (geometric distribution).'
+    )
+    contam_group.add_argument(
+        '--duplicate-max-copies',
+        type=int,
+        default=5,
+        help='Maximum copies per PCR duplicate template (default: 5).'
+    )
+    contam_group.add_argument(
+        '--duplicate-error-rate',
+        type=float,
+        default=0.001,
+        help='Per-base substitution rate in PCR copies (default: 0.001). '
+             'Models PCR polymerase errors. Set to 0 for exact duplicates.'
+    )
 
     args = parser.parse_args()
 
@@ -1780,6 +1801,47 @@ Examples:
                 with open(mf, "w") as f:
                     json.dump(metadata, f, indent=2)
                 logger.info(f"Adapter stats saved to {mf}")
+
+        # Post-process: inject PCR duplicates
+        if args.duplicate_rate > 0:
+            from viroforge.simulators.duplicates import add_pcr_duplicates
+
+            dup_manifest = generator.metadata_dir / f"{collection_name}_duplicate_manifest.tsv"
+            dup_stats = add_pcr_duplicates(
+                r1_path=r1_path,
+                r2_path=r2_path,
+                duplicate_rate=args.duplicate_rate,
+                max_copies=args.duplicate_max_copies,
+                error_rate=args.duplicate_error_rate,
+                random_seed=args.seed,
+                in_place=True,
+                manifest_path=dup_manifest,
+            )
+            logger.info(
+                f"PCR duplicates: {dup_stats['copies_generated']} copies from "
+                f"{dup_stats['templates']} templates "
+                f"({dup_stats['duplicate_fraction']:.1%} duplicate fraction)"
+            )
+
+            # Append to metadata JSON
+            import glob as _glob2
+            for mf in _glob2.glob(str(generator.metadata_dir / "*_metadata.json")):
+                with open(mf) as f:
+                    metadata = json.load(f)
+                metadata["duplicate_stats"] = {
+                    "duplicate_rate": args.duplicate_rate,
+                    "max_copies": args.duplicate_max_copies,
+                    "error_rate": args.duplicate_error_rate,
+                    "reads_original": dup_stats["reads_original"],
+                    "reads_output": dup_stats["reads_output"],
+                    "templates": dup_stats["templates"],
+                    "copies_generated": dup_stats["copies_generated"],
+                    "duplicate_fraction": dup_stats["duplicate_fraction"],
+                    "copy_count_distribution": dup_stats["copy_count_distribution"],
+                    "manifest_file": str(dup_manifest),
+                }
+                with open(mf, "w") as f:
+                    json.dump(metadata, f, indent=2)
 
     # Format output message
     if is_long_read:
