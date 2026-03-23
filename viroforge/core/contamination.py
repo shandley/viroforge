@@ -41,6 +41,8 @@ class ContaminantType(Enum):
     RRNA = "rrna"
     REAGENT_BACTERIA = "reagent_bacteria"
     PHIX = "phix"
+    ERV_ENDOGENOUS = "erv_endogenous"
+    ERV_EXOGENOUS = "erv_exogenous"
     OTHER = "other"
 
 
@@ -817,6 +819,179 @@ def add_phix_control(
     )
 
     profile.add_contaminant(contaminant)
+
+    return profile
+
+
+def add_erv_endogenous(
+    profile: ContaminationProfile,
+    abundance_pct: float = 0.5,
+    herv_fasta_path: Optional[Path] = None,
+    n_sequences: int = 10,
+    random_seed: Optional[int] = None,
+) -> ContaminationProfile:
+    """Add endogenous retroviral (ERV) sequences to a contamination profile.
+
+    Models polymorphic ERV insertions not present in the host reference
+    genome. These are degraded ancient retroviral sequences with CpG
+    depletion, frameshifted ORFs, and accumulated mutations.
+
+    Source: HERV consensus sequences from Dfam or user-provided FASTA.
+
+    Args:
+        profile: ContaminationProfile to add ERVs to.
+        abundance_pct: Percentage of total abundance (0-100).
+        herv_fasta_path: Path to HERV consensus FASTA. Falls back to
+            bundled references or synthetic if not provided.
+        n_sequences: Number of ERV sequences to sample.
+        random_seed: Random seed for reproducibility.
+
+    Returns:
+        Updated ContaminationProfile.
+    """
+    from viroforge.data.references.resolver import _resolve
+
+    if random_seed is not None:
+        random.seed(random_seed)
+
+    logger.info(f"Adding {abundance_pct}% endogenous retroviral (ERV) contamination")
+
+    abundance_per_seq = (abundance_pct / 100.0) / n_sequences
+
+    # Try to resolve HERV FASTA
+    resolved_path = herv_fasta_path
+    if resolved_path is None:
+        resolved_path = _resolve(
+            None, "VIROFORGE_HERV_DB", "herv_consensus.fasta", "HERV consensus"
+        )
+
+    if resolved_path is not None and resolved_path.exists():
+        logger.info(f"Sampling endogenous ERVs from {resolved_path}")
+        records = list(SeqIO.parse(resolved_path, "fasta"))
+
+        if len(records) >= n_sequences:
+            sampled = random.sample(records, n_sequences)
+        else:
+            sampled = random.choices(records, k=n_sequences)
+
+        for i, record in enumerate(sampled):
+            # Parse family from record ID if available (e.g., HERV-K, HERV-W)
+            family = record.id.split("_")[0] if "_" in record.id else record.id
+
+            contaminant = ContaminantGenome(
+                genome_id=f"erv_endogenous_{i:04d}",
+                sequence=record.seq,
+                contaminant_type=ContaminantType.ERV_ENDOGENOUS,
+                organism=f"HERV {family}",
+                source="Dfam_HERV_consensus",
+                abundance=abundance_per_seq,
+                description=f"Endogenous retrovirus {record.description}",
+            )
+            profile.add_contaminant(contaminant)
+    else:
+        logger.warning(
+            "No HERV consensus FASTA available. Provide --herv-fasta or set "
+            "VIROFORGE_HERV_DB. Skipping endogenous ERV injection."
+        )
+
+    return profile
+
+
+def add_erv_exogenous(
+    profile: ContaminationProfile,
+    abundance_pct: float = 0.2,
+    db_path: Optional[Path] = None,
+    virus_names: Optional[List[str]] = None,
+    n_sequences: int = 5,
+    random_seed: Optional[int] = None,
+) -> ContaminationProfile:
+    """Add exogenous retroviral sequences to a contamination profile.
+
+    Models active retroviral infections with intact genomes. Sources
+    sequences from the ViroForge database (Retroviridae family).
+
+    Args:
+        profile: ContaminationProfile to add retroviruses to.
+        abundance_pct: Percentage of total abundance (0-100).
+        db_path: Path to ViroForge SQLite database. If None, uses default.
+        virus_names: Specific virus name patterns to select (e.g.,
+            ["Human immunodeficiency virus", "Primate T-lymphotropic"]).
+            If None, randomly samples from all Retroviridae.
+        n_sequences: Number of retroviral genomes to include.
+        random_seed: Random seed for reproducibility.
+
+    Returns:
+        Updated ContaminationProfile.
+    """
+    import sqlite3
+
+    if random_seed is not None:
+        random.seed(random_seed)
+
+    logger.info(f"Adding {abundance_pct}% exogenous retroviral contamination")
+
+    abundance_per_seq = (abundance_pct / 100.0) / n_sequences
+
+    # Find the database
+    if db_path is None:
+        db_path = Path(__file__).parent.parent / "data" / "viral_genomes.db"
+
+    if not db_path.exists():
+        logger.warning(f"ViroForge database not found at {db_path}. Skipping exogenous ERV injection.")
+        return profile
+
+    conn = sqlite3.connect(db_path)
+
+    if virus_names:
+        # Query specific viruses
+        placeholders = " OR ".join(
+            f"g.genome_name LIKE ?" for _ in virus_names
+        )
+        patterns = [f"%{name}%" for name in virus_names]
+        query = f"""
+            SELECT g.genome_id, g.genome_name, g.sequence, t.genus
+            FROM genomes g
+            JOIN taxonomy t ON g.genome_id = t.genome_id
+            WHERE t.family = 'Retroviridae' AND ({placeholders})
+        """
+        rows = conn.execute(query, patterns).fetchall()
+    else:
+        # Sample from all Retroviridae (prefer lentiviruses and gammaretroviruses)
+        query = """
+            SELECT g.genome_id, g.genome_name, g.sequence, t.genus
+            FROM genomes g
+            JOIN taxonomy t ON g.genome_id = t.genome_id
+            WHERE t.family = 'Retroviridae'
+              AND g.genome_name NOT LIKE '%endogenous%'
+        """
+        rows = conn.execute(query).fetchall()
+
+    conn.close()
+
+    if not rows:
+        logger.warning("No Retroviridae found in database. Skipping exogenous ERV injection.")
+        return profile
+
+    # Sample from available retroviruses
+    if len(rows) >= n_sequences:
+        selected = random.sample(rows, n_sequences)
+    else:
+        selected = random.choices(rows, k=n_sequences)
+
+    for i, (genome_id, genome_name, sequence, genus) in enumerate(selected):
+        # Extract a short virus name for the tag
+        virus_short = genome_name.split(",")[0].strip()
+
+        contaminant = ContaminantGenome(
+            genome_id=f"erv_exogenous_{genome_id}_{i:04d}",
+            sequence=sequence,
+            contaminant_type=ContaminantType.ERV_EXOGENOUS,
+            organism=virus_short,
+            source=f"RefSeq_{genome_id}",
+            abundance=abundance_per_seq,
+            description=f"Exogenous retrovirus: {virus_short} ({genus})",
+        )
+        profile.add_contaminant(contaminant)
 
     return profile
 

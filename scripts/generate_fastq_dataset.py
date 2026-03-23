@@ -1391,6 +1391,41 @@ Examples:
              'Models PCR polymerase errors. Set to 0 for exact duplicates.'
     )
 
+    # ERV injection options
+    erv_group = parser.add_argument_group('retroviral read injection')
+    erv_group.add_argument(
+        '--erv-endogenous-rate',
+        type=float,
+        default=0.0,
+        help='Abundance fraction for endogenous retroviral reads (0.0-1.0, '
+             'default: 0.0). Models polymorphic ERV insertions from HERV '
+             'consensus sequences. Requires --herv-fasta or VIROFORGE_HERV_DB.'
+    )
+    erv_group.add_argument(
+        '--erv-exogenous-rate',
+        type=float,
+        default=0.0,
+        help='Abundance fraction for exogenous retroviral reads (0.0-1.0, '
+             'default: 0.0). Models active retroviral infections from '
+             'Retroviridae in the ViroForge database (44 genomes).'
+    )
+    erv_group.add_argument(
+        '--herv-fasta',
+        type=str,
+        default=None,
+        help='Path to HERV consensus FASTA for endogenous ERV injection. '
+             'Can also be set via VIROFORGE_HERV_DB environment variable.'
+    )
+    erv_group.add_argument(
+        '--erv-exogenous-viruses',
+        type=str,
+        nargs='+',
+        default=None,
+        help='Specific exogenous retroviruses to include (name patterns). '
+             'Default: random sample from all non-endogenous Retroviridae. '
+             'Example: --erv-exogenous-viruses "Human immunodeficiency" "Primate T-lymphotropic"'
+    )
+
     args = parser.parse_args()
 
     # Load collections
@@ -1472,6 +1507,60 @@ Examples:
         read_type=read_type,
         use_real_references=use_real,
     )
+
+    # Add ERV sequences (before ISS, so they get realistic error profiles)
+    if args.erv_endogenous_rate > 0 or args.erv_exogenous_rate > 0:
+        from viroforge.core.contamination import (
+            add_erv_endogenous,
+            add_erv_exogenous,
+            ContaminationProfile as _CP,
+        )
+
+        # Create a temporary profile for ERV contaminants
+        erv_profile = _CP(name="erv_injection")
+
+        if args.erv_endogenous_rate > 0:
+            herv_path = Path(args.herv_fasta) if args.herv_fasta else None
+            add_erv_endogenous(
+                erv_profile,
+                abundance_pct=args.erv_endogenous_rate * 100,
+                herv_fasta_path=herv_path,
+                random_seed=args.seed,
+            )
+
+        if args.erv_exogenous_rate > 0:
+            add_erv_exogenous(
+                erv_profile,
+                abundance_pct=args.erv_exogenous_rate * 100,
+                db_path=Path(args.database),
+                virus_names=args.erv_exogenous_viruses,
+                random_seed=args.seed,
+            )
+
+        if erv_profile.contaminants:
+            # Add ERV sequences to the combined sequence/abundance lists
+            for contaminant in erv_profile.contaminants:
+                erv_record = SeqRecord(
+                    Seq(str(contaminant.sequence)),
+                    id=contaminant.genome_id,
+                    description=contaminant.description,
+                )
+                sequences.append(erv_record)
+                abundances.append(contaminant.abundance)
+
+                # Also add to the main contamination profile for metadata
+                if contamination_profile is not None:
+                    contamination_profile.add_contaminant(contaminant)
+
+            # Renormalize abundances
+            total = sum(abundances)
+            abundances = [a / total for a in abundances]
+
+            logger.info(
+                f"Added {len(erv_profile.contaminants)} ERV sequences "
+                f"({sum(1 for c in erv_profile.contaminants if c.contaminant_type.value == 'erv_endogenous')} endogenous, "
+                f"{sum(1 for c in erv_profile.contaminants if c.contaminant_type.value == 'erv_exogenous')} exogenous)"
+            )
 
     # Apply amplification bias
     abundances, amplification_stats = generator.apply_amplification(

@@ -894,3 +894,111 @@ class TestPCRDuplicates:
                                 break
 
         assert mismatches_found, "No PCR errors detected at 1% error rate"
+
+
+# ---------------------------------------------------------------------------
+# ERV injection tests
+# ---------------------------------------------------------------------------
+
+
+class TestERVInjection:
+    """Test endogenous and exogenous retroviral read injection."""
+
+    def test_erv_exogenous_from_database(self):
+        from viroforge.core.contamination import add_erv_exogenous
+
+        profile = ContaminationProfile()
+        add_erv_exogenous(
+            profile,
+            abundance_pct=0.5,
+            n_sequences=3,
+            random_seed=42,
+        )
+
+        erv = [c for c in profile.contaminants
+               if c.contaminant_type.value == "erv_exogenous"]
+        assert len(erv) == 3
+
+        for c in erv:
+            assert c.source.startswith("RefSeq_")
+            assert len(str(c.sequence)) > 1000  # retroviruses are > 1 kb
+
+    def test_erv_exogenous_specific_viruses(self):
+        from viroforge.core.contamination import add_erv_exogenous
+
+        profile = ContaminationProfile()
+        add_erv_exogenous(
+            profile,
+            abundance_pct=0.5,
+            virus_names=["Human immunodeficiency virus"],
+            n_sequences=2,
+            random_seed=42,
+        )
+
+        erv = [c for c in profile.contaminants
+               if c.contaminant_type.value == "erv_exogenous"]
+        assert len(erv) == 2
+
+        for c in erv:
+            assert "immunodeficiency" in c.organism.lower()
+
+    def test_erv_endogenous_without_fasta_warns(self):
+        """Without HERV FASTA, endogenous injection should warn and skip."""
+        from viroforge.core.contamination import add_erv_endogenous
+        import os
+
+        # Clear env var if set
+        old_val = os.environ.pop("VIROFORGE_HERV_DB", None)
+        try:
+            profile = ContaminationProfile()
+            add_erv_endogenous(
+                profile,
+                abundance_pct=0.5,
+                random_seed=42,
+            )
+
+            # Should have 0 contaminants (no HERV FASTA available)
+            erv = [c for c in profile.contaminants
+                   if c.contaminant_type.value == "erv_endogenous"]
+            assert len(erv) == 0
+        finally:
+            if old_val is not None:
+                os.environ["VIROFORGE_HERV_DB"] = old_val
+
+    def test_erv_endogenous_with_fasta(self, tmp_path):
+        """With a HERV FASTA, endogenous injection should work."""
+        from viroforge.core.contamination import add_erv_endogenous
+
+        # Create a fake HERV FASTA
+        herv_fasta = tmp_path / "herv_test.fasta"
+        herv_fasta.write_text(
+            ">HERVK_1 HERV-K family consensus\n"
+            + "ACGTACGT" * 100 + "\n"
+            + ">HERVW_2 HERV-W family consensus\n"
+            + "GCTAGCTA" * 100 + "\n"
+            + ">HERVH_3 HERV-H family consensus\n"
+            + "TGATCATG" * 100 + "\n"
+        )
+
+        profile = ContaminationProfile()
+        add_erv_endogenous(
+            profile,
+            abundance_pct=0.5,
+            herv_fasta_path=herv_fasta,
+            n_sequences=3,
+            random_seed=42,
+        )
+
+        erv = [c for c in profile.contaminants
+               if c.contaminant_type.value == "erv_endogenous"]
+        assert len(erv) == 3
+
+        for c in erv:
+            assert c.source == "Dfam_HERV_consensus"
+
+    def test_erv_contamination_types(self):
+        """ERV types should be distinct from other contamination types."""
+        from viroforge.core.contamination import ContaminantType
+
+        assert ContaminantType.ERV_ENDOGENOUS.value == "erv_endogenous"
+        assert ContaminantType.ERV_EXOGENOUS.value == "erv_exogenous"
