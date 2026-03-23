@@ -2,13 +2,13 @@
 
 **Project**: ViroForge - Synthetic Virome Data Generator
 **Started**: January 30, 2025
-**Last Updated**: March 22, 2026
+**Last Updated**: March 23, 2026
 
 ---
 
 ## Quick Stats
 
-**Total Entries**: 12
+**Total Entries**: 13
 **Phase 1**: Complete (100%)
 **Phase 2**: Complete (100%)
 **Phase 3**: Complete (100%)
@@ -649,6 +649,25 @@
 - Backward compatible via --no-real-contaminants flag
 
 **Commits**: feat: realistic contamination with real reference sequences
+
+---
+
+### 2026-03-23
+
+---
+
+#### Entry 001: Bug Fixes from virome-qc Reference Dataset Generation
+**ID**: `20260323-001-BUGFIX-rna-crash-cli-flags.md`
+**Type**: BUGFIX
+**Status**: Complete
+
+**Purpose**: Fix blocking RNA crash, cosmetic viral fraction bug, and expose missing CLI flags
+
+**Key Outcomes**:
+- Fixed RNA template switching crash (rng.choice on inhomogeneous SeqRecord list)
+- Fixed viral fraction reported as 100% when --no-vlp (computed before contamination)
+- Exposed --contamination-level, --vlp-protocol, --no-vlp, --molecule-type, --rna-depletion, --adapter-rate, --low-complexity-rate, --duplicate-rate in viroforge generate CLI
+- Bundled herv_consensus.fasta (55 HERV families, 319 KB)
 
 ---
 

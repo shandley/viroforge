@@ -373,12 +373,17 @@ class FASTQGenerator:
                 contam_profile
             )
 
+            # Compute fractions from combined (normalized) abundances
+            total_abundance = sum(abundances)
+            viral_total = sum(abundances[:len(viral_sequences)])
+            contam_total = sum(abundances[len(viral_sequences):])
+
             stats = {
                 'molecule_type': self.molecule_type,
                 'vlp_protocol': 'none',
                 'contamination_level': contamination_level,
-                'viral_fraction': float(viral_abundances.sum()),
-                'contamination_fraction': float(contam_profile.get_total_abundance()),
+                'viral_fraction': float(viral_total / total_abundance) if total_abundance > 0 else 0.0,
+                'contamination_fraction': float(contam_total / total_abundance) if total_abundance > 0 else 0.0,
                 'n_viral_genomes': len(viral_sequences),
                 'n_contaminants': len(contam_profile),
                 'rna_workflow': rna_workflow_stats if rna_workflow_stats else None

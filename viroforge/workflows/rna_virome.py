@@ -207,7 +207,7 @@ class ReverseTranscription:
             # Apply template switching with probability
             if self.rng.random() < self.template_switching_rate:
                 # Create chimeric sequence by joining with another random sequence
-                other_seq = self.rng.choice(sequences)
+                other_seq = sequences[self.rng.integers(len(sequences))]
 
                 # Find switching point (usually in first half of sequence)
                 switch_point = self.rng.integers(

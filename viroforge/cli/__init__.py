@@ -46,7 +46,7 @@ For more information: https://github.com/hecatomb/viroforge
     parser.add_argument(
         '--version',
         action='version',
-        version='ViroForge 0.10.0 (Phase 12: CLI Enhancements)'
+        version='ViroForge 0.11.0 (Phase 13A: Benchmarking Metadata)'
     )
 
     # Create subparsers for subcommands
@@ -111,6 +111,46 @@ For more information: https://github.com/hecatomb/viroforge
         '--seed',
         type=int,
         help='Random seed for reproducibility'
+    )
+    generate_parser.add_argument(
+        '--contamination-level',
+        choices=['clean', 'realistic', 'heavy'],
+        help='Contamination level (default: realistic)'
+    )
+    generate_parser.add_argument(
+        '--vlp-protocol',
+        choices=['tangential_flow', 'syringe', 'ultracentrifugation', 'norgen'],
+        help='VLP enrichment protocol (default: tangential_flow)'
+    )
+    generate_parser.add_argument(
+        '--no-vlp',
+        action='store_true',
+        help='Skip VLP enrichment (bulk metagenome)'
+    )
+    generate_parser.add_argument(
+        '--molecule-type',
+        choices=['dna', 'rna'],
+        help='Molecule type (default: dna)'
+    )
+    generate_parser.add_argument(
+        '--rna-depletion',
+        choices=['ribo_zero', 'ribominus', 'none'],
+        help='rRNA depletion method for RNA viromes (default: ribo_zero)'
+    )
+    generate_parser.add_argument(
+        '--adapter-rate',
+        type=float,
+        help='Adapter read-through rate (e.g., 0.05)'
+    )
+    generate_parser.add_argument(
+        '--low-complexity-rate',
+        type=float,
+        help='Low-complexity artifact rate (e.g., 0.01)'
+    )
+    generate_parser.add_argument(
+        '--duplicate-rate',
+        type=float,
+        help='PCR duplicate rate (e.g., 0.30)'
     )
     generate_parser.add_argument(
         '-v', '--verbose',

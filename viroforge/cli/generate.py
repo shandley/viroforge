@@ -122,6 +122,28 @@ def generate_with_params(args):
     if args.seed is not None:
         params['seed'] = args.seed
 
+    # Contamination and VLP
+    if getattr(args, 'contamination_level', None):
+        params['contamination_level'] = args.contamination_level
+    if getattr(args, 'vlp_protocol', None):
+        params['vlp_protocol'] = args.vlp_protocol
+    if getattr(args, 'no_vlp', False):
+        params['no_vlp'] = True
+
+    # Molecule type and RNA options
+    if getattr(args, 'molecule_type', None):
+        params['molecule_type'] = args.molecule_type
+    if getattr(args, 'rna_depletion', None):
+        params['rna_depletion'] = args.rna_depletion
+
+    # Artifact injection
+    if getattr(args, 'adapter_rate', None):
+        params['adapter_rate'] = args.adapter_rate
+    if getattr(args, 'low_complexity_rate', None):
+        params['low_complexity_rate'] = args.low_complexity_rate
+    if getattr(args, 'duplicate_rate', None):
+        params['duplicate_rate'] = args.duplicate_rate
+
     console.print()
     console.print("[bold cyan]Generating dataset with custom parameters[/bold cyan]")
     console.print()
@@ -331,6 +353,16 @@ def build_command(script_path: Path, params: Dict) -> List[str]:
 
     if 'ont_read_length' in params:
         cmd.extend(['--ont-read-length', str(params['ont_read_length'])])
+
+    # Artifact injection
+    if 'adapter_rate' in params:
+        cmd.extend(['--adapter-rate', str(params['adapter_rate'])])
+
+    if 'low_complexity_rate' in params:
+        cmd.extend(['--low-complexity-rate', str(params['low_complexity_rate'])])
+
+    if 'duplicate_rate' in params:
+        cmd.extend(['--duplicate-rate', str(params['duplicate_rate'])])
 
     # Random seed
     if 'seed' in params:

@@ -942,28 +942,23 @@ class TestERVInjection:
         for c in erv:
             assert "immunodeficiency" in c.organism.lower()
 
-    def test_erv_endogenous_without_fasta_warns(self):
-        """Without HERV FASTA, endogenous injection should warn and skip."""
+    def test_erv_endogenous_uses_bundled_herv(self):
+        """With bundled HERV FASTA, endogenous injection should work automatically."""
         from viroforge.core.contamination import add_erv_endogenous
-        import os
 
-        # Clear env var if set
-        old_val = os.environ.pop("VIROFORGE_HERV_DB", None)
-        try:
-            profile = ContaminationProfile()
-            add_erv_endogenous(
-                profile,
-                abundance_pct=0.5,
-                random_seed=42,
-            )
+        profile = ContaminationProfile()
+        add_erv_endogenous(
+            profile,
+            abundance_pct=0.5,
+            n_sequences=5,
+            random_seed=42,
+        )
 
-            # Should have 0 contaminants (no HERV FASTA available)
-            erv = [c for c in profile.contaminants
-                   if c.contaminant_type.value == "erv_endogenous"]
-            assert len(erv) == 0
-        finally:
-            if old_val is not None:
-                os.environ["VIROFORGE_HERV_DB"] = old_val
+        erv = [c for c in profile.contaminants
+               if c.contaminant_type.value == "erv_endogenous"]
+        assert len(erv) == 5
+        for c in erv:
+            assert c.source == "Dfam_HERV_consensus"
 
     def test_erv_endogenous_with_fasta(self, tmp_path):
         """With a HERV FASTA, endogenous injection should work."""
