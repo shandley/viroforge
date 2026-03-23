@@ -11,7 +11,9 @@ ViroForge creates realistic FASTQ sequencing data from curated viral genome coll
 - 5 sequencing platforms (NovaSeq, MiSeq, HiSeq, PacBio HiFi, Oxford Nanopore)
 - DNA and RNA virome workflows
 - VLP enrichment modeling (5 protocols)
-- Real reference contamination sequences (rRNA, host DNA, PhiX, adapters)
+- Real reference contamination (rRNA, host DNA, PhiX, adapters)
+- Per-read source labels for exact classification metrics
+- Sequencing artifact injection (adapters, low-complexity, PCR duplicates, ERVs)
 - Complete ground truth metadata for every dataset
 
 ## Installation
@@ -151,7 +153,7 @@ viroforge web
 
 | ID | Collection | Genomes | Notes |
 |----|-----------|---------|-------|
-| 1 | Healthy Human Gut | 134 | Western diet, adult |
+| 1 | Healthy Human Gut | 133 | Western diet, adult |
 | 2 | Healthy Human Skin | 42 | Sebaceous sites |
 | 3 | Healthy Human Oral | 67 | Saliva |
 | 4 | Healthy Human Urogenital | 31 | Vaginal virome |
@@ -166,7 +168,7 @@ viroforge web
 
 | ID | Collection | Genomes | Notes |
 |----|-----------|---------|-------|
-| 18 | IBD Gut | 90 | Inflammatory bowel disease |
+| 18 | IBD Gut | 89 | Inflammatory bowel disease |
 | 19 | HIV+ Gut | 55 | Includes herpesviruses |
 | 20 | CF Respiratory | 81 | Cystic fibrosis lung |
 
@@ -177,7 +179,7 @@ viroforge web
 | 6 | Marine | 78 | Coastal surface water |
 | 7 | Soil | 82 | Agricultural |
 | 8 | Freshwater | 71 | Lake surface water |
-| 17 | Wastewater | 352 | Epidemiological surveillance |
+| 17 | Wastewater | 351 | Epidemiological surveillance |
 
 ### RNA viromes
 
@@ -215,11 +217,11 @@ ViroForge models complete RNA virome library preparation:
 
 Use `--molecule-type rna` with `--rna-depletion ribo_zero` to enable the full RNA workflow.
 
-## Contamination modeling
+## Contamination and artifact modeling
 
 ViroForge generates contamination reads from real reference sequences, making them detectable by standard QC tools (SortMeRNA, fastp, BBDuk, Kraken2).
 
-**Bundled references (used by default):**
+### Bundled references (used by default)
 
 | Type | Source | Size |
 |------|--------|------|
@@ -228,17 +230,49 @@ ViroForge generates contamination reads from real reference sequences, making th
 | PhiX174 | NC_001422.1 | 5.4 KB |
 | Adapters | TruSeq and Nextera (11 sequences) | <1 KB |
 
-**Adapter read-through** can be added to simulate insert-size-dependent adapter contamination:
+### Per-read source labels
 
-```bash
-python scripts/generate_fastq_dataset.py \
-    --collection-id 9 \
-    --output data/gut \
-    --adapter-rate 0.05 \
-    --adapter-type truseq
+Every read header is tagged with its source type for exact classification metrics:
+
+```
+@GCF_015160975.1_0_0/1 source=viral
+@host_human_0042_0_0/1 source=host_dna
+@rrna_0003_0_0/1 source=rrna
+@NC_001422.1_PhiX174_0_0/1 source=phix
 ```
 
-**Override references** with your own databases:
+### Sequencing artifacts
+
+All artifact injectors are opt-in, tag modified read headers for ground truth tracking, and write manifest TSV files for validation.
+
+**Adapter read-through** models insert-size-dependent adapter contamination at 3' ends:
+
+```bash
+--adapter-rate 0.05 --adapter-type truseq
+```
+
+**Low-complexity artifacts** models homopolymer runs, dinucleotide repeats, simple repeats, and low-entropy sequences from adapter dimers and PCR failures:
+
+```bash
+--low-complexity-rate 0.01
+```
+
+Use `--entropy-range 0.3-0.7` to generate reads with controlled intermediate entropy for complexity filter threshold testing.
+
+**PCR duplicates** models template amplification with geometric copy distribution and optional PCR error rate:
+
+```bash
+--duplicate-rate 0.30 --duplicate-max-copies 5 --duplicate-error-rate 0.001
+```
+
+**Retroviral reads** models both endogenous (degraded HERV) and exogenous (active infection) retroviral sequences, generated through ISS for realistic error profiles:
+
+```bash
+--erv-endogenous-rate 0.005 --herv-fasta /path/to/herv_consensus.fasta
+--erv-exogenous-rate 0.002
+```
+
+### Override references
 
 ```bash
 --host-genome /path/to/GRCh38.fasta
@@ -261,6 +295,9 @@ output/
     metadata.json             # Ground truth (composition, taxonomy, workflow stats)
     composition.tsv           # Abundance table
     abundances.txt            # InSilicoSeq abundance file
+    *_adapter_manifest.tsv    # Adapter-injected read IDs (if --adapter-rate)
+    *_low_complexity_manifest.tsv  # Low-complexity read IDs (if --low-complexity-rate)
+    *_duplicate_manifest.tsv  # PCR duplicate mappings (if --duplicate-rate)
 ```
 
 ## Requirements
@@ -285,7 +322,7 @@ pytest tests/ -v
   author = {Handley, Scott and contributors},
   year = {2025},
   url = {https://github.com/shandley/viroforge},
-  version = {0.11.0}
+  version = {0.12.0}
 }
 ```
 

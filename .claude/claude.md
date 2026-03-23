@@ -11,12 +11,14 @@
 - RNA and DNA virome workflows
 - 14,423 viral genomes from RefSeq with ICTV taxonomy
 - Real reference contamination (rRNA, host DNA, PhiX, Illumina adapters)
+- Sequencing artifact injection (adapters, low-complexity, PCR duplicates, ERVs)
+- Per-read ground truth labels for exact QC validation metrics
 
 **Target Users**: Bioinformatics researchers developing/benchmarking virome analysis tools
 
 ---
 
-## Current Status (v0.12.0 - Realistic Contamination Complete)
+## Current Status (v0.12.0 - QC Validation Toolkit Complete)
 
 ### Phases Completed
 
@@ -29,7 +31,14 @@
 - ✅ **Phase 11**: Hybrid assembly support (matched short + long reads)
 - ✅ **Phase 12**: CLI enhancements & web interface
 - ✅ **Taxonomy Bug Fix**: Enhanced fuzzy matching, fixed 469 genomes
-- ✅ **Realistic Contamination**: Real reference sequences for rRNA, host DNA, PhiX, adapters
+- ✅ **QC Validation Toolkit** (2026-03-22):
+  - Real reference contamination (rRNA, host DNA, PhiX, adapters)
+  - Per-read source labels in FASTQ headers
+  - Adapter read-through injection with normal insert size distribution
+  - Low-complexity artifact injection with controlled entropy spectrum
+  - PCR duplicate injection with geometric copy distribution
+  - Retroviral read injection (endogenous HERV + exogenous Retroviridae)
+  - PhiX174 curation fix (removed lab phage from 8 collections)
 
 ### Project Status: Production Ready
 
@@ -145,7 +154,7 @@ viroforge/data/viral_genomes.db
 ## Collections Overview (23 Total)
 
 ### Original Collections (1-8)
-1. Healthy Human Gut Virome (134 genomes)
+1. Healthy Human Gut Virome (133 genomes)
 2. Healthy Human Skin Virome (42 genomes)
 3. Healthy Human Oral Virome (67 genomes)
 4. Healthy Human Urogenital Virome (31 genomes)
@@ -155,7 +164,7 @@ viroforge/data/viral_genomes.db
 8. Freshwater Virome (71 genomes)
 
 ### VLP Comparison Collections (9-15)
-9. Healthy Gut (Comparison baseline) (134 genomes)
+9. Healthy Gut (Comparison baseline) (133 genomes)
 10. High Bacterial Lysis (142 genomes)
 11. Low Bacterial Lysis (128 genomes)
 12. High Prophage Induction (149 genomes)
@@ -167,8 +176,8 @@ viroforge/data/viral_genomes.db
 16. Pre-Amplification Control (100 genomes)
 
 ### Critical Disease/Environmental Collections (17-20) - **FIXED AFTER TAXONOMY BUG**
-17. Wastewater Virome (352 genomes) - Now includes rotavirus
-18. IBD Gut Virome (90 genomes)
+17. Wastewater Virome (351 genomes) - Now includes rotavirus
+18. IBD Gut Virome (89 genomes)
 19. HIV+ Gut Virome (55 genomes) - **CRITICAL FIX**: Now has herpesviruses
 20. CF Respiratory Virome (81 genomes) - Now has all 10 influenza
 

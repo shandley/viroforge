@@ -2,7 +2,7 @@
 
 **Last Updated**: 2026-03-22
 **Current Version**: v0.12.0
-**Status**: Realistic Contamination Complete - Ready for Phase 13B
+**Status**: QC Validation Toolkit Complete - Ready for Phase 13B
 
 ---
 
@@ -17,6 +17,8 @@ ViroForge is a comprehensive mock metavirome data generator for benchmarking vir
 - DNA and RNA virome workflows (RT, rRNA depletion, degradation)
 - VLP enrichment modeling (5 protocols)
 - Real reference contamination (rRNA from NCBI, host DNA from T2T, PhiX NC_001422.1, Illumina adapters)
+- Per-read source labels (source=viral/host_dna/rrna/phix/reagent/erv_endogenous/erv_exogenous)
+- Sequencing artifact injection (adapter read-through, low-complexity, PCR duplicates, ERVs)
 - Complete ground truth metadata for validation (v1.1)
 
 ---
@@ -34,22 +36,37 @@ Metadata enhancements (2025-11-11):
 - HTML report format implemented
 - HTML comparison format implemented
 
-**Realistic Contamination Enhancement - COMPLETE (2026-03-22)**
+**QC Validation Toolkit - COMPLETE (2026-03-22)**
 
-Contamination sequences now use real reference data instead of synthetic random sequences:
+Real reference contamination, sequencing artifact injection, and per-read ground truth labeling for QC pipeline validation.
+
+Contamination realism:
 - rRNA: 23 real sequences from NCBI RefSeq (E. coli, human, gut bacteria 16S/18S/23S/28S)
 - Host DNA: 48 fragments from T2T-CHM13v2.0 human genome (all chromosomes, 10 kb each)
 - PhiX174: Real NC_001422.1 genome (5,386 bp)
 - Adapters: TruSeq and Nextera Illumina adapter sequences (11 sequences)
-- Adapter read-through: Post-processing to inject adapter contamination at 3' ends
+- PhiX curation fix: GCF_000819615.1 removed from 8 collections (lab phage, not natural)
+
+Sequencing artifact modules:
+- Adapter read-through (`--adapter-rate`, `--adapter-type`): Normal insert size distribution, header tags, manifest TSV
+- Low-complexity artifacts (`--low-complexity-rate`): Homopolymers, dinucleotide repeats, simple repeats, low-entropy
+- Controlled entropy (`--entropy-range 0.3-0.7`): Gray-zone reads for complexity filter threshold testing
+- PCR duplicates (`--duplicate-rate`): Geometric copy distribution, PCR error modeling, paired-end consistency
+- Retroviral reads (`--erv-endogenous-rate`, `--erv-exogenous-rate`): Endogenous HERV + exogenous Retroviridae
+
+Per-read ground truth:
+- Source labels on all FASTQ headers (`source=viral/host_dna/rrna/phix/reagent/erv_*`)
+- Adapter, low-complexity, and duplicate manifest TSV files
+- All artifact stats saved to metadata JSON
 
 Key files:
 - `viroforge/data/references/` - Bundled reference FASTA files (~528 KB total)
 - `viroforge/data/references/resolver.py` - Auto-discovers references (user > env var > bundled > synthetic)
 - `viroforge/simulators/adapters.py` - Adapter read-through post-processor
+- `viroforge/simulators/low_complexity.py` - Low-complexity artifact injector with entropy control
+- `viroforge/simulators/duplicates.py` - PCR duplicate injector
+- `viroforge/core/contamination.py` - ERV contamination types (endogenous + exogenous)
 - `scripts/curate_reference_sequences.py` - Provenance script for regenerating references
-
-New CLI args: `--adapter-rate`, `--adapter-type`, `--host-genome`, `--rrna-database`, `--no-real-contaminants`
 
 **Phase 12: CLI & Web Enhancements - COMPLETE**
 
@@ -113,6 +130,8 @@ viroforge web                 # Launch web interface
 - `viroforge/simulators/longread.py` - PacBio HiFi and Nanopore simulator (850+ lines)
 - `viroforge/simulators/illumina.py` - Short-read simulator wrapper
 - `viroforge/simulators/adapters.py` - Adapter read-through post-processor
+- `viroforge/simulators/low_complexity.py` - Low-complexity artifact injector with entropy control
+- `viroforge/simulators/duplicates.py` - PCR duplicate injector
 - `viroforge/workflows/rna_virome.py` - RNA workflow (RT, rRNA depletion, degradation)
 - `viroforge/vlp_enrichment.py` - VLP protocol modeling
 
