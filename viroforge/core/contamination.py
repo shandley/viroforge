@@ -1129,7 +1129,8 @@ def add_host_rna_contamination(
     rrna_fraction: float = 0.95,
     transcriptome_path: Optional[Path] = None,
     n_transcripts: int = 100,
-    random_seed: Optional[int] = None
+    random_seed: Optional[int] = None,
+    use_real_references: bool = True,
 ) -> ContaminationProfile:
     """
     Add host RNA contamination to a profile (for RNA viromes).
@@ -1214,61 +1215,85 @@ def add_host_rna_contamination(
     n_rrna = 20  # Fewer rRNA sequences (most removed by Ribo-Zero)
     abundance_per_rrna = (rrna_abundance_after / 100.0) / n_rrna
 
-    rrna_lengths = {
-        '18S': 1800,
-        '28S': 3400,
-        '5.8S': 160,
-        '5S': 121
-    }
+    # Try to use real rRNA references
+    rrna_records = None
+    if use_real_references:
+        from viroforge.data.references.resolver import get_rrna_path
+        rrna_path = get_rrna_path()
+        if rrna_path is not None and rrna_path.exists():
+            all_rrna = list(SeqIO.parse(rrna_path, 'fasta'))
+            # Filter for host-relevant rRNA (human 18S/28S/5.8S/5S)
+            host_keyword = 'Homo_sapiens' if host_organism.lower() == 'human' else 'Mus_musculus'
+            host_rrna = [r for r in all_rrna if host_keyword in r.id]
+            # Fall back to all rRNA if no host-specific ones found
+            rrna_records = host_rrna if host_rrna else all_rrna
 
-    for gene in organism_info['rrna_genes']:
-        for i in range(n_rrna // len(organism_info['rrna_genes'])):
-            length = rrna_lengths.get(gene, 2000)
-            seq = _generate_sequence_with_gc(length, 55.0)  # rRNA is GC-rich
-
+    if rrna_records:
+        sampled = random.choices(rrna_records, k=n_rrna)
+        for i, record in enumerate(sampled):
             contaminant = ContaminantGenome(
-                genome_id=f"host_rna_rrna_{gene}_{i:04d}",
-                sequence=seq,
+                genome_id=f"host_rna_rrna_{i:04d}",
+                sequence=record.seq,
                 contaminant_type=ContaminantType.RRNA,
                 organism=organism_info['organism'],
-                source=f"{organism_info['source']}_{gene}_rRNA",
+                source="NCBI_RefSeq_rRNA",
                 abundance=abundance_per_rrna,
-                description=f"Host {gene} rRNA (post-Ribo-Zero)"
+                description=f"Host rRNA (post-Ribo-Zero) {record.id}"
             )
             profile.add_contaminant(contaminant)
+    else:
+        rrna_lengths = {
+            '18S': 1800, '28S': 3400, '5.8S': 160, '5S': 121
+        }
+        for gene in organism_info['rrna_genes']:
+            for i in range(n_rrna // len(organism_info['rrna_genes'])):
+                length = rrna_lengths.get(gene, 2000)
+                seq = _generate_sequence_with_gc(length, 55.0)
+                contaminant = ContaminantGenome(
+                    genome_id=f"host_rna_rrna_{gene}_{i:04d}",
+                    sequence=seq,
+                    contaminant_type=ContaminantType.RRNA,
+                    organism=organism_info['organism'],
+                    source=f"{organism_info['source']}_{gene}_rRNA_synthetic",
+                    abundance=abundance_per_rrna,
+                    description=f"Synthetic host {gene} rRNA (post-Ribo-Zero)"
+                )
+                profile.add_contaminant(contaminant)
 
     # Add mRNA transcripts (unchanged by Ribo-Zero)
     abundance_per_mrna = (mrna_abundance_after / 100.0) / n_transcripts
 
+    # Try real host fragments for mRNA (genomic DNA as proxy for cDNA)
+    host_records = None
     if transcriptome_path is not None and transcriptome_path.exists():
-        # Sample from actual transcriptome
         logger.info(f"Sampling host mRNA from {transcriptome_path}")
-        records = list(SeqIO.parse(transcriptome_path, 'fasta'))
-        sampled_records = random.sample(records, min(n_transcripts, len(records)))
+        host_records = list(SeqIO.parse(transcriptome_path, 'fasta'))
+    elif use_real_references:
+        from viroforge.data.references.resolver import get_host_fragments_path
+        fragments_path = get_host_fragments_path()
+        if fragments_path is not None and fragments_path.exists():
+            host_records = list(SeqIO.parse(fragments_path, 'fasta'))
 
-        for i, record in enumerate(sampled_records):
+    if host_records:
+        sampled = random.choices(host_records, k=n_transcripts)
+        for i, record in enumerate(sampled):
             contaminant = ContaminantGenome(
                 genome_id=f"host_rna_mrna_{i:04d}",
                 sequence=record.seq,
-                contaminant_type=ContaminantType.HOST_DNA,  # Reuse HOST_DNA type for RNA
+                contaminant_type=ContaminantType.HOST_DNA,
                 organism=organism_info['organism'],
-                source=organism_info['source'],
+                source=f"{organism_info['source']}_{record.id}",
                 abundance=abundance_per_mrna,
-                description=f"Host mRNA transcript: {record.id}"
+                description=f"Host mRNA/cDNA from {record.id}"
             )
             profile.add_contaminant(contaminant)
     else:
-        # Create synthetic mRNA transcripts
-        logger.info("No transcriptome path provided, creating synthetic mRNA transcripts")
-
+        logger.info("No host reference available, creating synthetic mRNA transcripts")
         for i in range(n_transcripts):
-            # mRNA transcript lengths: 500-5000 bp (excluding UTRs)
             length = int(rng.uniform(500, 5000))
             gc_content = rng.normal(organism_info['gc_content'], 5.0)
             gc_content = np.clip(gc_content, 30.0, 60.0)
-
             seq = _generate_sequence_with_gc(length, gc_content)
-
             contaminant = ContaminantGenome(
                 genome_id=f"host_rna_mrna_{i:04d}",
                 sequence=seq,
@@ -1276,7 +1301,7 @@ def add_host_rna_contamination(
                 organism=organism_info['organism'],
                 source=organism_info['source'],
                 abundance=abundance_per_mrna,
-                description=f"Host mRNA transcript {i}"
+                description=f"Synthetic host mRNA transcript {i}"
             )
             profile.add_contaminant(contaminant)
 
@@ -1289,7 +1314,8 @@ def add_bacterial_rna_contamination(
     rrna_fraction: float = 0.80,
     microbiome_type: str = "gut",
     n_transcripts: int = 50,
-    random_seed: Optional[int] = None
+    random_seed: Optional[int] = None,
+    use_real_references: bool = True,
 ) -> ContaminationProfile:
     """
     Add bacterial RNA contamination (for RNA viromes from microbiome samples).
@@ -1354,27 +1380,50 @@ def add_bacterial_rna_contamination(
     n_rrna = 30
     abundance_per_rrna = (rrna_abundance / 100.0) / n_rrna
 
-    for i in range(n_rrna):
-        genus = random.choice(taxa)
-        rrna_type = random.choice(['16S', '23S'])
-        length = 1500 if rrna_type == '16S' else 2900
+    # Try to use real bacterial rRNA references
+    bact_rrna_records = None
+    if use_real_references:
+        from viroforge.data.references.resolver import get_rrna_path
+        rrna_path = get_rrna_path()
+        if rrna_path is not None and rrna_path.exists():
+            all_rrna = list(SeqIO.parse(rrna_path, 'fasta'))
+            # Filter for bacterial 16S/23S (exclude Homo_sapiens, Mus_musculus)
+            bact_rrna_records = [
+                r for r in all_rrna
+                if 'Homo_sapiens' not in r.id and 'Mus_musculus' not in r.id
+            ]
 
-        # Bacterial rRNA is GC-rich
-        gc_content = rng.normal(55.0, 5.0)
-        gc_content = np.clip(gc_content, 45.0, 65.0)
-
-        seq = _generate_sequence_with_gc(length, gc_content)
-
-        contaminant = ContaminantGenome(
-            genome_id=f"bacterial_rna_rrna_{genus}_{rrna_type}_{i:04d}",
-            sequence=seq,
-            contaminant_type=ContaminantType.RRNA,
-            organism=f"{genus} sp.",
-            source=f"{microbiome_type}_microbiome",
-            abundance=abundance_per_rrna,
-            description=f"Bacterial {rrna_type} rRNA from {genus}"
-        )
-        profile.add_contaminant(contaminant)
+    if bact_rrna_records:
+        sampled = random.choices(bact_rrna_records, k=n_rrna)
+        for i, record in enumerate(sampled):
+            contaminant = ContaminantGenome(
+                genome_id=f"bacterial_rna_rrna_{i:04d}",
+                sequence=record.seq,
+                contaminant_type=ContaminantType.RRNA,
+                organism=record.id.replace("_", " ").split(" 16S")[0].split(" 23S")[0],
+                source="NCBI_RefSeq_rRNA",
+                abundance=abundance_per_rrna,
+                description=f"Bacterial rRNA {record.id}"
+            )
+            profile.add_contaminant(contaminant)
+    else:
+        for i in range(n_rrna):
+            genus = random.choice(taxa)
+            rrna_type = random.choice(['16S', '23S'])
+            length = 1500 if rrna_type == '16S' else 2900
+            gc_content = rng.normal(55.0, 5.0)
+            gc_content = np.clip(gc_content, 45.0, 65.0)
+            seq = _generate_sequence_with_gc(length, gc_content)
+            contaminant = ContaminantGenome(
+                genome_id=f"bacterial_rna_rrna_{genus}_{rrna_type}_{i:04d}",
+                sequence=seq,
+                contaminant_type=ContaminantType.RRNA,
+                organism=f"{genus} sp.",
+                source=f"{microbiome_type}_microbiome_synthetic",
+                abundance=abundance_per_rrna,
+                description=f"Synthetic bacterial {rrna_type} rRNA from {genus}"
+            )
+            profile.add_contaminant(contaminant)
 
     # Add bacterial mRNA transcripts
     abundance_per_mrna = (mrna_abundance / 100.0) / n_transcripts
@@ -1514,7 +1563,8 @@ def create_rna_contamination_profile(
         host_organism=kwargs.get('host_organism', 'human'),
         abundance_pct_before_depletion=host_rna_before,
         abundance_pct_after_depletion=host_rna_after,
-        random_seed=random_seed
+        random_seed=random_seed,
+        use_real_references=use_real_references,
     )
 
     # Add bacterial RNA if microbiome-rich sample
@@ -1523,7 +1573,8 @@ def create_rna_contamination_profile(
             profile,
             abundance_pct=bacterial_rna,
             microbiome_type=kwargs.get('microbiome_type', 'gut'),
-            random_seed=random_seed
+            random_seed=random_seed,
+            use_real_references=use_real_references,
         )
 
     # Add reagent contamination (same as DNA)
