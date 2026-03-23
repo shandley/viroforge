@@ -743,9 +743,9 @@ def infer_virus_type_from_taxonomy(
         >>> print(virus_type)
         RNAVirusType.SSRNA_NEGATIVE
     """
-    family = taxonomy.get('family', '').lower()
-    genus = taxonomy.get('genus', '').lower()
-    genome_name = taxonomy.get('genome_name', '').lower()
+    family = (taxonomy.get('family') or '').lower()
+    genus = (taxonomy.get('genus') or '').lower()
+    genome_name = (taxonomy.get('genome_name') or '').lower()
 
     # ssRNA- (negative sense) families
     ssrna_negative_families = [
