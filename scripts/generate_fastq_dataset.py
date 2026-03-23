@@ -343,7 +343,30 @@ class FASTQGenerator:
                 rrna_abundance_before=0.90  # 90% rRNA before Ribo-Zero
             )
 
-            logger.info("RNA workflow complete")
+            # Resync abundances with modified sequence list.
+            # RNA workflow can fragment (add) and drop (remove) sequences.
+            # Map each surviving sequence back to its parent genome's abundance.
+            original_abundance_map = {}
+            for genome in genomes:
+                original_abundance_map[genome['genome_id']] = genome['relative_abundance']
+
+            new_abundances = []
+            for seq_record in viral_sequences:
+                # Fragments have IDs like "GCF_xxx_frag0"; strip suffix to find parent
+                parent_id = seq_record.id.split('_frag')[0]
+                parent_abundance = original_abundance_map.get(parent_id, 0.0)
+                new_abundances.append(parent_abundance)
+
+            # Renormalize
+            viral_abundances = np.array(new_abundances)
+            total = viral_abundances.sum()
+            if total > 0:
+                viral_abundances = viral_abundances / total
+
+            logger.info(
+                f"RNA workflow complete: {len(viral_sequences)} sequences "
+                f"(was {len(genomes)})"
+            )
             logger.info("=" * 80)
 
         # If no VLP protocol specified, return viral genomes only
