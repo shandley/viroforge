@@ -175,49 +175,40 @@ class TestNanoporeConfig:
 class TestDependencyChecks:
     """Test dependency checking functions."""
 
-    @patch('shutil.which')
-    def test_pbsim3_installed(self, mock_which):
+    @patch('subprocess.run')
+    def test_pbsim3_installed(self, mock_run):
         """Test PBSIM3 installation check when installed."""
-        mock_which.return_value = '/usr/bin/pbsim'
+        mock_run.return_value = Mock(returncode=0)
 
         assert check_pbsim3_installed() is True
-        mock_which.assert_called_with('pbsim')
 
-    @patch('shutil.which')
-    def test_pbsim3_not_installed(self, mock_which):
+    @patch('subprocess.run', side_effect=FileNotFoundError)
+    def test_pbsim3_not_installed(self, mock_run):
         """Test PBSIM3 installation check when not installed."""
-        mock_which.return_value = None
-
         assert check_pbsim3_installed() is False
 
-    @patch('shutil.which')
-    def test_pbccs_installed(self, mock_which):
+    @patch('subprocess.run')
+    def test_pbccs_installed(self, mock_run):
         """Test PacBio ccs installation check when installed."""
-        mock_which.return_value = '/usr/bin/ccs'
+        mock_run.return_value = Mock(returncode=0)
 
         assert check_pbccs_installed() is True
-        mock_which.assert_called_with('ccs')
 
-    @patch('shutil.which')
-    def test_pbccs_not_installed(self, mock_which):
+    @patch('subprocess.run', side_effect=FileNotFoundError)
+    def test_pbccs_not_installed(self, mock_run):
         """Test PacBio ccs installation check when not installed."""
-        mock_which.return_value = None
-
         assert check_pbccs_installed() is False
 
-    @patch('shutil.which')
-    def test_samtools_installed(self, mock_which):
+    @patch('subprocess.run')
+    def test_samtools_installed(self, mock_run):
         """Test SAMtools installation check when installed."""
-        mock_which.return_value = '/usr/bin/samtools'
+        mock_run.return_value = Mock(returncode=0)
 
         assert check_samtools_installed() is True
-        mock_which.assert_called_with('samtools')
 
-    @patch('shutil.which')
-    def test_samtools_not_installed(self, mock_which):
+    @patch('subprocess.run', side_effect=FileNotFoundError)
+    def test_samtools_not_installed(self, mock_run):
         """Test SAMtools installation check when not installed."""
-        mock_which.return_value = None
-
         assert check_samtools_installed() is False
 
 

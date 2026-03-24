@@ -149,37 +149,39 @@ viroforge web
 
 ## Collections
 
+Use `viroforge browse` or `--list-collections` to see all available collections with descriptions.
+
 ### Host-associated
 
 | ID | Collection | Genomes | Notes |
 |----|-----------|---------|-------|
-| 1 | Healthy Human Gut | 133 | Western diet, adult |
-| 2 | Healthy Human Skin | 42 | Sebaceous sites |
-| 3 | Healthy Human Oral | 67 | Saliva |
-| 4 | Healthy Human Urogenital | 31 | Vaginal virome |
-| 5 | Healthy Human Respiratory | 58 | Nasopharynx |
-| 24 | Vaginal (Healthy) | 26 | Women's health |
-| 25 | Blood/Plasma (Healthy) | 21 | Viremia, blood safety |
-| 26 | Ocular Surface (Healthy) | 17 | Ophthalmology |
+| 9 | Gut Virome (Healthy) | 133 | Western diet, adult |
+| 10 | Oral Virome (Healthy) | 46 | Saliva |
+| 11 | Skin Virome (Healthy) | 15 | Sebaceous sites |
+| 12 | Respiratory Virome (Healthy) | 40 | Nasopharynx |
+| 16 | Mouse Gut Virome | 21 | Laboratory C57BL/6 |
+| 24 | Vaginal Virome (Healthy) | 26 | Women's health |
+| 25 | Blood/Plasma Virome (Healthy) | 21 | Viremia, blood safety |
+| 26 | Ocular Surface Virome (Healthy) | 17 | Ophthalmology |
 | 27 | Lower Respiratory/Lung (Healthy) | 31 | Pneumonia, transplant |
-| 28 | Urinary (Healthy) | 20 | Kidney transplant |
+| 28 | Urinary Virome (Healthy) | 20 | Kidney transplant |
 
 ### Disease states
 
 | ID | Collection | Genomes | Notes |
 |----|-----------|---------|-------|
-| 18 | IBD Gut | 89 | Inflammatory bowel disease |
-| 19 | HIV+ Gut | 55 | Includes herpesviruses |
-| 20 | CF Respiratory | 81 | Cystic fibrosis lung |
+| 18 | IBD Gut Virome | 89 | Inflammatory bowel disease |
+| 19 | HIV+ Gut Virome | 55 | Includes herpesviruses |
+| 20 | CF Respiratory Virome | 81 | Cystic fibrosis lung |
 
 ### Environmental
 
 | ID | Collection | Genomes | Notes |
 |----|-----------|---------|-------|
-| 6 | Marine | 78 | Coastal surface water |
-| 7 | Soil | 82 | Agricultural |
-| 8 | Freshwater | 71 | Lake surface water |
-| 17 | Wastewater | 351 | Epidemiological surveillance |
+| 13 | Marine Virome | 446 | Coastal surface water |
+| 14 | Soil Virome | 290 | Agricultural |
+| 15 | Freshwater Virome | 200 | Lake surface water |
+| 17 | Wastewater Virome | 351 | Epidemiological surveillance |
 
 ### RNA viromes
 
@@ -188,14 +190,6 @@ viroforge web
 | 21 | Human Respiratory RNA | 56 | Influenza, RSV, coronaviruses |
 | 22 | Arbovirus Environmental | 39 | Flaviviruses, alphaviruses |
 | 23 | Fecal RNA | 58 | Rotavirus, norovirus |
-
-### VLP protocol comparisons (9-15)
-
-Collections 9-15 provide matched compositions under different VLP enrichment conditions (baseline, high/low bacterial lysis, prophage induction, eukaryotic virus shedding).
-
-### Amplification control (16)
-
-Collection 16 is a pre-amplification control for method comparisons (100 genomes).
 
 ## VLP enrichment protocols
 

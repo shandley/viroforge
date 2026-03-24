@@ -134,3 +134,16 @@ temp/
 *.pickle
 ground_truth_*.tsv
 qc_metrics_*.json
+
+# Generated figures (paper/grant work)
+Figure*.pdf
+Figure*.png
+
+# Temp test files
+test_html_fix.py
+
+# Project config
+PROJECT.yaml
+
+# Generated data directories
+data/gut_virome/

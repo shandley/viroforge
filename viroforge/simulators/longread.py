@@ -194,6 +194,20 @@ def check_pbccs_installed() -> bool:
         return False
 
 
+def check_samtools_installed() -> bool:
+    """Check if samtools is installed (required for BAM conversion in HiFi simulation)."""
+    try:
+        result = subprocess.run(
+            ['samtools', '--version'],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        return result.returncode == 0
+    except (subprocess.SubprocessError, FileNotFoundError):
+        return False
+
+
 def _write_genome_fasta(composition, output_path: Path) -> Dict[str, str]:
     """
     Write all genomes to a multi-FASTA file for PBSIM3.
