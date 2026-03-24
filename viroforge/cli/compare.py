@@ -56,8 +56,19 @@ def run_compare(args):
     elif args.format == 'json':
         show_json_comparison(metadata_list, args.export)
     elif args.format == 'html':
-        console.print("[yellow]HTML format not yet implemented[/yellow]")
-        return 1
+        output_path = show_html_comparison(metadata_list, args.export)
+        if output_path:
+            console.print(f"[green]✓ HTML comparison generated: {output_path}[/green]")
+            # Try to open in browser
+            try:
+                import webbrowser
+                webbrowser.open(f'file://{output_path.absolute()}')
+                console.print("[dim]Opening in browser...[/dim]")
+            except:
+                console.print(f"[dim]Open in browser: file://{output_path.absolute()}[/dim]")
+        else:
+            console.print("[red]Failed to generate HTML comparison[/red]")
+            return 1
 
     return 0
 
@@ -258,3 +269,287 @@ def show_json_comparison(metadata_list: List[Dict], export_path: Optional[str]):
         console.print(f"[green]Comparison exported to {export_path}[/green]")
     else:
         console.print(json.dumps(comparison, indent=2))
+
+
+def show_html_comparison(metadata_list: List[Dict], export_path: Optional[str]) -> Optional[Path]:
+    """Generate HTML comparison report."""
+    # Determine output path
+    if export_path:
+        output_path = Path(export_path)
+    else:
+        output_path = Path("viroforge_comparison.html")
+
+    # Generate HTML
+    html_content = generate_html_comparison_content(metadata_list)
+
+    try:
+        with open(output_path, 'w') as f:
+            f.write(html_content)
+        return output_path
+    except Exception as e:
+        console.print(f"[red]Error writing HTML comparison: {e}[/red]")
+        return None
+
+
+def generate_html_comparison_content(metadata_list: List[Dict]) -> str:
+    """Generate HTML comparison content."""
+    # Build comparison table
+    table_rows = ""
+    for metadata in metadata_list:
+        name = metadata.get('_name', 'Unknown')
+        collection = metadata.get('collection', {})
+        coll_name = collection.get('name', 'N/A')
+        coll_id = collection.get('id', '')
+
+        # Get platform from configuration (v1.1 structure)
+        config = metadata.get('configuration', {})
+        plat_name = config.get('platform', 'N/A').upper()
+
+        coverage = config.get('coverage') or config.get('target_coverage')
+        depth = config.get('depth') or config.get('target_depth')
+        cov_str = f"{coverage}x" if coverage else f"{depth}x" if depth else 'N/A'
+
+        # Get stats from enrichment_stats (v1.1 structure)
+        enrichment = metadata.get('enrichment_stats', {})
+        n_genomes = enrichment.get('n_viral_genomes', collection.get('n_viral_genomes', 'N/A'))
+
+        viral_frac = enrichment.get('viral_fraction')
+        viral_str = f"{viral_frac*100:.1f}%" if viral_frac is not None else 'N/A'
+
+        seed = metadata.get('generation_info', {}).get('random_seed', 'N/A')
+
+        table_rows += f"""
+        <tr>
+            <td><strong>{name}</strong></td>
+            <td>{coll_name}<br><small class="text-muted">ID: {coll_id}</small></td>
+            <td><span class="badge bg-info">{plat_name}</span></td>
+            <td>{cov_str}</td>
+            <td>{n_genomes}</td>
+            <td>{viral_str}</td>
+            <td><code>{seed}</code></td>
+        </tr>
+        """
+
+    # Check consistency
+    collection_ids = set(m.get('collection', {}).get('id') for m in metadata_list if m.get('collection', {}).get('id'))
+    seeds = set(m.get('generation_info', {}).get('random_seed') for m in metadata_list if m.get('generation_info'))
+    # Get platforms from configuration (v1.1 structure)
+    platforms = set(m.get('configuration', {}).get('platform') for m in metadata_list if m.get('configuration', {}).get('platform'))
+
+    # Remove None values
+    collection_ids.discard(None)
+    seeds.discard(None)
+    platforms.discard(None)
+
+    # Consistency checks
+    consistency_html = ""
+
+    if len(collection_ids) == 1:
+        consistency_html += '<div class="alert alert-success"><strong>✓</strong> All datasets from same collection</div>'
+    elif len(collection_ids) > 1:
+        consistency_html += f'<div class="alert alert-warning"><strong>⚠</strong> Datasets from {len(collection_ids)} different collections</div>'
+
+    if len(seeds) == 1:
+        consistency_html += f'<div class="alert alert-success"><strong>✓</strong> Same random seed ({list(seeds)[0]})</div>'
+    elif len(seeds) > 1:
+        consistency_html += f'<div class="alert alert-warning"><strong>⚠</strong> Different random seeds: {sorted(seeds)}</div>'
+
+    # Recommendations
+    recommendations_html = ""
+
+    # Technology comparison
+    if len(collection_ids) == 1 and len(seeds) == 1 and len(platforms) > 1:
+        recommendations_html += """
+        <div class="alert alert-success">
+            <h5>✓ Suitable for Technology/Platform Comparison</h5>
+            <ul>
+                <li>Same collection and seed ensures identical genome composition</li>
+                <li>Multiple platforms enable direct performance comparison</li>
+                <li>Ideal for benchmarking sequencing technologies</li>
+            </ul>
+        </div>
+        """
+
+    # Multi-collection comparison
+    elif len(collection_ids) > 1:
+        recommendations_html += """
+        <div class="alert alert-info">
+            <h5>ℹ Multi-Collection Comparison</h5>
+            <ul>
+                <li>Compare virome characteristics across different environments</li>
+                <li>Note: Different genomes, so assembly metrics not directly comparable</li>
+                <li>Useful for ecosystem or disease state comparisons</li>
+            </ul>
+        </div>
+        """
+
+    # Same platform comparison
+    elif len(platforms) == 1:
+        recommendations_html += """
+        <div class="alert alert-info">
+            <h5>ℹ Same-Platform Comparison</h5>
+            <ul>
+                <li>Useful for testing different parameters</li>
+                <li>Compare VLP protocols, coverage levels, or amplification methods</li>
+            </ul>
+        </div>
+        """
+
+    # Hybrid assembly check
+    has_short = any(m.get('platform', {}).get('name', m.get('configuration', {}).get('platform')) in ['novaseq', 'miseq', 'hiseq'] for m in metadata_list)
+    has_long = any(m.get('platform', {}).get('name', m.get('configuration', {}).get('platform')) in ['pacbio-hifi', 'nanopore'] for m in metadata_list)
+
+    if has_short and has_long and len(collection_ids) == 1 and len(seeds) == 1:
+        recommendations_html += """
+        <div class="alert alert-success">
+            <h5>✓ Suitable for Hybrid Assembly!</h5>
+            <ul>
+                <li>Short + long reads with matched compositions</li>
+                <li>Recommended assemblers: Unicycler, SPAdes hybrid mode, MaSuRCA</li>
+                <li>Enables validation of hybrid assembly strategies</li>
+            </ul>
+        </div>
+        """
+
+    # Platform comparison chart
+    platform_chart_html = ""
+    if platforms:
+        platform_counts = {}
+        for metadata in metadata_list:
+            plat = metadata.get('platform', {}).get('name', metadata.get('configuration', {}).get('platform', 'unknown'))
+            platform_counts[plat] = platform_counts.get(plat, 0) + 1
+
+        platform_rows = ""
+        for plat, count in sorted(platform_counts.items()):
+            bar_width = (count / len(metadata_list)) * 100
+            platform_rows += f"""
+            <tr>
+                <td><span class="badge bg-info">{plat.upper()}</span></td>
+                <td>{count} dataset(s)</td>
+                <td>
+                    <div class="progress" style="height: 20px;">
+                        <div class="progress-bar bg-info" role="progressbar"
+                             style="width: {bar_width}%">{count}</div>
+                    </div>
+                </td>
+            </tr>
+            """
+
+        platform_chart_html = f"""
+        <div class="card mb-4">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">Platform Distribution</h5>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th style="width: 30%;">Platform</th>
+                            <th style="width: 20%;">Count</th>
+                            <th style="width: 50%;">Visual</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {platform_rows}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        """
+
+    # Build HTML
+    html = f"""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ViroForge Dataset Comparison</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {{ background-color: #f8f9fa; }}
+        .comparison-header {{
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }}
+        .card {{ margin-bottom: 1.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }}
+        .card-header {{ font-weight: bold; }}
+        .progress {{ background-color: #e9ecef; }}
+    </style>
+</head>
+<body>
+    <div class="comparison-header">
+        <div class="container">
+            <h1><i class="bi bi-file-earmark-diff"></i> ViroForge Dataset Comparison</h1>
+            <h3>Comparing {len(metadata_list)} Datasets</h3>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Comparison Table -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Dataset Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Dataset</th>
+                                <th>Collection</th>
+                                <th>Platform</th>
+                                <th>Coverage/Depth</th>
+                                <th>Genomes</th>
+                                <th>Viral%</th>
+                                <th>Seed</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {table_rows}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Consistency Checks -->
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Consistency Checks</h5>
+            </div>
+            <div class="card-body">
+                {consistency_html if consistency_html else '<p class="text-muted">No consistency issues detected</p>'}
+            </div>
+        </div>
+
+        <!-- Platform Chart -->
+        {platform_chart_html}
+
+        <!-- Recommendations -->
+        {f'''
+        <div class="card mb-4">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">Recommendations</h5>
+            </div>
+            <div class="card-body">
+                {recommendations_html}
+            </div>
+        </div>
+        ''' if recommendations_html else ''}
+
+        <!-- Footer -->
+        <div class="text-center text-muted mt-4 mb-4">
+            <p>Generated by ViroForge 0.11.0</p>
+            <p><small>Synthetic Virome Data Generator | <a href="https://github.com/hecatomb/viroforge">github.com/hecatomb/viroforge</a></small></p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+    """
+
+    return html

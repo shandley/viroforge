@@ -6,26 +6,27 @@
 
 ---
 
-## Current Status (v0.9.0)
+## Current Status (v0.10.0)
 
-**Phase 10 Complete** - Long-Read Sequencing Support 🎉
+**Phase 12 Complete** - CLI Enhancements & Production Ready 🎉
 
-✅ 14,423 RefSeq viral genomes with ICTV taxonomy
-✅ 28 curated collections (23 host-associated, 5 environmental)
+✅ 14,423 RefSeq viral genomes with ICTV taxonomy (57.1% ICTV coverage)
+✅ 28 curated collections (host-associated, environmental, disease states)
 ✅ **5 sequencing platforms** - NovaSeq, MiSeq, HiSeq, PacBio HiFi, Oxford Nanopore
 ✅ **Long-read simulation** - PBSIM3-based PacBio HiFi and Nanopore
-✅ VLP enrichment adapted for long reads (60% size bias reduction)
+✅ **Hybrid assembly support** - Matched short + long read datasets
+✅ VLP enrichment (5 protocols) adapted for long reads
 ✅ RNA virome workflow with reverse transcription and rRNA depletion
-✅ 3 RNA virus collections (respiratory, arbovirus, fecal)
-✅ Wastewater virome for epidemiological surveillance
-✅ Disease state collections (IBD, HIV+, CF)
-✅ 5 VLP enrichment protocols with size-based filtration
-✅ Type-specific contamination reduction
 ✅ Amplification bias modeling (RdAB, MDA, Linker amplification)
-✅ Progressive dysbiosis modeling (Healthy → IBD → HIV+)
+✅ **Complete CLI** - browse, generate, batch, report, compare, presets
+✅ **Web interface** - Bootstrap 5 UI with RESTful API
+✅ **Configuration presets** - 8 built-in presets for common use cases
+✅ **Batch generation** - YAML-based parameter sweeps
 ✅ Complete ground truth tracking for all platforms
 ✅ Comprehensive documentation with literature validation
 ✅ 80+ comprehensive tests
+
+**Next Phase: Benchmarking Framework** - Transform ViroForge from data generator to complete validation platform
 
 ---
 
@@ -285,122 +286,400 @@
 
 ---
 
-### **PHASE 11: Temporal Dynamics**
+### **PHASE 11: Hybrid Assembly Support**
 
-**Timeline**: 2-3 weeks
-**Status**: 📋 Planned (Future)
+**Timeline**: 1 week
+**Status**: ✅ Complete
 
 #### Objectives
-- Enable longitudinal study generation
-- Model temporal variation in viral communities
-- Support perturbation-recovery studies
-
-#### Framework Design
-
-**Temporal Models**:
-1. **Infant Gut Development**: Birth → 2 years
-2. **Antibiotic Perturbation**: Pre → during → recovery
-3. **Seasonal Variation**: Environmental viromes over 12 months
-4. **Infection Dynamics**: Acute infection → resolution
-5. **Diet Change**: Baseline → intervention → new steady state
+- ✅ Enable matched short + long read dataset generation
+- ✅ Support hybrid assemblers (Unicycler, SPAdes hybrid, MaSuRCA)
+- ✅ Provide composition validation utilities
 
 #### Tasks
-- [ ] Create TemporalSeries class
-- [ ] Implement turnover modeling
-  - Virus appearance/disappearance
-  - Colonization/extinction dynamics
-- [ ] Implement abundance dynamics
-  - Bloom-bust cycles
-  - Gradual shifts
-  - Stable vs transient viruses
-- [ ] Add `--timeseries` flag with predefined trajectories
-- [ ] Create visualization tools for temporal data
-- [ ] Add temporal validation datasets
-- [ ] Create temporal tutorial
+- [x] Create `generate_hybrid_dataset.py` convenience script
+- [x] Ensure identical composition across short and long reads
+- [x] Add `validate_hybrid_composition.py` validation utility
+- [x] Create comprehensive tutorial (`docs/HYBRID_ASSEMBLY_TUTORIAL.md`)
+- [x] Add hybrid preset (`hybrid-standard`)
+- [x] Document supported hybrid assemblers
 
 #### Deliverables
-- Temporal framework
-- 5 predefined temporal trajectories
-- Tutorial: "Generating Longitudinal Virome Studies"
+- ✅ Hybrid dataset generation with matched compositions
+- ✅ Validation utilities for composition verification
+- ✅ Tutorial: "Hybrid Assembly with ViroForge"
+- ✅ Example workflows for Unicycler, SPAdes, MaSuRCA
+
+#### Key Files
+- `scripts/generate_hybrid_dataset.py` - Convenience wrapper
+- `scripts/validate_hybrid_composition.py` - Composition validator
+- `docs/HYBRID_ASSEMBLY_TUTORIAL.md` - Complete user guide
+- `viroforge/presets/hybrid-standard.yaml` - Hybrid preset
 
 #### Impact
-- **MEDIUM-HIGH**: Enables longitudinal study design
-- **Effort**: MEDIUM (complex modeling)
-- **Users**: Microbiome researchers, intervention studies
+- **HIGH**: Superior assemblies from hybrid approaches
+- **Effort**: LOW (leverages existing infrastructure)
+- **Users**: Assembly researchers, complete genome reconstruction
 
 ---
 
-### **PHASE 12: Additional Animal Models**
+### **PHASE 12: CLI Enhancements & Web Interface**
 
-**Timeline**: 2-3 weeks
-**Status**: 📋 Planned (Future)
+**Timeline**: 3 days (distributed across 3 subphases)
+**Status**: ✅ Complete
 
-#### Collections to Add
+#### Objectives
+- ✅ Create unified CLI interface with subcommands
+- ✅ Add interactive collection browser
+- ✅ Implement configuration preset system
+- ✅ Build batch generation framework
+- ✅ Add dataset reporting and comparison tools
+- ✅ Create modern web interface
 
-**Collection 29: Zebrafish Gut Virome**
-- **Size**: 15-25 genomes
-- **Literature**: Melancon et al. 2017
-- **Impact**: Development biology, genetics
+#### Subphases
 
-**Collection 30: Pig Gut Virome**
-- **Size**: 60-80 genomes
-- **Literature**: Shan et al. 2011
-- **Impact**: Agricultural, translational research
+**Phase 12.1: Full Generate Command** (Day 1)
+- [x] Preset-based generation system (8 built-in presets)
+- [x] Real-time progress bars via rich.progress
+- [x] Parameter override system
+- [x] Verbose mode for debugging
 
-**Collection 31: Chicken Gut Virome**
-- **Size**: 40-60 genomes
-- **Literature**: Day et al. 2010
-- **Impact**: Poultry industry, food safety
+**Phase 12.2: Batch Generation & Reporting** (Day 2)
+- [x] YAML-based batch configuration
+- [x] Parameter sweep support (cartesian product expansion)
+- [x] Sequential and parallel execution modes
+- [x] Dataset quality reporting (`viroforge report`)
+- [x] Intelligent dataset comparison (`viroforge compare`)
+- [x] 5 example batch configurations
 
-**Collection 32: Non-Human Primate Gut Virome**
-- **Size**: 80-100 genomes
-- **Literature**: Handley et al. 2018
-- **Impact**: Translational research, evolution
+**Phase 12.3: Web Interface** (Day 3)
+- [x] Flask-based web application
+- [x] Bootstrap 5 responsive UI (9 pages)
+- [x] RESTful API (10+ endpoints)
+- [x] Visual collection browser with search/filter
+- [x] Interactive dataset generation with progress monitoring
+- [x] Batch configuration builder
+- [x] Dataset reporting and comparison dashboards
 
 #### Deliverables
-- 4 animal model collections
-- Animal-specific contamination profiles
-- Comparative viromics examples
+- ✅ Unified CLI: `viroforge {browse,generate,batch,report,compare,presets,web}`
+- ✅ Interactive TUI collection browser
+- ✅ 8 configuration presets
+- ✅ Batch generation framework with YAML configs
+- ✅ Dataset reporting and comparison tools
+- ✅ Web interface with Bootstrap 5 UI
+- ✅ Complete documentation for all features
+
+#### Key Files
+- `viroforge/cli/__init__.py` - Main CLI entry point
+- `viroforge/cli/browse.py` - Interactive TUI browser (340 lines)
+- `viroforge/cli/generate.py` - Generation command (340 lines)
+- `viroforge/cli/batch.py` - Batch generation (358 lines)
+- `viroforge/cli/report.py` - Dataset reporting (319 lines)
+- `viroforge/cli/compare.py` - Dataset comparison (261 lines)
+- `viroforge/cli/presets.py` - Preset management
+- `viroforge/cli/web.py` - Web server launcher
+- `viroforge/web/app.py` - Flask application (280 lines)
+- `viroforge/web/templates/` - 9 HTML templates (~1,250 lines)
+- `examples/batch_configs/` - 5 example configurations
+- `docs/PHASE12.1_SUMMARY.md` - Generate command docs
+- `docs/PHASE12.2_SUMMARY.md` - Batch/report/compare docs
+- `docs/PHASE12.3_SUMMARY.md` - Web interface docs
 
 #### Impact
-- **MEDIUM**: Expands to animal research community
-- **Effort**: LOW-MEDIUM (similar to existing)
-- **Users**: Veterinary, agricultural, comparative biology
+- **VERY HIGH**: Production-ready UX
+- **Effort**: LOW-MEDIUM (3 days total)
+- **Users**: All users benefit from improved usability
 
 ---
 
-### **PHASE 13: Environmental Diversity**
+### **PHASE 13: Benchmarking & Validation Framework**
 
-**Timeline**: 2 weeks
-**Status**: 📋 Planned (Future)
+**Timeline**: 6-8 weeks
+**Status**: 📋 In Planning
 
-#### Collections to Add
+#### Objectives
+- Transform ViroForge from data generator to **complete validation platform**
+- Enable comprehensive pipeline benchmarking across virome analysis workflow
+- Provide modular benchmarking tools for each workflow stage
+- Support multiple pipeline tools (Kraken2, Centrifuge, DIAMOND, etc.)
 
-**Collection 33: Hot Spring Virome** (Extreme environment)
-- **Size**: 100-150 genomes
-- **Literature**: Schoenfeld et al. 2008
+#### Strategic Rationale
 
-**Collection 34: Hypersaline Virome** (Extreme environment)
-- **Size**: 80-120 genomes
-- **Literature**: Santos et al. 2010
+**Current Gap**: ViroForge generates world-class synthetic data with perfect ground truth, but provides **zero tools** to help users benchmark their pipelines against that ground truth.
 
-**Collection 35: Hospital Surface Virome** (Built environment)
-- **Size**: 40-60 genomes
-- **Literature**: Lax et al. 2014
+**Problem**: Users must manually:
+1. Parse pipeline outputs (every tool has different format)
+2. Match pipeline taxa to ground truth genomes
+3. Calculate accuracy metrics
+4. Create comparison plots
+5. Write benchmark reports
 
-**Collection 36: Plant Phyllosphere Virome** (Agriculture)
-- **Size**: 50-80 genomes
-- **Literature**: Zablocki et al. 2016
+**Solution**: Integrated benchmarking framework that takes pipeline output + ground truth → comprehensive HTML report with metrics, plots, error analysis.
+
+#### Architecture
+
+**Modular Design** - Match virome analysis workflow stages:
+
+```
+viroforge/
+├── benchmarking/              # NEW MODULE (optional install)
+│   ├── __init__.py
+│   ├── parsers/              # Parse pipeline outputs
+│   │   ├── kraken2.py        # Kraken2/Bracken format
+│   │   ├── centrifuge.py     # Centrifuge format
+│   │   ├── diamond.py        # DIAMOND BLAST output
+│   │   ├── metaphlan.py      # MetaPhlAn profile
+│   │   ├── kaiju.py          # Kaiju output
+│   │   └── generic.py        # Generic TSV
+│   ├── metrics/              # Calculate performance metrics
+│   │   ├── taxonomic.py      # Classification accuracy
+│   │   ├── abundance.py      # Quantification accuracy
+│   │   ├── assembly.py       # Assembly quality
+│   │   ├── completeness.py   # Genome recovery
+│   │   └── contamination.py  # QC validation
+│   ├── visualizations/       # Diagnostic plots
+│   │   ├── composition.py    # Stacked bars, pie charts
+│   │   ├── scatter.py        # Abundance correlations
+│   │   ├── confusion.py      # Confusion matrices
+│   │   ├── assembly.py       # Coverage, completeness
+│   │   └── sankey.py         # Read flow diagrams
+│   ├── reports/              # Report generation
+│   │   ├── html_report.py    # Publication-quality HTML
+│   │   ├── json_export.py    # Machine-readable JSON
+│   │   └── templates/        # Jinja2 HTML templates
+│   └── utils.py              # Taxonomy matching utilities
+```
+
+**Installation**: `pip install viroforge[benchmark]`
+
+#### Benchmarking Modules
+
+**Module 1: QC Benchmarking** (CRITICAL for viromes)
+- Validate contamination removal (host DNA, bacterial, rRNA, PhiX)
+- Measure false positive rate (viral reads wrongly removed)
+- Measure viral retention rate
+- **Metrics**: Precision, recall, F1 for each contamination type
+
+**Module 2: Assembly Benchmarking** (MOST CRITICAL for viromes)
+- Align assembled contigs to true viral genomes
+- Calculate genome recovery (complete, high-quality, partial, missing)
+- Detect chimeric contigs (segments from multiple genomes)
+- Measure coverage uniformity and bias
+- **Metrics**: Completeness, identity, N50, chimera rate, coverage bias
+
+**Module 3: Binning Benchmarking**
+- Validate vMAG (viral MAG) reconstruction
+- Measure bin purity (one genome per bin)
+- Detect mixed bins (multiple genomes wrongly binned together)
+- **Metrics**: Bin purity, precision, recall, bin quality (CheckV-style)
+
+**Module 4: Taxonomy Benchmarking** (read + contig-based)
+- Compare pipeline classifications to ground truth
+- Calculate accuracy at multiple taxonomic levels (species, genus, family)
+- Identify false positives/negatives by taxonomy
+- **Metrics**: Precision, recall, F1, accuracy at each level
+
+**Module 5: Completeness Benchmarking**
+- Measure genome recovery across coverage ranges
+- Analyze completeness by genome length, GC content
+- Identify systematic biases in recovery
+- **Metrics**: Mean completeness, completeness by coverage/length
+
+**Module 6: Annotation Benchmarking**
+- Validate gene calling accuracy (ORF prediction)
+- Validate functional annotation accuracy
+- **Metrics**: Gene calling precision/recall, function precision/recall
+
+**Module 7: Host Prediction Benchmarking**
+- Validate virus-host linkage predictions
+- **Metrics**: Accuracy by host type (bacteriophage, human virus, etc.)
+
+**Module 8: Novel Discovery Benchmarking** (Advanced)
+- Test ability to find viruses NOT in reference databases
+- Holdout testing: Withhold 20% of genomes from DB
+- **Metrics**: Discovery rate, false discovery rate
+
+**Module 9: End-to-End Pipeline Benchmarking**
+- Comprehensive benchmarking of entire pipeline
+- Combines all modules into single comprehensive report
+- **Output**: Multi-page HTML report with all 8 modules
+
+#### CLI Interface
+
+```bash
+# Modular approach - test individual components
+viroforge benchmark qc          # Contamination removal
+viroforge benchmark assembly    # Assembly quality
+viroforge benchmark binning     # MAG reconstruction
+viroforge benchmark taxonomy    # Classification
+viroforge benchmark completeness # Genome recovery
+viroforge benchmark annotation  # Gene calling + function
+viroforge benchmark host        # Host prediction
+viroforge benchmark discovery   # Novel virus detection
+
+# Comprehensive end-to-end
+viroforge benchmark pipeline    # All modules together
+
+# Multi-pipeline comparison
+viroforge benchmark \
+  --ground-truth data/gut/metadata/metadata.json \
+  --pipelines kraken2:results/k2.txt centrifuge:results/cf.txt \
+  --output reports/comparison.html
+
+# Batch benchmarking across collections
+viroforge benchmark-batch \
+  --datasets data/*_standard/ \
+  --pipeline-results results/ \
+  --format kraken2
+```
+
+#### ViroForge Metadata Enhancements
+
+**Phase 13A: Essential Enhancements**
+
+Add to metadata.json:
+```json
+{
+  "benchmarking": {
+    "version": "1.0",
+    "capabilities": ["qc", "assembly", "taxonomy", "completeness"],
+
+    "contamination_manifest": {
+      "host_dna": {"n_sequences": 10, "total_abundance": 0.035, "sequences": [...]},
+      "rrna": {...},
+      "bacterial": {...},
+      "phix": {...}
+    },
+
+    "expected_coverage": {
+      "mean_coverage": 30.0,
+      "by_genome": {
+        "GCF_015160975.1": {
+          "expected_coverage": 68.7,
+          "expected_completeness": 0.999,
+          "expected_n_reads": 950000
+        }
+      }
+    },
+
+    "read_manifest": {
+      "enabled": true,
+      "path": "metadata/read_manifest.tsv.gz",
+      "total_reads": 10000000
+    }
+  }
+}
+```
+
+**Phase 13B: Advanced Enhancements**
+- Gene annotations export (from RefSeq CDS)
+- Expected assembly output (optional, expensive)
+- Strain variant tracking (future)
+
+#### Implementation Roadmap
+
+**Phase 13A: Foundation + Minimal Enhancements** (Weeks 1-2) - ✅ COMPLETE (2025-11-11)
+- [x] Add `enable_benchmarking` flag to metadata generation
+- [x] Implement contamination manifest export
+- [x] Calculate expected coverage per genome
+- [ ] Create `viroforge/benchmarking/` module structure
+- [ ] Implement metadata loader (parses enhanced metadata)
+- [ ] Build core utilities (taxonomy matching, alignment)
+
+**Phase 13B: QC + Assembly Benchmarking** (Weeks 3-5)
+- [ ] Implement read manifest tracking (optional)
+- [ ] Module 1: QC benchmarking (contamination removal validation)
+- [ ] Module 2: Assembly benchmarking (contig-to-genome alignment)
+- [ ] Basic HTML report templates
+- [ ] Unit tests for QC and assembly modules
+
+**Phase 13C: Taxonomy + Completeness** (Weeks 6-8)
+- [ ] Module 4: Taxonomy benchmarking (Kraken2, Centrifuge, DIAMOND parsers)
+- [ ] Module 5: Completeness analysis (genome recovery metrics)
+- [ ] Comprehensive HTML reports with visualizations
+- [ ] Integration tests with example datasets
+- [ ] Documentation and tutorials
+
+**Phase 13D: Advanced Modules** (Future)
+- [ ] Module 3: Binning benchmarking
+- [ ] Module 6: Annotation benchmarking (requires gene annotation export)
+- [ ] Module 7: Host prediction benchmarking
+- [ ] Module 8: Novel discovery benchmarking
+- [ ] Module 9: End-to-end pipeline benchmarking
 
 #### Deliverables
-- 4 environmental collections
-- Extreme environment modeling
-- Built environment applications
+
+**MVP (Phase 13A-C)**:
+- ✅ Enhanced metadata with contamination manifest, expected coverage
+- ✅ Module 1: QC benchmarking
+- ✅ Module 2: Assembly benchmarking
+- ✅ Module 4: Taxonomy benchmarking
+- ✅ Module 5: Completeness analysis
+- ✅ HTML reports with metrics + visualizations
+- ✅ CLI: `viroforge benchmark {qc,assembly,taxonomy,completeness}`
+- ✅ Documentation: Benchmarking tutorial
+
+**Full Implementation (Phase 13D)**:
+- All 9 benchmarking modules
+- Multi-pipeline comparison
+- Batch benchmarking
+- Comprehensive end-to-end reports
+- Publication-ready figures
+
+#### Dependencies
+
+New optional dependencies:
+```python
+extras_require={
+    "benchmark": [
+        "matplotlib>=3.5.0",      # Plotting
+        "seaborn>=0.11.0",        # Statistical visualizations
+        "scikit-learn>=1.0.0",    # Metrics calculations
+        "plotly>=5.0.0",          # Interactive plots
+        "jinja2>=3.0.0",          # HTML report templates
+    ]
+}
+```
 
 #### Impact
-- **LOW-MEDIUM**: Niche applications
-- **Effort**: LOW (standard curation)
-- **Users**: Environmental microbiologists, ecology
+
+**For Pipeline Developers**:
+- ✅ Rigorous validation before publication
+- ✅ Identify weak spots (low-abundance taxa, marine viruses, etc.)
+- ✅ Optimize parameters (database, thresholds, filters)
+- ✅ Publication-ready benchmark figures
+
+**For Bioinformaticians**:
+- ✅ Choose best tool for their data type
+- ✅ Understand trade-offs (speed vs accuracy)
+- ✅ Confidence in results
+
+**For ViroForge Project**:
+- ✅ Completes "generate → benchmark → publish" workflow
+- ✅ Positions as CAMI-equivalent for viromes
+- ✅ Dramatically increases utility and adoption
+- ✅ Enables community-wide standardized benchmarking
+
+**For the Field**:
+- ✅ Standardized virome pipeline benchmarking
+- ✅ Reproducible method comparisons
+- ✅ Better tools through rigorous testing
+- ✅ Increased confidence in virome studies
+
+**Comparison to Bacterial Tools**:
+- CAMI/OPAL focuses on bacterial metagenomes
+- ViroForge benchmarking will be virome-specific:
+  - Assembly-centric (not just taxonomy)
+  - Completeness-focused (viral genomes are small)
+  - QC validation (contamination removal critical)
+  - Novel discovery (most viruses unknown)
+
+**Priority**: **VERY HIGH** - This is arguably more important than additional collections because it unlocks the value of all existing data generation capabilities.
+
+**Effort**: MEDIUM-HIGH (6-8 weeks for MVP, more for full implementation)
+
+**Users**: All ViroForge users (pipeline developers, bioinformaticians, researchers)
 
 ---
 

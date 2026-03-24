@@ -48,8 +48,19 @@ def run_report(args):
     elif args.format == 'json':
         show_json_report(metadata, args.export)
     elif args.format == 'html':
-        console.print("[yellow]HTML format not yet implemented[/yellow]")
-        return 1
+        output_path = show_html_report(metadata, dataset_path, args.export)
+        if output_path:
+            console.print(f"[green]✓ HTML report generated: {output_path}[/green]")
+            # Try to open in browser
+            try:
+                import webbrowser
+                webbrowser.open(f'file://{output_path.absolute()}')
+                console.print("[dim]Opening in browser...[/dim]")
+            except:
+                console.print(f"[dim]Open in browser: file://{output_path.absolute()}[/dim]")
+        else:
+            console.print("[red]Failed to generate HTML report[/red]")
+            return 1
 
     return 0
 
@@ -316,3 +327,340 @@ def show_json_report(metadata: Dict, export_path: Optional[str]):
         console.print(f"[green]Report exported to {export_path}[/green]")
     else:
         console.print(json.dumps(metadata, indent=2))
+
+
+def show_html_report(metadata: Dict, dataset_path: Path, export_path: Optional[str]) -> Optional[Path]:
+    """Generate HTML report."""
+    # Determine output path
+    if export_path:
+        output_path = Path(export_path)
+    else:
+        output_path = dataset_path / f"{dataset_path.name}_report.html"
+
+    # Load composition
+    composition = load_composition_file(dataset_path)
+
+    # Generate HTML
+    html_content = generate_html_report_content(metadata, dataset_path, composition)
+
+    try:
+        with open(output_path, 'w') as f:
+            f.write(html_content)
+        return output_path
+    except Exception as e:
+        console.print(f"[red]Error writing HTML report: {e}[/red]")
+        return None
+
+
+def generate_html_report_content(metadata: Dict, dataset_path: Path, composition: Optional[list]) -> str:
+    """Generate HTML report content."""
+    # Extract metadata fields (v1.1 structure)
+    collection = metadata.get('collection', {})
+    gen_info = metadata.get('generation_info', {})
+    config = metadata.get('configuration', {})
+    enrichment = metadata.get('enrichment_stats', {})
+
+    # Collection info
+    coll_name = collection.get('name', 'Unknown')
+    coll_id = collection.get('id', 'N/A')
+
+    # Generation info
+    timestamp = gen_info.get('timestamp', 'N/A')
+    seed = gen_info.get('random_seed', 'N/A')
+    version = gen_info.get('viroforge_version', 'N/A')
+
+    # Platform info (from configuration)
+    platform_name = config.get('platform', 'Unknown').upper()
+    # Determine read type from platform
+    read_type = 'long' if platform_name.lower() in ['pacbio-hifi', 'nanopore'] else 'short'
+    coverage = config.get('coverage') or config.get('target_coverage')
+    depth = config.get('depth') or config.get('target_depth')
+    cov_str = f"{coverage}x" if coverage else f"{depth}x" if depth else 'N/A'
+    read_length = config.get('read_length', 'N/A')
+    insert_size = config.get('insert_size', 'N/A')
+
+    # Composition info
+    viral_count = 0
+    total_count = 0
+    viral_fraction = None
+    contam_fraction = None
+    top_genomes_html = ""
+
+    if composition:
+        viral_count = len([g for g in composition if g.get('genome_type') == 'viral'])
+        total_count = len(composition)
+
+        # Get viral fraction from enrichment_stats
+        if enrichment:
+            viral_fraction = enrichment.get('viral_fraction')
+            contam_fraction = enrichment.get('contamination_fraction')
+
+        # Top 5 genomes
+        sorted_comp = sorted(composition, key=lambda x: x.get('relative_abundance', 0), reverse=True)
+        for i, genome in enumerate(sorted_comp[:5], 1):
+            name = genome.get('genome_name', genome.get('genome_id', 'Unknown'))
+            abundance = genome.get('relative_abundance', 0)
+            bar_width = int(abundance * 100)
+            top_genomes_html += f"""
+            <tr>
+                <td>{i}</td>
+                <td class="text-truncate" style="max-width: 300px;" title="{name}">{name}</td>
+                <td>{abundance:.4%}</td>
+                <td>
+                    <div class="progress" style="height: 20px;">
+                        <div class="progress-bar bg-success" role="progressbar"
+                             style="width: {bar_width}%" aria-valuenow="{bar_width}"
+                             aria-valuemin="0" aria-valuemax="100">{abundance:.2%}</div>
+                    </div>
+                </td>
+            </tr>
+            """
+
+    # VLP info (from enrichment_stats)
+    vlp_html = ""
+    vlp_protocol = config.get('vlp_protocol')
+    if enrichment and vlp_protocol and vlp_protocol != 'none':
+        viral_enrich = enrichment.get('viral_enrichment', {})
+        contam_reduc = enrichment.get('contamination_reduction', {})
+
+        # Get mean enrichment factor
+        mean_enrichment = viral_enrich.get('mean_enrichment_factor', 'N/A')
+
+        # Get reduction by type for host and bacterial
+        reduction_by_type = contam_reduc.get('reduction_by_type', {})
+        host_reduction = reduction_by_type.get('host_dna', {}).get('reduction_factor')
+        bacterial_reduction = reduction_by_type.get('reagent_bacteria', {}).get('reduction_factor')
+
+        vlp_html = f"""
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">VLP Enrichment</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr><th>Protocol:</th><td>{vlp_protocol}</td></tr>
+                        <tr><th>Mean Enrichment:</th><td>{mean_enrichment if mean_enrichment != 'N/A' else mean_enrichment}{"x" if mean_enrichment != 'N/A' else ""}</td></tr>
+                        {f'<tr><th>Bacterial Reduction:</th><td>{bacterial_reduction*100:.1f}%</td></tr>' if bacterial_reduction else ''}
+                        {f'<tr><th>Host Reduction:</th><td>{host_reduction*100:.1f}%</td></tr>' if host_reduction else ''}
+                    </table>
+                </div>
+            </div>
+        </div>
+        """
+
+    # File summary
+    file_list_html = ""
+    for subdir in ['fastq', 'fasta', 'metadata']:
+        dir_path = dataset_path / subdir
+        if dir_path.exists():
+            files = sorted(dir_path.glob("*"))
+            for file in files:
+                if file.is_file():
+                    size_mb = file.stat().st_size / (1024 * 1024)
+                    size_str = f"{size_mb:.1f} MB" if size_mb >= 1 else f"{file.stat().st_size / 1024:.1f} KB"
+                    file_list_html += f"""
+                    <tr>
+                        <td><span class="badge bg-success">✓</span></td>
+                        <td><code>{file.name}</code></td>
+                        <td>{subdir.upper()}</td>
+                        <td>{size_str}</td>
+                    </tr>
+                    """
+
+    # Build HTML
+    html = f"""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ViroForge Dataset Report - {dataset_path.name}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {{ background-color: #f8f9fa; }}
+        .report-header {{
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }}
+        .card {{ margin-bottom: 1.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }}
+        .card-header {{ font-weight: bold; }}
+        th {{ width: 40%; }}
+        .progress {{ background-color: #e9ecef; }}
+    </style>
+</head>
+<body>
+    <div class="report-header">
+        <div class="container">
+            <h1><i class="bi bi-file-earmark-bar-graph"></i> ViroForge Dataset Report</h1>
+            <h3>{dataset_path.name}</h3>
+            <p class="mb-0">Generated: {timestamp}</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Summary Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-center bg-primary text-white">
+                    <div class="card-body">
+                        <h2 class="mb-0">{total_count}</h2>
+                        <p class="mb-0">Total Genomes</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center bg-success text-white">
+                    <div class="card-body">
+                        <h2 class="mb-0">{viral_count}</h2>
+                        <p class="mb-0">Viral Genomes</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center bg-info text-white">
+                    <div class="card-body">
+                        <h2 class="mb-0">{platform_name}</h2>
+                        <p class="mb-0">Platform</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center bg-warning text-dark">
+                    <div class="card-body">
+                        <h2 class="mb-0">{cov_str}</h2>
+                        <p class="mb-0">Coverage/Depth</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="row">
+            <!-- Generation Summary -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Generation Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-sm">
+                            <tr><th>Collection:</th><td>{coll_name} (ID: {coll_id})</td></tr>
+                            <tr><th>Generated:</th><td>{timestamp}</td></tr>
+                            <tr><th>Random Seed:</th><td>{seed}</td></tr>
+                            <tr><th>ViroForge Version:</th><td>{version}</td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Platform Information -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0">Platform Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-sm">
+                            <tr><th>Platform:</th><td>{platform_name}</td></tr>
+                            <tr><th>Read Type:</th><td>{read_type}</td></tr>
+                            <tr><th>Coverage/Depth:</th><td>{cov_str}</td></tr>
+                            <tr><th>Read Length:</th><td>{read_length} bp</td></tr>
+                            {f'<tr><th>Insert Size:</th><td>{insert_size} bp</td></tr>' if insert_size != 'N/A' else ''}
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Composition & VLP -->
+        <div class="row">
+            <!-- Genome Composition -->
+            <div class="col-md-{6 if vlp_html else 12}">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Genome Composition</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-sm">
+                            <tr><th>Total Genomes:</th><td>{total_count}</td></tr>
+                            <tr><th>Viral Genomes:</th><td>{viral_count}</td></tr>
+                            {f'<tr><th>Viral Fraction:</th><td>{viral_fraction*100:.1f}%</td></tr>' if viral_fraction else ''}
+                            {f'<tr><th>Contamination:</th><td>{contam_fraction*100:.1f}%</td></tr>' if contam_fraction else ''}
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            {vlp_html}
+        </div>
+
+        <!-- Top Genomes -->
+        {f'''
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0">Top 5 Most Abundant Genomes</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th style="width: 5%;">#</th>
+                                    <th style="width: 40%;">Genome</th>
+                                    <th style="width: 15%;">Abundance</th>
+                                    <th style="width: 40%;">Visual</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {top_genomes_html}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        ''' if top_genomes_html else ''}
+
+        <!-- Output Files -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Output Files</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th style="width: 5%;">Status</th>
+                                    <th style="width: 50%;">Filename</th>
+                                    <th style="width: 20%;">Type</th>
+                                    <th style="width: 25%;">Size</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {file_list_html if file_list_html else '<tr><td colspan="4" class="text-center text-muted">No files found</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center text-muted mt-4 mb-4">
+            <p>Generated by ViroForge {version}</p>
+            <p><small>Synthetic Virome Data Generator | <a href="https://github.com/hecatomb/viroforge">github.com/hecatomb/viroforge</a></small></p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+    """
+
+    return html

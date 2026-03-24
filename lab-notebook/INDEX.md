@@ -8,7 +8,7 @@
 
 ## Quick Stats
 
-**Total Entries**: 13
+**Total Entries**: 14
 **Phase 1**: Complete (100%)
 **Phase 2**: Complete (100%)
 **Phase 3**: Complete (100%)
@@ -668,6 +668,19 @@
 - Fixed viral fraction reported as 100% when --no-vlp (computed before contamination)
 - Exposed --contamination-level, --vlp-protocol, --no-vlp, --molecule-type, --rna-depletion, --adapter-rate, --low-complexity-rate, --duplicate-rate in viroforge generate CLI
 - Bundled herv_consensus.fasta (55 HERV families, 319 KB)
+
+---
+
+### 2026-03-24
+
+---
+
+#### Entry 001: Phase 13A Commit and Project Cleanup
+**ID**: `20260324-001-INTEGRATION-phase13a-and-cleanup.md`
+**Type**: INTEGRATION
+**Status**: Complete
+
+**Purpose**: Commit accumulated Phase 13A work, HTML reports, figure scripts, and project cleanup
 
 ---
 
