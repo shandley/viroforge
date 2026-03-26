@@ -1361,6 +1361,30 @@ Examples:
         help='Illumina adapter type (default: truseq)'
     )
     contam_group.add_argument(
+        '--mean-insert-size',
+        type=int,
+        default=None,
+        help='Mean insert size for insert-size-driven adapter contamination (bp). '
+             'When set, adapter rate is determined naturally by the insert size '
+             'distribution vs read length. Overrides --adapter-rate. '
+             'Example: --mean-insert-size 200 with 150bp reads gives ~2%% adapter rate.'
+    )
+    contam_group.add_argument(
+        '--insert-size-sd',
+        type=int,
+        default=50,
+        help='Standard deviation of insert size distribution (default: 50bp). '
+             'Used with --mean-insert-size.'
+    )
+    contam_group.add_argument(
+        '--chimera-rate',
+        type=float,
+        default=0.0,
+        help='Fraction of reads with internal adapter chimeras (0.0-1.0, '
+             'default: 0.0). Models chimeric ligation events where adapter '
+             'sequence appears inside a read, not just at the 3\' end.'
+    )
+    contam_group.add_argument(
         '--host-genome',
         type=str,
         default=None,
@@ -1879,8 +1903,55 @@ Examples:
                 with open(mf, "w") as f:
                     json.dump(metadata, f, indent=2)
 
-        # Post-process: add adapter read-through contamination
-        if args.adapter_rate > 0:
+        # Post-process: add adapter contamination
+        # Prefer insert-size-driven mode when --mean-insert-size is set
+        use_insert_size_mode = getattr(args, 'mean_insert_size', None) is not None
+        use_adapter_rate_mode = args.adapter_rate > 0 and not use_insert_size_mode
+
+        if use_insert_size_mode:
+            from viroforge.simulators.adapters import add_insert_size_adapters
+
+            manifest = generator.metadata_dir / f"{collection_name}_adapter_manifest.tsv"
+            adapter_stats = add_insert_size_adapters(
+                r1_path=r1_path,
+                r2_path=r2_path,
+                adapter_type=args.adapter_type,
+                mean_insert=args.mean_insert_size,
+                std_insert=getattr(args, 'insert_size_sd', 50),
+                chimera_rate=getattr(args, 'chimera_rate', 0.0),
+                random_seed=args.seed,
+                in_place=True,
+                manifest_path=manifest,
+            )
+            logger.info(
+                f"Insert-size adapter contamination: "
+                f"{adapter_stats['reads_readthrough']} read-through "
+                f"({adapter_stats['emergent_adapter_rate']:.1%}), "
+                f"{adapter_stats['reads_chimera']} chimeras"
+            )
+
+            # Append adapter stats to metadata JSON
+            import glob
+            for mf in glob.glob(str(generator.metadata_dir / "*_metadata.json")):
+                with open(mf) as f:
+                    metadata = json.load(f)
+                metadata["adapter_stats"] = {
+                    "mode": "insert_size_driven",
+                    "adapter_type": args.adapter_type,
+                    "mean_insert_size": args.mean_insert_size,
+                    "insert_size_sd": getattr(args, 'insert_size_sd', 50),
+                    "chimera_rate": getattr(args, 'chimera_rate', 0.0),
+                    "reads_total": adapter_stats["reads_total"],
+                    "reads_readthrough": adapter_stats["reads_readthrough"],
+                    "reads_chimera": adapter_stats["reads_chimera"],
+                    "emergent_adapter_rate": adapter_stats["emergent_adapter_rate"],
+                    "mean_adapter_length": adapter_stats["mean_adapter_length"],
+                    "manifest_file": str(manifest),
+                }
+                with open(mf, "w") as f:
+                    json.dump(metadata, f, indent=2)
+
+        elif use_adapter_rate_mode:
             from viroforge.simulators.adapters import add_adapter_readthrough
 
             manifest = generator.metadata_dir / f"{collection_name}_adapter_manifest.tsv"
@@ -1903,11 +1974,11 @@ Examples:
 
             # Append adapter stats to metadata JSON
             import glob
-            metadata_files = glob.glob(str(generator.metadata_dir / "*_metadata.json"))
-            for mf in metadata_files:
+            for mf in glob.glob(str(generator.metadata_dir / "*_metadata.json")):
                 with open(mf) as f:
                     metadata = json.load(f)
                 metadata["adapter_stats"] = {
+                    "mode": "fixed_rate",
                     "adapter_rate": args.adapter_rate,
                     "adapter_type": args.adapter_type,
                     "reads_total": adapter_stats["reads_total"],
@@ -1917,7 +1988,6 @@ Examples:
                 }
                 with open(mf, "w") as f:
                     json.dump(metadata, f, indent=2)
-                logger.info(f"Adapter stats saved to {mf}")
 
         # Post-process: inject PCR duplicates
         if args.duplicate_rate > 0:

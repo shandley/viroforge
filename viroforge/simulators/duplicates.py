@@ -54,6 +54,46 @@ def _introduce_pcr_errors(
     return "".join(seq_list)
 
 
+def _compute_gc(seq: str) -> float:
+    """Compute GC fraction of a sequence."""
+    seq = seq.upper()
+    gc = seq.count("G") + seq.count("C")
+    return gc / len(seq) if len(seq) > 0 else 0.5
+
+
+def _compute_pcr_bias_weights(
+    records: list[SeqRecord], rng: random.Random
+) -> list[float]:
+    """Compute per-read PCR amplification bias weights.
+
+    Shorter fragments and moderate GC (40-55%) amplify more efficiently
+    in PCR, producing more duplicates. This models real PCR bias where
+    duplication is non-uniform across the library.
+
+    Returns:
+        List of weights (higher = more likely to be a template).
+    """
+    weights = []
+    for record in records:
+        seq = str(record.seq)
+        read_len = len(seq)
+        gc = _compute_gc(seq)
+
+        # GC bias: peak efficiency at ~50% GC, drops at extremes
+        # Gaussian centered at 0.50, sigma=0.15
+        gc_weight = 2.718 ** (-((gc - 0.50) ** 2) / (2 * 0.15 ** 2))
+
+        # Length bias: shorter fragments amplify better
+        # Normalize read length (150bp typical); shorter = higher weight
+        len_weight = max(0.3, 1.0 - (read_len - 100) / 500)
+
+        # Combined weight with some noise
+        weight = gc_weight * len_weight * rng.uniform(0.7, 1.3)
+        weights.append(max(0.01, weight))
+
+    return weights
+
+
 def add_pcr_duplicates(
     r1_path: Path,
     r2_path: Path,
@@ -63,6 +103,7 @@ def add_pcr_duplicates(
     max_copies: int = 5,
     copy_distribution: str = "geometric",
     error_rate: float = 0.001,
+    gc_length_bias: bool = True,
     random_seed: Optional[int] = None,
     in_place: bool = False,
     manifest_path: Optional[Path] = None,
@@ -88,6 +129,10 @@ def add_pcr_duplicates(
             "uniform": Equal probability for 1 to max_copies.
         error_rate: Per-base substitution rate in copies (default: 0.001).
             Models PCR polymerase errors. Set to 0 for exact duplicates.
+        gc_length_bias: If True (default), weight template selection by
+            GC content and fragment length. Moderate GC and shorter
+            fragments are more likely to be duplicated, mimicking real
+            PCR amplification bias.
         random_seed: Random seed for reproducibility.
         in_place: If True, modify files in place.
         manifest_path: If set, write a TSV manifest mapping copies to
@@ -149,10 +194,27 @@ def add_pcr_duplicates(
     total_reads = len(r1_records)
     n_templates = int(total_reads * duplicate_rate)
 
-    # Select template indices
-    template_indices = set(
-        rng.sample(range(total_reads), min(n_templates, total_reads))
-    )
+    # Select template indices (weighted by GC/length bias or uniform)
+    if gc_length_bias and total_reads > 0:
+        weights = _compute_pcr_bias_weights(r1_records, rng)
+        # Weighted sampling without replacement
+        indices = list(range(total_reads))
+        selected = []
+        remaining_weights = weights[:]
+        remaining_indices = indices[:]
+        for _ in range(min(n_templates, total_reads)):
+            chosen = rng.choices(remaining_indices, weights=remaining_weights, k=1)[0]
+            selected.append(chosen)
+            idx = remaining_indices.index(chosen)
+            remaining_indices.pop(idx)
+            remaining_weights.pop(idx)
+            if not remaining_indices:
+                break
+        template_indices = set(selected)
+    else:
+        template_indices = set(
+            rng.sample(range(total_reads), min(n_templates, total_reads))
+        )
 
     # Build output: original reads + duplicate copies
     out_r1 = []

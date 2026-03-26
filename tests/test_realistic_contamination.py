@@ -997,3 +997,229 @@ class TestERVInjection:
 
         assert ContaminantType.ERV_ENDOGENOUS.value == "erv_endogenous"
         assert ContaminantType.ERV_EXOGENOUS.value == "erv_exogenous"
+
+
+# ---------------------------------------------------------------------------
+# Insert-size-driven adapter tests
+# ---------------------------------------------------------------------------
+
+
+class TestInsertSizeAdapters:
+    """Test insert-size-driven adapter contamination."""
+
+    @pytest.fixture
+    def sample_fastq(self, tmp_path):
+        from Bio.SeqRecord import SeqRecord
+        from Bio.Seq import Seq
+        from Bio import SeqIO
+
+        r1_path = tmp_path / "test_R1.fastq"
+        r2_path = tmp_path / "test_R2.fastq"
+
+        rng = random.Random(42)
+        r1_records = []
+        r2_records = []
+        for i in range(500):
+            seq = "".join(rng.choice("ACGT") for _ in range(150))
+            qual = [30] * 150
+            r1 = SeqRecord(Seq(seq), id=f"read_{i}/1", description="")
+            r1.letter_annotations["phred_quality"] = qual
+            r1_records.append(r1)
+            r2 = SeqRecord(Seq(seq), id=f"read_{i}/2", description="")
+            r2.letter_annotations["phred_quality"] = qual
+            r2_records.append(r2)
+
+        SeqIO.write(r1_records, r1_path, "fastq")
+        SeqIO.write(r2_records, r2_path, "fastq")
+        return r1_path, r2_path
+
+    def test_short_inserts_produce_high_adapter_rate(self, sample_fastq, tmp_path):
+        """When mean insert < read length, most reads should have adapters."""
+        from viroforge.simulators.adapters import add_insert_size_adapters
+
+        r1, r2 = sample_fastq
+        out_r1 = tmp_path / "out_R1.fastq"
+        out_r2 = tmp_path / "out_R2.fastq"
+
+        stats = add_insert_size_adapters(
+            r1, r2,
+            output_r1=out_r1,
+            output_r2=out_r2,
+            mean_insert=120,  # shorter than 150bp reads
+            std_insert=20,
+            random_seed=42,
+        )
+
+        # Most reads should have adapter read-through
+        assert stats["emergent_adapter_rate"] > 0.5
+
+    def test_long_inserts_produce_low_adapter_rate(self, sample_fastq, tmp_path):
+        """When mean insert >> read length, very few reads should have adapters."""
+        from viroforge.simulators.adapters import add_insert_size_adapters
+
+        r1, r2 = sample_fastq
+        out_r1 = tmp_path / "out_R1.fastq"
+        out_r2 = tmp_path / "out_R2.fastq"
+
+        stats = add_insert_size_adapters(
+            r1, r2,
+            output_r1=out_r1,
+            output_r2=out_r2,
+            mean_insert=350,  # much longer than 150bp reads
+            std_insert=50,
+            random_seed=42,
+        )
+
+        # Almost no reads should have adapter read-through
+        assert stats["emergent_adapter_rate"] < 0.01
+
+    def test_chimera_injection(self, sample_fastq, tmp_path):
+        from viroforge.simulators.adapters import add_insert_size_adapters
+        from Bio import SeqIO
+
+        r1, r2 = sample_fastq
+        out_r1 = tmp_path / "out_R1.fastq"
+        out_r2 = tmp_path / "out_R2.fastq"
+
+        stats = add_insert_size_adapters(
+            r1, r2,
+            output_r1=out_r1,
+            output_r2=out_r2,
+            mean_insert=350,
+            chimera_rate=0.05,
+            random_seed=42,
+        )
+
+        assert stats["reads_chimera"] > 0
+
+        # Check chimera tags in headers
+        chimera_found = False
+        for record in SeqIO.parse(out_r1, "fastq"):
+            if "adapter_chimera=" in record.description:
+                chimera_found = True
+                break
+        assert chimera_found
+
+    def test_readthrough_tags_in_headers(self, sample_fastq, tmp_path):
+        from viroforge.simulators.adapters import add_insert_size_adapters
+        from Bio import SeqIO
+
+        r1, r2 = sample_fastq
+        out_r1 = tmp_path / "out_R1.fastq"
+        out_r2 = tmp_path / "out_R2.fastq"
+
+        add_insert_size_adapters(
+            r1, r2,
+            output_r1=out_r1,
+            output_r2=out_r2,
+            mean_insert=130,
+            random_seed=42,
+        )
+
+        found = False
+        for record in SeqIO.parse(out_r1, "fastq"):
+            if "adapter_readthrough=" in record.description:
+                assert "insert_size=" in record.description
+                found = True
+                break
+        assert found
+
+    def test_manifest_written(self, sample_fastq, tmp_path):
+        from viroforge.simulators.adapters import add_insert_size_adapters
+
+        r1, r2 = sample_fastq
+        manifest = tmp_path / "adapter_manifest.tsv"
+
+        add_insert_size_adapters(
+            r1, r2,
+            mean_insert=130,
+            random_seed=42,
+            in_place=True,
+            manifest_path=manifest,
+        )
+
+        assert manifest.exists()
+        lines = manifest.read_text().strip().split("\n")
+        assert "insert_size" in lines[0]
+        assert len(lines) > 1
+
+
+# ---------------------------------------------------------------------------
+# GC/length-biased duplicate tests
+# ---------------------------------------------------------------------------
+
+
+class TestBiasedDuplicates:
+    """Test GC/length-biased PCR duplicate injection."""
+
+    @pytest.fixture
+    def sample_fastq(self, tmp_path):
+        from Bio.SeqRecord import SeqRecord
+        from Bio.Seq import Seq
+        from Bio import SeqIO
+
+        r1_path = tmp_path / "test_R1.fastq"
+        r2_path = tmp_path / "test_R2.fastq"
+
+        rng = random.Random(42)
+        r1_records = []
+        r2_records = []
+        for i in range(200):
+            # Vary GC content: half AT-rich, half GC-rich
+            if i < 100:
+                bases = "AATT"  # AT-rich (~0% GC)
+            else:
+                bases = "GCGC"  # GC-rich (~100% GC)
+            seq = "".join(rng.choice(bases) for _ in range(150))
+            qual = [30] * 150
+            r1 = SeqRecord(Seq(seq), id=f"read_{i}/1", description="")
+            r1.letter_annotations["phred_quality"] = qual
+            r1_records.append(r1)
+            r2 = SeqRecord(Seq(seq), id=f"read_{i}/2", description="")
+            r2.letter_annotations["phred_quality"] = qual
+            r2_records.append(r2)
+
+        SeqIO.write(r1_records, r1_path, "fastq")
+        SeqIO.write(r2_records, r2_path, "fastq")
+        return r1_path, r2_path
+
+    def test_gc_bias_affects_template_selection(self, sample_fastq, tmp_path):
+        """Moderate-GC reads should be selected as templates more often."""
+        from viroforge.simulators.duplicates import add_pcr_duplicates
+        from Bio import SeqIO
+
+        r1, r2 = sample_fastq
+        out_r1 = tmp_path / "out_R1.fastq"
+        out_r2 = tmp_path / "out_R2.fastq"
+
+        stats = add_pcr_duplicates(
+            r1, r2,
+            output_r1=out_r1,
+            output_r2=out_r2,
+            duplicate_rate=0.30,
+            gc_length_bias=True,
+            random_seed=42,
+        )
+
+        # Should produce duplicates
+        assert stats["copies_generated"] > 0
+        assert stats["reads_output"] > 200
+
+    def test_no_bias_mode(self, sample_fastq, tmp_path):
+        """gc_length_bias=False should use uniform template selection."""
+        from viroforge.simulators.duplicates import add_pcr_duplicates
+
+        r1, r2 = sample_fastq
+        out_r1 = tmp_path / "out_R1.fastq"
+        out_r2 = tmp_path / "out_R2.fastq"
+
+        stats = add_pcr_duplicates(
+            r1, r2,
+            output_r1=out_r1,
+            output_r2=out_r2,
+            duplicate_rate=0.30,
+            gc_length_bias=False,
+            random_seed=42,
+        )
+
+        assert stats["copies_generated"] > 0

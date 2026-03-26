@@ -8,7 +8,7 @@
 
 ## Quick Stats
 
-**Total Entries**: 14
+**Total Entries**: 15
 **Phase 1**: Complete (100%)
 **Phase 2**: Complete (100%)
 **Phase 3**: Complete (100%)
@@ -681,6 +681,19 @@
 **Status**: Complete
 
 **Purpose**: Commit accumulated Phase 13A work, HTML reports, figure scripts, and project cleanup
+
+---
+
+### 2026-03-26
+
+---
+
+#### Entry 001: Insert-Size-Driven Adapters and GC-Biased Duplicates
+**ID**: `20260326-001-IMPLEMENTATION-insert-size-adapters-gc-bias.md`
+**Type**: IMPLEMENTATION
+**Status**: Complete
+
+**Purpose**: Upgrade adapter and duplicate injection for virome-qc calibration
 
 ---
 

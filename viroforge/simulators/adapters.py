@@ -306,3 +306,203 @@ def add_adapter_readthrough(
         "mean_adapter_length": mean_adapter_len,
         "modified_read_ids": modified_read_ids,
     }
+
+
+def add_insert_size_adapters(
+    r1_path: Path,
+    r2_path: Path,
+    output_r1: Optional[Path] = None,
+    output_r2: Optional[Path] = None,
+    adapter_type: str = "truseq",
+    mean_insert: int = 350,
+    std_insert: int = 50,
+    chimera_rate: float = 0.0,
+    random_seed: Optional[int] = None,
+    in_place: bool = False,
+    manifest_path: Optional[Path] = None,
+) -> dict:
+    """Insert-size-driven adapter contamination.
+
+    Models adapter read-through as a natural consequence of the insert
+    size distribution. Every read pair is assigned an insert size from
+    a normal distribution. When insert < read_length, the read naturally
+    contains adapter sequence at the 3' end. This produces realistic
+    adapter contamination rates that depend on the relationship between
+    insert size and read length, matching real library behavior.
+
+    Optionally injects chimeric adapter reads (internal adapter from
+    chimeric ligation events, not just 3' read-through).
+
+    Args:
+        r1_path: Path to R1 FASTQ file.
+        r2_path: Path to R2 FASTQ file.
+        output_r1: Output path for modified R1.
+        output_r2: Output path for modified R2.
+        adapter_type: Adapter type ("truseq" or "nextera").
+        mean_insert: Mean insert size in bp (default: 350).
+        std_insert: Standard deviation of insert size (default: 50).
+        chimera_rate: Fraction of reads with internal adapter chimeras
+            (default: 0.0). Models chimeric ligation events.
+        random_seed: Random seed for reproducibility.
+        in_place: If True, modify files in place.
+        manifest_path: If set, write manifest of adapter-affected reads.
+
+    Returns:
+        Dict with statistics including emergent adapter rate.
+    """
+    if adapter_type not in ADAPTER_SEQUENCES:
+        raise ValueError(
+            f"Unknown adapter type: {adapter_type}. "
+            f"Choose from: {', '.join(ADAPTER_SEQUENCES.keys())}"
+        )
+
+    adapters = ADAPTER_SEQUENCES[adapter_type]
+    rng = random.Random(random_seed)
+
+    if in_place:
+        output_r1 = r1_path
+        output_r2 = r2_path
+    elif output_r1 is None or output_r2 is None:
+        output_r1 = output_r1 or r1_path.parent / f"{r1_path.stem}_adapters{r1_path.suffix}"
+        output_r2 = output_r2 or r2_path.parent / f"{r2_path.stem}_adapters{r2_path.suffix}"
+
+    r1_records = list(SeqIO.parse(r1_path, "fastq"))
+    r2_records = list(SeqIO.parse(r2_path, "fastq"))
+
+    if len(r1_records) != len(r2_records):
+        raise ValueError(
+            f"R1 and R2 have different read counts: "
+            f"{len(r1_records)} vs {len(r2_records)}"
+        )
+
+    total_reads = len(r1_records)
+    read_length = len(r1_records[0].seq) if r1_records else 150
+
+    logger.info(
+        f"Insert-size-driven adapter contamination: mean={mean_insert}bp, "
+        f"sd={std_insert}bp, read_length={read_length}bp ({adapter_type})"
+    )
+
+    readthrough_lengths = []
+    chimera_count = 0
+    modified_read_ids = []
+    manifest_rows = []
+    modified_r1 = []
+    modified_r2 = []
+    insert_sizes = []
+
+    for i, (r1, r2) in enumerate(zip(r1_records, r2_records)):
+        # Sample insert size for this fragment
+        insert_size = max(30, int(rng.gauss(mean_insert, std_insert)))
+        insert_sizes.append(insert_size)
+
+        modified = False
+
+        # Read-through: when insert < read_length, adapter appears at 3' end
+        if insert_size < read_length:
+            adapter_len = read_length - insert_size
+
+            r1_seq = str(r1.seq)
+            r1_qual_str = "".join(chr(q + 33) for q in r1.letter_annotations["phred_quality"])
+            r2_seq = str(r2.seq)
+            r2_qual_str = "".join(chr(q + 33) for q in r2.letter_annotations["phred_quality"])
+
+            new_r1_seq, new_r1_qual = _inject_adapter(
+                r1_seq, r1_qual_str, adapters["r1_adapter"], insert_size, rng
+            )
+            new_r2_seq, new_r2_qual = _inject_adapter(
+                r2_seq, r2_qual_str, adapters["r2_adapter"], insert_size, rng
+            )
+
+            tag = f"adapter_readthrough={adapter_type}:{adapter_len}bp insert_size={insert_size}"
+            r1 = SeqRecord(
+                Seq(new_r1_seq), id=r1.id, name=r1.name,
+                description=f"{r1.description} {tag}".strip(),
+            )
+            r1.letter_annotations["phred_quality"] = [ord(c) - 33 for c in new_r1_qual]
+            r2 = SeqRecord(
+                Seq(new_r2_seq), id=r2.id, name=r2.name,
+                description=f"{r2.description} {tag}".strip(),
+            )
+            r2.letter_annotations["phred_quality"] = [ord(c) - 33 for c in new_r2_qual]
+
+            readthrough_lengths.append(adapter_len)
+            modified = True
+            manifest_rows.append({
+                "read_id": r1.id, "type": "readthrough",
+                "adapter_type": adapter_type, "adapter_length": adapter_len,
+                "insert_size": insert_size,
+            })
+
+        # Chimeric adapter: internal adapter sequence within the read
+        elif chimera_rate > 0 and rng.random() < chimera_rate:
+            # Insert adapter at a random internal position
+            pos = rng.randint(20, read_length - 20)
+            adapter_seq = adapters["r1_adapter"][:rng.randint(10, 30)]
+
+            r1_seq = str(r1.seq)
+            chimeric_seq = r1_seq[:pos] + adapter_seq + r1_seq[pos + len(adapter_seq):]
+            chimeric_seq = chimeric_seq[:read_length]
+
+            r1_qual = r1.letter_annotations["phred_quality"][:]
+            tag = f"adapter_chimera={adapter_type}:{len(adapter_seq)}bp pos={pos}"
+            r1 = SeqRecord(
+                Seq(chimeric_seq), id=r1.id, name=r1.name,
+                description=f"{r1.description} {tag}".strip(),
+            )
+            r1.letter_annotations["phred_quality"] = r1_qual
+
+            chimera_count += 1
+            modified = True
+            manifest_rows.append({
+                "read_id": r1.id, "type": "chimera",
+                "adapter_type": adapter_type, "adapter_length": len(adapter_seq),
+                "insert_size": insert_size,
+            })
+
+        if modified:
+            modified_read_ids.append(r1.id)
+
+        modified_r1.append(r1)
+        modified_r2.append(r2)
+
+    SeqIO.write(modified_r1, output_r1, "fastq")
+    SeqIO.write(modified_r2, output_r2, "fastq")
+
+    if manifest_path and manifest_rows:
+        with open(manifest_path, "w") as f:
+            f.write("read_id\ttype\tadapter_type\tadapter_length\tinsert_size\n")
+            for row in manifest_rows:
+                f.write(
+                    f"{row['read_id']}\t{row['type']}\t{row['adapter_type']}\t"
+                    f"{row['adapter_length']}\t{row['insert_size']}\n"
+                )
+        logger.info(f"Wrote adapter manifest: {manifest_path}")
+
+    n_readthrough = len(readthrough_lengths)
+    emergent_rate = n_readthrough / total_reads if total_reads > 0 else 0.0
+    mean_adapter_len = (
+        sum(readthrough_lengths) / len(readthrough_lengths)
+        if readthrough_lengths else 0.0
+    )
+
+    logger.info(
+        f"Insert-size adapter injection complete: "
+        f"{n_readthrough} read-through ({emergent_rate:.1%}), "
+        f"{chimera_count} chimeras, "
+        f"mean adapter length: {mean_adapter_len:.1f}bp"
+    )
+
+    return {
+        "reads_total": total_reads,
+        "reads_readthrough": n_readthrough,
+        "reads_chimera": chimera_count,
+        "reads_modified": n_readthrough + chimera_count,
+        "emergent_adapter_rate": emergent_rate,
+        "adapter_type": adapter_type,
+        "adapter_lengths": readthrough_lengths,
+        "mean_adapter_length": mean_adapter_len,
+        "mean_insert_size": sum(insert_sizes) / len(insert_sizes) if insert_sizes else 0,
+        "insert_size_sd": std_insert,
+        "modified_read_ids": modified_read_ids,
+    }
