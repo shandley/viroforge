@@ -1,0 +1,70 @@
+# virome-qc profile: stool-vlp-tagmentation
+# VLP-enriched stool, Nextera adapters, low host (<1%), low rRNA (<2%), 35-55% GC
+#
+# Generates 5 reference datasets spanning the expected parameter space:
+# clean, typical, slightly_dirty, high_duplication, high_adapter
+
+batch_name: "virome-qc stool-vlp-tagmentation calibration"
+output_base: "data/virome_qc_references/stool_vlp_tagmentation"
+
+datasets:
+  - name: clean
+    collection_id: 9
+    platform: novaseq
+    coverage: 30
+    vlp_protocol: tangential_flow
+    contamination_level: clean
+    adapter_type: nextera
+    mean_insert_size: 350
+    insert_size_sd: 50
+    duplicate_rate: 0.05
+    seed: 42
+
+  - name: typical
+    collection_id: 9
+    platform: novaseq
+    coverage: 30
+    vlp_protocol: tangential_flow
+    contamination_level: realistic
+    adapter_type: nextera
+    mean_insert_size: 300
+    insert_size_sd: 60
+    duplicate_rate: 0.15
+    seed: 43
+
+  - name: slightly_dirty
+    collection_id: 9
+    platform: novaseq
+    coverage: 30
+    vlp_protocol: tangential_flow
+    contamination_level: realistic
+    adapter_type: nextera
+    mean_insert_size: 250
+    insert_size_sd: 70
+    duplicate_rate: 0.25
+    low_complexity_rate: 0.005
+    seed: 44
+
+  - name: high_duplication
+    collection_id: 9
+    platform: novaseq
+    coverage: 30
+    vlp_protocol: tangential_flow
+    contamination_level: realistic
+    adapter_type: nextera
+    mean_insert_size: 300
+    insert_size_sd: 50
+    duplicate_rate: 0.40
+    seed: 45
+
+  - name: high_adapter
+    collection_id: 9
+    platform: novaseq
+    coverage: 30
+    vlp_protocol: tangential_flow
+    contamination_level: realistic
+    adapter_type: nextera
+    mean_insert_size: 180
+    insert_size_sd: 40
+    duplicate_rate: 0.15
+    seed: 46

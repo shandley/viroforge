@@ -302,6 +302,35 @@ For more information: https://github.com/hecatomb/viroforge
         help='Don\'t open browser automatically'
     )
 
+    # ========================================================================
+    # SUMMARY command
+    # ========================================================================
+    summary_parser = subparsers.add_parser(
+        'summary',
+        help='Compute expected QC metric ranges from generated datasets',
+        description='Read metadata from generated datasets and compute per-metric '
+                    'ranges for virome-qc profile calibration'
+    )
+    summary_parser.add_argument(
+        'datasets',
+        nargs='+',
+        help='Dataset directories or metadata JSON files'
+    )
+    summary_parser.add_argument(
+        '--profile',
+        help='Profile name for YAML output header (e.g., stool-vlp-tagmentation)'
+    )
+    summary_parser.add_argument(
+        '--format',
+        choices=['table', 'yaml'],
+        default='table',
+        help='Output format (default: table)'
+    )
+    summary_parser.add_argument(
+        '--output',
+        help='Write YAML ranges to file'
+    )
+
     # Parse arguments
     args = parser.parse_args()
 
@@ -333,6 +362,9 @@ For more information: https://github.com/hecatomb/viroforge
         elif args.command == 'web':
             from .web import run_web
             return run_web(args)
+        elif args.command == 'summary':
+            from .summary import run_summary
+            return run_summary(args)
         else:
             parser.print_help()
             return 1

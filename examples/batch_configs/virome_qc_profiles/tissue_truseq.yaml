@@ -1,0 +1,71 @@
+# virome-qc profile: tissue-truseq
+# Tissue biopsy, TruSeq adapters, HIGH host (20-80%), moderate rRNA (1-10%), 35-55% GC
+#
+# No VLP enrichment (bulk tissue). High host contamination is the defining feature.
+# Generates 5 reference datasets spanning the expected parameter space.
+
+batch_name: "virome-qc tissue-truseq calibration"
+output_base: "data/virome_qc_references/tissue_truseq"
+
+datasets:
+  - name: clean_tissue
+    collection_id: 27   # Lung virome (tissue-relevant)
+    platform: novaseq
+    coverage: 30
+    no_vlp: true
+    contamination_level: realistic
+    adapter_type: truseq
+    mean_insert_size: 350
+    insert_size_sd: 60
+    duplicate_rate: 0.10
+    seed: 42
+
+  - name: typical_tissue
+    collection_id: 27
+    platform: novaseq
+    coverage: 30
+    no_vlp: true
+    contamination_level: heavy
+    adapter_type: truseq
+    mean_insert_size: 300
+    insert_size_sd: 50
+    duplicate_rate: 0.20
+    seed: 43
+
+  - name: high_host_tissue
+    collection_id: 25   # Blood/plasma (high host)
+    platform: novaseq
+    coverage: 30
+    no_vlp: true
+    contamination_level: heavy
+    adapter_type: truseq
+    mean_insert_size: 350
+    insert_size_sd: 60
+    duplicate_rate: 0.15
+    seed: 44
+
+  - name: degraded_tissue
+    collection_id: 27
+    platform: novaseq
+    coverage: 30
+    no_vlp: true
+    contamination_level: heavy
+    adapter_type: truseq
+    mean_insert_size: 200
+    insert_size_sd: 50
+    duplicate_rate: 0.30
+    low_complexity_rate: 0.005
+    seed: 45
+
+  - name: ffpe_like
+    collection_id: 27
+    platform: novaseq
+    coverage: 30
+    no_vlp: true
+    contamination_level: heavy
+    adapter_type: truseq
+    mean_insert_size: 160
+    insert_size_sd: 30
+    duplicate_rate: 0.50
+    low_complexity_rate: 0.01
+    seed: 46

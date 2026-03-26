@@ -1,0 +1,85 @@
+# virome-qc profile: low-biomass-wga
+# WGA-amplified, mixed adapters, variable host (0.1-10%), low rRNA (<5%),
+# 35-55% GC, HIGH duplication (30-70%), chimeric reads expected.
+#
+# WGA (whole genome amplification) produces extreme duplication and chimeras.
+# Generates 5 reference datasets spanning the expected parameter space.
+
+batch_name: "virome-qc low-biomass-wga calibration"
+output_base: "data/virome_qc_references/low_biomass_wga"
+
+datasets:
+  - name: good_wga
+    collection_id: 26   # Ocular (low biomass site)
+    platform: novaseq
+    coverage: 30
+    no_vlp: true
+    contamination_level: clean
+    adapter_type: truseq
+    mean_insert_size: 350
+    insert_size_sd: 80
+    duplicate_rate: 0.30
+    duplicate_error_rate: 0.002
+    chimera_rate: 0.005
+    low_complexity_rate: 0.005
+    seed: 42
+
+  - name: typical_wga
+    collection_id: 26
+    platform: novaseq
+    coverage: 30
+    no_vlp: true
+    contamination_level: realistic
+    adapter_type: truseq
+    mean_insert_size: 300
+    insert_size_sd: 80
+    duplicate_rate: 0.45
+    duplicate_error_rate: 0.002
+    chimera_rate: 0.01
+    low_complexity_rate: 0.008
+    seed: 43
+
+  - name: high_dup_wga
+    collection_id: 28   # Urinary (low biomass)
+    platform: novaseq
+    coverage: 30
+    no_vlp: true
+    contamination_level: realistic
+    adapter_type: truseq
+    mean_insert_size: 280
+    insert_size_sd: 70
+    duplicate_rate: 0.60
+    duplicate_error_rate: 0.003
+    chimera_rate: 0.015
+    low_complexity_rate: 0.01
+    seed: 44
+
+  - name: extreme_wga
+    collection_id: 26
+    platform: novaseq
+    coverage: 30
+    no_vlp: true
+    contamination_level: heavy
+    adapter_type: truseq
+    mean_insert_size: 250
+    insert_size_sd: 60
+    duplicate_rate: 0.70
+    duplicate_error_rate: 0.005
+    chimera_rate: 0.02
+    low_complexity_rate: 0.015
+    seed: 45
+
+  - name: failed_wga
+    collection_id: 26
+    platform: novaseq
+    coverage: 30
+    no_vlp: true
+    contamination_level: heavy
+    adapter_type: truseq
+    mean_insert_size: 200
+    insert_size_sd: 50
+    duplicate_rate: 0.70
+    duplicate_error_rate: 0.005
+    chimera_rate: 0.03
+    low_complexity_rate: 0.02
+    seed: 46

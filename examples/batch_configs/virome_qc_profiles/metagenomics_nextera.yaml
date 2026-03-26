@@ -1,0 +1,71 @@
+# virome-qc profile: metagenomics-nextera
+# Shotgun metagenomics, Nextera adapters, moderate host (0-6%), moderate rRNA (1-10%), 40-65% GC
+#
+# No VLP enrichment (shotgun). Mixed viral + bacterial community.
+# Generates 5 reference datasets spanning the expected parameter space.
+
+batch_name: "virome-qc metagenomics-nextera calibration"
+output_base: "data/virome_qc_references/metagenomics_nextera"
+
+datasets:
+  - name: clean_metag
+    collection_id: 9    # Gut virome
+    platform: novaseq
+    coverage: 30
+    no_vlp: true
+    contamination_level: clean
+    adapter_type: nextera
+    mean_insert_size: 300
+    insert_size_sd: 60
+    duplicate_rate: 0.08
+    seed: 42
+
+  - name: typical_metag
+    collection_id: 9
+    platform: novaseq
+    coverage: 30
+    no_vlp: true
+    contamination_level: realistic
+    adapter_type: nextera
+    mean_insert_size: 280
+    insert_size_sd: 55
+    duplicate_rate: 0.15
+    seed: 43
+
+  - name: marine_metag
+    collection_id: 13   # Marine virome
+    platform: novaseq
+    coverage: 30
+    no_vlp: true
+    contamination_level: realistic
+    adapter_type: nextera
+    mean_insert_size: 300
+    insert_size_sd: 50
+    duplicate_rate: 0.12
+    seed: 44
+
+  - name: wastewater_metag
+    collection_id: 17   # Wastewater
+    platform: novaseq
+    coverage: 30
+    no_vlp: true
+    contamination_level: realistic
+    adapter_type: nextera
+    mean_insert_size: 260
+    insert_size_sd: 60
+    duplicate_rate: 0.20
+    low_complexity_rate: 0.003
+    seed: 45
+
+  - name: dirty_metag
+    collection_id: 9
+    platform: novaseq
+    coverage: 30
+    no_vlp: true
+    contamination_level: heavy
+    adapter_type: nextera
+    mean_insert_size: 220
+    insert_size_sd: 50
+    duplicate_rate: 0.30
+    low_complexity_rate: 0.005
+    seed: 46
