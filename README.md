@@ -32,6 +32,32 @@ For the web interface:
 pip install -e ".[web]"
 ```
 
+## Database setup
+
+ViroForge requires a local SQLite database of viral genomes (~500 MB). This is not included in the repository and must be built from NCBI RefSeq:
+
+```bash
+# Step 1: Download RefSeq viral genomes (may take a while)
+python scripts/download_refseq.py --output data/refseq --all
+
+# Step 2: Parse downloaded genomes
+python scripts/parse_genomes.py --input data/refseq --output data/parsed
+
+# Step 3: Create and populate the database
+python scripts/populate_database.py \
+    --input data/parsed \
+    --database viroforge/data/viral_genomes.db \
+    --create-db
+```
+
+Optionally, map ICTV taxonomy to improve family-level classification:
+
+```bash
+python scripts/parse_ictv_taxonomy.py \
+    --vmr data/ictv/VMR_current.xlsx \
+    --database viroforge/data/viral_genomes.db
+```
+
 ## Quick start
 
 ### Browse available collections
