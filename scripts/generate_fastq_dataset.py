@@ -32,6 +32,7 @@ import argparse
 import sys
 import logging
 import sqlite3
+import subprocess
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 import json
