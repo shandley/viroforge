@@ -5,9 +5,10 @@ ViroForge database setup command.
 Downloads required data files and builds the local database.
 
 Usage:
-    viroforge setup-db                    # Full setup (download + build + taxonomy)
+    viroforge setup-db                    # Full setup (download + build + taxonomy + collections)
     viroforge setup-db --download-only    # Only download raw data
     viroforge setup-db --skip-taxonomy    # Build database without ICTV taxonomy
+    viroforge setup-db --skip-collections # Build database without curating collections
 
 Author: ViroForge Development Team
 """
@@ -76,7 +77,7 @@ def run_setup_db(args) -> int:
 
     # Step 1: Download RefSeq viral genomes
     if not args.skip_download:
-        print("\n[Step 1/4] Downloading RefSeq viral genomes...")
+        print("\n[Step 1/5] Downloading RefSeq viral genomes...")
         refseq_dir = data_dir / "refseq"
         if refseq_dir.exists() and any(refseq_dir.iterdir()):
             print(f"  RefSeq data already exists at {refseq_dir}, skipping download.")
@@ -88,11 +89,11 @@ def run_setup_db(args) -> int:
         else:
             _run_script(project_root, "scripts/download_refseq.py", ["--output", str(refseq_dir)])
     else:
-        print("\n[Step 1/4] Skipping RefSeq download (--download-only not needed)")
+        print("\n[Step 1/5] Skipping RefSeq download (--download-only not needed)")
 
     # Step 2: Parse genomes
     if not args.download_only:
-        print("\n[Step 2/4] Parsing downloaded genomes...")
+        print("\n[Step 2/5] Parsing downloaded genomes...")
         refseq_dir = data_dir / "refseq"
         parsed_dir = data_dir / "parsed"
         if not refseq_dir.exists():
@@ -104,19 +105,19 @@ def run_setup_db(args) -> int:
         ])
 
         # Step 3: Create and populate database
-        print("\n[Step 3/4] Creating and populating database...")
+        print("\n[Step 3/5] Creating and populating database...")
         _run_script(project_root, "scripts/populate_database.py", [
             "--input", str(parsed_dir),
             "--database", str(db_path),
             "--create-db",
         ])
     else:
-        print("\n[Step 2/4] Skipping parse (--download-only)")
-        print("[Step 3/4] Skipping database creation (--download-only)")
+        print("\n[Step 2/5] Skipping parse (--download-only)")
+        print("[Step 3/5] Skipping database creation (--download-only)")
 
     # Step 4: Download ICTV VMR and add taxonomy
     if not args.skip_taxonomy and not args.download_only:
-        print("\n[Step 4/4] Adding ICTV taxonomy...")
+        print("\n[Step 4/5] Adding ICTV taxonomy...")
 
         # Download VMR if not present
         if vmr_path.exists() and not args.force:
@@ -136,7 +137,52 @@ def run_setup_db(args) -> int:
             "--update-db",
         ])
     else:
-        print("\n[Step 4/4] Skipping ICTV taxonomy")
+        print("\n[Step 4/5] Skipping ICTV taxonomy")
+
+    # Step 5: Curate collections
+    if not args.skip_collections and not args.download_only:
+        print("\n[Step 5/5] Curating genome collections...")
+
+        if not db_path.exists():
+            print("  ERROR: Database not found. Cannot curate collections without database.")
+            return 1
+
+        # Main body site collections (1-8)
+        _run_script(project_root, "scripts/curate_body_site_collections.py", [
+            "--all", "--database", str(db_path),
+        ])
+
+        # Additional collections (17-28) — each script has its own hardcoded DB path
+        # but they all default to viroforge/data/viral_genomes.db
+        additional_scripts = [
+            "scripts/curate_wastewater_collection.py",
+            "scripts/curate_ibd_gut_collection.py",
+            "scripts/curate_hiv_gut_collection.py",
+            "scripts/curate_cf_respiratory_collection.py",
+            "scripts/curate_respiratory_rna_collection.py",
+            "scripts/curate_arbovirus_mosquito_collection.py",
+            "scripts/curate_fecal_rna_collection.py",
+            "scripts/curate_vaginal_virome_collection.py",
+            "scripts/curate_blood_virome_collection.py",
+            "scripts/curate_ocular_virome_collection.py",
+            "scripts/curate_lung_virome_collection.py",
+            "scripts/curate_urinary_virome_collection.py",
+        ]
+
+        failed = []
+        for script in additional_scripts:
+            try:
+                _run_script(project_root, script, [])
+            except RuntimeError as e:
+                failed.append(script)
+                print(f"  WARNING: {script} failed: {e}")
+
+        if failed:
+            print(f"\n  {len(failed)} curation script(s) failed (see warnings above).")
+        else:
+            print(f"\n  All collection curation scripts completed successfully.")
+    else:
+        print("\n[Step 5/5] Skipping collection curation")
 
     print("\n" + "=" * 60)
     if db_path.exists():
