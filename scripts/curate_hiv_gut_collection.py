@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Curate Collection 19: HIV+ Gut Virome
+Curate Collection 11: HIV+ Gut Virome
 
-Comparison to healthy gut (Collection 9):
+Comparison to healthy gut (Collection 1):
 - Dramatically reduced diversity (40-60 genomes vs 134)
 - Severely reduced crAssphage diversity
 - Increased eukaryotic viruses (Anelloviridae, Adenoviridae, Herpesviridae)
@@ -41,13 +41,13 @@ class HIVGutCurator:
         np.random.seed(self.random_seed)
 
     def get_healthy_gut_genomes(self) -> List[Dict]:
-        """Get genomes from healthy gut collection (ID 9) for reference."""
+        """Get genomes from healthy gut collection (ID 1) for reference."""
         query = """
         SELECT g.genome_id, g.genome_name, t.family, t.genus, cg.relative_abundance
         FROM collection_genomes cg
         JOIN genomes g ON cg.genome_id = g.genome_id
         JOIN taxonomy t ON g.genome_id = t.genome_id
-        WHERE cg.collection_id = 9
+        WHERE cg.collection_id = 1
         ORDER BY cg.relative_abundance DESC
         """
         return [dict(row) for row in self.conn.execute(query)]
@@ -239,7 +239,7 @@ class HIVGutCurator:
 
         # First, show healthy gut for comparison
         healthy = self.get_healthy_gut_genomes()
-        logger.info(f"\nHealthy gut (Collection 9): {len(healthy)} genomes")
+        logger.info(f"\nHealthy gut (Collection 1): {len(healthy)} genomes")
 
         # HIV+ characteristics: dramatically reduced diversity
         crassphage = self.get_severely_reduced_crassphage(n_target=8)
@@ -301,14 +301,14 @@ class HIVGutCurator:
         cursor = self.conn.cursor()
 
         collection_meta = {
-            'collection_id': 19,
+            'collection_id': 11,
             'collection_name': 'HIV+ Gut Virome',
             'description': (
                 'Gut virome from HIV+ patients showing dramatically reduced viral diversity. '
                 'Characterized by severe reduction in bacterial phage diversity, '
                 'expansion of eukaryotic viruses (Anelloviridae, Herpesviridae), '
                 'and highly dysbiotic abundance patterns. '
-                'Compare to Collection 9 (healthy gut) and Collection 18 (IBD) to study '
+                'Compare to Collection 1 (healthy gut) and Collection 10 (IBD) to study '
                 'progressive dysbiosis and immune dysfunction effects. '
                 'Based on Handley et al. 2012, Monaco et al. 2016, and Vujkovic-Cvijin et al. 2013.'
             ),
@@ -330,13 +330,13 @@ class HIVGutCurator:
         }
 
         # Check if collection exists
-        cursor.execute("SELECT collection_id FROM body_site_collections WHERE collection_id = 19")
+        cursor.execute("SELECT collection_id FROM body_site_collections WHERE collection_id = 11")
         exists = cursor.fetchone()
 
         if exists:
-            logger.info("Collection 19 already exists - DELETING and recreating...")
-            cursor.execute("DELETE FROM body_site_collections WHERE collection_id = 19")
-            cursor.execute("DELETE FROM collection_genomes WHERE collection_id = 19")
+            logger.info("Collection 11 already exists - DELETING and recreating...")
+            cursor.execute("DELETE FROM body_site_collections WHERE collection_id = 11")
+            cursor.execute("DELETE FROM collection_genomes WHERE collection_id = 11")
 
         # Insert collection
         cursor.execute("""
@@ -365,7 +365,7 @@ class HIVGutCurator:
                 (collection_id, genome_id, relative_abundance, prevalence, abundance_rank)
                 VALUES (?, ?, ?, ?, ?)
             """, (
-                19,
+                11,
                 genome['genome_id'],
                 genome['relative_abundance'],
                 1.0,  # All genomes present
@@ -375,7 +375,7 @@ class HIVGutCurator:
         self.conn.commit()
         logger.info(f"✓ Inserted {len(collection)} genome associations")
 
-        logger.info("\n✓ Collection 19 successfully created in database!")
+        logger.info("\n✓ Collection 11 successfully created in database!")
 
     def close(self):
         """Close database connection."""
@@ -397,7 +397,7 @@ def main():
         logger.info("✓ HIV+ GUT VIROME COLLECTION CURATION COMPLETE!")
         logger.info("=" * 80)
         logger.info("\nNext steps:")
-        logger.info("  1. Test generation: python scripts/generate_fastq_dataset.py --collection-id 19 --dry-run")
+        logger.info("  1. Test generation: python scripts/generate_fastq_dataset.py --collection-id 11 --dry-run")
         logger.info("  2. Compare to healthy and IBD: Generate all three collections and compare")
         logger.info("  3. Update documentation")
 
