@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Curate Collection 23: Fecal RNA Virome
+Curate Collection 15: Fecal RNA Virome
 
 Composition based on literature (Reyes et al. 2012, Minot et al. 2011):
 - Caliciviruses (norovirus, sapovirus)
@@ -333,7 +333,7 @@ class FecalRNACurator:
         cursor = self.conn.cursor()
 
         collection_meta = {
-            'collection_id': 23,
+            'collection_id': 15,
             'collection_name': 'Fecal RNA Virome',
             'description': (
                 'RNA virus component of human fecal virome. '
@@ -361,13 +361,13 @@ class FecalRNACurator:
         }
 
         # Check if collection exists
-        cursor.execute("SELECT collection_id FROM body_site_collections WHERE collection_id = 23")
+        cursor.execute("SELECT collection_id FROM body_site_collections WHERE collection_id = 15")
         exists = cursor.fetchone()
 
         if exists:
-            logger.info("Collection 23 already exists - DELETING and recreating...")
-            cursor.execute("DELETE FROM body_site_collections WHERE collection_id = 23")
-            cursor.execute("DELETE FROM collection_genomes WHERE collection_id = 23")
+            logger.info("Collection 15 already exists - DELETING and recreating...")
+            cursor.execute("DELETE FROM body_site_collections WHERE collection_id = 15")
+            cursor.execute("DELETE FROM collection_genomes WHERE collection_id = 15")
 
         # Insert collection
         cursor.execute("""
@@ -396,7 +396,7 @@ class FecalRNACurator:
                 (collection_id, genome_id, relative_abundance, prevalence, abundance_rank)
                 VALUES (?, ?, ?, ?, ?)
             """, (
-                23,
+                15,
                 genome['genome_id'],
                 genome['relative_abundance'],
                 1.0,  # All genomes present
@@ -406,7 +406,7 @@ class FecalRNACurator:
         self.conn.commit()
         logger.info(f"✓ Inserted {len(collection)} genome associations")
 
-        logger.info("\n✓ Collection 23 successfully created in database!")
+        logger.info("\n✓ Collection 15 successfully created in database!")
 
     def close(self):
         """Close database connection."""
@@ -430,7 +430,7 @@ def main():
         logger.info("\nPhase 8 Collections Complete:")
         logger.info("  ✓ Collection 21: Human Respiratory RNA Virome (56 genomes)")
         logger.info("  ✓ Collection 22: Arbovirus Environmental (39 genomes)")
-        logger.info("  ✓ Collection 23: Fecal RNA Virome ({} genomes)".format(len(collection)))
+        logger.info("  ✓ Collection 15: Fecal RNA Virome ({} genomes)".format(len(collection)))
         logger.info("\nNext steps:")
         logger.info("  1. Test all RNA collections with dry-run")
         logger.info("  2. Implement RNA workflow components (RT, rRNA depletion)")
