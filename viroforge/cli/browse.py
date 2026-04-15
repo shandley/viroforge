@@ -308,34 +308,36 @@ def generate_from_collection(collection_id: int) -> bool:
     console.print()
 
     # Get parameters from user
+    console.print("[dim]Press Enter to accept the default value shown in parentheses.[/dim]\n")
+
     output = Prompt.ask(
-        "[bold]Output directory[/bold]",
+        "[bold]Output directory[/bold] [dim](where generated FASTQ files will be saved)[/dim]",
         default=f"data/collection_{collection_id}"
     )
 
     platform = Prompt.ask(
-        "[bold]Platform[/bold]",
+        "[bold]Platform[/bold] [dim](sequencing platform to simulate)[/dim]",
         choices=['novaseq', 'miseq', 'hiseq', 'pacbio-hifi', 'nanopore'],
         default='novaseq'
     )
 
     if platform in ['novaseq', 'miseq', 'hiseq']:
         coverage = Prompt.ask(
-            "[bold]Coverage[/bold]",
+            "[bold]Coverage[/bold] [dim](average reads per base, e.g. 30x)[/dim]",
             default="30"
         )
         param_flag = '--coverage'
         param_value = coverage
     else:
         depth = Prompt.ask(
-            "[bold]Depth[/bold]",
+            "[bold]Depth[/bold] [dim](average reads per base, e.g. 15x)[/dim]",
             default="15"
         )
         param_flag = '--depth'
         param_value = depth
 
     seed = Prompt.ask(
-        "[bold]Random seed[/bold]",
+        "[bold]Random seed[/bold] [dim](for reproducibility, any integer)[/dim]",
         default="42"
     )
 
