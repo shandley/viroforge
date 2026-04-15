@@ -1832,8 +1832,7 @@ Examples:
                 if result.returncode != 0 and result.returncode != -13:
                     raise subprocess.CalledProcessError(result.returncode, pbsim_cmd)
                 if result.returncode == -13:
-                    logger.warning("  PBSIM3 received SIGPIPE (known issue with large multi-FASTA files)")
-                    logger.warning("  Checking if output was generated...")
+                    logger.warning("  PBSIM3 exited with SIGPIPE (known PBSIM3 bug with large multi-FASTA)")
                 logger.info("  PBSIM3 Nanopore generation complete")
             except subprocess.CalledProcessError as e:
                 logger.error(f"PBSIM3 failed with exit code {e.returncode}")
@@ -1842,6 +1841,14 @@ Examples:
                 logger.error("PBSIM3 (pbsim) not found in PATH")
                 logger.error("Install with: conda install -c bioconda pbsim3")
                 sys.exit(1)
+
+            # Validate that PBSIM3 produced output
+            import glob as _glob_nano
+            nano_fastqs = _glob_nano.glob(f"{output_prefix}_*.fq.gz")
+            if not nano_fastqs:
+                logger.error("  PBSIM3 did not produce any FASTQ output files")
+                sys.exit(1)
+            logger.info(f"  Verified: {len(nano_fastqs)} FASTQ output file(s) generated")
 
             reads_path = nanopore_fastq
 
