@@ -34,28 +34,31 @@ pip install -e ".[web]"
 
 ## Database setup
 
-ViroForge requires a local SQLite database of viral genomes (~500 MB). This is not included in the repository and must be built from NCBI RefSeq:
+ViroForge requires a local SQLite database of viral genomes (~500 MB). This is not included in the repository and must be built from NCBI RefSeq. A single command handles everything — downloading genomes, parsing, building the database, and adding ICTV taxonomy:
 
 ```bash
-# Step 1: Download RefSeq viral genomes (may take a while)
-python scripts/download_refseq.py --output data/refseq --all
-
-# Step 2: Parse downloaded genomes
-python scripts/parse_genomes.py --input data/refseq --output data/parsed
-
-# Step 3: Create and populate the database
-python scripts/populate_database.py \
-    --input data/parsed \
-    --database viroforge/data/viral_genomes.db \
-    --create-db
+viroforge setup-db
 ```
 
-Optionally, map ICTV taxonomy to improve family-level classification:
+This will take a while on first run (RefSeq download + database build). Once complete, all ViroForge commands will work.
+
+### Troubleshooting options
+
+These flags are **only needed if something goes wrong** — most users should just run `viroforge setup-db` above.
 
 ```bash
-python scripts/parse_ictv_taxonomy.py \
-    --vmr data/ictv/VMR_current.xlsx \
-    --database viroforge/data/viral_genomes.db
+# Network failed partway through? Skip the RefSeq download and retry
+# the remaining steps using data that already downloaded successfully.
+viroforge setup-db --skip-download
+
+# ICTV website down or VMR download failing? Build a working database
+# without taxonomy. Genomes will have family='Unknown' more often,
+# but everything else works fine. You can add taxonomy later.
+viroforge setup-db --skip-taxonomy
+
+# Corrupted download, or ICTV released a new VMR version?
+# Force re-download of all files even if they already exist on disk.
+viroforge setup-db --force
 ```
 
 ## Quick start
