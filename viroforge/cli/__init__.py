@@ -326,6 +326,11 @@ For more information: https://github.com/hecatomb/viroforge
         help='Skip ICTV taxonomy step'
     )
     setup_db_parser.add_argument(
+        '--skip-collections',
+        action='store_true',
+        help='Skip collection curation step'
+    )
+    setup_db_parser.add_argument(
         '--force',
         action='store_true',
         help='Re-download files even if they already exist'
