@@ -1774,11 +1774,27 @@ Examples:
             logger.info("  Generating Nanopore reads with PBSIM3...")
             nanopore_fastq = Path(output_prefix + '.fastq')
 
+            # Map chemistry version to PBSIM3 error model file
+            errhmm_map = {
+                'R10.4': 'ERRHMM-ONT-HQ.model',  # R10.4 = high quality
+                'R9.4': 'ERRHMM-ONT.model',       # R9.4 = standard
+            }
+            errhmm_name = errhmm_map.get(platform_config.chemistry, 'ERRHMM-ONT-HQ.model')
+
+            # Find the model file: check conda data dir, then fall back to just the name
+            import shutil
+            pbsim_path = shutil.which('pbsim')
+            errhmm_path = errhmm_name
+            if pbsim_path:
+                conda_data = Path(pbsim_path).parent.parent / 'data' / errhmm_name
+                if conda_data.exists():
+                    errhmm_path = str(conda_data)
+
             pbsim_cmd = [
                 'pbsim',
                 '--strategy', 'wgs',
                 '--method', 'errhmm',
-                '--errhmm', f'ERRHMM-{platform_config.chemistry}',
+                '--errhmm', errhmm_path,
                 '--depth', str(weighted_depth),
                 '--genome', str(fasta_path),
                 '--length-mean', str(platform_config.read_length_mean),
