@@ -1693,11 +1693,23 @@ Examples:
             logger.info("  Step 1/2: Generating CLR reads with PBSIM3...")
             clr_sam = Path(output_prefix + '_clr.sam')
 
+            # Resolve full path to QSHMM model file
+            import shutil as _shutil
+            qshmm_name = platform_config.accuracy_model
+            if not qshmm_name.endswith('.model'):
+                qshmm_name += '.model'
+            qshmm_path = qshmm_name
+            pbsim_path = _shutil.which('pbsim')
+            if pbsim_path:
+                conda_data = Path(pbsim_path).parent.parent / 'data' / qshmm_name
+                if conda_data.exists():
+                    qshmm_path = str(conda_data)
+
             pbsim_cmd = [
                 'pbsim',
                 '--strategy', 'wgs',
                 '--method', 'qshmm',
-                '--qshmm', platform_config.accuracy_model,
+                '--qshmm', qshmm_path,
                 '--depth', str(weighted_depth),
                 '--genome', str(fasta_path),
                 '--pass-num', str(platform_config.passes),
@@ -1711,7 +1723,11 @@ Examples:
                 pbsim_cmd.extend(['--seed', str(args.seed)])
 
             try:
-                result = subprocess.run(pbsim_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
+                result = subprocess.run(pbsim_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                if result.returncode != 0 and result.returncode != -13:
+                    raise subprocess.CalledProcessError(result.returncode, pbsim_cmd)
+                if result.returncode == -13:
+                    logger.warning("  PBSIM3 received SIGPIPE (known issue with large multi-FASTA files)")
                 logger.info("  PBSIM3 CLR generation complete")
             except subprocess.CalledProcessError as e:
                 logger.error(f"PBSIM3 failed with exit code {e.returncode}")
