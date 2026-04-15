@@ -939,7 +939,7 @@ class FASTQGenerator:
         except FileNotFoundError:
             logger.error("InSilicoSeq (iss) not found in PATH")
             logger.error("Install with: conda install -c bioconda insilicoseq")
-            raise
+            sys.exit(1)
 
     def export_metadata(
         self,
@@ -1719,7 +1719,7 @@ Examples:
             except FileNotFoundError:
                 logger.error("PBSIM3 (pbsim) not found in PATH")
                 logger.error("Install with: conda install -c bioconda pbsim3")
-                raise
+                sys.exit(1)
 
             # Step 2: Convert SAM to BAM and run ccs
             logger.info("  Step 2/2: Generating HiFi consensus with ccs...")
@@ -1733,6 +1733,10 @@ Examples:
             except subprocess.CalledProcessError as e:
                 logger.error(f"samtools failed: {e.stderr}")
                 raise
+            except FileNotFoundError:
+                logger.error("samtools not found in PATH")
+                logger.error("Install with: conda install -c bioconda samtools")
+                sys.exit(1)
 
             # Run ccs
             ccs_cmd = [
@@ -1753,7 +1757,7 @@ Examples:
             except FileNotFoundError:
                 logger.error("PacBio ccs not found in PATH")
                 logger.error("Install with: conda install -c bioconda pbccs")
-                raise
+                sys.exit(1)
 
             reads_path = hifi_fastq
 
@@ -1800,7 +1804,7 @@ Examples:
             except FileNotFoundError:
                 logger.error("PBSIM3 (pbsim) not found in PATH")
                 logger.error("Install with: conda install -c bioconda pbsim3")
-                raise
+                sys.exit(1)
 
             reads_path = nanopore_fastq
 
