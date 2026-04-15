@@ -24,7 +24,17 @@ cd viroforge
 pip install -e .
 ```
 
-For long-read support (PacBio HiFi, Oxford Nanopore), you also need pbsim3, pbccs, and samtools. See [Long-Read Tutorial](docs/LONGREAD_TUTORIAL.md) for details.
+### Platform dependencies
+
+ViroForge requires external tools depending on which sequencing platform you want to simulate:
+
+| Platform | Required tools | Install command |
+|----------|---------------|-----------------|
+| NovaSeq, MiSeq, HiSeq | InSilicoSeq | `conda install -c bioconda insilicoseq` |
+| Oxford Nanopore | PBSIM3 | `conda install -c bioconda pbsim3` |
+| PacBio HiFi | PBSIM3, samtools, pbccs | `conda install -c bioconda pbsim3 samtools pbccs` |
+
+ViroForge will check for these tools before starting generation and tell you what to install if anything is missing. See [Long-Read Tutorial](docs/LONGREAD_TUTORIAL.md) for details.
 
 For the web interface:
 
