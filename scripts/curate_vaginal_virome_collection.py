@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Curate Collection 24: Vaginal Virome
+Curate Collection 16: Vaginal Virome
 
 Composition based on literature (Wylie et al. 2014, Dols et al. 2016,
 Nature Microbiology 2024 VMGC study):
@@ -361,9 +361,9 @@ class VaginalViromeCurator:
         return genomes
 
     def create_collection(self):
-        """Create Collection 24: Vaginal Virome."""
+        """Create Collection 16: Vaginal Virome."""
         logger.info("=" * 70)
-        logger.info("Creating Collection 24: Vaginal Virome")
+        logger.info("Creating Collection 16: Vaginal Virome")
         logger.info("=" * 70)
 
         # Collect genomes by category
@@ -406,7 +406,7 @@ class VaginalViromeCurator:
 
         # Insert collection
         collection_meta = {
-            'collection_id': 24,
+            'collection_id': 16,
             'collection_name': 'Vaginal Virome (Healthy)',
             'description': f'Healthy human vaginal/cervicovaginal virome with {len(all_genomes)} genomes. Includes papillomaviruses (HPV), human herpesviruses (HSV-1, VZV, EBV, CMV, KSHV), anelloviruses, Lactobacillus bacteriophages, polyomaviruses, and adenoviruses. Bacteriophages ~80% abundance (literature-consistent), HPV 78.3% prevalence, Anelloviruses 69.6% prevalence. Host: Homo sapiens, Body site: Vagina. Women\'s health applications: cervical cancer screening, bacterial vaginosis, pregnancy outcomes, anellovirus immune markers.',
             'n_genomes': len(all_genomes),
@@ -421,7 +421,7 @@ class VaginalViromeCurator:
         self._insert_collection(collection_meta, all_genomes)
 
         logger.info("\n" + "=" * 70)
-        logger.info("Collection 24: Vaginal Virome - COMPLETE")
+        logger.info("Collection 16: Vaginal Virome - COMPLETE")
         logger.info("=" * 70)
 
     def _insert_collection(self, collection_meta: Dict, genomes: List[Dict]):
