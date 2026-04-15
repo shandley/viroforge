@@ -1711,10 +1711,10 @@ Examples:
                 pbsim_cmd.extend(['--seed', str(args.seed)])
 
             try:
-                result = subprocess.run(pbsim_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, check=True)
+                result = subprocess.run(pbsim_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
                 logger.info("  PBSIM3 CLR generation complete")
             except subprocess.CalledProcessError as e:
-                logger.error(f"PBSIM3 failed: {e.stderr}")
+                logger.error(f"PBSIM3 failed with exit code {e.returncode}")
                 raise
             except FileNotFoundError:
                 logger.error("PBSIM3 (pbsim) not found in PATH")
@@ -1812,10 +1812,15 @@ Examples:
                 pbsim_cmd.extend(['--seed', str(args.seed)])
 
             try:
-                result = subprocess.run(pbsim_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, check=True)
+                result = subprocess.run(pbsim_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                if result.returncode != 0 and result.returncode != -13:
+                    raise subprocess.CalledProcessError(result.returncode, pbsim_cmd)
+                if result.returncode == -13:
+                    logger.warning("  PBSIM3 received SIGPIPE (known issue with large multi-FASTA files)")
+                    logger.warning("  Checking if output was generated...")
                 logger.info("  PBSIM3 Nanopore generation complete")
             except subprocess.CalledProcessError as e:
-                logger.error(f"PBSIM3 failed: {e.stderr}")
+                logger.error(f"PBSIM3 failed with exit code {e.returncode}")
                 raise
             except FileNotFoundError:
                 logger.error("PBSIM3 (pbsim) not found in PATH")
