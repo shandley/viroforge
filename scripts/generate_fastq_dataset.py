@@ -1678,7 +1678,7 @@ Examples:
                 pbsim_cmd.extend(['--seed', str(args.seed)])
 
             try:
-                result = subprocess.run(pbsim_cmd, capture_output=True, text=True, check=True)
+                result = subprocess.run(pbsim_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, check=True)
                 logger.info("  PBSIM3 CLR generation complete")
             except subprocess.CalledProcessError as e:
                 logger.error(f"PBSIM3 failed: {e.stderr}")
@@ -1779,7 +1779,7 @@ Examples:
                 pbsim_cmd.extend(['--seed', str(args.seed)])
 
             try:
-                result = subprocess.run(pbsim_cmd, capture_output=True, text=True, check=True)
+                result = subprocess.run(pbsim_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, check=True)
                 logger.info("  PBSIM3 Nanopore generation complete")
             except subprocess.CalledProcessError as e:
                 logger.error(f"PBSIM3 failed: {e.stderr}")
