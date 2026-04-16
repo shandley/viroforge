@@ -189,7 +189,7 @@ def show_composition_summary(metadata: Dict, dataset_path: Path):
     composition = load_composition_file(dataset_path)
 
     if composition is not None:
-        viral_count = len([g for g in composition if g.get('genome_type') == 'viral'])
+        viral_count = len([g for g in composition if g.get('sequence_type', g.get('genome_type')) == 'viral'])
         total_count = len(composition)
 
         console.print(f"  Total genomes: [green]{total_count}[/green]")
@@ -387,7 +387,7 @@ def generate_html_report_content(metadata: Dict, dataset_path: Path, composition
     top_genomes_html = ""
 
     if composition:
-        viral_count = len([g for g in composition if g.get('genome_type') == 'viral'])
+        viral_count = len([g for g in composition if g.get('sequence_type', g.get('genome_type')) == 'viral'])
         total_count = len(composition)
 
         # Get viral fraction from enrichment_stats
