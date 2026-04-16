@@ -28,6 +28,7 @@ except ImportError:
     sys.exit(1)
 
 from .db_utils import (
+    get_database_path,
     load_all_collections,
     load_collection_details,
     search_collections,
@@ -195,6 +196,25 @@ def show_collection_details(collection_id: int, icons: bool = True):
 
 def run_browser(args):
     """Main browser loop."""
+    # Check for database before entering the loop
+    try:
+        get_database_path()
+    except FileNotFoundError:
+        console.print(
+            "\n[cyan]The viral genome database has not been set up yet. "
+            "Build it with:[/cyan]\n"
+        )
+        console.print("  python scripts/download_refseq.py --output data/refseq --all")
+        console.print("  python scripts/parse_genomes.py --input data/refseq --output data/parsed")
+        console.print(
+            "  python scripts/populate_database.py "
+            "--input data/parsed "
+            "--database viroforge/data/viral_genomes.db "
+            "--create-db"
+        )
+        console.print()
+        return 1
+
     icons = not args.no_icons
     search_query = ""
 
@@ -278,6 +298,7 @@ def generate_from_collection(collection_id: int) -> bool:
     bool
         True if generation was launched, False otherwise
     """
+    import shutil
     import subprocess
     from pathlib import Path
 
@@ -288,34 +309,67 @@ def generate_from_collection(collection_id: int) -> bool:
     console.print()
 
     # Get parameters from user
+    console.print("[dim]Press Enter to accept the default value shown in parentheses.[/dim]\n")
+
     output = Prompt.ask(
-        "[bold]Output directory[/bold]",
+        "[bold]Output directory[/bold] [dim](where generated FASTQ files will be saved)[/dim]",
         default=f"data/collection_{collection_id}"
     )
 
     platform = Prompt.ask(
-        "[bold]Platform[/bold]",
+        "[bold]Platform[/bold] [dim](sequencing platform to simulate)[/dim]",
         choices=['novaseq', 'miseq', 'hiseq', 'pacbio-hifi', 'nanopore'],
         default='novaseq'
     )
 
+    # Check external tool dependencies before proceeding
+    missing_tools = []
+    if platform in ['novaseq', 'miseq', 'hiseq']:
+        if not shutil.which('iss'):
+            missing_tools.append(('iss (InSilicoSeq)', 'conda install -c bioconda insilicoseq'))
+    elif platform == 'nanopore':
+        if not shutil.which('pbsim'):
+            missing_tools.append(('pbsim (PBSIM3)', 'conda install -c bioconda pbsim3'))
+    elif platform == 'pacbio-hifi':
+        if not shutil.which('pbsim'):
+            missing_tools.append(('pbsim (PBSIM3)', 'conda install -c bioconda pbsim3'))
+        if not shutil.which('samtools'):
+            missing_tools.append(('samtools', 'conda install -c bioconda samtools'))
+        if not shutil.which('ccs'):
+            missing_tools.append(('ccs (pbccs)', 'conda install -c bioconda pbccs'))
+
+    if missing_tools:
+        console.print(f"\n[red]Missing required tools for {platform}:[/red]")
+        for tool_name, install_cmd in missing_tools:
+            console.print(f"  [red]✗[/red] {tool_name}")
+            console.print(f"    [yellow]Install with:[/yellow] {install_cmd}")
+        if platform == 'pacbio-hifi' and not shutil.which('ccs'):
+            import platform as _platform
+            machine = _platform.machine()
+            if machine != 'x86_64':
+                console.print(f"\n[red]Note:[/red] pbccs is only available for Linux x86-64.")
+                console.print(f"  Your system architecture is [bold]{machine}[/bold].")
+                console.print(f"  PacBio HiFi generation must be run on a Linux x86-64 machine or cluster.")
+        console.print(f"\n[yellow]Install the tools above and try again.[/yellow]")
+        return False
+
     if platform in ['novaseq', 'miseq', 'hiseq']:
         coverage = Prompt.ask(
-            "[bold]Coverage[/bold]",
+            "[bold]Coverage[/bold] [dim](average reads per base, e.g. 30x)[/dim]",
             default="30"
         )
         param_flag = '--coverage'
         param_value = coverage
     else:
         depth = Prompt.ask(
-            "[bold]Depth[/bold]",
+            "[bold]Depth[/bold] [dim](average reads per base, e.g. 15x)[/dim]",
             default="15"
         )
         param_flag = '--depth'
         param_value = depth
 
     seed = Prompt.ask(
-        "[bold]Random seed[/bold]",
+        "[bold]Random seed[/bold] [dim](for reproducibility, any integer)[/dim]",
         default="42"
     )
 

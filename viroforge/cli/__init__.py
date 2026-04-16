@@ -303,6 +303,40 @@ For more information: https://github.com/hecatomb/viroforge
     )
 
     # ========================================================================
+    # SETUP-DB command
+    # ========================================================================
+    setup_db_parser = subparsers.add_parser(
+        'setup-db',
+        help='Download data and build the local genome database',
+        description='Download RefSeq genomes, ICTV taxonomy, and build the SQLite database'
+    )
+    setup_db_parser.add_argument(
+        '--download-only',
+        action='store_true',
+        help='Only download raw data, do not build database'
+    )
+    setup_db_parser.add_argument(
+        '--skip-download',
+        action='store_true',
+        help='Skip RefSeq download (use existing data)'
+    )
+    setup_db_parser.add_argument(
+        '--skip-taxonomy',
+        action='store_true',
+        help='Skip ICTV taxonomy step'
+    )
+    setup_db_parser.add_argument(
+        '--skip-collections',
+        action='store_true',
+        help='Skip collection curation step'
+    )
+    setup_db_parser.add_argument(
+        '--force',
+        action='store_true',
+        help='Re-download files even if they already exist'
+    )
+
+    # ========================================================================
     # SUMMARY command
     # ========================================================================
     summary_parser = subparsers.add_parser(
@@ -362,6 +396,9 @@ For more information: https://github.com/hecatomb/viroforge
         elif args.command == 'web':
             from .web import run_web
             return run_web(args)
+        elif args.command == 'setup-db':
+            from .setup_db import run_setup_db
+            return run_setup_db(args)
         elif args.command == 'summary':
             from .summary import run_summary
             return run_summary(args)

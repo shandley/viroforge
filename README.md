@@ -24,12 +24,53 @@ cd viroforge
 pip install -e .
 ```
 
-For long-read support (PacBio HiFi, Oxford Nanopore), you also need pbsim3, pbccs, and samtools. See [Long-Read Tutorial](docs/LONGREAD_TUTORIAL.md) for details.
+### Platform dependencies
+
+ViroForge requires external tools depending on which sequencing platform you want to simulate:
+
+| Platform | Required tools | Install command |
+|----------|---------------|-----------------|
+| NovaSeq, MiSeq, HiSeq | InSilicoSeq | `conda install -c bioconda insilicoseq` |
+| Oxford Nanopore | PBSIM3 | `conda install -c bioconda pbsim3` |
+| PacBio HiFi | PBSIM3, samtools, pbccs | `conda install -c bioconda pbsim3 samtools pbccs` |
+
+**Note**: `pbccs` (the PacBio CCS tool) is only available for **Linux x86-64**. It does not support macOS ARM (Apple Silicon) or other architectures. If you need PacBio HiFi generation, run ViroForge on a Linux x86-64 machine or cluster.
+
+ViroForge will check for these tools before starting generation and tell you what to install if anything is missing. See [Long-Read Tutorial](docs/LONGREAD_TUTORIAL.md) for details.
 
 For the web interface:
 
 ```bash
 pip install -e ".[web]"
+```
+
+## Database setup
+
+ViroForge requires a local SQLite database of viral genomes (~500 MB). This is not included in the repository and must be built from NCBI RefSeq. A single command handles everything — downloading genomes, parsing, building the database, and adding ICTV taxonomy:
+
+```bash
+viroforge setup-db
+```
+
+This will take a while on first run (RefSeq download + database build). Once complete, all ViroForge commands will work.
+
+### Troubleshooting options
+
+These flags are **only needed if something goes wrong** — most users should just run `viroforge setup-db` above.
+
+```bash
+# Network failed partway through? Skip the RefSeq download and retry
+# the remaining steps using data that already downloaded successfully.
+viroforge setup-db --skip-download
+
+# ICTV website down or VMR download failing? Build a working database
+# without taxonomy. Genomes will have family='Unknown' more often,
+# but everything else works fine. You can add taxonomy later.
+viroforge setup-db --skip-taxonomy
+
+# Corrupted download, or ICTV released a new VMR version?
+# Force re-download of all files even if they already exist on disk.
+viroforge setup-db --force
 ```
 
 ## Quick start
