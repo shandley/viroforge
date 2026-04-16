@@ -1549,6 +1549,33 @@ Examples:
 
     logger.info(f"Platform: {args.platform} (read_type={read_type})")
 
+    # Check external tool dependencies before doing any work
+    import shutil as _shutil_check
+    missing = []
+    if args.platform in ['novaseq', 'miseq', 'hiseq']:
+        if not _shutil_check.which('iss'):
+            missing.append(('iss (InSilicoSeq)', 'conda install -c bioconda insilicoseq'))
+    elif args.platform == 'nanopore':
+        if not _shutil_check.which('pbsim'):
+            missing.append(('pbsim (PBSIM3)', 'conda install -c bioconda pbsim3'))
+    elif args.platform == 'pacbio-hifi':
+        if not _shutil_check.which('pbsim'):
+            missing.append(('pbsim (PBSIM3)', 'conda install -c bioconda pbsim3'))
+        if not _shutil_check.which('samtools'):
+            missing.append(('samtools', 'conda install -c bioconda samtools'))
+        if not _shutil_check.which('ccs'):
+            missing.append(('ccs (pbccs)', 'conda install -c bioconda pbccs'))
+    if missing:
+        logger.error(f"Missing required tools for {args.platform}:")
+        for tool_name, install_cmd in missing:
+            logger.error(f"  {tool_name} — install with: {install_cmd}")
+        if args.platform == 'pacbio-hifi' and not _shutil_check.which('ccs'):
+            import platform as _platform
+            if _platform.machine() != 'x86_64':
+                logger.error(f"Note: pbccs is only available for Linux x86-64 (your system: {_platform.machine()})")
+                logger.error("PacBio HiFi generation must be run on a Linux x86-64 machine or cluster")
+        sys.exit(1)
+
     # Prepare genomes with VLP enrichment
     vlp_protocol = None if args.no_vlp else args.vlp_protocol
     use_real = not args.no_real_contaminants
