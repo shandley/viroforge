@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Curate Collection 27: Lower Respiratory (Lung) Virome (Healthy)
+Curate Collection 19: Lower Respiratory (Lung) Virome (Healthy)
 
 Literature basis:
 - Kitsios et al. 2018 - Respiratory microbiome profiling for pneumonia diagnosis
@@ -551,9 +551,9 @@ class LungViromeCurator:
         return genomes
 
     def create_collection(self):
-        """Create Collection 27: Lower Respiratory (Lung) Virome."""
+        """Create Collection 19: Lower Respiratory (Lung) Virome."""
         logger.info("=" * 70)
-        logger.info("Creating Collection 27: Lower Respiratory (Lung) Virome")
+        logger.info("Creating Collection 19: Lower Respiratory (Lung) Virome")
         logger.info("=" * 70)
 
         # Collect genomes by category
@@ -608,16 +608,16 @@ class LungViromeCurator:
         # Assign abundances
         all_genomes = self.assign_abundances(all_genomes, categories)
 
-        # Delete existing Collection 27 if present
+        # Delete existing Collection 19 if present
         cursor = self.conn.cursor()
-        cursor.execute("DELETE FROM collection_genomes WHERE collection_id = 27")
-        cursor.execute("DELETE FROM body_site_collections WHERE collection_id = 27")
+        cursor.execute("DELETE FROM collection_genomes WHERE collection_id = 19")
+        cursor.execute("DELETE FROM body_site_collections WHERE collection_id = 19")
         self.conn.commit()
-        logger.info("\nDeleted existing Collection 27 (if present)")
+        logger.info("\nDeleted existing Collection 19 (if present)")
 
         # Insert collection
         collection_meta = {
-            'collection_id': 27,
+            'collection_id': 19,
             'collection_name': 'Lower Respiratory (Lung) Virome (Healthy)',
             'description': f'Healthy human lower respiratory tract/lung virome with {len(all_genomes)} genomes. Includes anelloviruses (TTV - DOMINANT 70% in tissues), respiratory viruses (RSV, rhinovirus, influenza, coronavirus, metapneumovirus, bocavirus, adenovirus), herpesviruses (CMV, EBV, HSV, VZV - important in transplant), papillomaviruses, and bacteriophages targeting lung bacteria (Propionibacterium, Streptococcus, Haemophilus, Pseudomonas). Host: Homo sapiens, Body site: Lower respiratory tract/Lungs. Applications: pneumonia diagnosis, COPD monitoring, lung transplant surveillance, respiratory infection research.',
             'n_genomes': len(all_genomes),
@@ -632,7 +632,7 @@ class LungViromeCurator:
         self._insert_collection(collection_meta, all_genomes)
 
         logger.info("\n" + "=" * 70)
-        logger.info("Collection 27: Lower Respiratory (Lung) Virome - COMPLETE")
+        logger.info("Collection 19: Lower Respiratory (Lung) Virome - COMPLETE")
         logger.info("=" * 70)
 
     def _insert_collection(self, collection_meta: Dict, genomes: List[Dict]):
