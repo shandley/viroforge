@@ -1773,6 +1773,10 @@ Examples:
             except FileNotFoundError:
                 logger.error("PacBio ccs not found in PATH")
                 logger.error("Install with: conda install -c bioconda pbccs")
+                import platform as _platform
+                if _platform.machine() != 'x86_64':
+                    logger.error(f"Note: pbccs is only available for Linux x86-64 (your system: {_platform.machine()})")
+                    logger.error("PacBio HiFi generation must be run on a Linux x86-64 machine or cluster")
                 sys.exit(1)
 
             reads_path = hifi_fastq

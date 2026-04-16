@@ -343,6 +343,13 @@ def generate_from_collection(collection_id: int) -> bool:
         for tool_name, install_cmd in missing_tools:
             console.print(f"  [red]✗[/red] {tool_name}")
             console.print(f"    [yellow]Install with:[/yellow] {install_cmd}")
+        if platform == 'pacbio-hifi' and not shutil.which('ccs'):
+            import platform as _platform
+            machine = _platform.machine()
+            if machine != 'x86_64':
+                console.print(f"\n[red]Note:[/red] pbccs is only available for Linux x86-64.")
+                console.print(f"  Your system architecture is [bold]{machine}[/bold].")
+                console.print(f"  PacBio HiFi generation must be run on a Linux x86-64 machine or cluster.")
         console.print(f"\n[yellow]Install the tools above and try again.[/yellow]")
         return False
 
