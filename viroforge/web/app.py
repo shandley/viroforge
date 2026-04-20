@@ -15,8 +15,8 @@ import subprocess
 import tempfile
 
 # Import ViroForge utilities
-from viroforge.database.utils import get_all_collections, get_collection_details
-from viroforge.cli.presets import list_presets as get_presets, load_preset
+from viroforge.cli.db_utils import load_all_collections as get_all_collections, load_collection_details as get_collection_details
+from viroforge.cli.preset_loader import list_all_presets as get_presets, load_preset
 from viroforge.cli.report import load_dataset_metadata, load_composition_file
 from viroforge.cli.batch import load_batch_config, expand_parameter_sweep
 
@@ -75,7 +75,9 @@ def api_collection_details(collection_id):
 def generate_page():
     """Dataset generation page."""
     try:
-        presets = get_presets()
+        presets_by_category = get_presets()
+        # Flatten grouped presets into a single list for the template
+        presets = [p for category_presets in presets_by_category.values() for p in category_presets]
         collections = get_all_collections()
         return render_template('generate.html', presets=presets, collections=collections)
     except Exception as e:

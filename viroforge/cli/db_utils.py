@@ -68,7 +68,25 @@ def load_all_collections() -> List[Dict]:
     cursor.execute(query)
     collections = []
 
+    # RNA collection IDs (Respiratory RNA, Arbovirus, Fecal RNA)
+    RNA_COLLECTION_IDS = {13, 14, 15}
+    # Environment keywords for categorization (order matters — first match wins)
+    ENV_KEYWORDS = {
+        'ibd': 'disease', 'hiv': 'disease', 'cystic fibrosis': 'disease', 'cf ': 'disease',
+        'marine': 'environmental', 'soil': 'environmental',
+        'freshwater': 'environmental', 'wastewater': 'environmental',
+        'arbovirus': 'environmental',
+    }
+
     for row in cursor.fetchall():
+        name_lower = row['collection_name'].lower()
+        molecule_type = 'rna' if row['collection_id'] in RNA_COLLECTION_IDS else 'dna'
+        environment = 'host'
+        for keyword, env in ENV_KEYWORDS.items():
+            if keyword in name_lower:
+                environment = env
+                break
+
         collection = {
             'id': row['collection_id'],
             'name': row['collection_name'],
@@ -77,6 +95,8 @@ def load_all_collections() -> List[Dict]:
             'selection_criteria': row['selection_criteria'],
             'literature_references': row['literature_references'],
             'curation_date': row['curation_date'],
+            'molecule_type': molecule_type,
+            'environment': environment,
         }
         collections.append(collection)
 

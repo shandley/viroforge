@@ -31,6 +31,12 @@ from .generate import execute_generation
 console = Console()
 
 
+def load_batch_config(config_path: str) -> Dict:
+    """Load and return a batch configuration from a YAML file."""
+    with open(config_path) as f:
+        return yaml.safe_load(f)
+
+
 def run_batch(args):
     """Run batch generation from YAML configuration."""
     config_path = Path(args.config)
