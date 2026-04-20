@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Curate Collection 28: Urinary Virome (Healthy)
+Curate Collection 20: Urinary Virome (Healthy)
 
 Literature basis:
 - Santiago-Rodriguez et al. 2015 (Frontiers Microbiol) - Human urine virome in UTI
@@ -439,9 +439,9 @@ class UrinaryViromeCurator:
         return genomes
 
     def create_collection(self):
-        """Create Collection 28: Urinary Virome."""
+        """Create Collection 20: Urinary Virome."""
         logger.info("=" * 70)
-        logger.info("Creating Collection 28: Urinary Virome")
+        logger.info("Creating Collection 20: Urinary Virome")
         logger.info("=" * 70)
 
         # Collect genomes by category
@@ -488,16 +488,16 @@ class UrinaryViromeCurator:
         # Assign abundances
         all_genomes = self.assign_abundances(all_genomes, categories)
 
-        # Delete existing Collection 28 if present
+        # Delete existing Collection 20 if present
         cursor = self.conn.cursor()
-        cursor.execute("DELETE FROM collection_genomes WHERE collection_id = 28")
-        cursor.execute("DELETE FROM body_site_collections WHERE collection_id = 28")
+        cursor.execute("DELETE FROM collection_genomes WHERE collection_id = 20")
+        cursor.execute("DELETE FROM body_site_collections WHERE collection_id = 20")
         self.conn.commit()
-        logger.info("\nDeleted existing Collection 28 (if present)")
+        logger.info("\nDeleted existing Collection 20 (if present)")
 
         # Insert collection
         collection_meta = {
-            'collection_id': 28,
+            'collection_id': 20,
             'collection_name': 'Urinary Virome (Healthy)',
             'description': f'Healthy human urinary tract virome with {len(all_genomes)} genomes. Includes papillomaviruses (HPV - DOMINANT 95% prevalence), BK polyomavirus (CRITICAL transplant biomarker 60-100% in complications), JC polyomavirus, anelloviruses (TTV - 53% in transplant patients), adenoviruses (hemorrhagic cystitis), herpesviruses (CMV, EBV), and bacteriophages targeting urinary bacteria (E. coli, Enterococcus, Staphylococcus, Lactobacillus). Host: Homo sapiens, Body site: Urinary tract/Urine. Applications: kidney transplant monitoring (BK/JC viremia), UTI diagnosis, hemorrhagic cystitis detection, immunocompromised patient monitoring.',
             'n_genomes': len(all_genomes),
@@ -512,7 +512,7 @@ class UrinaryViromeCurator:
         self._insert_collection(collection_meta, all_genomes)
 
         logger.info("\n" + "=" * 70)
-        logger.info("Collection 28: Urinary Virome - COMPLETE")
+        logger.info("Collection 20: Urinary Virome - COMPLETE")
         logger.info("=" * 70)
 
     def _insert_collection(self, collection_meta: Dict, genomes: List[Dict]):

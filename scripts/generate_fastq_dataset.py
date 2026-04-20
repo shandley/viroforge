@@ -32,6 +32,7 @@ import argparse
 import sys
 import logging
 import sqlite3
+import subprocess
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 import json
@@ -938,7 +939,7 @@ class FASTQGenerator:
         except FileNotFoundError:
             logger.error("InSilicoSeq (iss) not found in PATH")
             logger.error("Install with: conda install -c bioconda insilicoseq")
-            raise
+            sys.exit(1)
 
     def export_metadata(
         self,
@@ -1692,11 +1693,23 @@ Examples:
             logger.info("  Step 1/2: Generating CLR reads with PBSIM3...")
             clr_sam = Path(output_prefix + '_clr.sam')
 
+            # Resolve full path to QSHMM model file
+            import shutil as _shutil
+            qshmm_name = platform_config.accuracy_model
+            if not qshmm_name.endswith('.model'):
+                qshmm_name += '.model'
+            qshmm_path = qshmm_name
+            pbsim_path = _shutil.which('pbsim')
+            if pbsim_path:
+                conda_data = Path(pbsim_path).parent.parent / 'data' / qshmm_name
+                if conda_data.exists():
+                    qshmm_path = str(conda_data)
+
             pbsim_cmd = [
                 'pbsim',
                 '--strategy', 'wgs',
                 '--method', 'qshmm',
-                '--qshmm', platform_config.accuracy_model,
+                '--qshmm', qshmm_path,
                 '--depth', str(weighted_depth),
                 '--genome', str(fasta_path),
                 '--pass-num', str(platform_config.passes),
@@ -1710,15 +1723,19 @@ Examples:
                 pbsim_cmd.extend(['--seed', str(args.seed)])
 
             try:
-                result = subprocess.run(pbsim_cmd, capture_output=True, text=True, check=True)
+                result = subprocess.run(pbsim_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                if result.returncode != 0 and result.returncode != -13:
+                    raise subprocess.CalledProcessError(result.returncode, pbsim_cmd)
+                if result.returncode == -13:
+                    logger.warning("  PBSIM3 received SIGPIPE (known issue with large multi-FASTA files)")
                 logger.info("  PBSIM3 CLR generation complete")
             except subprocess.CalledProcessError as e:
-                logger.error(f"PBSIM3 failed: {e.stderr}")
+                logger.error(f"PBSIM3 failed with exit code {e.returncode}")
                 raise
             except FileNotFoundError:
                 logger.error("PBSIM3 (pbsim) not found in PATH")
                 logger.error("Install with: conda install -c bioconda pbsim3")
-                raise
+                sys.exit(1)
 
             # Step 2: Convert SAM to BAM and run ccs
             logger.info("  Step 2/2: Generating HiFi consensus with ccs...")
@@ -1732,6 +1749,10 @@ Examples:
             except subprocess.CalledProcessError as e:
                 logger.error(f"samtools failed: {e.stderr}")
                 raise
+            except FileNotFoundError:
+                logger.error("samtools not found in PATH")
+                logger.error("Install with: conda install -c bioconda samtools")
+                sys.exit(1)
 
             # Run ccs
             ccs_cmd = [
@@ -1752,7 +1773,7 @@ Examples:
             except FileNotFoundError:
                 logger.error("PacBio ccs not found in PATH")
                 logger.error("Install with: conda install -c bioconda pbccs")
-                raise
+                sys.exit(1)
 
             reads_path = hifi_fastq
 
@@ -1773,11 +1794,27 @@ Examples:
             logger.info("  Generating Nanopore reads with PBSIM3...")
             nanopore_fastq = Path(output_prefix + '.fastq')
 
+            # Map chemistry version to PBSIM3 error model file
+            errhmm_map = {
+                'R10.4': 'ERRHMM-ONT-HQ.model',  # R10.4 = high quality
+                'R9.4': 'ERRHMM-ONT.model',       # R9.4 = standard
+            }
+            errhmm_name = errhmm_map.get(platform_config.chemistry, 'ERRHMM-ONT-HQ.model')
+
+            # Find the model file: check conda data dir, then fall back to just the name
+            import shutil
+            pbsim_path = shutil.which('pbsim')
+            errhmm_path = errhmm_name
+            if pbsim_path:
+                conda_data = Path(pbsim_path).parent.parent / 'data' / errhmm_name
+                if conda_data.exists():
+                    errhmm_path = str(conda_data)
+
             pbsim_cmd = [
                 'pbsim',
                 '--strategy', 'wgs',
                 '--method', 'errhmm',
-                '--errhmm', f'ERRHMM-{platform_config.chemistry}',
+                '--errhmm', errhmm_path,
                 '--depth', str(weighted_depth),
                 '--genome', str(fasta_path),
                 '--length-mean', str(platform_config.read_length_mean),
@@ -1791,15 +1828,27 @@ Examples:
                 pbsim_cmd.extend(['--seed', str(args.seed)])
 
             try:
-                result = subprocess.run(pbsim_cmd, capture_output=True, text=True, check=True)
+                result = subprocess.run(pbsim_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                if result.returncode != 0 and result.returncode != -13:
+                    raise subprocess.CalledProcessError(result.returncode, pbsim_cmd)
+                if result.returncode == -13:
+                    logger.warning("  PBSIM3 exited with SIGPIPE (known PBSIM3 bug with large multi-FASTA)")
                 logger.info("  PBSIM3 Nanopore generation complete")
             except subprocess.CalledProcessError as e:
-                logger.error(f"PBSIM3 failed: {e.stderr}")
+                logger.error(f"PBSIM3 failed with exit code {e.returncode}")
                 raise
             except FileNotFoundError:
                 logger.error("PBSIM3 (pbsim) not found in PATH")
                 logger.error("Install with: conda install -c bioconda pbsim3")
-                raise
+                sys.exit(1)
+
+            # Validate that PBSIM3 produced output
+            import glob as _glob_nano
+            nano_fastqs = _glob_nano.glob(f"{output_prefix}_*.fq.gz")
+            if not nano_fastqs:
+                logger.error("  PBSIM3 did not produce any FASTQ output files")
+                sys.exit(1)
+            logger.info(f"  Verified: {len(nano_fastqs)} FASTQ output file(s) generated")
 
             reads_path = nanopore_fastq
 
