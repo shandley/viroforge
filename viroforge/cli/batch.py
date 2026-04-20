@@ -116,14 +116,27 @@ def show_batch_summary(config: Dict, args):
 
     console.print()
 
-    # Estimate
-    avg_time = 5  # minutes per dataset (rough estimate)
-    if args.parallel > 1:
-        total_time = (total / args.parallel) * avg_time
-    else:
-        total_time = total * avg_time
+    # Estimate time based on platform and coverage
+    all_datasets = datasets + sweep_datasets
+    total_time = 0
+    for ds in all_datasets:
+        platform = ds.get('platform', 'novaseq')
+        coverage = ds.get('coverage', ds.get('depth', 30))
+        # Base time per dataset by platform (minutes)
+        if platform in ('pacbio-hifi',):
+            base_time = 8  # PBSIM3 + ccs is slower
+        elif platform == 'nanopore':
+            base_time = 6  # PBSIM3 only
+        else:
+            base_time = 4  # Illumina (ISS)
+        # Scale by coverage relative to 30x baseline
+        scale = max(0.5, coverage / 30)
+        total_time += base_time * scale
 
-    console.print(f"[dim]Estimated time: ~{int(total_time)} minutes[/dim]")
+    if args.parallel > 1:
+        total_time = total_time / args.parallel
+
+    console.print(f"[dim]Estimated time: ~{int(max(1, total_time))} minutes[/dim]")
     console.print()
 
 
