@@ -9,7 +9,7 @@ parameter_sweep:
   name_template: "gut_cov_{coverage}x"
 
   base_config:
-    collection_id: 9
+    collection_id: 1
     platform: novaseq
     vlp_protocol: tangential_flow
     contamination_level: realistic
