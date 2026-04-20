@@ -48,7 +48,7 @@ function loadReport() {
             <h6>Generation Summary</h6>
             <table class="table table-sm">
                 <tr><th>Collection</th><td>${data.metadata.collection?.name || 'N/A'}</td></tr>
-                <tr><th>Platform</th><td>${data.metadata.platform?.name?.toUpperCase() || 'N/A'}</td></tr>
+                <tr><th>Platform</th><td>${(data.metadata.platform?.name || data.metadata.configuration?.platform || 'N/A').toUpperCase()}</td></tr>
                 <tr><th>Generated</th><td>${data.metadata.generation_info?.timestamp || 'N/A'}</td></tr>
                 <tr><th>Random Seed</th><td>${data.metadata.generation_info?.random_seed || 'N/A'}</td></tr>
             </table>

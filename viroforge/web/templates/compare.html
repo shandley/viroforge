@@ -54,7 +54,7 @@ function compareDatasets() {
             html += `<tr>
                 <td>${d._name}</td>
                 <td>${d.collection?.name || 'N/A'}</td>
-                <td>${d.platform?.name?.toUpperCase() || 'N/A'}</td>
+                <td>${(d.platform?.name || d.configuration?.platform || 'N/A').toUpperCase()}</td>
                 <td>${d.generation_info?.random_seed || 'N/A'}</td>
             </tr>`;
         });

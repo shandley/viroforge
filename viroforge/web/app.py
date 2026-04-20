@@ -11,6 +11,7 @@ from pathlib import Path
 from flask import Flask, render_template, request, jsonify, send_file, redirect, url_for
 from werkzeug.utils import secure_filename
 import json
+import math
 import subprocess
 import tempfile
 
@@ -306,14 +307,18 @@ def api_report():
         if not metadata:
             return jsonify({'error': 'Could not load metadata'}), 404
 
-        # Load composition
-        composition = load_composition_file(dataset_path)
+        # Load composition and sanitize NaN values (not valid JSON)
+        composition = load_composition_file(dataset_path) or []
+        for entry in composition:
+            for key, val in entry.items():
+                if isinstance(val, float) and math.isnan(val):
+                    entry[key] = None
 
         # Prepare response
         report = {
             'dataset_name': dataset_path.name,
             'metadata': metadata,
-            'composition': composition if composition else []
+            'composition': composition
         }
 
         return jsonify(report)
