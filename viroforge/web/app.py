@@ -361,7 +361,10 @@ def api_compare():
         # Analyze datasets
         collection_ids = set(d.get('collection', {}).get('id') for d in datasets)
         seeds = set(d.get('generation_info', {}).get('random_seed') for d in datasets if d.get('generation_info'))
-        platforms = set(d.get('platform', {}).get('name') for d in datasets if d.get('platform'))
+        # v1.1: platform at configuration.platform; v1.0: platform at platform.name
+        def _get_platform(d):
+            return d.get('platform', {}).get('name') or d.get('configuration', {}).get('platform')
+        platforms = set(_get_platform(d) for d in datasets if _get_platform(d))
 
         # Determine comparison type
         comparison_type = 'unknown'
@@ -379,8 +382,8 @@ def api_compare():
             })
 
         # Check for hybrid assembly
-        has_short = any(d.get('platform', {}).get('name') in ['novaseq', 'miseq', 'hiseq'] for d in datasets)
-        has_long = any(d.get('platform', {}).get('name') in ['pacbio-hifi', 'nanopore'] for d in datasets)
+        has_short = any(_get_platform(d) in ['novaseq', 'miseq', 'hiseq'] for d in datasets)
+        has_long = any(_get_platform(d) in ['pacbio-hifi', 'nanopore'] for d in datasets)
 
         if has_short and has_long and len(collection_ids) == 1 and len(seeds) == 1:
             comparison_type = 'hybrid'
