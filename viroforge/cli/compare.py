@@ -120,22 +120,21 @@ def show_basic_comparison(metadata_list: List[Dict]):
         coll_id = collection.get('id', '')
         coll_str = f"{coll_name} ({coll_id})" if coll_id else coll_name
 
-        # Platform
-        platform = metadata.get('platform', {})
-        plat_name = platform.get('name', 'N/A').upper()
+        # Platform (v1.1: configuration.platform, v1.0: platform.name)
+        config = metadata.get('configuration', {})
+        plat_name = config.get('platform', metadata.get('platform', {}).get('name', 'N/A')).upper()
 
         # Coverage/Depth
-        config = metadata.get('configuration', {})
-        coverage = config.get('target_coverage')
-        depth = config.get('target_depth')
+        coverage = config.get('coverage') or config.get('target_coverage')
+        depth = config.get('depth') or config.get('target_depth')
         cov_str = f"{coverage}x" if coverage else f"{depth}x" if depth else 'N/A'
 
-        # Genomes
-        vlp = metadata.get('vlp_enrichment', {})
-        n_genomes = vlp.get('n_viral_genomes', 'N/A')
+        # Genomes (v1.1: enrichment_stats, v1.0: vlp_enrichment)
+        enrichment = metadata.get('enrichment_stats', metadata.get('vlp_enrichment', {}))
+        n_genomes = enrichment.get('n_viral_genomes', 'N/A')
 
         # Viral fraction
-        viral_frac = vlp.get('viral_fraction')
+        viral_frac = enrichment.get('viral_fraction')
         viral_str = f"{viral_frac*100:.1f}%" if viral_frac is not None else 'N/A'
 
         table.add_row(name, coll_str, plat_name, cov_str, str(n_genomes), viral_str)
@@ -187,7 +186,7 @@ def show_composition_consistency(metadata_list: List[Dict]):
     genome_counts = set()
     for comp in compositions:
         if comp:
-            viral_count = len([g for g in comp if g.get('genome_type') == 'viral'])
+            viral_count = len([g for g in comp if g.get('sequence_type', g.get('genome_type')) == 'viral'])
             genome_counts.add(viral_count)
 
     if len(genome_counts) == 1:
@@ -202,8 +201,8 @@ def show_platform_comparison(metadata_list: List[Dict]):
 
     platforms = {}
     for metadata in metadata_list:
-        platform = metadata.get('platform', {})
-        plat_name = platform.get('name', 'unknown')
+        config = metadata.get('configuration', {})
+        plat_name = config.get('platform', metadata.get('platform', {}).get('name', 'unknown'))
 
         if plat_name not in platforms:
             platforms[plat_name] = []
@@ -215,6 +214,12 @@ def show_platform_comparison(metadata_list: List[Dict]):
         console.print(f"  • {plat_name.upper()}: {count} dataset(s)")
 
 
+def _get_platform_name(metadata: Dict) -> Optional[str]:
+    """Extract platform name from metadata (supports v1.0 and v1.1 schema)."""
+    config = metadata.get('configuration', {})
+    return config.get('platform', metadata.get('platform', {}).get('name'))
+
+
 def show_recommendations(metadata_list: List[Dict]):
     """Show recommendations based on comparison."""
     console.print("[bold]Recommendations:[/bold]")
@@ -222,7 +227,7 @@ def show_recommendations(metadata_list: List[Dict]):
     # Check if suitable for technology comparison
     collection_ids = set(m.get('collection', {}).get('id') for m in metadata_list)
     seeds = set(m.get('generation_info', {}).get('random_seed') for m in metadata_list if m.get('generation_info'))
-    platforms = set(m.get('platform', {}).get('name') for m in metadata_list if m.get('platform'))
+    platforms = set(_get_platform_name(m) for m in metadata_list if _get_platform_name(m))
 
     if len(collection_ids) == 1 and len(seeds) == 1 and len(platforms) > 1:
         console.print("  [green]✓[/green] Suitable for technology/platform comparison")
@@ -239,8 +244,8 @@ def show_recommendations(metadata_list: List[Dict]):
         console.print("    • Useful for testing different parameters (coverage, VLP protocol, etc.)")
 
     # Check if suitable for hybrid assembly
-    has_short = any(m.get('platform', {}).get('name') in ['novaseq', 'miseq', 'hiseq'] for m in metadata_list)
-    has_long = any(m.get('platform', {}).get('name') in ['pacbio-hifi', 'nanopore'] for m in metadata_list)
+    has_short = any(_get_platform_name(m) in ['novaseq', 'miseq', 'hiseq'] for m in metadata_list)
+    has_long = any(_get_platform_name(m) in ['pacbio-hifi', 'nanopore'] for m in metadata_list)
 
     if has_short and has_long and len(collection_ids) == 1 and len(seeds) == 1:
         console.print()
