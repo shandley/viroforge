@@ -156,18 +156,26 @@ def show_platform_info(metadata: Dict):
     table.add_column("Property", style="cyan")
     table.add_column("Value")
 
+    # v1.1: platform name is in configuration.platform
+    # v1.0: platform name is in platform.name
     if 'platform' in metadata:
         platform = metadata['platform']
         table.add_row("Platform", platform.get('name', 'Unknown').upper())
-
         if 'read_type' in platform:
             table.add_row("Read Type", platform['read_type'])
+    elif 'configuration' in metadata and 'platform' in metadata['configuration']:
+        platform_name = metadata['configuration']['platform'].upper()
+        table.add_row("Platform", platform_name)
+        read_type = 'long' if platform_name.lower() in ['pacbio-hifi', 'nanopore'] else 'short'
+        table.add_row("Read Type", f"paired-end {read_type}" if read_type == 'short' else read_type)
 
     # Configuration
     if 'configuration' in metadata:
         config = metadata['configuration']
 
-        if 'target_coverage' in config:
+        if 'coverage' in config:
+            table.add_row("Target Coverage", f"{config['coverage']}x")
+        elif 'target_coverage' in config:
             table.add_row("Target Coverage", f"{config['target_coverage']}x")
         elif 'target_depth' in config:
             table.add_row("Target Depth", f"{config['target_depth']}x")
