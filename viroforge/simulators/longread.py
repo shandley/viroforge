@@ -306,6 +306,10 @@ def _run_pbsim3_clr(
     This is Step 1 of PacBio HiFi simulation. The output CLR BAM file
     will be input to PacBio ccs for consensus calling.
 
+    Runs PBSIM3 separately per genome with abundance-weighted depth,
+    then merges all SAM outputs. This ensures the community composition
+    is preserved (PBSIM3 only accepts a single --depth value).
+
     Args:
         genomes_fasta: Path to multi-FASTA with all genomes
         output_prefix: Output file prefix
@@ -314,69 +318,101 @@ def _run_pbsim3_clr(
         seed: Random seed for reproducibility
 
     Returns:
-        Path to output BAM file containing CLR with multiple passes
+        Path to output SAM file containing CLR with multiple passes
 
     Raises:
         RuntimeError: If PBSIM3 fails
 
     Note:
-        PBSIM3 with --pass-num ≥2 enables multi-pass sequencing simulation.
-        Output is in BAM format containing subreads from multiple passes.
+        PBSIM3 with --pass-num >=2 enables multi-pass sequencing simulation.
+        Output is in SAM format containing subreads from multiple passes.
     """
-    # Build PBSIM3 command
-    # PBSIM3 simulates per-genome, so we need to run it for each genome
-    # and merge results
+    import glob
 
     logger.info(f"Running PBSIM3 to generate CLR with {config.passes} passes...")
     logger.info(f"Read length: {config.read_length_mean} ± {config.read_length_sd} bp")
 
-    # For simplicity in initial implementation, simulate all genomes together
-    # with average depth
-    avg_depth = sum(depths.values()) / len(depths) if depths else 10.0
+    # Parse multi-FASTA into individual genome records
+    genomes = list(SeqIO.parse(genomes_fasta, "fasta"))
+    logger.info(f"Simulating {len(genomes)} genomes with per-genome depth")
 
-    cmd = [
-        'pbsim',
-        '--strategy', 'wgs',
-        '--method', 'qshmm',
-        '--qshmm', config.accuracy_model,
-        '--depth', str(avg_depth),
-        '--genome', str(genomes_fasta),
-        '--pass-num', str(config.passes),
-        '--length-mean', str(config.read_length_mean),
-        '--length-sd', str(config.read_length_sd),
-        '--accuracy-mean', str(1.0 - config.clr_error_rate),
-        '--prefix', output_prefix,
-    ]
+    min_depth = 0.01
+    skipped = 0
+    merged_sam = Path(f"{output_prefix}.sam")
+    header_written = False
 
-    if seed is not None:
-        cmd.extend(['--seed', str(seed)])
+    with open(merged_sam, 'w') as outf:
+        for i, genome in enumerate(genomes):
+            genome_depth = depths.get(genome.id, 0.0)
+            if genome_depth < min_depth:
+                skipped += 1
+                continue
 
-    logger.info(f"Running: {' '.join(cmd)}")
+            # Write single-genome FASTA
+            genome_fasta = Path(f"{output_prefix}_genome_{i:04d}.fasta")
+            SeqIO.write([genome], str(genome_fasta), "fasta")
 
-    try:
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            check=True
-        )
-        logger.info("PBSIM3 CLR generation completed successfully")
-        logger.debug(f"PBSIM3 stdout: {result.stdout}")
+            genome_prefix = f"{output_prefix}_genome_{i:04d}"
 
-    except subprocess.CalledProcessError as e:
-        logger.error(f"PBSIM3 failed with return code {e.returncode}")
-        logger.error(f"stdout: {e.stdout}")
-        logger.error(f"stderr: {e.stderr}")
-        raise RuntimeError(f"PBSIM3 failed: {e.stderr}")
+            cmd = [
+                'pbsim',
+                '--strategy', 'wgs',
+                '--method', 'qshmm',
+                '--qshmm', config.accuracy_model,
+                '--depth', str(genome_depth),
+                '--genome', str(genome_fasta),
+                '--pass-num', str(config.passes),
+                '--length-mean', str(config.read_length_mean),
+                '--length-sd', str(config.read_length_sd),
+                '--accuracy-mean', str(1.0 - config.clr_error_rate),
+                '--prefix', genome_prefix,
+            ]
 
-    # PBSIM3 output file (BAM format for multi-pass)
-    bam_path = Path(f"{output_prefix}.sam")  # PBSIM3 outputs SAM by default
+            if seed is not None:
+                cmd.extend(['--seed', str(seed + i)])
 
-    if not bam_path.exists():
-        raise RuntimeError(f"PBSIM3 did not create expected output: {bam_path}")
+            try:
+                result = subprocess.run(
+                    cmd,
+                    capture_output=True,
+                    text=True,
+                    check=True
+                )
+            except subprocess.CalledProcessError as e:
+                logger.warning(f"PBSIM3 failed for genome {genome.id}: {e.stderr}")
+                continue
 
-    logger.info(f"CLR generated: {bam_path}")
-    return bam_path
+            # Collect SAM output for this genome
+            sam_file = Path(f"{genome_prefix}.sam")
+            if sam_file.exists():
+                with open(sam_file) as inf:
+                    for line in inf:
+                        if line.startswith('@'):
+                            if not header_written:
+                                outf.write(line)
+                        else:
+                            outf.write(line)
+                header_written = True
+                sam_file.unlink()
+
+            # Clean up per-genome temp files
+            genome_fasta.unlink(missing_ok=True)
+            for f in glob.glob(f"{genome_prefix}*.ref"):
+                Path(f).unlink(missing_ok=True)
+            for f in glob.glob(f"{genome_prefix}*.maf"):
+                Path(f).unlink(missing_ok=True)
+
+            if (i + 1) % 50 == 0:
+                logger.info(f"  Processed {i + 1}/{len(genomes)} genomes")
+
+    if skipped > 0:
+        logger.info(f"Skipped {skipped} genomes with depth < {min_depth}x")
+
+    if not merged_sam.exists():
+        raise RuntimeError(f"PBSIM3 did not create expected output: {merged_sam}")
+
+    logger.info(f"CLR generated: {merged_sam}")
+    return merged_sam
 
 
 def _run_pacbio_ccs(
@@ -481,6 +517,10 @@ def _run_pbsim3_nanopore(
     Single-step process for Nanopore simulation using PBSIM3's
     ONT error models with homopolymer deletion bias.
 
+    Runs PBSIM3 separately per genome with abundance-weighted depth,
+    then merges all FASTQ outputs. This ensures the community composition
+    is preserved (PBSIM3 only accepts a single --depth value).
+
     Args:
         genomes_fasta: Path to multi-FASTA with all genomes
         output_prefix: Output file prefix
@@ -494,73 +534,95 @@ def _run_pbsim3_nanopore(
     Raises:
         RuntimeError: If PBSIM3 fails
     """
+    import glob
+
     logger.info("Running PBSIM3 to generate Nanopore reads...")
     logger.info(f"Chemistry: {config.chemistry}")
     logger.info(f"Read length: {config.read_length_mean} ± {config.read_length_sd} bp")
     logger.info(f"Homopolymer deletion bias: {config.hp_del_bias}")
 
-    # Average depth across all genomes
-    avg_depth = sum(depths.values()) / len(depths) if depths else 10.0
+    # Parse multi-FASTA into individual genome records
+    genomes = list(SeqIO.parse(genomes_fasta, "fasta"))
+    logger.info(f"Simulating {len(genomes)} genomes with per-genome depth")
 
-    cmd = [
-        'pbsim',
-        '--strategy', 'wgs',
-        '--method', 'errhmm',
-        '--errhmm', f'ERRHMM-ONT',  # ONT error model
-        '--depth', str(avg_depth),
-        '--genome', str(genomes_fasta),
-        '--length-mean', str(config.read_length_mean),
-        '--length-sd', str(config.read_length_sd),
-        '--accuracy-mean', str(1.0 - config.error_rate),
-        '--hp-del-bias', str(config.hp_del_bias),
-        '--prefix', output_prefix,
-    ]
+    # Skip genomes with negligible depth (< 0.01x) to avoid empty PBSIM3 runs
+    min_depth = 0.01
+    skipped = 0
 
-    if seed is not None:
-        cmd.extend(['--seed', str(seed)])
+    merged_fastq = Path(f"{output_prefix}_merged.fastq")
+    total_reads = 0
 
-    logger.info(f"Running: {' '.join(cmd)}")
+    with open(merged_fastq, 'w') as outf:
+        for i, genome in enumerate(genomes):
+            genome_depth = depths.get(genome.id, 0.0)
+            if genome_depth < min_depth:
+                skipped += 1
+                continue
 
-    try:
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            check=True
-        )
-        logger.info("PBSIM3 Nanopore generation completed successfully")
-        logger.debug(f"PBSIM3 stdout: {result.stdout}")
+            # Write single-genome FASTA
+            genome_fasta = Path(f"{output_prefix}_genome_{i:04d}.fasta")
+            SeqIO.write([genome], str(genome_fasta), "fasta")
 
-    except subprocess.CalledProcessError as e:
-        logger.error(f"PBSIM3 failed with return code {e.returncode}")
-        logger.error(f"stdout: {e.stdout}")
-        logger.error(f"stderr: {e.stderr}")
-        raise RuntimeError(f"PBSIM3 failed: {e.stderr}")
+            genome_prefix = f"{output_prefix}_genome_{i:04d}"
 
-    # PBSIM3 creates .fastq files (possibly multiple for different chromosomes)
-    # Look for output FASTQ
-    fastq_pattern = f"{output_prefix}*.fastq"
-    import glob
-    fastq_files = glob.glob(fastq_pattern)
+            cmd = [
+                'pbsim',
+                '--strategy', 'wgs',
+                '--method', 'errhmm',
+                '--errhmm', 'ERRHMM-ONT',
+                '--depth', str(genome_depth),
+                '--genome', str(genome_fasta),
+                '--length-mean', str(config.read_length_mean),
+                '--length-sd', str(config.read_length_sd),
+                '--accuracy-mean', str(1.0 - config.error_rate),
+                '--hp-del-bias', str(config.hp_del_bias),
+                '--prefix', genome_prefix,
+            ]
 
-    if not fastq_files:
-        raise RuntimeError(f"PBSIM3 did not create expected FASTQ output: {fastq_pattern}")
+            if seed is not None:
+                cmd.extend(['--seed', str(seed + i)])
 
-    # If multiple files, merge them (typical for multi-chromosome genomes)
-    if len(fastq_files) == 1:
-        fastq_path = Path(fastq_files[0])
-    else:
-        # Merge multiple FASTQ files
-        merged_fastq = Path(f"{output_prefix}_merged.fastq")
-        with open(merged_fastq, 'w') as outf:
+            try:
+                result = subprocess.run(
+                    cmd,
+                    capture_output=True,
+                    text=True,
+                    check=True
+                )
+            except subprocess.CalledProcessError as e:
+                logger.warning(f"PBSIM3 failed for genome {genome.id}: {e.stderr}")
+                continue
+
+            # Collect FASTQ output for this genome
+            # PBSIM3 outputs .fq.gz (gzipped) files
+            import gzip
+            fastq_files = glob.glob(f"{genome_prefix}*.fq.gz")
+            if not fastq_files:
+                # Fall back to uncompressed .fastq
+                fastq_files = glob.glob(f"{genome_prefix}*.fastq")
             for fq in sorted(fastq_files):
-                with open(fq) as inf:
-                    outf.write(inf.read())
-        fastq_path = merged_fastq
-        logger.info(f"Merged {len(fastq_files)} FASTQ files into {fastq_path}")
+                opener = gzip.open if fq.endswith('.gz') else open
+                with opener(fq, 'rt') as inf:
+                    for line in inf:
+                        outf.write(line)
+                        if line.startswith('@'):
+                            total_reads += 1
+                Path(fq).unlink()
 
-    logger.info(f"Nanopore reads generated: {fastq_path}")
-    return fastq_path
+            # Clean up per-genome temp files
+            genome_fasta.unlink(missing_ok=True)
+            for f in glob.glob(f"{genome_prefix}*.ref"):
+                Path(f).unlink(missing_ok=True)
+            for f in glob.glob(f"{genome_prefix}*.maf*"):
+                Path(f).unlink(missing_ok=True)
+
+            if (i + 1) % 50 == 0:
+                logger.info(f"  Processed {i + 1}/{len(genomes)} genomes ({total_reads} reads so far)")
+
+    if skipped > 0:
+        logger.info(f"Skipped {skipped} genomes with depth < {min_depth}x")
+    logger.info(f"Nanopore reads generated: {merged_fastq} ({total_reads} reads)")
+    return merged_fastq
 
 
 def _create_ground_truth_mapping(
