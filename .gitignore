@@ -147,3 +147,9 @@ PROJECT.yaml
 
 # Generated data directories
 data/gut_virome/
+data/collection_*/
+
+# Analysis outputs (intermediate files, indexes, databases)
+analysis/
+collection_*_genomes.tsv
+memory.sqlite

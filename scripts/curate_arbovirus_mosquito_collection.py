@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Curate Collection 22: Arbovirus Environmental (Mosquito Virome)
+Curate Collection 14: Arbovirus Environmental (Mosquito Virome)
 
 Composition based on literature (Shi et al. 2016, Bolling et al. 2012):
 - Flaviviruses (dengue, Zika, West Nile, yellow fever, Japanese encephalitis)
@@ -293,7 +293,7 @@ class ArbovirusCurator:
         cursor = self.conn.cursor()
 
         collection_meta = {
-            'collection_id': 22,
+            'collection_id': 14,
             'collection_name': 'Arbovirus Environmental (Mosquito Virome)',
             'description': (
                 'Arbovirus-enriched environmental virome from mosquito vector pools. '
@@ -320,13 +320,13 @@ class ArbovirusCurator:
         }
 
         # Check if collection exists
-        cursor.execute("SELECT collection_id FROM body_site_collections WHERE collection_id = 22")
+        cursor.execute("SELECT collection_id FROM body_site_collections WHERE collection_id = 14")
         exists = cursor.fetchone()
 
         if exists:
-            logger.info("Collection 22 already exists - DELETING and recreating...")
-            cursor.execute("DELETE FROM body_site_collections WHERE collection_id = 22")
-            cursor.execute("DELETE FROM collection_genomes WHERE collection_id = 22")
+            logger.info("Collection 14 already exists - DELETING and recreating...")
+            cursor.execute("DELETE FROM body_site_collections WHERE collection_id = 14")
+            cursor.execute("DELETE FROM collection_genomes WHERE collection_id = 14")
 
         # Insert collection
         cursor.execute("""
@@ -355,7 +355,7 @@ class ArbovirusCurator:
                 (collection_id, genome_id, relative_abundance, prevalence, abundance_rank)
                 VALUES (?, ?, ?, ?, ?)
             """, (
-                22,
+                14,
                 genome['genome_id'],
                 genome['relative_abundance'],
                 1.0,  # All genomes present
@@ -365,7 +365,7 @@ class ArbovirusCurator:
         self.conn.commit()
         logger.info(f"✓ Inserted {len(collection)} genome associations")
 
-        logger.info("\n✓ Collection 22 successfully created in database!")
+        logger.info("\n✓ Collection 14 successfully created in database!")
 
     def close(self):
         """Close database connection."""
@@ -387,7 +387,7 @@ def main():
         logger.info("✓ ARBOVIRUS MOSQUITO VIROME COLLECTION CURATION COMPLETE!")
         logger.info("=" * 80)
         logger.info("\nNext steps:")
-        logger.info("  1. Test generation: python scripts/generate_fastq_dataset.py --collection-id 22 --dry-run")
+        logger.info("  1. Test generation: python scripts/generate_fastq_dataset.py --collection-id 14 --dry-run")
         logger.info("  2. Continue with Collection 23 (Fecal RNA Virome)")
         logger.info("  3. Implement RNA workflow components (RT, rRNA depletion)")
 

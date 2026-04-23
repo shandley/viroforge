@@ -11,12 +11,13 @@ from pathlib import Path
 from flask import Flask, render_template, request, jsonify, send_file, redirect, url_for
 from werkzeug.utils import secure_filename
 import json
+import math
 import subprocess
 import tempfile
 
 # Import ViroForge utilities
-from viroforge.database.utils import get_all_collections, get_collection_details
-from viroforge.cli.presets import list_presets as get_presets, load_preset
+from viroforge.cli.db_utils import load_all_collections as get_all_collections, load_collection_details as get_collection_details
+from viroforge.cli.preset_loader import list_all_presets as get_presets, load_preset
 from viroforge.cli.report import load_dataset_metadata, load_composition_file
 from viroforge.cli.batch import load_batch_config, expand_parameter_sweep
 
@@ -75,7 +76,9 @@ def api_collection_details(collection_id):
 def generate_page():
     """Dataset generation page."""
     try:
-        presets = get_presets()
+        presets_by_category = get_presets()
+        # Flatten grouped presets into a single list for the template
+        presets = [p for category_presets in presets_by_category.values() for p in category_presets]
         collections = get_all_collections()
         return render_template('generate.html', presets=presets, collections=collections)
     except Exception as e:
@@ -304,14 +307,18 @@ def api_report():
         if not metadata:
             return jsonify({'error': 'Could not load metadata'}), 404
 
-        # Load composition
-        composition = load_composition_file(dataset_path)
+        # Load composition and sanitize NaN values (not valid JSON)
+        composition = load_composition_file(dataset_path) or []
+        for entry in composition:
+            for key, val in entry.items():
+                if isinstance(val, float) and math.isnan(val):
+                    entry[key] = None
 
         # Prepare response
         report = {
             'dataset_name': dataset_path.name,
             'metadata': metadata,
-            'composition': composition if composition else []
+            'composition': composition
         }
 
         return jsonify(report)
@@ -354,7 +361,10 @@ def api_compare():
         # Analyze datasets
         collection_ids = set(d.get('collection', {}).get('id') for d in datasets)
         seeds = set(d.get('generation_info', {}).get('random_seed') for d in datasets if d.get('generation_info'))
-        platforms = set(d.get('platform', {}).get('name') for d in datasets if d.get('platform'))
+        # v1.1: platform at configuration.platform; v1.0: platform at platform.name
+        def _get_platform(d):
+            return d.get('platform', {}).get('name') or d.get('configuration', {}).get('platform')
+        platforms = set(_get_platform(d) for d in datasets if _get_platform(d))
 
         # Determine comparison type
         comparison_type = 'unknown'
@@ -372,8 +382,8 @@ def api_compare():
             })
 
         # Check for hybrid assembly
-        has_short = any(d.get('platform', {}).get('name') in ['novaseq', 'miseq', 'hiseq'] for d in datasets)
-        has_long = any(d.get('platform', {}).get('name') in ['pacbio-hifi', 'nanopore'] for d in datasets)
+        has_short = any(_get_platform(d) in ['novaseq', 'miseq', 'hiseq'] for d in datasets)
+        has_long = any(_get_platform(d) in ['pacbio-hifi', 'nanopore'] for d in datasets)
 
         if has_short and has_long and len(collection_ids) == 1 and len(seeds) == 1:
             comparison_type = 'hybrid'

@@ -310,8 +310,11 @@ def build_command(script_path: Path, params: Dict) -> List[str]:
         if 'coverage' in params:
             cmd.extend(['--coverage', str(params['coverage'])])
     else:  # Long-read platforms
-        if 'depth' in params:
-            cmd.extend(['--depth', str(params['depth'])])
+        # For long reads, --depth is the argument name.
+        # Accept either --coverage or --depth from the user.
+        depth_val = params.get('depth') or params.get('coverage')
+        if depth_val:
+            cmd.extend(['--depth', str(depth_val)])
 
     # Read parameters
     if 'read_length' in params:
