@@ -144,6 +144,12 @@ def generate_with_params(args):
     if getattr(args, 'duplicate_rate', None):
         params['duplicate_rate'] = args.duplicate_rate
 
+    # ERV injection
+    if getattr(args, 'erv_endogenous_rate', None):
+        params['erv_endogenous_rate'] = args.erv_endogenous_rate
+    if getattr(args, 'erv_exogenous_rate', None):
+        params['erv_exogenous_rate'] = args.erv_exogenous_rate
+
     console.print()
     console.print("[bold cyan]Generating dataset with custom parameters[/bold cyan]")
     console.print()
@@ -358,11 +364,36 @@ def build_command(script_path: Path, params: Dict) -> List[str]:
     if 'adapter_rate' in params:
         cmd.extend(['--adapter-rate', str(params['adapter_rate'])])
 
+    if 'adapter_type' in params:
+        cmd.extend(['--adapter-type', params['adapter_type']])
+
+    if 'mean_insert_size' in params:
+        cmd.extend(['--mean-insert-size', str(params['mean_insert_size'])])
+
+    if 'insert_size_sd' in params:
+        cmd.extend(['--insert-size-sd', str(params['insert_size_sd'])])
+
+    if 'chimera_rate' in params:
+        cmd.extend(['--chimera-rate', str(params['chimera_rate'])])
+
     if 'low_complexity_rate' in params:
         cmd.extend(['--low-complexity-rate', str(params['low_complexity_rate'])])
 
     if 'duplicate_rate' in params:
         cmd.extend(['--duplicate-rate', str(params['duplicate_rate'])])
+
+    if 'duplicate_max_copies' in params:
+        cmd.extend(['--duplicate-max-copies', str(params['duplicate_max_copies'])])
+
+    if 'duplicate_error_rate' in params:
+        cmd.extend(['--duplicate-error-rate', str(params['duplicate_error_rate'])])
+
+    # ERV injection
+    if 'erv_endogenous_rate' in params:
+        cmd.extend(['--erv-endogenous-rate', str(params['erv_endogenous_rate'])])
+
+    if 'erv_exogenous_rate' in params:
+        cmd.extend(['--erv-exogenous-rate', str(params['erv_exogenous_rate'])])
 
     # Random seed
     if 'seed' in params:

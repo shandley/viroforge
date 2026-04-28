@@ -8,7 +8,7 @@
 
 ## Quick Stats
 
-**Total Entries**: 15
+**Total Entries**: 16
 **Phase 1**: Complete (100%)
 **Phase 2**: Complete (100%)
 **Phase 3**: Complete (100%)
@@ -694,6 +694,19 @@
 **Status**: Complete
 
 **Purpose**: Upgrade adapter and duplicate injection for virome-qc calibration
+
+---
+
+### 2026-04-28
+
+---
+
+#### Entry 001: ERV Integration into Contamination Profile Factory
+**ID**: `20260428-001-IMPLEMENTATION-erv-integration.md`
+**Type**: IMPLEMENTATION
+**Status**: Complete
+
+**Purpose**: Integrate ERV injection into standard contamination profile factory
 
 ---
 

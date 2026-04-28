@@ -1040,6 +1040,8 @@ def create_contamination_profile(
             'rrna_pct': 0.5,
             'reagent_pct': 0.01,
             'phix_pct': 0.1,
+            'erv_endogenous_pct': 0.0,
+            'erv_exogenous_pct': 0.0,
         },
         'realistic': {
             'name': 'realistic_virome',
@@ -1048,6 +1050,8 @@ def create_contamination_profile(
             'rrna_pct': 5.0,
             'reagent_pct': 0.5,
             'phix_pct': 0.1,
+            'erv_endogenous_pct': 0.0,
+            'erv_exogenous_pct': 0.0,
         },
         'heavy': {
             'name': 'heavy_contamination',
@@ -1056,6 +1060,8 @@ def create_contamination_profile(
             'rrna_pct': 15.0,
             'reagent_pct': 2.0,
             'phix_pct': 0.1,
+            'erv_endogenous_pct': 0.0,
+            'erv_exogenous_pct': 0.0,
         },
         'failed': {
             'name': 'failed_vlp',
@@ -1064,6 +1070,8 @@ def create_contamination_profile(
             'rrna_pct': 20.0,
             'reagent_pct': 5.0,
             'phix_pct': 0.1,
+            'erv_endogenous_pct': 0.0,
+            'erv_exogenous_pct': 0.0,
         }
     }
 
@@ -1080,6 +1088,8 @@ def create_contamination_profile(
     rrna_pct = kwargs.get('rrna_pct', config['rrna_pct'])
     reagent_pct = kwargs.get('reagent_pct', config['reagent_pct'])
     phix_pct = kwargs.get('phix_pct', config['phix_pct'])
+    erv_endogenous_pct = kwargs.get('erv_endogenous_pct', config['erv_endogenous_pct'])
+    erv_exogenous_pct = kwargs.get('erv_exogenous_pct', config['erv_exogenous_pct'])
 
     # Create profile
     profile = ContaminationProfile(name=config['name'])
@@ -1112,10 +1122,32 @@ def create_contamination_profile(
         use_real_references=use_real_references,
     )
 
+    # Add ERV contamination if requested
+    if erv_endogenous_pct > 0:
+        add_erv_endogenous(
+            profile,
+            abundance_pct=erv_endogenous_pct,
+            herv_fasta_path=kwargs.get('herv_fasta_path'),
+            random_seed=random_seed,
+        )
+
+    if erv_exogenous_pct > 0:
+        add_erv_exogenous(
+            profile,
+            abundance_pct=erv_exogenous_pct,
+            db_path=kwargs.get('db_path'),
+            virus_names=kwargs.get('erv_exogenous_viruses'),
+            random_seed=random_seed,
+        )
+
+    erv_msg = ""
+    if erv_endogenous_pct > 0 or erv_exogenous_pct > 0:
+        erv_msg = f", ERV_endo={erv_endogenous_pct}%, ERV_exo={erv_exogenous_pct}%"
+
     logger.info(
         f"Created '{profile_type}' contamination profile: "
         f"Host={host_dna_pct}%, rRNA={rrna_pct}%, "
-        f"Reagent={reagent_pct}%, PhiX={phix_pct}%"
+        f"Reagent={reagent_pct}%, PhiX={phix_pct}%{erv_msg}"
     )
 
     return profile
@@ -1548,6 +1580,8 @@ def create_rna_contamination_profile(
     bacterial_rna = kwargs.get('bacterial_rna', config['bacterial_rna'])
     reagent_pct = kwargs.get('reagent_pct', config['reagent_pct'])
     phix_pct = kwargs.get('phix_pct', config['phix_pct'])
+    erv_endogenous_pct = kwargs.get('erv_endogenous_pct', 0.0)
+    erv_exogenous_pct = kwargs.get('erv_exogenous_pct', 0.0)
 
     # If Ribo-Zero not applied, use before values
     if not ribo_depletion:
@@ -1590,6 +1624,24 @@ def create_rna_contamination_profile(
         abundance_pct=phix_pct,
         use_real_references=use_real_references,
     )
+
+    # Add ERV contamination if requested
+    if erv_endogenous_pct > 0:
+        add_erv_endogenous(
+            profile,
+            abundance_pct=erv_endogenous_pct,
+            herv_fasta_path=kwargs.get('herv_fasta_path'),
+            random_seed=random_seed,
+        )
+
+    if erv_exogenous_pct > 0:
+        add_erv_exogenous(
+            profile,
+            abundance_pct=erv_exogenous_pct,
+            db_path=kwargs.get('db_path'),
+            virus_names=kwargs.get('erv_exogenous_viruses'),
+            random_seed=random_seed,
+        )
 
     logger.info(
         f"Created RNA '{profile_type}' contamination profile: "

@@ -254,6 +254,7 @@ class FASTQGenerator:
         rna_workflow_params: Optional[Dict] = None,
         read_type: str = "short",
         use_real_references: bool = True,
+        erv_kwargs: Optional[Dict] = None,
     ) -> Tuple[List[SeqRecord], List[float], Dict, Optional[ContaminationProfile]]:
         """
         Prepare genome sequences with VLP enrichment and contamination.
@@ -381,12 +382,14 @@ class FASTQGenerator:
                     microbiome_rich=True,
                     random_seed=self.random_seed,
                     use_real_references=use_real_references,
+                    **(erv_kwargs or {}),
                 )
             else:
                 contam_profile = create_contamination_profile(
                     contamination_level,
                     random_seed=self.random_seed,
                     use_real_references=use_real_references,
+                    **(erv_kwargs or {}),
                 )
 
             # Combine viral + contamination
@@ -424,6 +427,7 @@ class FASTQGenerator:
             contamination_level,
             read_type,
             use_real_references=use_real_references,
+            erv_kwargs=erv_kwargs,
         )
 
         return sequences, abundances, stats, contam_profile
@@ -437,6 +441,7 @@ class FASTQGenerator:
         contamination_level: str,
         read_type: str = "short",
         use_real_references: bool = True,
+        erv_kwargs: Optional[Dict] = None,
     ) -> Tuple[List[SeqRecord], List[float], Dict, ContaminationProfile]:
         """
         Apply VLP enrichment protocol with size-based enrichment and contamination reduction.
@@ -491,12 +496,14 @@ class FASTQGenerator:
                 microbiome_rich=True,
                 random_seed=self.random_seed,
                 use_real_references=use_real_references,
+                **(erv_kwargs or {}),
             )
         else:
             contam_profile = create_contamination_profile(
                 contamination_level,
                 random_seed=self.random_seed,
                 use_real_references=use_real_references,
+                **(erv_kwargs or {}),
             )
 
         # Apply contamination reduction
@@ -1551,6 +1558,19 @@ Examples:
     # Prepare genomes with VLP enrichment
     vlp_protocol = None if args.no_vlp else args.vlp_protocol
     use_real = not args.no_real_contaminants
+
+    # Build ERV kwargs if any ERV rates are specified
+    erv_kwargs = {}
+    if args.erv_endogenous_rate > 0:
+        erv_kwargs['erv_endogenous_pct'] = args.erv_endogenous_rate * 100
+        if args.herv_fasta:
+            erv_kwargs['herv_fasta_path'] = Path(args.herv_fasta)
+    if args.erv_exogenous_rate > 0:
+        erv_kwargs['erv_exogenous_pct'] = args.erv_exogenous_rate * 100
+        erv_kwargs['db_path'] = Path(args.database)
+        if args.erv_exogenous_viruses:
+            erv_kwargs['erv_exogenous_viruses'] = args.erv_exogenous_viruses
+
     sequences, abundances, enrichment_stats, contamination_profile = generator.prepare_genomes(
         genomes,
         vlp_protocol=vlp_protocol,
@@ -1558,61 +1578,8 @@ Examples:
         rna_workflow_params=rna_workflow_params,
         read_type=read_type,
         use_real_references=use_real,
+        erv_kwargs=erv_kwargs or None,
     )
-
-    # Add ERV sequences (before ISS, so they get realistic error profiles)
-    if args.erv_endogenous_rate > 0 or args.erv_exogenous_rate > 0:
-        from viroforge.core.contamination import (
-            add_erv_endogenous,
-            add_erv_exogenous,
-            ContaminationProfile as _CP,
-        )
-
-        # Create a temporary profile for ERV contaminants
-        erv_profile = _CP(name="erv_injection")
-
-        if args.erv_endogenous_rate > 0:
-            herv_path = Path(args.herv_fasta) if args.herv_fasta else None
-            add_erv_endogenous(
-                erv_profile,
-                abundance_pct=args.erv_endogenous_rate * 100,
-                herv_fasta_path=herv_path,
-                random_seed=args.seed,
-            )
-
-        if args.erv_exogenous_rate > 0:
-            add_erv_exogenous(
-                erv_profile,
-                abundance_pct=args.erv_exogenous_rate * 100,
-                db_path=Path(args.database),
-                virus_names=args.erv_exogenous_viruses,
-                random_seed=args.seed,
-            )
-
-        if erv_profile.contaminants:
-            # Add ERV sequences to the combined sequence/abundance lists
-            for contaminant in erv_profile.contaminants:
-                erv_record = SeqRecord(
-                    Seq(str(contaminant.sequence)),
-                    id=contaminant.genome_id,
-                    description=contaminant.description,
-                )
-                sequences.append(erv_record)
-                abundances.append(contaminant.abundance)
-
-                # Also add to the main contamination profile for metadata
-                if contamination_profile is not None:
-                    contamination_profile.add_contaminant(contaminant)
-
-            # Renormalize abundances
-            total = sum(abundances)
-            abundances = [a / total for a in abundances]
-
-            logger.info(
-                f"Added {len(erv_profile.contaminants)} ERV sequences "
-                f"({sum(1 for c in erv_profile.contaminants if c.contaminant_type.value == 'erv_endogenous')} endogenous, "
-                f"{sum(1 for c in erv_profile.contaminants if c.contaminant_type.value == 'erv_exogenous')} exogenous)"
-            )
 
     # Apply amplification bias
     abundances, amplification_stats = generator.apply_amplification(

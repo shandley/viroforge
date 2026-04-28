@@ -998,6 +998,31 @@ class TestERVInjection:
         assert ContaminantType.ERV_ENDOGENOUS.value == "erv_endogenous"
         assert ContaminantType.ERV_EXOGENOUS.value == "erv_exogenous"
 
+    def test_erv_via_create_contamination_profile(self):
+        """ERVs should be injectable through the standard profile factory."""
+        profile = create_contamination_profile(
+            "realistic",
+            random_seed=42,
+            erv_endogenous_pct=0.5,
+            erv_exogenous_pct=0.2,
+        )
+
+        endo = [c for c in profile.contaminants
+                if c.contaminant_type.value == "erv_endogenous"]
+        exo = [c for c in profile.contaminants
+               if c.contaminant_type.value == "erv_exogenous"]
+
+        assert len(endo) > 0, "No endogenous ERVs in profile"
+        assert len(exo) > 0, "No exogenous ERVs in profile"
+
+        # Standard contamination types should also be present
+        host = [c for c in profile.contaminants
+                if c.contaminant_type.value == "host_dna"]
+        rrna = [c for c in profile.contaminants
+                if c.contaminant_type.value == "rrna"]
+        assert len(host) > 0
+        assert len(rrna) > 0
+
 
 # ---------------------------------------------------------------------------
 # Insert-size-driven adapter tests

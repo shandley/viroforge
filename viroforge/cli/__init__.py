@@ -153,6 +153,16 @@ For more information: https://github.com/hecatomb/viroforge
         help='PCR duplicate rate (e.g., 0.30)'
     )
     generate_parser.add_argument(
+        '--erv-endogenous-rate',
+        type=float,
+        help='Endogenous retroviral read rate (e.g., 0.005)'
+    )
+    generate_parser.add_argument(
+        '--erv-exogenous-rate',
+        type=float,
+        help='Exogenous retroviral read rate (e.g., 0.002)'
+    )
+    generate_parser.add_argument(
         '-v', '--verbose',
         action='store_true',
         help='Show detailed progress'
