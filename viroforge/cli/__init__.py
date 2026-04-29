@@ -46,7 +46,7 @@ For more information: https://github.com/hecatomb/viroforge
     parser.add_argument(
         '--version',
         action='version',
-        version='ViroForge 0.11.0 (Phase 13A: Benchmarking Metadata)'
+        version='ViroForge 0.12.0 (QC Validation Toolkit)'
     )
 
     # Create subparsers for subcommands

@@ -39,6 +39,12 @@
   - PCR duplicate injection with geometric copy distribution
   - Retroviral read injection (endogenous HERV + exogenous Retroviridae)
   - PhiX174 curation fix (removed lab phage from 8 collections)
+  - Insert-size-driven adapter contamination (emergent rate from insert size distribution)
+  - GC/length-biased PCR duplicate template selection
+  - Chimeric adapter support (internal adapter from ligation events)
+  - ERV injection integrated into contamination profile factory
+  - virome-qc profile batch configs (4 profiles, 5 datasets each)
+  - `viroforge summary` command for expected range derivation
 
 ### Project Status: Production Ready
 
