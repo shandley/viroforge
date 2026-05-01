@@ -339,6 +339,7 @@ class FASTQGenerator:
             )
 
             # Apply RNA workflow (degradation, RT, rRNA depletion)
+            original_genome_count = len(genomes)
             viral_sequences, rna_workflow_stats = rna_workflow.apply(
                 sequences=viral_sequences,
                 virus_types=virus_types,
@@ -365,9 +366,26 @@ class FASTQGenerator:
             if total > 0:
                 viral_abundances = viral_abundances / total
 
+            # Rebuild genomes metadata to match post-RNA sequences
+            # (RNA workflow can fragment/drop sequences, changing the count)
+            original_genome_map = {g['genome_id']: g for g in genomes}
+            updated_genomes = []
+            for seq_record in viral_sequences:
+                parent_id = seq_record.id.split('_frag')[0]
+                parent_genome = original_genome_map.get(parent_id, {})
+                updated_genomes.append({
+                    'genome_id': seq_record.id,
+                    'genome_name': seq_record.description or seq_record.id,
+                    'length': len(seq_record.seq),
+                    'genome_type': parent_genome.get('genome_type', 'viral'),
+                    'relative_abundance': parent_genome.get('relative_abundance', 0.0),
+                    'family': parent_genome.get('family', 'Unknown'),
+                })
+            genomes = updated_genomes
+
             logger.info(
                 f"RNA workflow complete: {len(viral_sequences)} sequences "
-                f"(was {len(genomes)})"
+                f"(was {original_genome_count})"
             )
             logger.info("=" * 80)
 
@@ -988,7 +1006,7 @@ class FASTQGenerator:
             'metadata_version': '1.1' if enable_benchmarking else '1.0',
             'generation_info': {
                 'timestamp': datetime.now().isoformat(),
-                'viroforge_version': '0.11.0',
+                'viroforge_version': '0.12.0',
                 'random_seed': self.random_seed
             },
             'collection': {
