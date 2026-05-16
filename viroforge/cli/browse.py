@@ -28,6 +28,7 @@ except ImportError:
     sys.exit(1)
 
 from .db_utils import (
+    get_database_path,
     load_all_collections,
     load_collection_details,
     search_collections,
@@ -195,6 +196,25 @@ def show_collection_details(collection_id: int, icons: bool = True):
 
 def run_browser(args):
     """Main browser loop."""
+    # Check for database before entering the loop
+    try:
+        get_database_path()
+    except FileNotFoundError:
+        console.print(
+            "\n[cyan]The viral genome database has not been set up yet. "
+            "Build it with:[/cyan]\n"
+        )
+        console.print("  python scripts/download_refseq.py --output data/refseq --all")
+        console.print("  python scripts/parse_genomes.py --input data/refseq --output data/parsed")
+        console.print(
+            "  python scripts/populate_database.py "
+            "--input data/parsed "
+            "--database viroforge/data/viral_genomes.db "
+            "--create-db"
+        )
+        console.print()
+        return 1
+
     icons = not args.no_icons
     search_query = ""
 
