@@ -45,6 +45,7 @@ class TaxonTarget:
 class CollectionSpec:
     """Specification for a body site collection."""
     collection_id: str
+    numeric_id: int  # Explicit database ID (1-8)
     name: str
     description: str
     body_site: str
@@ -65,6 +66,7 @@ class CollectionSpec:
 COLLECTION_SPECS = {
     'gut': CollectionSpec(
         collection_id='gut_virome_adult_healthy_western',
+        numeric_id=1,
         name='Gut Virome - Adult Healthy (Western Diet)',
         description='Human gut virome from healthy adults with Western diet. crAssphage-dominated composition typical of industrialized populations.',
         body_site='gut',
@@ -93,6 +95,7 @@ COLLECTION_SPECS = {
 
     'oral': CollectionSpec(
         collection_id='oral_virome_saliva_healthy',
+        numeric_id=2,
         name='Oral Virome - Saliva (Healthy)',
         description='Oral virome from healthy saliva. Streptococcus phage-dominated with high Siphoviridae prevalence.',
         body_site='oral_cavity',
@@ -120,6 +123,7 @@ COLLECTION_SPECS = {
 
     'skin': CollectionSpec(
         collection_id='skin_virome_sebaceous_healthy',
+        numeric_id=3,
         name='Skin Virome - Sebaceous Sites (Healthy)',
         description='Skin virome from sebaceous sites (forehead, back). Cutibacterium (P. acnes) phage-dominated.',
         body_site='skin',
@@ -146,6 +150,7 @@ COLLECTION_SPECS = {
 
     'respiratory': CollectionSpec(
         collection_id='respiratory_virome_nasopharynx_healthy',
+        numeric_id=4,
         name='Respiratory Virome - Nasopharynx (Healthy)',
         description='Respiratory virome from nasopharyngeal swabs. Mixed phage and eukaryotic viral composition.',
         body_site='respiratory',
@@ -175,6 +180,7 @@ COLLECTION_SPECS = {
 
     'marine': CollectionSpec(
         collection_id='marine_virome_coastal_surface',
+        numeric_id=5,
         name='Marine Virome - Coastal Surface Water',
         description='Marine virome from coastal surface waters. Pelagiphage and cyanophage-dominated composition.',
         body_site='marine',
@@ -198,6 +204,7 @@ COLLECTION_SPECS = {
 
     'soil': CollectionSpec(
         collection_id='soil_virome_agricultural',
+        numeric_id=6,
         name='Soil Virome - Agricultural',
         description='Soil virome from agricultural fields. Actinophage-dominated with high diversity.',
         body_site='soil',
@@ -221,6 +228,7 @@ COLLECTION_SPECS = {
 
     'freshwater': CollectionSpec(
         collection_id='freshwater_virome_lake_surface',
+        numeric_id=7,
         name='Freshwater Virome - Lake Surface Water',
         description='Freshwater virome from lake surface waters. Actinophage and cyanophage-dominated.',
         body_site='freshwater',
@@ -244,6 +252,7 @@ COLLECTION_SPECS = {
 
     'mouse_gut': CollectionSpec(
         collection_id='mouse_gut_virome_lab',
+        numeric_id=8,
         name='Mouse Gut Virome - Laboratory (C57BL/6)',
         description='Mouse gut virome from laboratory C57BL/6 mice. Lactobacillus phage-dominated.',
         body_site='gut',
@@ -486,12 +495,17 @@ class BodySiteCurator:
         # Build selection criteria description
         selection_criteria = f"Body site: {spec.body_site}, Sample type: {spec.sample_type}, Health status: {spec.health_status}, Phage fraction: {spec.phage_fraction:.1%}"
 
-        cursor = conn.execute("""
-            INSERT OR REPLACE INTO body_site_collections
-            (collection_name, description, n_genomes, selection_criteria,
+        # Delete existing collection if present
+        conn.execute("DELETE FROM collection_genomes WHERE collection_id = ?", (spec.numeric_id,))
+        conn.execute("DELETE FROM body_site_collections WHERE collection_id = ?", (spec.numeric_id,))
+
+        conn.execute("""
+            INSERT INTO body_site_collections
+            (collection_id, collection_name, description, n_genomes, selection_criteria,
              curated_by, curation_date)
-            VALUES (?, ?, ?, ?, ?, datetime('now'))
+            VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
         """, (
+            spec.numeric_id,
             spec.name,
             spec.description,
             len(genomes),
@@ -499,8 +513,7 @@ class BodySiteCurator:
             'ViroForge automated curation'
         ))
 
-        # Get the collection_id of the inserted collection
-        collection_id = cursor.lastrowid
+        collection_id = spec.numeric_id
 
         # Insert genome associations with abundances
         for rank, (genome_id, abundance) in enumerate(zip(genomes, abundances), start=1):
