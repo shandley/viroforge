@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Curate Collection 18: IBD Gut Virome (Inflammatory Bowel Disease)
+Curate Collection 10: IBD Gut Virome (Inflammatory Bowel Disease)
 
-Comparison to healthy gut (Collection 9):
+Comparison to healthy gut (Collection 1):
 - Lower diversity (80-100 genomes vs 134)
 - Altered Caudovirales composition
 - Increased temperate phages
@@ -41,13 +41,13 @@ class IBDGutCurator:
         np.random.seed(self.random_seed)
 
     def get_healthy_gut_genomes(self) -> List[Dict]:
-        """Get genomes from healthy gut collection (ID 9) for reference."""
+        """Get genomes from healthy gut collection (ID 1) for reference."""
         query = """
         SELECT g.genome_id, g.genome_name, t.family, t.genus, cg.relative_abundance
         FROM collection_genomes cg
         JOIN genomes g ON cg.genome_id = g.genome_id
         JOIN taxonomy t ON g.genome_id = t.genome_id
-        WHERE cg.collection_id = 9
+        WHERE cg.collection_id = 1
         ORDER BY cg.relative_abundance DESC
         """
         return [dict(row) for row in self.conn.execute(query)]
@@ -200,7 +200,7 @@ class IBDGutCurator:
 
         # First, show healthy gut for comparison
         healthy = self.get_healthy_gut_genomes()
-        logger.info(f"\nHealthy gut (Collection 9): {len(healthy)} genomes")
+        logger.info(f"\nHealthy gut (Collection 1): {len(healthy)} genomes")
 
         # IBD characteristics: reduced diversity across all groups
         crassphage = self.get_reduced_crassphage(n_target=20)
@@ -245,7 +245,7 @@ class IBDGutCurator:
 
         # Compare diversity to healthy
         logger.info("\n" + "=" * 80)
-        logger.info("COMPARISON TO HEALTHY GUT (Collection 9)")
+        logger.info("COMPARISON TO HEALTHY GUT (Collection 1)")
         logger.info("=" * 80)
         logger.info(f"Healthy:  {len(healthy)} genomes")
         logger.info(f"IBD:      {len(collection)} genomes ({len(collection)/len(healthy)*100:.1f}% of healthy)")
@@ -262,13 +262,13 @@ class IBDGutCurator:
         cursor = self.conn.cursor()
 
         collection_meta = {
-            'collection_id': 18,
+            'collection_id': 10,
             'collection_name': 'IBD Gut Virome (Inflammatory Bowel Disease)',
             'description': (
                 'Gut virome from patients with inflammatory bowel disease (IBD). '
                 'Characterized by reduced viral diversity, altered Caudovirales composition, '
                 'increased temperate phage activity, and dysbiotic abundance patterns. '
-                'Compare to Collection 9 (healthy gut) to study disease effects. '
+                'Compare to Collection 1 (healthy gut) to study disease effects. '
                 'Based on Norman et al. 2015, Zuo et al. 2019, and Clooney et al. 2019.'
             ),
             'n_genomes': len(collection),
@@ -287,13 +287,13 @@ class IBDGutCurator:
         }
 
         # Check if collection exists
-        cursor.execute("SELECT collection_id FROM body_site_collections WHERE collection_id = 18")
+        cursor.execute("SELECT collection_id FROM body_site_collections WHERE collection_id = 10")
         exists = cursor.fetchone()
 
         if exists:
-            logger.info("Collection 18 already exists - DELETING and recreating...")
-            cursor.execute("DELETE FROM body_site_collections WHERE collection_id = 18")
-            cursor.execute("DELETE FROM collection_genomes WHERE collection_id = 18")
+            logger.info("Collection 10 already exists - DELETING and recreating...")
+            cursor.execute("DELETE FROM body_site_collections WHERE collection_id = 10")
+            cursor.execute("DELETE FROM collection_genomes WHERE collection_id = 10")
 
         # Insert collection
         cursor.execute("""
@@ -322,7 +322,7 @@ class IBDGutCurator:
                 (collection_id, genome_id, relative_abundance, prevalence, abundance_rank)
                 VALUES (?, ?, ?, ?, ?)
             """, (
-                18,
+                10,
                 genome['genome_id'],
                 genome['relative_abundance'],
                 1.0,  # All genomes present
@@ -332,7 +332,7 @@ class IBDGutCurator:
         self.conn.commit()
         logger.info(f"✓ Inserted {len(collection)} genome associations")
 
-        logger.info("\n✓ Collection 18 successfully created in database!")
+        logger.info("\n✓ Collection 10 successfully created in database!")
 
     def close(self):
         """Close database connection."""
@@ -354,7 +354,7 @@ def main():
         logger.info("✓ IBD GUT VIROME COLLECTION CURATION COMPLETE!")
         logger.info("=" * 80)
         logger.info("\nNext steps:")
-        logger.info("  1. Test generation: python scripts/generate_fastq_dataset.py --collection-id 18 --dry-run")
+        logger.info("  1. Test generation: python scripts/generate_fastq_dataset.py --collection-id 10 --dry-run")
         logger.info("  2. Compare to healthy: Generate both collections and compare compositions")
         logger.info("  3. Update documentation")
 
