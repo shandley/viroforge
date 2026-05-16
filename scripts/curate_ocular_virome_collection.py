@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Curate Collection 26: Ocular Surface Virome (Healthy)
+Curate Collection 18: Ocular Surface Virome (Healthy)
 
 Literature basis:
 - Doan et al. 2016 (IOVS) - Paucibacterial microbiome and resident DNA virome of healthy conjunctiva
@@ -380,9 +380,9 @@ class OcularViromeCurator:
         return genomes
 
     def create_collection(self):
-        """Create Collection 26: Ocular Surface Virome."""
+        """Create Collection 18: Ocular Surface Virome."""
         logger.info("=" * 70)
-        logger.info("Creating Collection 26: Ocular Surface Virome")
+        logger.info("Creating Collection 18: Ocular Surface Virome")
         logger.info("=" * 70)
 
         # Collect genomes by category
@@ -425,16 +425,16 @@ class OcularViromeCurator:
         # Assign abundances
         all_genomes = self.assign_abundances(all_genomes, categories)
 
-        # Delete existing Collection 26 if present
+        # Delete existing Collection 18 if present
         cursor = self.conn.cursor()
-        cursor.execute("DELETE FROM collection_genomes WHERE collection_id = 26")
-        cursor.execute("DELETE FROM body_site_collections WHERE collection_id = 26")
+        cursor.execute("DELETE FROM collection_genomes WHERE collection_id = 18")
+        cursor.execute("DELETE FROM body_site_collections WHERE collection_id = 18")
         self.conn.commit()
-        logger.info("\nDeleted existing Collection 26 (if present)")
+        logger.info("\nDeleted existing Collection 18 (if present)")
 
         # Insert collection
         collection_meta = {
-            'collection_id': 26,
+            'collection_id': 18,
             'collection_name': 'Ocular Surface Virome (Healthy)',
             'description': f'Healthy human ocular surface/conjunctiva virome with {len(all_genomes)} genomes. Paucibacterial environment with resident DNA virome. Includes torque teno virus (TTV - DOMINANT at 65% prevalence), adenoviruses (most common viral ocular infection), herpesviruses (HSV-1 leading cause of infectious blindness, VZV, CMV, EBV), Merkel cell polyomavirus, HPV, and bacteriophages targeting Staphylococcus, Propionibacterium/Cutibacterium, Corynebacterium. Host: Homo sapiens, Body site: Conjunctiva/Ocular surface. Applications: ophthalmology, infectious keratitis diagnosis, ocular health monitoring.',
             'n_genomes': len(all_genomes),
@@ -449,7 +449,7 @@ class OcularViromeCurator:
         self._insert_collection(collection_meta, all_genomes)
 
         logger.info("\n" + "=" * 70)
-        logger.info("Collection 26: Ocular Surface Virome - COMPLETE")
+        logger.info("Collection 18: Ocular Surface Virome - COMPLETE")
         logger.info("=" * 70)
 
     def _insert_collection(self, collection_meta: Dict, genomes: List[Dict]):

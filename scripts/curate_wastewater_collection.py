@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Curate Collection 17: Wastewater Virome - Urban Treatment Plant
+Curate Collection 9: Wastewater Virome - Urban Treatment Plant
 
 Composition based on literature (Crits-Christoph et al. 2021, Crank et al. 2022):
 - Human enteric viruses (40%): Norovirus, rotavirus, adenovirus, astrovirus, sapovirus
@@ -323,7 +323,7 @@ idae, Picornaviridae
         cursor = self.conn.cursor()
 
         collection_meta = {
-            'collection_id': 17,
+            'collection_id': 9,
             'collection_name': 'Wastewater Virome - Urban Treatment Plant',
             'description': (
                 'Municipal wastewater viral community from urban treatment plant. '
@@ -348,13 +348,13 @@ idae, Picornaviridae
         }
 
         # Check if collection exists
-        cursor.execute("SELECT collection_id FROM body_site_collections WHERE collection_id = 17")
+        cursor.execute("SELECT collection_id FROM body_site_collections WHERE collection_id = 9")
         exists = cursor.fetchone()
 
         if exists:
-            logger.info("Collection 17 already exists - DELETING and recreating...")
-            cursor.execute("DELETE FROM body_site_collections WHERE collection_id = 17")
-            cursor.execute("DELETE FROM collection_genomes WHERE collection_id = 17")
+            logger.info("Collection 9 already exists - DELETING and recreating...")
+            cursor.execute("DELETE FROM body_site_collections WHERE collection_id = 9")
+            cursor.execute("DELETE FROM collection_genomes WHERE collection_id = 9")
 
         # Insert collection
         cursor.execute("""
@@ -383,7 +383,7 @@ idae, Picornaviridae
                 (collection_id, genome_id, relative_abundance, prevalence, abundance_rank)
                 VALUES (?, ?, ?, ?, ?)
             """, (
-                17,
+                9,
                 genome['genome_id'],
                 genome['relative_abundance'],
                 1.0,  # All genomes present (can adjust for prevalence patterns)
@@ -393,7 +393,7 @@ idae, Picornaviridae
         self.conn.commit()
         logger.info(f"✓ Inserted {len(collection)} genome associations")
 
-        logger.info("\n✓ Collection 17 successfully created in database!")
+        logger.info("\n✓ Collection 9 successfully created in database!")
 
     def close(self):
         """Close database connection."""
@@ -415,7 +415,7 @@ def main():
         logger.info("✓ WASTEWATER COLLECTION CURATION COMPLETE!")
         logger.info("=" * 80)
         logger.info("\nNext steps:")
-        logger.info("  1. Test generation: python scripts/generate_fastq_dataset.py --collection-id 17 --dry-run")
+        logger.info("  1. Test generation: python scripts/generate_fastq_dataset.py --collection-id 9 --dry-run")
         logger.info("  2. Create wastewater-specific contamination profile")
         logger.info("  3. Update documentation")
 

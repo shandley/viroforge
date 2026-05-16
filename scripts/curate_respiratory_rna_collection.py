@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Curate Collection 21: Human Respiratory RNA Virome
+Curate Collection 13: Human Respiratory RNA Virome
 
 Composition based on literature (Gao et al. 2019, Wylie et al. 2012):
 - Coronaviruses (including common cold and SARS-CoV-2)
@@ -314,7 +314,7 @@ class RespiratoryRNACurator:
         cursor = self.conn.cursor()
 
         collection_meta = {
-            'collection_id': 21,
+            'collection_id': 13,
             'collection_name': 'Human Respiratory RNA Virome',
             'description': (
                 'Human respiratory RNA virome from community and hospital settings. '
@@ -340,13 +340,13 @@ class RespiratoryRNACurator:
         }
 
         # Check if collection exists
-        cursor.execute("SELECT collection_id FROM body_site_collections WHERE collection_id = 21")
+        cursor.execute("SELECT collection_id FROM body_site_collections WHERE collection_id = 13")
         exists = cursor.fetchone()
 
         if exists:
-            logger.info("Collection 21 already exists - DELETING and recreating...")
-            cursor.execute("DELETE FROM body_site_collections WHERE collection_id = 21")
-            cursor.execute("DELETE FROM collection_genomes WHERE collection_id = 21")
+            logger.info("Collection 13 already exists - DELETING and recreating...")
+            cursor.execute("DELETE FROM body_site_collections WHERE collection_id = 13")
+            cursor.execute("DELETE FROM collection_genomes WHERE collection_id = 13")
 
         # Insert collection
         cursor.execute("""
@@ -375,7 +375,7 @@ class RespiratoryRNACurator:
                 (collection_id, genome_id, relative_abundance, prevalence, abundance_rank)
                 VALUES (?, ?, ?, ?, ?)
             """, (
-                21,
+                13,
                 genome['genome_id'],
                 genome['relative_abundance'],
                 1.0,  # All genomes present
@@ -385,7 +385,7 @@ class RespiratoryRNACurator:
         self.conn.commit()
         logger.info(f"✓ Inserted {len(collection)} genome associations")
 
-        logger.info("\n✓ Collection 21 successfully created in database!")
+        logger.info("\n✓ Collection 13 successfully created in database!")
 
     def close(self):
         """Close database connection."""
@@ -407,7 +407,7 @@ def main():
         logger.info("✓ RESPIRATORY RNA VIROME COLLECTION CURATION COMPLETE!")
         logger.info("=" * 80)
         logger.info("\nNext steps:")
-        logger.info("  1. Test generation: python scripts/generate_fastq_dataset.py --collection-id 21 --dry-run")
+        logger.info("  1. Test generation: python scripts/generate_fastq_dataset.py --collection-id 13 --dry-run")
         logger.info("  2. Continue with Collection 22 (Arbovirus) and Collection 23 (Fecal RNA)")
         logger.info("  3. Implement RNA workflow components (RT, rRNA depletion)")
 
