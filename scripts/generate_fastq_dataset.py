@@ -32,6 +32,7 @@ import argparse
 import sys
 import logging
 import sqlite3
+import subprocess
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 import json
@@ -338,6 +339,7 @@ class FASTQGenerator:
             )
 
             # Apply RNA workflow (degradation, RT, rRNA depletion)
+            original_genome_count = len(genomes)
             viral_sequences, rna_workflow_stats = rna_workflow.apply(
                 sequences=viral_sequences,
                 virus_types=virus_types,
@@ -364,9 +366,26 @@ class FASTQGenerator:
             if total > 0:
                 viral_abundances = viral_abundances / total
 
+            # Rebuild genomes metadata to match post-RNA sequences
+            # (RNA workflow can fragment/drop sequences, changing the count)
+            original_genome_map = {g['genome_id']: g for g in genomes}
+            updated_genomes = []
+            for seq_record in viral_sequences:
+                parent_id = seq_record.id.split('_frag')[0]
+                parent_genome = original_genome_map.get(parent_id, {})
+                updated_genomes.append({
+                    'genome_id': seq_record.id,
+                    'genome_name': seq_record.description or seq_record.id,
+                    'length': len(seq_record.seq),
+                    'genome_type': parent_genome.get('genome_type', 'viral'),
+                    'relative_abundance': parent_genome.get('relative_abundance', 0.0),
+                    'family': parent_genome.get('family', 'Unknown'),
+                })
+            genomes = updated_genomes
+
             logger.info(
                 f"RNA workflow complete: {len(viral_sequences)} sequences "
-                f"(was {len(genomes)})"
+                f"(was {original_genome_count})"
             )
             logger.info("=" * 80)
 
@@ -945,7 +964,7 @@ class FASTQGenerator:
         except FileNotFoundError:
             logger.error("InSilicoSeq (iss) not found in PATH")
             logger.error("Install with: conda install -c bioconda insilicoseq")
-            raise
+            sys.exit(1)
 
     def export_metadata(
         self,
@@ -987,7 +1006,7 @@ class FASTQGenerator:
             'metadata_version': '1.1' if enable_benchmarking else '1.0',
             'generation_info': {
                 'timestamp': datetime.now().isoformat(),
-                'viroforge_version': '0.11.0',
+                'viroforge_version': '0.12.0',
                 'random_seed': self.random_seed
             },
             'collection': {
@@ -1639,11 +1658,16 @@ Examples:
         )
         import tempfile
 
-        # Calculate average depth for PBSIM3
-        total_length = sum(len(seq.seq) for seq in sequences)
-        weighted_depth = sum(args.depth * abundance for abundance in abundances)
-
         output_prefix = str(generator.fastq_dir / collection_name)
+
+        # Calculate per-genome depths based on abundance
+        # PBSIM3 only accepts a single --depth value, so we must run it
+        # per-genome to preserve community composition
+        per_genome_depths = {
+            seq.id: args.depth * abundance
+            for seq, abundance in zip(sequences, abundances)
+        }
+        min_depth_threshold = 0.01  # Skip genomes below this depth
 
         # Determine platform and run simulation
         if args.platform == 'pacbio-hifi':
@@ -1655,50 +1679,126 @@ Examples:
                        f"{platform_config.read_length_mean}bp mean read length")
             logger.info(f"  Depth: {args.depth}x")
 
-            # Step 1: Generate CLR with PBSIM3
+            # Step 1: Generate CLR with PBSIM3 (per-genome for correct abundances)
             logger.info("  Step 1/2: Generating CLR reads with PBSIM3...")
-            clr_sam = Path(output_prefix + '_clr.sam')
 
-            pbsim_cmd = [
-                'pbsim',
-                '--strategy', 'wgs',
-                '--method', 'qshmm',
-                '--qshmm', platform_config.accuracy_model,
-                '--depth', str(weighted_depth),
-                '--genome', str(fasta_path),
-                '--pass-num', str(platform_config.passes),
-                '--length-mean', str(platform_config.read_length_mean),
-                '--length-sd', str(platform_config.read_length_sd),
-                '--accuracy-mean', str(1.0 - platform_config.clr_error_rate),
-                '--prefix', output_prefix + '_clr'
-            ]
+            # Resolve full path to QSHMM model file
+            import shutil as _shutil
+            qshmm_name = platform_config.accuracy_model
+            if not qshmm_name.endswith('.model'):
+                qshmm_name += '.model'
+            qshmm_path = qshmm_name
+            pbsim_path = _shutil.which('pbsim')
+            if pbsim_path:
+                conda_data = Path(pbsim_path).parent.parent / 'data' / qshmm_name
+                if conda_data.exists():
+                    qshmm_path = str(conda_data)
 
-            if args.seed:
-                pbsim_cmd.extend(['--seed', str(args.seed)])
+            # Run PBSIM3 per-genome with abundance-weighted depth
+            skipped = 0
+            genome_bam_files = []
+            for i, (seq, abundance) in enumerate(zip(sequences, abundances)):
+                genome_depth = per_genome_depths[seq.id]
+                if genome_depth < min_depth_threshold:
+                    skipped += 1
+                    continue
 
-            try:
-                result = subprocess.run(pbsim_cmd, capture_output=True, text=True, check=True)
-                logger.info("  PBSIM3 CLR generation complete")
-            except subprocess.CalledProcessError as e:
-                logger.error(f"PBSIM3 failed: {e.stderr}")
-                raise
-            except FileNotFoundError:
-                logger.error("PBSIM3 (pbsim) not found in PATH")
-                logger.error("Install with: conda install -c bioconda pbsim3")
-                raise
+                # Write single-genome FASTA
+                genome_fasta = Path(f"{output_prefix}_genome_{i:04d}.fasta")
+                SeqIO.write([seq], str(genome_fasta), "fasta")
+                genome_prefix = f"{output_prefix}_genome_{i:04d}_clr"
 
-            # Step 2: Convert SAM to BAM and run ccs
+                pbsim_cmd = [
+                    'pbsim',
+                    '--strategy', 'wgs',
+                    '--method', 'qshmm',
+                    '--qshmm', qshmm_path,
+                    '--depth', str(genome_depth),
+                    '--genome', str(genome_fasta),
+                    '--pass-num', str(platform_config.passes),
+                    '--length-mean', str(platform_config.read_length_mean),
+                    '--length-sd', str(platform_config.read_length_sd),
+                    '--accuracy-mean', str(1.0 - platform_config.clr_error_rate),
+                    '--prefix', genome_prefix
+                ]
+
+                if args.seed:
+                    pbsim_cmd.extend(['--seed', str(args.seed + i)])
+
+                try:
+                    result = subprocess.run(pbsim_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    if result.returncode != 0 and result.returncode != -13:
+                        logger.warning(f"  PBSIM3 failed for genome {seq.id} (exit {result.returncode})")
+                        genome_fasta.unlink(missing_ok=True)
+                        continue
+                except FileNotFoundError:
+                    logger.error("PBSIM3 (pbsim) not found in PATH")
+                    logger.error("Install with: conda install -c bioconda pbsim3")
+                    sys.exit(1)
+
+                # Collect per-genome BAM output (PBSIM3 outputs {prefix}_0001.bam)
+                import glob as _glob_clr
+                genome_bams = sorted(_glob_clr.glob(f"{genome_prefix}_*.bam"))
+                genome_bam_files.extend(genome_bams)
+
+                # Also check for SAM output (older PBSIM3 versions)
+                genome_sam = Path(f"{genome_prefix}.sam")
+                if genome_sam.exists() and not genome_bams:
+                    # Convert SAM to BAM
+                    genome_bam_path = Path(f"{genome_prefix}.bam")
+                    sam_conv = subprocess.run(
+                        ['samtools', 'view', '-b', '-o', str(genome_bam_path), str(genome_sam)],
+                        capture_output=True, text=True
+                    )
+                    if sam_conv.returncode == 0:
+                        genome_bam_files.append(str(genome_bam_path))
+                    genome_sam.unlink()
+
+                # Clean up per-genome temp files
+                genome_fasta.unlink(missing_ok=True)
+                for f in _glob_clr.glob(f"{genome_prefix}*.ref"):
+                    Path(f).unlink(missing_ok=True)
+                for f in _glob_clr.glob(f"{genome_prefix}*.maf"):
+                    Path(f).unlink(missing_ok=True)
+                for f in _glob_clr.glob(f"{genome_prefix}*.maf.gz"):
+                    Path(f).unlink(missing_ok=True)
+
+                if (i + 1) % 50 == 0:
+                    logger.info(f"    Processed {i + 1}/{len(sequences)} genomes")
+
+            if skipped > 0:
+                logger.info(f"  Skipped {skipped} genomes with depth < {min_depth_threshold}x")
+            logger.info(f"  PBSIM3 CLR generation complete ({len(genome_bam_files)} BAM files)")
+
+            # Step 2: Merge BAMs and run ccs
             logger.info("  Step 2/2: Generating HiFi consensus with ccs...")
             clr_bam = Path(output_prefix + '_clr.bam')
             hifi_fastq = Path(output_prefix + '_hifi.fastq.gz')
 
-            # SAM → BAM
-            sam_to_bam_cmd = ['samtools', 'view', '-b', '-o', str(clr_bam), str(clr_sam)]
+            if not genome_bam_files:
+                logger.error("No CLR BAM files generated by PBSIM3")
+                sys.exit(1)
+
+            # Merge per-genome BAMs into single BAM
             try:
-                subprocess.run(sam_to_bam_cmd, capture_output=True, text=True, check=True)
+                if len(genome_bam_files) == 1:
+                    import shutil
+                    shutil.move(str(genome_bam_files[0]), str(clr_bam))
+                else:
+                    merge_cmd = ['samtools', 'merge', '-f', str(clr_bam)] + [str(b) for b in genome_bam_files]
+                    subprocess.run(merge_cmd, capture_output=True, text=True, check=True)
+                logger.info(f"  Merged {len(genome_bam_files)} BAM files")
             except subprocess.CalledProcessError as e:
-                logger.error(f"samtools failed: {e.stderr}")
+                logger.error(f"samtools merge failed: {e.stderr}")
                 raise
+            except FileNotFoundError:
+                logger.error("samtools not found in PATH")
+                logger.error("Install with: conda install -c bioconda samtools")
+                sys.exit(1)
+
+            # Clean up per-genome BAMs
+            for bam_file in genome_bam_files:
+                Path(bam_file).unlink(missing_ok=True)
 
             # Run ccs
             ccs_cmd = [
@@ -1719,12 +1819,11 @@ Examples:
             except FileNotFoundError:
                 logger.error("PacBio ccs not found in PATH")
                 logger.error("Install with: conda install -c bioconda pbccs")
-                raise
+                sys.exit(1)
 
             reads_path = hifi_fastq
 
             # Clean up intermediate files
-            clr_sam.unlink(missing_ok=True)
             clr_bam.unlink(missing_ok=True)
 
         else:  # nanopore
@@ -1736,37 +1835,100 @@ Examples:
                        f"{platform_config.read_length_mean}bp mean read length")
             logger.info(f"  Depth: {args.depth}x")
 
-            # Generate Nanopore reads with PBSIM3
+            # Generate Nanopore reads with PBSIM3 (per-genome for correct abundances)
             logger.info("  Generating Nanopore reads with PBSIM3...")
             nanopore_fastq = Path(output_prefix + '.fastq')
 
-            pbsim_cmd = [
-                'pbsim',
-                '--strategy', 'wgs',
-                '--method', 'errhmm',
-                '--errhmm', f'ERRHMM-{platform_config.chemistry}',
-                '--depth', str(weighted_depth),
-                '--genome', str(fasta_path),
-                '--length-mean', str(platform_config.read_length_mean),
-                '--length-sd', str(platform_config.read_length_sd),
-                '--accuracy-mean', str(1.0 - platform_config.error_rate),
-                '--hp-del-bias', str(platform_config.hp_del_bias),
-                '--prefix', output_prefix
-            ]
+            # Map chemistry version to PBSIM3 error model file
+            errhmm_map = {
+                'R10.4': 'ERRHMM-ONT-HQ.model',  # R10.4 = high quality
+                'R9.4': 'ERRHMM-ONT.model',       # R9.4 = standard
+            }
+            errhmm_name = errhmm_map.get(platform_config.chemistry, 'ERRHMM-ONT-HQ.model')
 
-            if args.seed:
-                pbsim_cmd.extend(['--seed', str(args.seed)])
+            # Find the model file: check conda data dir, then fall back to just the name
+            import shutil
+            pbsim_path = shutil.which('pbsim')
+            errhmm_path = errhmm_name
+            if pbsim_path:
+                conda_data = Path(pbsim_path).parent.parent / 'data' / errhmm_name
+                if conda_data.exists():
+                    errhmm_path = str(conda_data)
 
-            try:
-                result = subprocess.run(pbsim_cmd, capture_output=True, text=True, check=True)
-                logger.info("  PBSIM3 Nanopore generation complete")
-            except subprocess.CalledProcessError as e:
-                logger.error(f"PBSIM3 failed: {e.stderr}")
-                raise
-            except FileNotFoundError:
-                logger.error("PBSIM3 (pbsim) not found in PATH")
-                logger.error("Install with: conda install -c bioconda pbsim3")
-                raise
+            # Run PBSIM3 per-genome with abundance-weighted depth
+            skipped = 0
+            total_reads = 0
+            with open(nanopore_fastq, 'w') as fq_out:
+                for i, (seq, abundance) in enumerate(zip(sequences, abundances)):
+                    genome_depth = per_genome_depths[seq.id]
+                    if genome_depth < min_depth_threshold:
+                        skipped += 1
+                        continue
+
+                    # Write single-genome FASTA
+                    genome_fasta = Path(f"{output_prefix}_genome_{i:04d}.fasta")
+                    SeqIO.write([seq], str(genome_fasta), "fasta")
+                    genome_prefix = f"{output_prefix}_genome_{i:04d}"
+
+                    pbsim_cmd = [
+                        'pbsim',
+                        '--strategy', 'wgs',
+                        '--method', 'errhmm',
+                        '--errhmm', errhmm_path,
+                        '--depth', str(genome_depth),
+                        '--genome', str(genome_fasta),
+                        '--length-mean', str(platform_config.read_length_mean),
+                        '--length-sd', str(platform_config.read_length_sd),
+                        '--accuracy-mean', str(1.0 - platform_config.error_rate),
+                        '--hp-del-bias', str(platform_config.hp_del_bias),
+                        '--prefix', genome_prefix
+                    ]
+
+                    if args.seed:
+                        pbsim_cmd.extend(['--seed', str(args.seed + i)])
+
+                    try:
+                        result = subprocess.run(pbsim_cmd, capture_output=True, text=True)
+                        if result.returncode != 0 and result.returncode != -13:
+                            logger.warning(f"  PBSIM3 failed for genome {seq.id} (exit {result.returncode})")
+                            continue
+                    except FileNotFoundError:
+                        logger.error("PBSIM3 (pbsim) not found in PATH")
+                        logger.error("Install with: conda install -c bioconda pbsim3")
+                        sys.exit(1)
+
+                    # Collect FASTQ output for this genome
+                    # PBSIM3 outputs .fq.gz (gzipped) files
+                    import glob as _glob_nano
+                    import gzip
+                    nano_fastqs = _glob_nano.glob(f"{genome_prefix}*.fq.gz")
+                    if not nano_fastqs:
+                        logger.debug(f"  No .fq.gz for genome {i} ({seq.id}), depth={genome_depth:.3f}, rc={result.returncode}")
+                    if not nano_fastqs:
+                        # Fall back to uncompressed .fastq
+                        nano_fastqs = _glob_nano.glob(f"{genome_prefix}*.fastq")
+                    for fq in sorted(nano_fastqs):
+                        opener = gzip.open if fq.endswith('.gz') else open
+                        with opener(fq, 'rt') as inf:
+                            for line in inf:
+                                fq_out.write(line)
+                                if line.startswith('@'):
+                                    total_reads += 1
+                        Path(fq).unlink()
+
+                    # Clean up per-genome temp files
+                    genome_fasta.unlink(missing_ok=True)
+                    for f in _glob_nano.glob(f"{genome_prefix}*.ref"):
+                        Path(f).unlink(missing_ok=True)
+                    for f in _glob_nano.glob(f"{genome_prefix}*.maf*"):
+                        Path(f).unlink(missing_ok=True)
+
+                    if (i + 1) % 50 == 0:
+                        logger.info(f"    Processed {i + 1}/{len(sequences)} genomes ({total_reads} reads)")
+
+            if skipped > 0:
+                logger.info(f"  Skipped {skipped} genomes with depth < {min_depth_threshold}x")
+            logger.info(f"  PBSIM3 Nanopore generation complete ({total_reads} reads)")
 
             reads_path = nanopore_fastq
 

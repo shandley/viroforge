@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Curate Collection 25: Blood/Plasma Virome (Healthy)
+Curate Collection 17: Blood/Plasma Virome (Healthy)
 
 Literature basis:
 - Moustafa et al. 2017 (PLOS Pathogens) - Blood DNA virome in 8,000 humans
@@ -353,9 +353,9 @@ class BloodViromeCurator:
         return genomes
 
     def create_collection(self):
-        """Create Collection 25: Blood/Plasma Virome."""
+        """Create Collection 17: Blood/Plasma Virome."""
         logger.info("=" * 70)
-        logger.info("Creating Collection 25: Blood/Plasma Virome")
+        logger.info("Creating Collection 17: Blood/Plasma Virome")
         logger.info("=" * 70)
 
         # Collect genomes by category
@@ -395,16 +395,16 @@ class BloodViromeCurator:
         # Assign abundances
         all_genomes = self.assign_abundances(all_genomes, categories)
 
-        # Delete existing Collection 25 if present
+        # Delete existing Collection 17 if present
         cursor = self.conn.cursor()
-        cursor.execute("DELETE FROM collection_genomes WHERE collection_id = 25")
-        cursor.execute("DELETE FROM body_site_collections WHERE collection_id = 25")
+        cursor.execute("DELETE FROM collection_genomes WHERE collection_id = 17")
+        cursor.execute("DELETE FROM body_site_collections WHERE collection_id = 17")
         self.conn.commit()
-        logger.info("\nDeleted existing Collection 25 (if present)")
+        logger.info("\nDeleted existing Collection 17 (if present)")
 
         # Insert collection
         collection_meta = {
-            'collection_id': 25,
+            'collection_id': 17,
             'collection_name': 'Blood/Plasma Virome (Healthy)',
             'description': f'Healthy human blood/plasma virome with {len(all_genomes)} genomes. Includes anelloviruses (TTV, TLMV - most abundant at 8.91% prevalence), human herpesviruses (HHV-7, EBV, CMV, HHV-6 - 14-20% prevalence), polyomaviruses (BK, JC, Merkel cell - critical for transplant monitoring), parvovirus B19, bloodborne viruses (HCV, HIV), HPV, and adenoviruses. Host: Homo sapiens, Body site: Blood/Plasma. Applications: viremia detection, transplant monitoring, blood safety screening, immunocompromised patient diagnostics. NOTE: Human HBV not in RefSeq database.',
             'n_genomes': len(all_genomes),
@@ -419,7 +419,7 @@ class BloodViromeCurator:
         self._insert_collection(collection_meta, all_genomes)
 
         logger.info("\n" + "=" * 70)
-        logger.info("Collection 25: Blood/Plasma Virome - COMPLETE")
+        logger.info("Collection 17: Blood/Plasma Virome - COMPLETE")
         logger.info("=" * 70)
 
     def _insert_collection(self, collection_meta: Dict, genomes: List[Dict]):

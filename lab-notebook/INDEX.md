@@ -2,13 +2,13 @@
 
 **Project**: ViroForge - Synthetic Virome Data Generator
 **Started**: January 30, 2025
-**Last Updated**: March 23, 2026
+**Last Updated**: April 16, 2026
 
 ---
 
 ## Quick Stats
 
-**Total Entries**: 17
+**Total Entries**: 18
 **Phase 1**: Complete (100%)
 **Phase 2**: Complete (100%)
 **Phase 3**: Complete (100%)
@@ -694,6 +694,28 @@
 **Status**: Complete
 
 **Purpose**: Upgrade adapter and duplicate injection for virome-qc calibration
+
+---
+
+### 2026-04-15
+
+---
+
+#### Entry 001: Manual Testing Session - End-to-End Bug Discovery
+**ID**: `20260415-001-TESTING-manual-testing-and-bugfixes.md`
+**Type**: TESTING / BUGFIX
+**Status**: In Progress
+
+**Purpose**: First comprehensive manual testing of ViroForge as a new user would experience it
+
+**Key Outcomes**:
+- 10 issues filed, 11 PRs created against shandley/viroforge
+- Bugs span setup, UX, missing imports, external tool handling, and a significant scientific accuracy bug
+- Nanopore generation working end-to-end
+- PacBio HiFi partially working (blocked by ccs ARM availability)
+- NovaSeq/MiSeq/HiSeq, report, compare, batch, web still untested
+
+**Most Significant Bug**: Long-read generation ignores genome abundance — all genomes receive equal depth regardless of abundance. Two alternative fix PRs provided (#20 min-1-read, #21 probabilistic).
 
 ---
 
