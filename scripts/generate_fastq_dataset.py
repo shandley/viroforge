@@ -254,6 +254,7 @@ class FASTQGenerator:
         rna_workflow_params: Optional[Dict] = None,
         read_type: str = "short",
         use_real_references: bool = True,
+        collection_defaults: Optional[Dict] = None,
     ) -> Tuple[List[SeqRecord], List[float], Dict, Optional[ContaminationProfile]]:
         """
         Prepare genome sequences with VLP enrichment and contamination.
@@ -270,6 +271,8 @@ class FASTQGenerator:
             contamination_level: Contamination level (clean, realistic, heavy)
             rna_workflow_params: Optional parameters for RNA workflow (primer_type, ribo_method, etc.)
             read_type: Read type ("short" or "long") for VLP size bias modeling
+            collection_defaults: Optional dict with collection-specific contamination
+                defaults from body_site_collections table.
 
         Returns:
             Tuple of (sequence_records, abundances, enrichment_stats, contamination_profile)
@@ -387,6 +390,7 @@ class FASTQGenerator:
                     contamination_level,
                     random_seed=self.random_seed,
                     use_real_references=use_real_references,
+                    collection_defaults=collection_defaults,
                 )
 
             # Combine viral + contamination
@@ -424,6 +428,7 @@ class FASTQGenerator:
             contamination_level,
             read_type,
             use_real_references=use_real_references,
+            collection_defaults=collection_defaults,
         )
 
         return sequences, abundances, stats, contam_profile
@@ -437,6 +442,7 @@ class FASTQGenerator:
         contamination_level: str,
         read_type: str = "short",
         use_real_references: bool = True,
+        collection_defaults: Optional[Dict] = None,
     ) -> Tuple[List[SeqRecord], List[float], Dict, ContaminationProfile]:
         """
         Apply VLP enrichment protocol with size-based enrichment and contamination reduction.
@@ -497,6 +503,7 @@ class FASTQGenerator:
                 contamination_level,
                 random_seed=self.random_seed,
                 use_real_references=use_real_references,
+                collection_defaults=collection_defaults,
             )
 
         # Apply contamination reduction
@@ -1551,6 +1558,18 @@ Examples:
     # Prepare genomes with VLP enrichment
     vlp_protocol = None if args.no_vlp else args.vlp_protocol
     use_real = not args.no_real_contaminants
+    # Extract collection-specific contamination defaults (if available)
+    collection_defaults = None
+    if collection_meta.get('default_host_dna_pct') is not None:
+        collection_defaults = {
+            'host_dna_pct': collection_meta['default_host_dna_pct'],
+            'rrna_pct': collection_meta.get('default_rrna_pct', 5.0),
+            'reagent_pct': collection_meta.get('default_reagent_pct', 0.5),
+            'phix_pct': collection_meta.get('default_phix_pct', 0.1),
+            'host_organism': collection_meta.get('host_organism', 'human'),
+        }
+        logger.info(f"Using collection-specific contamination defaults: {collection_defaults}")
+
     sequences, abundances, enrichment_stats, contamination_profile = generator.prepare_genomes(
         genomes,
         vlp_protocol=vlp_protocol,
@@ -1558,6 +1577,7 @@ Examples:
         rna_workflow_params=rna_workflow_params,
         read_type=read_type,
         use_real_references=use_real,
+        collection_defaults=collection_defaults,
     )
 
     # Add ERV sequences (before ISS, so they get realistic error profiles)

@@ -1000,6 +1000,7 @@ def create_contamination_profile(
     profile_type: str = "realistic",
     random_seed: Optional[int] = None,
     use_real_references: bool = True,
+    collection_defaults: Optional[Dict] = None,
     **kwargs
 ) -> ContaminationProfile:
     """
@@ -1015,6 +1016,11 @@ def create_contamination_profile(
         use_real_references: If True, use bundled real reference sequences
             for contamination (rRNA, host DNA, PhiX). If False, generate
             synthetic sequences with correct GC content only.
+        collection_defaults: Optional dict with collection-specific defaults:
+            {'host_dna_pct': float, 'rrna_pct': float, 'reagent_pct': float,
+             'phix_pct': float, 'host_organism': str}
+            When provided, profile_type acts as a multiplier on these defaults
+            rather than using global fixed values.
         **kwargs: Override default parameters for contamination levels
 
     Returns:
@@ -1023,6 +1029,9 @@ def create_contamination_profile(
     Example:
         >>> profile = create_contamination_profile('realistic')
         >>> print(profile.get_summary_stats())
+        >>> # With collection-specific defaults:
+        >>> defaults = {'host_dna_pct': 40.0, 'rrna_pct': 0.5, 'reagent_pct': 0.3}
+        >>> profile = create_contamination_profile('realistic', collection_defaults=defaults)
     """
     # Use local RNG instead of global state for thread safety
     if random_seed is not None:
@@ -1075,11 +1084,43 @@ def create_contamination_profile(
 
     config = profile_configs[profile_type]
 
-    # Allow kwargs to override defaults
-    host_dna_pct = kwargs.get('host_dna_pct', config['host_dna_pct'])
-    rrna_pct = kwargs.get('rrna_pct', config['rrna_pct'])
-    reagent_pct = kwargs.get('reagent_pct', config['reagent_pct'])
-    phix_pct = kwargs.get('phix_pct', config['phix_pct'])
+    # If collection_defaults provided, use them as base values and apply
+    # profile_type as a multiplier (clean=0.25x, realistic=1.0x, heavy=2.5x, failed=4.0x)
+    if collection_defaults:
+        multipliers = {'clean': 0.25, 'realistic': 1.0, 'heavy': 2.5, 'failed': 4.0}
+        mult = multipliers[profile_type]
+
+        base_host = collection_defaults.get('host_dna_pct', config['host_dna_pct'])
+        base_rrna = collection_defaults.get('rrna_pct', config['rrna_pct'])
+        base_reagent = collection_defaults.get('reagent_pct', config['reagent_pct'])
+        base_phix = collection_defaults.get('phix_pct', config['phix_pct'])
+
+        host_dna_pct = min(base_host * mult, 95.0)
+        rrna_pct = min(base_rrna * mult, 50.0)
+        reagent_pct = min(base_reagent * mult, 10.0)
+        phix_pct = base_phix  # PhiX is a fixed spike-in, not scaled
+
+        logger.info(
+            f"Using collection-specific defaults (multiplier {mult}x for '{profile_type}'): "
+            f"host={host_dna_pct:.1f}%, rrna={rrna_pct:.1f}%, reagent={reagent_pct:.2f}%"
+        )
+    else:
+        host_dna_pct = config['host_dna_pct']
+        rrna_pct = config['rrna_pct']
+        reagent_pct = config['reagent_pct']
+        phix_pct = config['phix_pct']
+
+    # Allow kwargs to override (highest priority)
+    host_dna_pct = kwargs.get('host_dna_pct', host_dna_pct)
+    rrna_pct = kwargs.get('rrna_pct', rrna_pct)
+    reagent_pct = kwargs.get('reagent_pct', reagent_pct)
+    phix_pct = kwargs.get('phix_pct', phix_pct)
+
+    # Determine host organism
+    host_organism = kwargs.get(
+        'host_organism',
+        collection_defaults.get('host_organism', 'human') if collection_defaults else 'human'
+    )
 
     # Create profile
     profile = ContaminationProfile(name=config['name'])
@@ -1087,7 +1128,7 @@ def create_contamination_profile(
     # Add contaminants
     add_host_contamination(
         profile,
-        host_organism=kwargs.get('host_organism', 'human'),
+        host_organism=host_organism,
         abundance_pct=host_dna_pct,
         random_seed=random_seed,
         use_real_references=use_real_references,

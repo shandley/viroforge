@@ -200,6 +200,16 @@ CREATE TABLE IF NOT EXISTS body_site_collections (
     n_genomes INTEGER NOT NULL,
     selection_criteria TEXT,
 
+    -- Default contamination fractions (percent, 0-100)
+    -- These are sample-type-specific defaults used when contamination_level
+    -- is applied as a multiplier rather than a fixed global value.
+    -- NULL means fall back to the global defaults in create_contamination_profile().
+    default_host_dna_pct REAL,
+    default_rrna_pct REAL,
+    default_reagent_pct REAL,
+    default_phix_pct REAL DEFAULT 0.1,
+    host_organism TEXT DEFAULT 'human',
+
     -- Curation
     curated_by TEXT,
     curation_date TEXT,
