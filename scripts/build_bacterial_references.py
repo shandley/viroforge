@@ -100,8 +100,8 @@ GUT_BACTERIA = [
     {"species": "Anaerostipes hadrus", "accession": "GCF_000332875.2", "abundance": 0.014, "prevalence": 0.55},
 ]
 
-FRAGMENT_LENGTH = 10000
-FRAGMENTS_PER_SPECIES = 50
+FRAGMENT_LENGTH = 50000
+FRAGMENTS_PER_SPECIES = 35
 RANDOM_SEED = 42
 
 

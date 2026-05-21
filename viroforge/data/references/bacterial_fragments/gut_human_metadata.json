@@ -4,384 +4,384 @@
   "description": "Top 50 human gut bacteria (healthy Western diet)",
   "source": "MetaHIT/HMP2/UHGG",
   "n_species": 47,
-  "n_fragments_total": 2350,
-  "fragment_length": 10000,
+  "n_fragments_total": 1645,
+  "fragment_length": 50000,
   "species": [
     {
       "species": "Bacteroides vulgatus",
       "accession": "GCF_000012825.1",
       "abundance": 0.065,
       "prevalence": 0.9,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Bacteroides uniformis",
       "accession": "GCF_000154205.1",
       "abundance": 0.055,
       "prevalence": 0.85,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Bacteroides thetaiotaomicron",
       "accession": "GCF_000011065.1",
       "abundance": 0.045,
       "prevalence": 0.8,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Bacteroides fragilis",
       "accession": "GCF_000009925.1",
       "abundance": 0.035,
       "prevalence": 0.75,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Bacteroides ovatus",
       "accession": "GCF_000154125.1",
       "abundance": 0.03,
       "prevalence": 0.7,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Bacteroides caccae",
       "accession": "GCF_000154845.1",
       "abundance": 0.02,
       "prevalence": 0.6,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Parabacteroides distasonis",
       "accession": "GCF_000012845.1",
       "abundance": 0.025,
       "prevalence": 0.7,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Parabacteroides merdae",
       "accession": "GCF_000154465.1",
       "abundance": 0.015,
       "prevalence": 0.55,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Prevotella copri",
       "accession": "GCF_000157935.1",
       "abundance": 0.04,
       "prevalence": 0.35,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Alistipes putredinis",
       "accession": "GCF_000154525.1",
       "abundance": 0.02,
       "prevalence": 0.65,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Roseburia intestinalis",
       "accession": "GCF_000169035.1",
       "abundance": 0.035,
       "prevalence": 0.75,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Eubacterium rectale",
       "accession": "GCF_000020605.1",
       "abundance": 0.04,
       "prevalence": 0.8,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Coprococcus comes",
       "accession": "GCF_000155815.1",
       "abundance": 0.015,
       "prevalence": 0.55,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Dorea formicigenerans",
       "accession": "GCF_000156015.1",
       "abundance": 0.012,
       "prevalence": 0.6,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Dorea longicatena",
       "accession": "GCF_000155875.1",
       "abundance": 0.012,
       "prevalence": 0.55,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Blautia obeum",
       "accession": "GCF_000154065.1",
       "abundance": 0.018,
       "prevalence": 0.65,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Faecalibacterium prausnitzii",
       "accession": "GCF_000162015.1",
       "abundance": 0.055,
       "prevalence": 0.9,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Ruminococcus bromii",
       "accession": "GCF_000156375.1",
       "abundance": 0.025,
       "prevalence": 0.7,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Clostridium bolteae",
       "accession": "GCF_000155435.1",
       "abundance": 0.01,
       "prevalence": 0.45,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Clostridium symbiosum",
       "accession": "GCF_000155205.1",
       "abundance": 0.008,
       "prevalence": 0.4,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Phascolarctobacterium succinatutens",
       "accession": "GCF_000424985.1",
       "abundance": 0.012,
       "prevalence": 0.5,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Holdemanella biformis",
       "accession": "GCF_000156495.1",
       "abundance": 0.008,
       "prevalence": 0.35,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Streptococcus thermophilus",
       "accession": "GCF_000011825.1",
       "abundance": 0.005,
       "prevalence": 0.3,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Bifidobacterium longum",
       "accession": "GCF_000007525.1",
       "abundance": 0.03,
       "prevalence": 0.75,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Bifidobacterium adolescentis",
       "accession": "GCF_000010425.1",
       "abundance": 0.02,
       "prevalence": 0.6,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Collinsella aerofaciens",
       "accession": "GCF_000169035.1",
       "abundance": 0.015,
       "prevalence": 0.55,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Eggerthella lenta",
       "accession": "GCF_000024265.1",
       "abundance": 0.008,
       "prevalence": 0.4,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Akkermansia muciniphila",
       "accession": "GCF_000020225.1",
       "abundance": 0.025,
       "prevalence": 0.65,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Escherichia coli",
       "accession": "GCF_000005845.2",
       "abundance": 0.01,
       "prevalence": 0.7,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Klebsiella pneumoniae",
       "accession": "GCF_000240185.1",
       "abundance": 0.005,
       "prevalence": 0.3,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Sutterella wadsworthensis",
       "accession": "GCF_000154245.1",
       "abundance": 0.008,
       "prevalence": 0.4,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Bilophila wadsworthia",
       "accession": "GCF_000185705.2",
       "abundance": 0.006,
       "prevalence": 0.35,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Desulfovibrio piger",
       "accession": "GCF_000156375.1",
       "abundance": 0.004,
       "prevalence": 0.25,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Haemophilus parainfluenzae",
       "accession": "GCF_000191405.1",
       "abundance": 0.003,
       "prevalence": 0.2,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Fusobacterium nucleatum",
       "accession": "GCF_000007325.1",
       "abundance": 0.003,
       "prevalence": 0.2,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Methanobrevibacter smithii",
       "accession": "GCF_000016525.1",
       "abundance": 0.015,
       "prevalence": 0.5,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Odoribacter splanchnicus",
       "accession": "GCF_000190535.1",
       "abundance": 0.01,
       "prevalence": 0.45,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Barnesiella intestinihominis",
       "accession": "GCF_000311925.1",
       "abundance": 0.008,
       "prevalence": 0.35,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Megamonas hypermegale",
       "accession": "GCF_000428645.1",
       "abundance": 0.006,
       "prevalence": 0.25,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Mitsuokella multacida",
       "accession": "GCF_000178935.2",
       "abundance": 0.005,
       "prevalence": 0.3,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Veillonella parvula",
       "accession": "GCF_000024945.1",
       "abundance": 0.005,
       "prevalence": 0.35,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Megasphaera elsdenii",
       "accession": "GCF_000284795.1",
       "abundance": 0.004,
       "prevalence": 0.2,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Citrobacter freundii",
       "accession": "GCF_000648515.1",
       "abundance": 0.003,
       "prevalence": 0.15,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Enterococcus faecalis",
       "accession": "GCF_000007785.1",
       "abundance": 0.003,
       "prevalence": 0.25,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Ruminococcus gnavus",
       "accession": "GCF_000156515.1",
       "abundance": 0.018,
       "prevalence": 0.65,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Coprococcus eutactus",
       "accession": "GCF_000155435.1",
       "abundance": 0.012,
       "prevalence": 0.5,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     },
     {
       "species": "Anaerostipes hadrus",
       "accession": "GCF_000332875.2",
       "abundance": 0.014,
       "prevalence": 0.55,
-      "n_fragments": 50,
-      "fragment_length": 10000
+      "n_fragments": 35,
+      "fragment_length": 50000
     }
   ]
 }

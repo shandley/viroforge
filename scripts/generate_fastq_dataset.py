@@ -561,9 +561,24 @@ class FASTQGenerator:
             Tuple of (combined_sequences, combined_abundances)
         """
         sequences = list(viral_sequences)
-        abundances = list(viral_abundances)
 
-        # Add contaminants
+        # Calculate total contamination fraction to properly scale viral abundances
+        total_contam_fraction = sum(c.abundance for c in contam_profile.contaminants)
+        viral_fraction = max(0.01, 1.0 - total_contam_fraction)
+
+        # Scale viral abundances so they sum to the viral fraction (not 1.0)
+        viral_abund = np.array(list(viral_abundances))
+        viral_sum = viral_abund.sum()
+        if viral_sum > 0:
+            viral_abund = viral_abund * (viral_fraction / viral_sum)
+        abundances = list(viral_abund)
+
+        logger.info(
+            f"Combining: viral fraction={viral_fraction:.1%}, "
+            f"contamination fraction={total_contam_fraction:.1%}"
+        )
+
+        # Add contaminants (their abundances are already absolute fractions)
         for contaminant in contam_profile.contaminants:
             record = SeqRecord(
                 contaminant.sequence,
