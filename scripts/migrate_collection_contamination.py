@@ -19,28 +19,35 @@ from pathlib import Path
 
 # Collection-specific contamination defaults (for "realistic" level)
 # These represent typical contamination BEFORE VLP enrichment
+# Bacterial/fungal fractions represent the non-viral microbial background
+# in a bulk metagenome (no VLP). With VLP, these are largely removed.
+#
+# Sources:
+# - Bacterial: Qin et al. 2010, Lloyd-Price et al. 2019, TARA Oceans
+# - Fungal: Nash et al. 2017, Sokol et al. 2017
+# - Host/rRNA: Roux et al. 2016 (ViromeQC), Thurber et al. 2009
 COLLECTION_DEFAULTS = {
-    # id: (host_dna_pct, rrna_pct, reagent_pct, phix_pct, host_organism)
-    1:  (5.0,  3.0,  0.5, 0.1, 'human'),   # Gut Virome - Adult Healthy (Western Diet)
-    2:  (10.0, 5.0,  0.5, 0.1, 'human'),   # Oral Virome - Saliva (Healthy)
-    3:  (15.0, 2.0,  0.5, 0.1, 'human'),   # Skin Virome - Sebaceous Sites (Healthy)
-    4:  (20.0, 5.0,  0.5, 0.1, 'human'),   # Respiratory Virome - Nasopharynx (Healthy)
-    5:  (0.05, 5.0,  0.2, 0.1, 'none'),    # Marine Virome - Coastal Surface Water
-    6:  (0.05, 8.0,  0.3, 0.1, 'none'),    # Soil Virome - Agricultural
-    7:  (0.05, 6.0,  0.2, 0.1, 'none'),    # Freshwater Virome - Lake Surface Water
-    8:  (3.0,  3.0,  0.5, 0.1, 'mouse'),   # Mouse Gut Virome - Laboratory (C57BL/6)
-    9:  (1.0,  5.0,  0.3, 0.1, 'human'),   # Wastewater Virome - Urban Treatment Plant
-    10: (8.0,  4.0,  0.5, 0.1, 'human'),   # IBD Gut Virome
-    11: (10.0, 5.0,  0.5, 0.1, 'human'),   # HIV+ Gut Virome
-    12: (25.0, 5.0,  0.5, 0.1, 'human'),   # Cystic Fibrosis Respiratory Virome
-    13: (20.0, 8.0,  0.5, 0.1, 'human'),   # Human Respiratory RNA Virome
-    14: (0.1,  3.0,  0.3, 0.1, 'none'),    # Arbovirus Environmental (Mosquito Virome)
-    15: (5.0,  10.0, 0.5, 0.1, 'human'),   # Fecal RNA Virome
-    16: (30.0, 3.0,  0.5, 0.1, 'human'),   # Vaginal Virome (Healthy)
-    17: (40.0, 0.5,  0.3, 0.1, 'human'),   # Blood/Plasma Virome (Healthy)
-    18: (20.0, 2.0,  0.3, 0.1, 'human'),   # Ocular Surface Virome (Healthy)
-    19: (25.0, 5.0,  0.5, 0.1, 'human'),   # Lower Respiratory (Lung) Virome (Healthy)
-    20: (15.0, 3.0,  0.3, 0.1, 'human'),   # Urinary Virome (Healthy)
+    # id: (host_dna_pct, rrna_pct, reagent_pct, phix_pct, host_organism, bacterial_pct, fungal_pct)
+    1:  (5.0,  3.0,  0.5, 0.1, 'human', 70.0, 1.0),   # Gut Virome - Adult Healthy
+    2:  (10.0, 5.0,  0.5, 0.1, 'human', 60.0, 0.5),   # Oral Virome - Saliva
+    3:  (15.0, 2.0,  0.5, 0.1, 'human', 50.0, 5.0),   # Skin Virome - Sebaceous (high Malassezia)
+    4:  (20.0, 5.0,  0.5, 0.1, 'human', 45.0, 0.5),   # Respiratory Virome - Nasopharynx
+    5:  (0.05, 5.0,  0.2, 0.1, 'none',  70.0, 0.1),   # Marine Virome - Coastal
+    6:  (0.05, 8.0,  0.3, 0.1, 'none',  65.0, 3.0),   # Soil Virome - Agricultural
+    7:  (0.05, 6.0,  0.2, 0.1, 'none',  60.0, 1.0),   # Freshwater Virome - Lake
+    8:  (3.0,  3.0,  0.5, 0.1, 'mouse', 70.0, 0.5),   # Mouse Gut Virome
+    9:  (1.0,  5.0,  0.3, 0.1, 'human', 55.0, 0.5),   # Wastewater Virome
+    10: (8.0,  4.0,  0.5, 0.1, 'human', 65.0, 2.0),   # IBD Gut Virome (elevated Candida)
+    11: (10.0, 5.0,  0.5, 0.1, 'human', 60.0, 3.0),   # HIV+ Gut Virome (elevated fungi)
+    12: (25.0, 5.0,  0.5, 0.1, 'human', 40.0, 2.0),   # CF Respiratory Virome
+    13: (20.0, 8.0,  0.5, 0.1, 'human', 35.0, 1.0),   # Human Respiratory RNA Virome
+    14: (0.1,  3.0,  0.3, 0.1, 'none',  50.0, 0.5),   # Arbovirus Environmental (Mosquito)
+    15: (5.0,  10.0, 0.5, 0.1, 'human', 65.0, 1.0),   # Fecal RNA Virome
+    16: (30.0, 3.0,  0.5, 0.1, 'human', 40.0, 8.0),   # Vaginal Virome (high Candida)
+    17: (40.0, 0.5,  0.3, 0.1, 'human', 5.0,  0.1),   # Blood/Plasma Virome (minimal microbes)
+    18: (20.0, 2.0,  0.3, 0.1, 'human', 30.0, 1.0),   # Ocular Surface Virome
+    19: (25.0, 5.0,  0.5, 0.1, 'human', 35.0, 2.0),   # Lower Respiratory (Lung) Virome
+    20: (15.0, 3.0,  0.3, 0.1, 'human', 40.0, 1.0),   # Urinary Virome
 }
 
 
@@ -58,6 +65,8 @@ def migrate(db_path: str):
         ("default_reagent_pct", "REAL"),
         ("default_phix_pct", "REAL DEFAULT 0.1"),
         ("host_organism", "TEXT DEFAULT 'human'"),
+        ("default_bacterial_pct", "REAL DEFAULT 0.0"),
+        ("default_fungal_pct", "REAL DEFAULT 0.0"),
     ]
 
     for col_name, col_type in new_columns:
@@ -66,19 +75,21 @@ def migrate(db_path: str):
             print(f"  Added column: {col_name}")
 
     # Populate defaults
-    for cid, (host, rrna, reagent, phix, organism) in COLLECTION_DEFAULTS.items():
+    for cid, (host, rrna, reagent, phix, organism, bacterial, fungal) in COLLECTION_DEFAULTS.items():
         cursor.execute("""
             UPDATE body_site_collections
             SET default_host_dna_pct = ?,
                 default_rrna_pct = ?,
                 default_reagent_pct = ?,
                 default_phix_pct = ?,
-                host_organism = ?
+                host_organism = ?,
+                default_bacterial_pct = ?,
+                default_fungal_pct = ?
             WHERE collection_id = ?
-        """, (host, rrna, reagent, phix, organism, cid))
+        """, (host, rrna, reagent, phix, organism, bacterial, fungal, cid))
 
         if cursor.rowcount > 0:
-            print(f"  Collection {cid}: host={host}%, rrna={rrna}%, reagent={reagent}%, organism={organism}")
+            print(f"  Collection {cid}: host={host}% rrna={rrna}% bact={bacterial}% fungal={fungal}% org={organism}")
 
     conn.commit()
 

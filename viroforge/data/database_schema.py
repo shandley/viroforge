@@ -208,6 +208,8 @@ CREATE TABLE IF NOT EXISTS body_site_collections (
     default_rrna_pct REAL,
     default_reagent_pct REAL,
     default_phix_pct REAL DEFAULT 0.1,
+    default_bacterial_pct REAL DEFAULT 0.0,
+    default_fungal_pct REAL DEFAULT 0.0,
     host_organism TEXT DEFAULT 'human',
 
     -- Curation

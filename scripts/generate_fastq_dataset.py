@@ -1603,21 +1603,28 @@ Examples:
             'reagent_pct': collection_meta.get('default_reagent_pct', 0.5),
             'phix_pct': collection_meta.get('default_phix_pct', 0.1),
             'host_organism': collection_meta.get('host_organism', 'human'),
+            'bacterial_pct': collection_meta.get('default_bacterial_pct', 0.0),
+            'fungal_pct': collection_meta.get('default_fungal_pct', 0.0),
         }
         logger.info(f"Using collection-specific contamination defaults: {collection_defaults}")
 
     # Add bacterial background fraction if specified
+    # CLI flags override collection defaults for bacterial/fungal fractions
     if args.bacterial_fraction > 0:
         if collection_defaults is None:
             collection_defaults = {}
         collection_defaults['bacterial_pct'] = args.bacterial_fraction * 100
-        logger.info(f"Bacterial background: {args.bacterial_fraction*100:.1f}%")
+        logger.info(f"Bacterial background (CLI override): {args.bacterial_fraction*100:.1f}%")
+    elif collection_defaults and collection_defaults.get('bacterial_pct', 0) > 0:
+        logger.info(f"Bacterial background (collection default): {collection_defaults['bacterial_pct']:.1f}%")
 
     if args.fungal_fraction > 0:
         if collection_defaults is None:
             collection_defaults = {}
         collection_defaults['fungal_pct'] = args.fungal_fraction * 100
-        logger.info(f"Fungal background: {args.fungal_fraction*100:.1f}%")
+        logger.info(f"Fungal background (CLI override): {args.fungal_fraction*100:.1f}%")
+    elif collection_defaults and collection_defaults.get('fungal_pct', 0) > 0:
+        logger.info(f"Fungal background (collection default): {collection_defaults['fungal_pct']:.1f}%")
 
     sequences, abundances, enrichment_stats, contamination_profile = generator.prepare_genomes(
         genomes,
