@@ -364,6 +364,9 @@ def build_command(script_path: Path, params: Dict) -> List[str]:
     if 'duplicate_rate' in params:
         cmd.extend(['--duplicate-rate', str(params['duplicate_rate'])])
 
+    if 'bacterial_fraction' in params:
+        cmd.extend(['--bacterial-fraction', str(params['bacterial_fraction'])])
+
     # Random seed
     if 'seed' in params:
         cmd.extend(['--seed', str(params['seed'])])

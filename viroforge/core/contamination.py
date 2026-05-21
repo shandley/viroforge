@@ -40,6 +40,7 @@ class ContaminantType(Enum):
     HOST_DNA = "host_dna"
     RRNA = "rrna"
     REAGENT_BACTERIA = "reagent_bacteria"
+    BACTERIAL_BACKGROUND = "bacterial_background"
     PHIX = "phix"
     ERV_ENDOGENOUS = "erv_endogenous"
     ERV_EXOGENOUS = "erv_exogenous"
@@ -996,6 +997,110 @@ def add_erv_exogenous(
     return profile
 
 
+def add_bacterial_contamination(
+    profile: 'ContaminationProfile',
+    abundance_pct: float = 70.0,
+    body_site: str = "gut_human",
+    bacterial_fasta_path: Optional[Path] = None,
+    metadata_path: Optional[Path] = None,
+    n_fragments: int = 200,
+    random_seed: Optional[int] = None,
+) -> 'ContaminationProfile':
+    """
+    Add bacterial background contamination to a profile.
+
+    Models the bacterial community that dominates real metagenome samples
+    before VLP enrichment. Uses pre-extracted genome fragments from
+    curated reference sets.
+
+    Args:
+        profile: ContaminationProfile to add bacteria to
+        abundance_pct: Percentage of total abundance (0-100)
+        body_site: Body site for bacterial community (e.g., "gut_human")
+        bacterial_fasta_path: Optional path to bacterial fragments FASTA
+        metadata_path: Optional path to abundance metadata JSON
+        n_fragments: Number of bacterial fragments to sample
+        random_seed: Random seed for reproducibility
+
+    Returns:
+        Updated ContaminationProfile
+    """
+    from viroforge.data.references.resolver import get_bacterial_fragments_path
+
+    if random_seed is not None:
+        rng = np.random.default_rng(random_seed)
+        random.seed(random_seed)
+    else:
+        rng = np.random.default_rng()
+
+    logger.info(f"Adding {abundance_pct}% bacterial background ({body_site})")
+
+    # Resolve reference path
+    resolved_path = bacterial_fasta_path
+    if resolved_path is None:
+        resolved_path = get_bacterial_fragments_path(body_site)
+
+    if resolved_path is not None and resolved_path.exists():
+        # Read real bacterial fragments
+        records = list(SeqIO.parse(resolved_path, 'fasta'))
+        if not records:
+            logger.warning(f"Empty bacterial FASTA: {resolved_path}")
+            return profile
+
+        # Load abundance metadata if available
+        species_abundances = {}
+        resolved_meta = metadata_path
+        if resolved_meta is None:
+            resolved_meta = resolved_path.parent / f"{body_site}_metadata.json"
+        if resolved_meta and resolved_meta.exists():
+            import json
+            with open(resolved_meta) as f:
+                meta = json.load(f)
+            for sp in meta.get('species', []):
+                species_tag = sp['species'].replace(' ', '_')
+                species_abundances[species_tag] = sp['abundance']
+
+        # Sample fragments, weighted by species abundance if available
+        weights = []
+        for rec in records:
+            species_tag = rec.id.replace('bact_', '').rsplit('_', 1)[0]
+            weights.append(species_abundances.get(species_tag, 1.0))
+
+        total_weight = sum(weights)
+        weights = [w / total_weight for w in weights]
+
+        n_to_sample = min(n_fragments, len(records))
+        indices = rng.choice(len(records), size=n_to_sample, replace=False, p=weights)
+        selected = [records[i] for i in indices]
+
+        abundance_per_fragment = (abundance_pct / 100.0) / n_to_sample
+
+        for i, rec in enumerate(selected):
+            species_tag = rec.id.replace('bact_', '').rsplit('_', 1)[0]
+            species_name = species_tag.replace('_', ' ')
+
+            contaminant = ContaminantGenome(
+                genome_id=f"bact_bg_{body_site}_{i:04d}",
+                sequence=rec.seq,
+                contaminant_type=ContaminantType.BACTERIAL_BACKGROUND,
+                organism=species_name,
+                source=f"ViroForge bacterial reference ({body_site})",
+                abundance=abundance_per_fragment,
+                description=f"Bacterial background: {species_name}",
+            )
+            profile.add_contaminant(contaminant)
+
+        logger.info(f"Added {n_to_sample} bacterial fragments from {resolved_path}")
+    else:
+        logger.warning(
+            f"Bacterial reference not found for {body_site}. "
+            f"Run 'python scripts/build_bacterial_references.py' to generate. "
+            f"Skipping bacterial background."
+        )
+
+    return profile
+
+
 def create_contamination_profile(
     profile_type: str = "realistic",
     random_seed: Optional[int] = None,
@@ -1153,11 +1258,32 @@ def create_contamination_profile(
         use_real_references=use_real_references,
     )
 
-    logger.info(
-        f"Created '{profile_type}' contamination profile: "
+    # Add bacterial background if requested
+    bacterial_pct = kwargs.get('bacterial_pct', 0.0)
+    if collection_defaults:
+        bacterial_pct = kwargs.get(
+            'bacterial_pct',
+            collection_defaults.get('bacterial_pct', 0.0)
+        )
+    if bacterial_pct > 0:
+        body_site = 'gut_human'  # Default; expand as more communities are added
+        if collection_defaults:
+            body_site = collection_defaults.get('bacterial_body_site', body_site)
+        add_bacterial_contamination(
+            profile,
+            abundance_pct=bacterial_pct,
+            body_site=body_site,
+            random_seed=random_seed,
+        )
+
+    contam_parts = (
         f"Host={host_dna_pct}%, rRNA={rrna_pct}%, "
         f"Reagent={reagent_pct}%, PhiX={phix_pct}%"
     )
+    if bacterial_pct > 0:
+        contam_parts += f", Bacterial={bacterial_pct}%"
+
+    logger.info(f"Created '{profile_type}' contamination profile: {contam_parts}")
 
     return profile
 

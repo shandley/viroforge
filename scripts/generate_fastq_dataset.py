@@ -1485,6 +1485,18 @@ Examples:
              'Example: --erv-exogenous-viruses "Human immunodeficiency" "Primate T-lymphotropic"'
     )
 
+    # Bacterial background
+    bact_group = parser.add_argument_group('bacterial background')
+    bact_group.add_argument(
+        '--bacterial-fraction',
+        type=float,
+        default=0.0,
+        help='Bacterial background fraction (0.0-1.0, default: 0.0). '
+             'Adds realistic bacterial community reads from pre-built '
+             'reference fragments. E.g., 0.70 for bulk metagenome. '
+             'Requires bacterial references (run build_bacterial_references.py).'
+    )
+
     args = parser.parse_args()
 
     # Load collections
@@ -1569,6 +1581,13 @@ Examples:
             'host_organism': collection_meta.get('host_organism', 'human'),
         }
         logger.info(f"Using collection-specific contamination defaults: {collection_defaults}")
+
+    # Add bacterial background fraction if specified
+    if args.bacterial_fraction > 0:
+        if collection_defaults is None:
+            collection_defaults = {}
+        collection_defaults['bacterial_pct'] = args.bacterial_fraction * 100
+        logger.info(f"Bacterial background: {args.bacterial_fraction*100:.1f}%")
 
     sequences, abundances, enrichment_stats, contamination_profile = generator.prepare_genomes(
         genomes,

@@ -127,6 +127,50 @@ def get_adapter_path(user_path: Optional[Path] = None) -> Optional[Path]:
     )
 
 
+def get_bacterial_fragments_path(
+    body_site: str = "gut_human",
+    user_path: Optional[Path] = None,
+) -> Optional[Path]:
+    """Locate bacterial background fragments for a body site.
+
+    Bacterial fragments are stored in a subdirectory:
+        references/bacterial_fragments/{body_site}_fragments.fasta
+
+    Args:
+        body_site: Body site identifier (e.g., "gut_human", "marine")
+        user_path: Optional user-supplied path (overrides all)
+
+    Returns:
+        Path to bacterial fragments FASTA, or None if not found.
+    """
+    if user_path is not None:
+        p = Path(user_path)
+        if p.exists():
+            logger.info(f"Using user-supplied bacterial fragments: {p}")
+            return p
+        else:
+            logger.warning(f"User-supplied bacterial fragments not found: {p}")
+
+    env_val = os.environ.get("VIROFORGE_BACTERIAL_FRAGMENTS")
+    if env_val:
+        p = Path(env_val)
+        if p.exists():
+            logger.info(f"Using bacterial fragments from VIROFORGE_BACTERIAL_FRAGMENTS: {p}")
+            return p
+
+    # Bundled: references/bacterial_fragments/{body_site}_fragments.fasta
+    bundled = _REFERENCES_DIR / "bacterial_fragments" / f"{body_site}_fragments.fasta"
+    if bundled.exists():
+        logger.debug(f"Using bundled bacterial fragments: {bundled}")
+        return bundled
+
+    logger.info(
+        f"No bacterial fragments found for '{body_site}'. "
+        f"Run 'python scripts/build_bacterial_references.py' to generate."
+    )
+    return None
+
+
 def has_bundled_references() -> dict[str, bool]:
     """Check which bundled reference files are available."""
     return {
@@ -134,4 +178,5 @@ def has_bundled_references() -> dict[str, bool]:
         "rrna": (_REFERENCES_DIR / "rrna_representatives.fasta").exists(),
         "host_fragments": (_REFERENCES_DIR / "host_fragments.fasta").exists(),
         "adapters": (_REFERENCES_DIR / "adapters.fasta").exists(),
+        "bacterial_gut_human": (_REFERENCES_DIR / "bacterial_fragments" / "gut_human_fragments.fasta").exists(),
     }
