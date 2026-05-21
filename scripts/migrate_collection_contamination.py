@@ -18,14 +18,30 @@ import sys
 from pathlib import Path
 
 # Collection-specific contamination defaults (for "realistic" level)
-# These represent typical contamination BEFORE VLP enrichment
-# Bacterial/fungal fractions represent the non-viral microbial background
-# in a bulk metagenome (no VLP). With VLP, these are largely removed.
+# These represent typical contamination BEFORE VLP enrichment.
 #
-# Sources:
-# - Bacterial: Qin et al. 2010, Lloyd-Price et al. 2019, TARA Oceans
-# - Fungal: Nash et al. 2017, Sokol et al. 2017
-# - Host/rRNA: Roux et al. 2016 (ViromeQC), Thurber et al. 2009
+# IMPORTANT: These are ESTIMATES based on available literature and expert
+# knowledge. Exact read-level proportions vary significantly depending on
+# DNA extraction method, library prep, sequencing depth, and biological
+# variability between samples.
+#
+# What is well-supported by data:
+# - Gut bacterial fraction (60-80%): HMP (Qin et al. 2010), MetaHIT (Lloyd-Price et al. 2019)
+# - Host DNA fractions: Roux et al. 2016 (ViromeQC), Thurber et al. 2009
+# - Marine/environmental: TARA Oceans
+# - Gut fungal presence and dominant species: Nash et al. 2017, Sokol et al. 2017
+#
+# What is approximate/estimated:
+# - Exact fungal read fractions (most mycobiome papers report relative abundance
+#   within the fungal community, not absolute fraction of total sequencing reads)
+# - Bacterial/fungal fractions for non-gut body sites (respiratory, urinary,
+#   ocular, skin) — fewer quantitative shotgun metagenome studies available
+# - Disease-specific elevations (IBD fungal, HIV+ fungal) — qualitative trends
+#   are documented but exact read-level proportions are not well-quantified
+#
+# These defaults should be refined as more quantitative metagenomic data
+# becomes available. Users can override with --bacterial-fraction and
+# --fungal-fraction flags.
 COLLECTION_DEFAULTS = {
     # id: (host_dna_pct, rrna_pct, reagent_pct, phix_pct, host_organism, bacterial_pct, fungal_pct)
     1:  (5.0,  3.0,  0.5, 0.1, 'human', 70.0, 1.0),   # Gut Virome - Adult Healthy
