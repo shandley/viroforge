@@ -1511,6 +1511,15 @@ Examples:
              'reference fragments. E.g., 0.70 for bulk metagenome. '
              'Requires bacterial references (run build_bacterial_references.py).'
     )
+    bact_group.add_argument(
+        '--fungal-fraction',
+        type=float,
+        default=0.0,
+        help='Fungal (mycobiome) background fraction (0.0-1.0, default: 0.0). '
+             'Adds fungal community reads (Candida, Saccharomyces, etc.). '
+             'E.g., 0.01 for 1%% fungi in bulk metagenome. '
+             'Requires fungal references (run build_fungal_references.py).'
+    )
 
     args = parser.parse_args()
 
@@ -1603,6 +1612,12 @@ Examples:
             collection_defaults = {}
         collection_defaults['bacterial_pct'] = args.bacterial_fraction * 100
         logger.info(f"Bacterial background: {args.bacterial_fraction*100:.1f}%")
+
+    if args.fungal_fraction > 0:
+        if collection_defaults is None:
+            collection_defaults = {}
+        collection_defaults['fungal_pct'] = args.fungal_fraction * 100
+        logger.info(f"Fungal background: {args.fungal_fraction*100:.1f}%")
 
     sequences, abundances, enrichment_stats, contamination_profile = generator.prepare_genomes(
         genomes,

@@ -41,6 +41,7 @@ class ContaminantType(Enum):
     RRNA = "rrna"
     REAGENT_BACTERIA = "reagent_bacteria"
     BACTERIAL_BACKGROUND = "bacterial_background"
+    FUNGAL_BACKGROUND = "fungal_background"
     PHIX = "phix"
     ERV_ENDOGENOUS = "erv_endogenous"
     ERV_EXOGENOUS = "erv_exogenous"
@@ -1101,6 +1102,107 @@ def add_bacterial_contamination(
     return profile
 
 
+def add_fungal_contamination(
+    profile: 'ContaminationProfile',
+    abundance_pct: float = 1.0,
+    body_site: str = "gut_human",
+    fungal_fasta_path: Optional[Path] = None,
+    metadata_path: Optional[Path] = None,
+    n_fragments: int = 50,
+    random_seed: Optional[int] = None,
+) -> 'ContaminationProfile':
+    """
+    Add fungal (mycobiome) background contamination to a profile.
+
+    Models the fungal community present in human samples. Gut mycobiome
+    is dominated by Candida and Saccharomyces (0.1-2% of total reads).
+
+    Args:
+        profile: ContaminationProfile to add fungi to
+        abundance_pct: Percentage of total abundance (0-100)
+        body_site: Body site for fungal community (e.g., "gut_human")
+        fungal_fasta_path: Optional path to fungal fragments FASTA
+        metadata_path: Optional path to abundance metadata JSON
+        n_fragments: Number of fungal fragments to sample
+        random_seed: Random seed for reproducibility
+
+    Returns:
+        Updated ContaminationProfile
+    """
+    from viroforge.data.references.resolver import get_fungal_fragments_path
+
+    if random_seed is not None:
+        rng = np.random.default_rng(random_seed)
+        random.seed(random_seed)
+    else:
+        rng = np.random.default_rng()
+
+    logger.info(f"Adding {abundance_pct}% fungal background ({body_site})")
+
+    resolved_path = fungal_fasta_path
+    if resolved_path is None:
+        resolved_path = get_fungal_fragments_path(body_site)
+
+    if resolved_path is not None and resolved_path.exists():
+        records = list(SeqIO.parse(resolved_path, 'fasta'))
+        if not records:
+            logger.warning(f"Empty fungal FASTA: {resolved_path}")
+            return profile
+
+        # Load abundance metadata if available
+        species_abundances = {}
+        resolved_meta = metadata_path
+        if resolved_meta is None:
+            resolved_meta = resolved_path.parent / f"{body_site}_metadata.json"
+        if resolved_meta and resolved_meta.exists():
+            import json
+            with open(resolved_meta) as f:
+                meta = json.load(f)
+            for sp in meta.get('species', []):
+                species_tag = sp['species'].replace(' ', '_')
+                species_abundances[species_tag] = sp['abundance']
+
+        # Sample fragments weighted by species abundance
+        weights = []
+        for rec in records:
+            species_tag = rec.id.replace('bact_', '').rsplit('_', 1)[0]
+            weights.append(species_abundances.get(species_tag, 1.0))
+
+        total_weight = sum(weights)
+        weights = [w / total_weight for w in weights]
+
+        n_to_sample = min(n_fragments, len(records))
+        indices = rng.choice(len(records), size=n_to_sample, replace=False, p=weights)
+        selected = [records[i] for i in indices]
+
+        abundance_per_fragment = (abundance_pct / 100.0) / n_to_sample
+
+        for i, rec in enumerate(selected):
+            species_tag = rec.id.replace('bact_', '').rsplit('_', 1)[0]
+            species_name = species_tag.replace('_', ' ')
+
+            contaminant = ContaminantGenome(
+                genome_id=f"fungal_bg_{body_site}_{i:04d}",
+                sequence=rec.seq,
+                contaminant_type=ContaminantType.FUNGAL_BACKGROUND,
+                organism=species_name,
+                source=f"ViroForge fungal reference ({body_site})",
+                abundance=abundance_per_fragment,
+                description=f"Fungal background: {species_name}",
+            )
+            profile.add_contaminant(contaminant)
+
+        logger.info(f"Added {n_to_sample} fungal fragments from {resolved_path}")
+    else:
+        logger.warning(
+            f"Fungal reference not found for {body_site}. "
+            f"Run 'python scripts/build_fungal_references.py' to generate. "
+            f"Skipping fungal background."
+        )
+
+    return profile
+
+
 def create_contamination_profile(
     profile_type: str = "realistic",
     random_seed: Optional[int] = None,
@@ -1276,12 +1378,32 @@ def create_contamination_profile(
             random_seed=random_seed,
         )
 
+    # Add fungal background if requested
+    fungal_pct = kwargs.get('fungal_pct', 0.0)
+    if collection_defaults:
+        fungal_pct = kwargs.get(
+            'fungal_pct',
+            collection_defaults.get('fungal_pct', 0.0)
+        )
+    if fungal_pct > 0:
+        body_site = 'gut_human'
+        if collection_defaults:
+            body_site = collection_defaults.get('fungal_body_site', body_site)
+        add_fungal_contamination(
+            profile,
+            abundance_pct=fungal_pct,
+            body_site=body_site,
+            random_seed=random_seed,
+        )
+
     contam_parts = (
         f"Host={host_dna_pct}%, rRNA={rrna_pct}%, "
         f"Reagent={reagent_pct}%, PhiX={phix_pct}%"
     )
     if bacterial_pct > 0:
         contam_parts += f", Bacterial={bacterial_pct}%"
+    if fungal_pct > 0:
+        contam_parts += f", Fungal={fungal_pct}%"
 
     logger.info(f"Created '{profile_type}' contamination profile: {contam_parts}")
 

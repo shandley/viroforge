@@ -171,6 +171,29 @@ def get_bacterial_fragments_path(
     return None
 
 
+def get_fungal_fragments_path(
+    body_site: str = "gut_human",
+    user_path: Optional[Path] = None,
+) -> Optional[Path]:
+    """Locate fungal background fragments for a body site."""
+    if user_path is not None:
+        p = Path(user_path)
+        if p.exists():
+            return p
+
+    env_val = os.environ.get("VIROFORGE_FUNGAL_FRAGMENTS")
+    if env_val:
+        p = Path(env_val)
+        if p.exists():
+            return p
+
+    bundled = _REFERENCES_DIR / "fungal_fragments" / f"{body_site}_fragments.fasta"
+    if bundled.exists():
+        return bundled
+
+    return None
+
+
 def has_bundled_references() -> dict[str, bool]:
     """Check which bundled reference files are available."""
     return {
@@ -179,4 +202,5 @@ def has_bundled_references() -> dict[str, bool]:
         "host_fragments": (_REFERENCES_DIR / "host_fragments.fasta").exists(),
         "adapters": (_REFERENCES_DIR / "adapters.fasta").exists(),
         "bacterial_gut_human": (_REFERENCES_DIR / "bacterial_fragments" / "gut_human_fragments.fasta").exists(),
+        "fungal_gut_human": (_REFERENCES_DIR / "fungal_fragments" / "gut_human_fragments.fasta").exists(),
     }

@@ -78,6 +78,7 @@ htmlcov/
 !examples/data/**/*.fasta
 !viroforge/data/references/*.fasta
 !viroforge/data/references/bacterial_fragments/*.fasta
+!viroforge/data/references/fungal_fragments/*.fasta
 
 # Output directories
 output/

@@ -1,0 +1,107 @@
+{
+  "body_site": "gut",
+  "host_organism": "human",
+  "description": "Common human gut fungi (mycobiome)",
+  "source": "Nash et al. 2017, Sokol et al. 2017",
+  "n_species": 12,
+  "n_fragments_total": 240,
+  "fragment_length": 50000,
+  "species": [
+    {
+      "species": "Candida albicans",
+      "accession": "GCF_000182965.3",
+      "abundance": 0.3,
+      "prevalence": 0.7,
+      "n_fragments": 20,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Candida tropicalis",
+      "accession": "GCF_000006335.3",
+      "abundance": 0.1,
+      "prevalence": 0.35,
+      "n_fragments": 20,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Candida parapsilosis",
+      "accession": "GCF_000182765.1",
+      "abundance": 0.05,
+      "prevalence": 0.25,
+      "n_fragments": 20,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Candida glabrata",
+      "accession": "GCF_000002545.3",
+      "abundance": 0.05,
+      "prevalence": 0.2,
+      "n_fragments": 20,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Saccharomyces cerevisiae",
+      "accession": "GCF_000146045.2",
+      "abundance": 0.2,
+      "prevalence": 0.65,
+      "n_fragments": 20,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Malassezia restricta",
+      "accession": "GCF_003290485.1",
+      "abundance": 0.08,
+      "prevalence": 0.3,
+      "n_fragments": 20,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Cladosporium herbarum",
+      "accession": "GCF_013340325.1",
+      "abundance": 0.05,
+      "prevalence": 0.25,
+      "n_fragments": 20,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Aspergillus niger",
+      "accession": "GCF_000002855.4",
+      "abundance": 0.04,
+      "prevalence": 0.2,
+      "n_fragments": 20,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Penicillium rubens",
+      "accession": "GCF_000226395.1",
+      "abundance": 0.03,
+      "prevalence": 0.15,
+      "n_fragments": 20,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Debaryomyces hansenii",
+      "accession": "GCF_000006445.2",
+      "abundance": 0.05,
+      "prevalence": 0.2,
+      "n_fragments": 20,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Cryptococcus neoformans",
+      "accession": "GCF_000149245.1",
+      "abundance": 0.02,
+      "prevalence": 0.1,
+      "n_fragments": 20,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Fusarium oxysporum",
+      "accession": "GCF_013085055.1",
+      "abundance": 0.03,
+      "prevalence": 0.15,
+      "n_fragments": 20,
+      "fragment_length": 50000
+    }
+  ]
+}
