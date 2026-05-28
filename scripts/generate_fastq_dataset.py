@@ -1317,11 +1317,12 @@ Examples:
     parser.add_argument(
         '--amplification',
         choices=['none', 'rdab', 'rdab-30', 'mda', 'mda-long', 'linker'],
-        default='none',
-        help='Library preparation amplification method (default: none). ' +
-             'rdab=RdAB 40 cycles (standard), rdab-30=RdAB 30 cycles (moderate), ' +
+        default='linker',
+        help='Library preparation amplification method (default: linker). ' +
+             'linker=Linker-based PCR (Nextera/TruSeq, minimal bias), ' +
+             'rdab=RdAB 40 cycles (standard), rdab-30=RdAB 30 cycles, ' +
              'mda=MDA 4h (low biomass), mda-long=MDA 16h (overnight), ' +
-             'linker=Linker-based (minimal bias), none=No amplification'
+             'none=No amplification bias'
     )
 
     parser.add_argument(
@@ -1357,9 +1358,10 @@ Examples:
     contam_group.add_argument(
         '--adapter-rate',
         type=float,
-        default=0.0,
-        help='Fraction of reads with adapter read-through (0.0-1.0, default: 0.0). '
-             'Set to 0.05 for typical adapter contamination.'
+        default=0.03,
+        help='Fraction of reads with adapter read-through (0.0-1.0, default: 0.03). '
+             'Typical Illumina libraries have 1-5%% adapter contamination. '
+             'Set to 0.0 to disable.'
     )
     contam_group.add_argument(
         '--adapter-type',
@@ -1413,11 +1415,11 @@ Examples:
     contam_group.add_argument(
         '--low-complexity-rate',
         type=float,
-        default=0.0,
+        default=0.005,
         help='Fraction of reads replaced with low-complexity artifacts (0.0-1.0, '
-             'default: 0.0). Set to 0.01 for typical artifact rate. '
-             'Models homopolymer runs, dinucleotide repeats, simple repeats, '
-             'and low-entropy sequences from adapter dimers and PCR failures.'
+             'default: 0.005). Models homopolymer runs, dinucleotide repeats, '
+             'simple repeats, and low-entropy sequences from adapter dimers '
+             'and PCR failures. Set to 0.0 to disable.'
     )
     contam_group.add_argument(
         '--entropy-range',
@@ -1431,10 +1433,11 @@ Examples:
     contam_group.add_argument(
         '--duplicate-rate',
         type=float,
-        default=0.0,
+        default=0.10,
         help='Fraction of reads that become PCR duplicate templates (0.0-1.0, '
-             'default: 0.0). Set to 0.10-0.30 for typical PCR duplicate rates. '
-             'Each template gets 1-5 copies (geometric distribution).'
+             'default: 0.10). Typical rates: 5-15%% for VLP libraries, '
+             '10-30%% for bulk metagenomes. Each template gets 1-5 copies '
+             '(geometric distribution). Set to 0.0 to disable.'
     )
     contam_group.add_argument(
         '--duplicate-max-copies',
