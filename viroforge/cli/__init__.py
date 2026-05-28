@@ -163,6 +163,13 @@ For more information: https://github.com/hecatomb/viroforge
         help='Exogenous retroviral read rate (e.g., 0.002)'
     )
     generate_parser.add_argument(
+        '--dark-matter-fraction',
+        type=float,
+        default=0.30,
+        help='Fraction of reads from unclassified viral genomes (default: 0.30). '
+             'Set to 0.0 to disable.'
+    )
+    generate_parser.add_argument(
         '-v', '--verbose',
         action='store_true',
         help='Show detailed progress'

@@ -150,6 +150,11 @@ def generate_with_params(args):
     if getattr(args, 'erv_exogenous_rate', None):
         params['erv_exogenous_rate'] = args.erv_exogenous_rate
 
+    # Dark matter
+    dm_frac = getattr(args, 'dark_matter_fraction', None)
+    if dm_frac is not None:
+        params['dark_matter_fraction'] = dm_frac
+
     console.print()
     console.print("[bold cyan]Generating dataset with custom parameters[/bold cyan]")
     console.print()
@@ -394,6 +399,9 @@ def build_command(script_path: Path, params: Dict) -> List[str]:
 
     if 'erv_exogenous_rate' in params:
         cmd.extend(['--erv-exogenous-rate', str(params['erv_exogenous_rate'])])
+
+    if 'dark_matter_fraction' in params:
+        cmd.extend(['--dark-matter-fraction', str(params['dark_matter_fraction'])])
 
     # Random seed
     if 'seed' in params:

@@ -213,6 +213,99 @@ class CollectionLoader:
 
         return collection_meta, genomes
 
+    def load_dark_matter_genomes(
+        self,
+        n_genomes: int,
+        exclude_ids: set,
+        random_seed: int = 42
+    ) -> List[Dict]:
+        """
+        Load unclassified viral genomes (dark matter) from the database.
+
+        Selects genomes with family='Unknown' that are not already in
+        the collection. These represent viral dark matter — real viral
+        sequences that lack taxonomic classification, mirroring the
+        60-90% of unclassifiable reads in real virome datasets.
+
+        Args:
+            n_genomes: Number of dark matter genomes to select
+            exclude_ids: Set of genome_ids already in the collection
+            random_seed: Random seed for reproducible selection
+
+        Returns:
+            List of genome dictionaries (same format as load_collection)
+        """
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
+
+        # Count available dark matter genomes
+        cursor = conn.execute("""
+            SELECT COUNT(*) as cnt
+            FROM genomes g
+            JOIN taxonomy t ON g.genome_id = t.genome_id
+            WHERE t.family = 'Unknown'
+            AND g.sequence IS NOT NULL
+            AND length(g.sequence) > 500
+        """)
+        available = cursor.fetchone()['cnt']
+
+        if available == 0:
+            logger.warning("No dark matter genomes available in database")
+            conn.close()
+            return []
+
+        n_to_select = min(n_genomes, available)
+
+        # Build exclusion placeholders
+        if exclude_ids:
+            placeholders = ','.join('?' for _ in exclude_ids)
+            exclude_clause = f"AND g.genome_id NOT IN ({placeholders})"
+            params = list(exclude_ids)
+        else:
+            exclude_clause = ""
+            params = []
+
+        # Select random unclassified genomes, seeded for reproducibility
+        # SQLite doesn't support seeded RANDOM(), so we use a deterministic
+        # hash-based ordering
+        query = f"""
+            SELECT
+                g.genome_id,
+                g.genome_name,
+                g.length,
+                g.gc_content,
+                g.genome_type,
+                g.sequence,
+                t.family,
+                t.genus,
+                t.species
+            FROM genomes g
+            JOIN taxonomy t ON g.genome_id = t.genome_id
+            WHERE t.family = 'Unknown'
+            AND g.sequence IS NOT NULL
+            AND length(g.sequence) > 500
+            {exclude_clause}
+            ORDER BY SUBSTR(HEX(g.genome_id || ?), 1, 8)
+            LIMIT ?
+        """
+        params.extend([str(random_seed), n_to_select])
+
+        cursor = conn.execute(query, params)
+        dark_matter = []
+        for row in cursor.fetchall():
+            genome = dict(row)
+            genome['relative_abundance'] = 0.0  # Will be set by caller
+            genome['abundance_rank'] = 0
+            genome['is_dark_matter'] = True
+            dark_matter.append(genome)
+
+        conn.close()
+
+        logger.info(f"Loaded {len(dark_matter)} dark matter genomes "
+                   f"(from {available} available unclassified genomes)")
+
+        return dark_matter
+
 
 class FASTQGenerator:
     """Generate FASTQ files from collection genomes."""
@@ -1485,6 +1578,26 @@ Examples:
              'Example: --erv-exogenous-viruses "Human immunodeficiency" "Primate T-lymphotropic"'
     )
 
+    # Dark matter (unclassified viral sequences)
+    dm_group = parser.add_argument_group('viral dark matter')
+    dm_group.add_argument(
+        '--dark-matter-fraction',
+        type=float,
+        default=0.30,
+        help='Fraction of reads from unclassified viral genomes (0.0-1.0, '
+             'default: 0.30). Adds real but taxonomically unclassified '
+             'sequences from RefSeq to simulate the 60-90%% of reads in '
+             'real viromes that do not match known references. '
+             'Set to 0.0 to disable.'
+    )
+    dm_group.add_argument(
+        '--dark-matter-count',
+        type=int,
+        default=None,
+        help='Number of dark matter genomes to include (default: auto, '
+             'scales with collection size). Overrides automatic calculation.'
+    )
+
     args = parser.parse_args()
 
     # Load collections
@@ -1512,6 +1625,59 @@ Examples:
 
     # Load collection
     collection_meta, genomes = loader.load_collection(args.collection_id)
+
+    # Add viral dark matter (unclassified genomes)
+    dark_matter_stats = {}
+    if args.dark_matter_fraction > 0:
+        dm_fraction = min(args.dark_matter_fraction, 0.95)  # Cap at 95%
+
+        # Determine how many dark matter genomes to add
+        n_collection = len(genomes)
+        if args.dark_matter_count is not None:
+            n_dark_matter = args.dark_matter_count
+        else:
+            # Scale with collection size: roughly 0.5x the collection size
+            # e.g., 90 genomes → ~45 dark matter genomes
+            n_dark_matter = max(10, int(n_collection * 0.5))
+
+        # Load dark matter genomes
+        existing_ids = {g['genome_id'] for g in genomes}
+        dark_matter_genomes = loader.load_dark_matter_genomes(
+            n_genomes=n_dark_matter,
+            exclude_ids=existing_ids,
+            random_seed=args.seed
+        )
+
+        if dark_matter_genomes:
+            # Rescale existing abundances: known viral fraction = (1 - dm_fraction)
+            known_fraction = 1.0 - dm_fraction
+            for g in genomes:
+                g['relative_abundance'] *= known_fraction
+
+            # Distribute dark matter abundance using log-normal distribution
+            rng = np.random.default_rng(args.seed + 1000)
+            dm_raw = rng.lognormal(mean=0.0, sigma=1.5, size=len(dark_matter_genomes))
+            dm_raw /= dm_raw.sum()
+            dm_abundances = dm_raw * dm_fraction
+
+            for i, dm_genome in enumerate(dark_matter_genomes):
+                dm_genome['relative_abundance'] = float(dm_abundances[i])
+                dm_genome['abundance_rank'] = n_collection + i + 1
+                genomes.append(dm_genome)
+
+            dark_matter_stats = {
+                'dark_matter_fraction': dm_fraction,
+                'dark_matter_genomes': len(dark_matter_genomes),
+                'known_viral_genomes': n_collection,
+                'total_genomes': len(genomes),
+            }
+
+            logger.info(f"Added {len(dark_matter_genomes)} dark matter genomes "
+                       f"({dm_fraction*100:.0f}% of total abundance)")
+        else:
+            logger.warning("No dark matter genomes available — proceeding without")
+    else:
+        logger.info("Dark matter disabled (--dark-matter-fraction 0.0)")
 
     # Create generator (sanitize collection name for file system)
     import re
@@ -1601,7 +1767,8 @@ Examples:
         'molecule_type': args.molecule_type,
         'vlp_protocol': vlp_protocol if vlp_protocol else 'none',
         'contamination_level': args.contamination_level,
-        'amplification': args.amplification
+        'amplification': args.amplification,
+        'dark_matter': dark_matter_stats if dark_matter_stats else None,
     }
 
     # Add RNA-specific parameters if applicable
@@ -1815,10 +1982,15 @@ Examples:
         # Post-process: add source type labels to read headers
         if contamination_profile is not None:
             genome_source_map = {}
-            # Viral genomes
+            # Viral genomes (check if dark matter)
             n_viral = enrichment_stats.get('n_viral_genomes', 0)
+            # Build set of dark matter genome IDs for labeling
+            dark_matter_ids = {g['genome_id'] for g in genomes if g.get('is_dark_matter')}
             for seq in sequences[:n_viral]:
-                genome_source_map[seq.id] = "viral"
+                if seq.id in dark_matter_ids:
+                    genome_source_map[seq.id] = "dark_matter"
+                else:
+                    genome_source_map[seq.id] = "viral"
             # Contaminant genomes
             for contaminant in contamination_profile.contaminants:
                 genome_source_map[contaminant.genome_id] = contaminant.contaminant_type.value
