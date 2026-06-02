@@ -46,6 +46,17 @@ NON_SITE_PHAGES = [
 
 # Per-collection wrong phages (in addition to the global list above)
 COLLECTION_WRONG_PHAGES = {
+    # Gut: Stenotrophomonas is not a typical gut bacterium
+    # Note: Coliphages/Enterobacteria phages are CORRECT for gut (E. coli is gut)
+    1: [
+        '%Stenotrophomonas phage%',
+    ],
+    # Oral: E. coli phages don't belong in oral cavity
+    2: [
+        '%Coliphage%', '%Enterobacteria phage%', '%Escherichia phage%',
+        'Genome of phage G4%',
+        '%Pseudomonas phage pf%', '%Stenotrophomonas phage%',
+    ],
     # Skin: E. coli phages don't belong on skin
     3: [
         '%Coliphage%', '%Enterobacteria phage%', '%Escherichia phage%',
@@ -56,13 +67,20 @@ COLLECTION_WRONG_PHAGES = {
         '%Coliphage%', '%Enterobacteria phage%', '%Escherichia phage%',
         'Genome of phage G4%', 'Bacteriophage phiK%',
     ],
-    # Oral: Pseudomonas filamentous phage doesn't belong in oral
-    2: [
-        '%Pseudomonas phage pf%', '%Stenotrophomonas phage%',
-    ],
-    # IBD Gut: Pseudomonas Pf phage is filamentous/not gut-associated
+    # IBD Gut: Stenotrophomonas not typical gut bacterium
+    # Note: Coliphages/Enterobacteria phages are CORRECT for gut
     10: [
-        '%Pseudomonas phage Pf%',
+        '%Pseudomonas phage Pf%', '%Stenotrophomonas phage%',
+    ],
+    # HIV+ Gut: remaining marine/plant phages
+    11: [
+        # Global NON_SITE_PHAGES handles Vibrio/Ralstonia/Xanthomonas
+        # Coliphages are correct for gut
+    ],
+    # Vaginal: E. coli phages don't belong in vaginal
+    16: [
+        '%Coliphage%', '%Enterobacteria phage%', '%Escherichia phage%',
+        'Genome of phage G4%',
     ],
 }
 
@@ -71,6 +89,12 @@ COLLECTION_WRONG_PHAGES = {
 # ============================================================
 
 SITE_APPROPRIATE_PHAGES = {
+    # Gut: Bacteroides, Faecalibacterium, Clostridium are dominant gut bacteria
+    1: {
+        'primary': "g.genome_name LIKE '%Bacteroides phage%' OR g.genome_name LIKE '%Faecalibacterium%phage%'",
+        'secondary': "g.genome_name LIKE '%Clostridium phage%' OR g.genome_name LIKE '%Enterococcus phage%'",
+        'fallback': "g.genome_name LIKE '%Klebsiella phage%'",
+    },
     # Oral: dominated by Streptococcus in the oral cavity
     2: {
         'primary': "g.genome_name LIKE '%Streptococcus phage%'",
@@ -92,8 +116,20 @@ SITE_APPROPRIATE_PHAGES = {
     # IBD Gut: Bacteroides, Faecalibacterium, E. coli phages are appropriate
     10: {
         'primary': "g.genome_name LIKE '%Bacteroides phage%' OR g.genome_name LIKE '%Faecalibacterium%phage%'",
-        'secondary': "g.genome_name LIKE '%Escherichia phage%' OR g.genome_name LIKE '%Coliphage%' OR g.genome_name LIKE '%Klebsiella phage%' OR g.genome_name LIKE '%Enterobacteria phage%'",
-        'fallback': "g.genome_name LIKE '%Escherichia phage%' OR g.genome_name LIKE '%Enterococcus phage%'",
+        'secondary': "g.genome_name LIKE '%Escherichia phage%' OR g.genome_name LIKE '%Klebsiella phage%'",
+        'fallback': "g.genome_name LIKE '%Enterococcus phage%'",
+    },
+    # HIV+ Gut: same as gut
+    11: {
+        'primary': "g.genome_name LIKE '%Bacteroides phage%' OR g.genome_name LIKE '%Faecalibacterium%phage%'",
+        'secondary': "g.genome_name LIKE '%Clostridium phage%' OR g.genome_name LIKE '%Enterococcus phage%'",
+        'fallback': "g.genome_name LIKE '%Klebsiella phage%'",
+    },
+    # Vaginal: Lactobacillus phages
+    16: {
+        'primary': "g.genome_name LIKE '%Lactobacillus phage%'",
+        'secondary': "g.genome_name LIKE '%Lactococcus phage%'",
+        'fallback': "g.genome_name LIKE '%Lactobacillus phage%'",
     },
 }
 
@@ -248,10 +284,14 @@ def main():
     conn.row_factory = sqlite3.Row
 
     collections_to_fix = {
+        1: 'Gut Virome',
         2: 'Oral Virome',
         3: 'Skin Virome',
         4: 'Respiratory Virome',
+        8: 'Mouse Gut Virome',
         10: 'IBD Gut Virome',
+        11: 'HIV+ Gut Virome',
+        16: 'Vaginal Virome',
     }
 
     mode = "DRY RUN" if args.dry_run else "APPLYING FIXES"
