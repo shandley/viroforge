@@ -867,6 +867,21 @@ class FASTQGenerator:
                 )
 
         # Create abundance file for ISS using actual genome IDs
+        # Enforce minimum abundance floor so every genome gets at least a few reads.
+        # Without this, VLP enrichment + amplification bias can reduce rare genomes
+        # to zero abundance, causing ISS to skip them entirely.
+        min_abundance = 1e-6  # Floor: ~1 read per million
+        abundances_arr = np.array(abundances, dtype=float)
+        below_floor = abundances_arr < min_abundance
+        if np.any(below_floor & (abundances_arr > 0)):
+            n_boosted = int(np.sum(below_floor & (abundances_arr > 0)))
+            abundances_arr[below_floor & (abundances_arr > 0)] = min_abundance
+            # Renormalize to maintain total = 1.0
+            abundances_arr /= abundances_arr.sum()
+            logger.info(f"Applied minimum abundance floor ({min_abundance}) to {n_boosted} "
+                       f"rare genomes to ensure read generation")
+            abundances = list(abundances_arr)
+
         abundance_file = self.metadata_dir / f"{self.collection_name}_abundances.txt"
         with open(abundance_file, 'w') as f:
             for record, abundance in zip(sequences, abundances):
