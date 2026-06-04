@@ -303,6 +303,55 @@ class VLPProtocol:
         )
 
     @classmethod
+    def tangential_flow_045(cls) -> VLPProtocolConfig:
+        """Tangential flow filtration with 0.45 um pore size."""
+        return VLPProtocolConfig(
+            name="Tangential Flow Filtration (0.45 μm)",
+            filtration_method='tangential_flow', pore_size_um=0.45,
+            prefiltration_pore_size_um=0.80, retention_curve_type='sigmoid',
+            retention_curve_steepness=0.006, nuclease_treatment=True,
+            nuclease_efficiency=0.98, recovery_rate=0.90, contamination_reduction=0.80)
+
+    @classmethod
+    def syringe_filter_045(cls) -> VLPProtocolConfig:
+        """Syringe filtration with 0.45 um pore size."""
+        return VLPProtocolConfig(
+            name="Syringe Filter (0.45 μm)",
+            filtration_method='syringe', pore_size_um=0.45,
+            prefiltration_pore_size_um=0.80, retention_curve_type='sigmoid',
+            retention_curve_steepness=0.008, nuclease_treatment=True,
+            nuclease_efficiency=0.90, recovery_rate=0.70, contamination_reduction=0.70)
+
+    @classmethod
+    def tangential_flow_01(cls) -> VLPProtocolConfig:
+        """Tangential flow filtration with 0.1 um pore size."""
+        return VLPProtocolConfig(
+            name="Tangential Flow Filtration (0.1 μm)",
+            filtration_method='tangential_flow', pore_size_um=0.1,
+            prefiltration_pore_size_um=0.22, retention_curve_type='sigmoid',
+            retention_curve_steepness=0.012, nuclease_treatment=True,
+            nuclease_efficiency=0.98, recovery_rate=0.75, contamination_reduction=0.98)
+
+    @classmethod
+    def with_custom_pore_size(cls, base_protocol: str, pore_size_um: float) -> VLPProtocolConfig:
+        """Create a protocol with a custom pore size."""
+        if base_protocol == 'tangential_flow':
+            config = cls.tangential_flow_standard()
+        elif base_protocol == 'syringe':
+            config = cls.syringe_filter_standard()
+        else:
+            raise ValueError(f"Custom pore size only for filtration protocols, not '{base_protocol}'")
+        config.name = f"{config.filtration_method.replace('_', ' ').title()} ({pore_size_um} μm)"
+        config.pore_size_um = pore_size_um
+        config.retention_curve_steepness = 0.008 * (0.2 / pore_size_um)
+        base_reduction = 0.95 if base_protocol == 'tangential_flow' else 0.85
+        config.contamination_reduction = min(0.99, base_reduction * (0.2 / pore_size_um) ** 0.3)
+        base_recovery = 0.85 if base_protocol == 'tangential_flow' else 0.60
+        config.recovery_rate = min(0.95, base_recovery * (pore_size_um / 0.2) ** 0.15)
+        config.prefiltration_pore_size_um = min(1.0, pore_size_um * 2)
+        return config
+
+    @classmethod
     def no_vlp(cls) -> VLPProtocolConfig:
         """
         No VLP enrichment (bulk metagenome)

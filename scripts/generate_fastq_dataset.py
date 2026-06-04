@@ -213,6 +213,121 @@ class CollectionLoader:
 
         return collection_meta, genomes
 
+    def load_dark_matter_genomes(
+        self, n_genomes: int, exclude_ids: set, random_seed: int = 42
+    ) -> List[Dict]:
+        """Load unclassified viral genomes (dark matter) from the database.
+
+        Selects genomes with family='Unknown' that are likely phages or
+        uncharacterized viruses. Excludes known human viruses, animal viruses,
+        plant viruses, and insect viruses that happen to have Unknown family.
+        """
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
+
+        # Exclude non-dark-matter genomes from the Unknown family
+        host_exclusions = """
+            AND g.genome_name NOT LIKE 'Human herpesvirus%'
+            AND g.genome_name NOT LIKE 'Human alpha%herpes%'
+            AND g.genome_name NOT LIKE 'Human beta%herpes%'
+            AND g.genome_name NOT LIKE 'Human gamma%herpes%'
+            AND g.genome_name NOT LIKE 'Human immunodeficiency%'
+            AND g.genome_name NOT LIKE 'Human papillomavirus%'
+            AND g.genome_name NOT LIKE 'Human bocavirus%'
+            AND g.genome_name NOT LIKE 'Human enterovirus%'
+            AND g.genome_name NOT LIKE 'Human rhinovirus%'
+            AND g.genome_name NOT LIKE 'Human adenovirus%'
+            AND g.genome_name NOT LIKE 'Human astrovirus%'
+            AND g.genome_name NOT LIKE 'Human rotavirus%'
+            AND g.genome_name NOT LIKE 'Hepatitis%'
+            AND g.genome_name NOT LIKE 'Norovirus%'
+            AND g.genome_name NOT LIKE 'Influenza%'
+            AND g.genome_name NOT LIKE '%Gallid%'
+            AND g.genome_name NOT LIKE '%Bovine%'
+            AND g.genome_name NOT LIKE '%Porcine%'
+            AND g.genome_name NOT LIKE '%Canine%'
+            AND g.genome_name NOT LIKE '%Feline%'
+            AND g.genome_name NOT LIKE '%Murine%'
+            AND g.genome_name NOT LIKE '%Equine%'
+            AND g.genome_name NOT LIKE '%Avian%'
+            AND g.genome_name NOT LIKE '%Simian%'
+            AND g.genome_name NOT LIKE '%Bat %'
+            AND g.genome_name NOT LIKE '%Alcelaphine%'
+            AND g.genome_name NOT LIKE '%Helicoverpa%'
+            AND g.genome_name NOT LIKE '%Acyrthosiphon%'
+            AND g.genome_name NOT LIKE '%mosaic virus%'
+            AND g.genome_name NOT LIKE '%leaf curl%'
+            AND g.genome_name NOT LIKE '%ringspot%'
+            AND g.genome_name NOT LIKE '%foliar%'
+            AND g.genome_name NOT LIKE '%alphasatellite%'
+            AND g.genome_name NOT LIKE '%betasatellite%'
+            AND g.genome_name NOT LIKE '%Coconut%'
+            AND g.genome_name NOT LIKE '%Pepper %virus%'
+            AND g.genome_name NOT LIKE '%Soybean%virus%'
+            AND g.genome_name NOT LIKE '%Cotton%virus%'
+            AND g.genome_name NOT LIKE '%Honeysuckle%virus%'
+            AND g.genome_name NOT LIKE '%Tomato%virus%'
+            AND g.genome_name NOT LIKE '%Tobacco%virus%'
+            AND g.genome_name NOT LIKE '%Maize%virus%'
+            AND g.genome_name NOT LIKE '%Rice%virus%'
+            AND g.genome_name NOT LIKE '%Wheat%virus%'
+            AND g.genome_name NOT LIKE '%Sclerophthora%'
+            AND g.genome_name NOT LIKE '%Citrus%virus%'
+            AND g.genome_name NOT LIKE '%Grapevine%virus%'
+            AND g.genome_name NOT LIKE '%nucleopolyhedrovirus%'
+            AND g.genome_name NOT LIKE '%granulovirus%'
+            AND g.genome_name NOT LIKE '%baculovirus%'
+            AND g.genome_name NOT LIKE '%Drosophila%'
+        """
+
+        cursor = conn.execute(f"""
+            SELECT COUNT(*) as cnt FROM genomes g
+            JOIN taxonomy t ON g.genome_id = t.genome_id
+            WHERE t.family = 'Unknown' AND g.sequence IS NOT NULL
+            AND length(g.sequence) > 500 {host_exclusions}
+        """)
+        available = cursor.fetchone()['cnt']
+
+        if available == 0:
+            logger.warning("No dark matter genomes available in database")
+            conn.close()
+            return []
+
+        n_to_select = min(n_genomes, available)
+        if exclude_ids:
+            placeholders = ','.join('?' for _ in exclude_ids)
+            exclude_clause = f"AND g.genome_id NOT IN ({placeholders})"
+            params = list(exclude_ids)
+        else:
+            exclude_clause = ""
+            params = []
+
+        query = f"""
+            SELECT g.genome_id, g.genome_name, g.length, g.gc_content,
+                   g.genome_type, g.sequence, t.family, t.genus, t.species
+            FROM genomes g
+            JOIN taxonomy t ON g.genome_id = t.genome_id
+            WHERE t.family = 'Unknown' AND g.sequence IS NOT NULL
+            AND length(g.sequence) > 500 {host_exclusions} {exclude_clause}
+            ORDER BY SUBSTR(HEX(g.genome_id || ?), 1, 8)
+            LIMIT ?
+        """
+        params.extend([str(random_seed), n_to_select])
+        cursor = conn.execute(query, params)
+
+        dark_matter = []
+        for row in cursor.fetchall():
+            genome = dict(row)
+            genome['relative_abundance'] = 0.0
+            genome['abundance_rank'] = 0
+            genome['is_dark_matter'] = True
+            dark_matter.append(genome)
+
+        conn.close()
+        logger.info(f"Loaded {len(dark_matter)} dark matter genomes "
+                   f"(from {available} eligible, excluded animal/plant/known human)")
+        return dark_matter
+
 
 class FASTQGenerator:
     """Generate FASTQ files from collection genomes."""
