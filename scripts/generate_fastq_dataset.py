@@ -219,8 +219,14 @@ class CollectionLoader:
         """Load unclassified viral genomes (dark matter) from the database.
 
         Selects genomes with family='Unknown' that are likely phages or
-        uncharacterized viruses. Excludes known human viruses, animal viruses,
-        plant viruses, and insect viruses that happen to have Unknown family.
+        uncharacterized viruses. Excludes:
+        - Known human viruses that should be in the classified pool (HHV, HIV, etc.)
+        - Animal viruses (bovine, porcine, avian, etc.)
+        - Insect viruses (baculoviruses, nucleopolyhedroviruses)
+
+        Plant viruses are intentionally KEPT because they are a real and
+        abundant component of human gut viromes (dietary viruses like
+        PMMoV, ToMV, TMV pass through from food).
         """
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
@@ -255,25 +261,6 @@ class CollectionLoader:
             AND g.genome_name NOT LIKE '%Alcelaphine%'
             AND g.genome_name NOT LIKE '%Helicoverpa%'
             AND g.genome_name NOT LIKE '%Acyrthosiphon%'
-            AND g.genome_name NOT LIKE '%mosaic virus%'
-            AND g.genome_name NOT LIKE '%leaf curl%'
-            AND g.genome_name NOT LIKE '%ringspot%'
-            AND g.genome_name NOT LIKE '%foliar%'
-            AND g.genome_name NOT LIKE '%alphasatellite%'
-            AND g.genome_name NOT LIKE '%betasatellite%'
-            AND g.genome_name NOT LIKE '%Coconut%'
-            AND g.genome_name NOT LIKE '%Pepper %virus%'
-            AND g.genome_name NOT LIKE '%Soybean%virus%'
-            AND g.genome_name NOT LIKE '%Cotton%virus%'
-            AND g.genome_name NOT LIKE '%Honeysuckle%virus%'
-            AND g.genome_name NOT LIKE '%Tomato%virus%'
-            AND g.genome_name NOT LIKE '%Tobacco%virus%'
-            AND g.genome_name NOT LIKE '%Maize%virus%'
-            AND g.genome_name NOT LIKE '%Rice%virus%'
-            AND g.genome_name NOT LIKE '%Wheat%virus%'
-            AND g.genome_name NOT LIKE '%Sclerophthora%'
-            AND g.genome_name NOT LIKE '%Citrus%virus%'
-            AND g.genome_name NOT LIKE '%Grapevine%virus%'
             AND g.genome_name NOT LIKE '%nucleopolyhedrovirus%'
             AND g.genome_name NOT LIKE '%granulovirus%'
             AND g.genome_name NOT LIKE '%baculovirus%'
