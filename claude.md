@@ -377,6 +377,22 @@ sqlite3 viroforge/data/viral_genomes.db \
 
 ## Known Issues
 
+**Dark Matter Sequences: Random Selection, Not Body-Site-Specific (2026-06-05)**
+- The `--dark-matter-fraction` flag adds unclassified viral genomes (family='Unknown')
+  to simulate the 60-90% of reads in real viromes that don't match known references.
+- Dark matter genomes are selected **randomly** from the entire Unknown pool (~6,500
+  genomes), NOT filtered by body site. A gut virome and vaginal virome draw dark
+  matter from the same pool.
+- In reality, dark matter is body-site-specific (gut has uncharacterized crAss-like
+  phages, vaginal has novel Lactobacillus phages, etc.). However, most Unknown-family
+  genomes lack host/habitat metadata, making body-site filtering impractical.
+- **Impact on QC benchmarking: None.** QC tools (host removal, rRNA screening, dedup,
+  adapter trimming) process reads the same way regardless of dark matter origin.
+  Body-site specificity only matters for downstream taxonomy benchmarking.
+- Exclusions applied: animal viruses, insect viruses, and known human viruses are
+  excluded. Plant viruses are intentionally kept (dietary viruses are a real
+  component of human gut viromes).
+
 **Interactive Preset Creation**
 - Status: Not implemented (low priority)
 - Workaround: Use `viroforge presets create <name> --from-dataset <path>`
