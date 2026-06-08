@@ -39,30 +39,34 @@ logger = logging.getLogger(__name__)
 
 # Artifact type definitions with relative frequencies based on
 # empirical observations from Illumina sequencing QC reports.
+#
+# Key design: artifacts must look like SEQUENCING NOISE, not like
+# human genomic repeats. Real artifacts are dominated by poly-G
+# (two-color chemistry failure) and poly-A/T (signal dropout),
+# not dinucleotide repeats (which match human microsatellites and
+# would be incorrectly caught by host depletion filters).
 ARTIFACT_TYPES = {
+    "poly_g": {
+        "weight": 0.40,  # Most common on NovaSeq/NextSeq (two-color chemistry)
+        "motifs": ["G"],
+    },
     "homopolymer": {
-        "weight": 0.30,
-        "motifs": ["A", "T", "G", "C"],
-    },
-    "dinucleotide_repeat": {
         "weight": 0.25,
-        "motifs": ["AT", "TA", "GC", "CG", "AC", "GT", "AG", "CT"],
+        "motifs": ["A", "T", "C"],  # NOT G (handled above)
     },
-    "simple_repeat": {
-        "weight": 0.20,
-        "motifs": ["AAT", "AAC", "AAG", "TTA", "GGA", "CCT", "AAAT", "TTAC"],
+    "poly_n_mixed": {
+        "weight": 0.15,  # Complete cluster failure
+        "motifs": None,
     },
     "low_entropy": {
-        "weight": 0.25,
-        "motifs": None,  # generated procedurally
+        "weight": 0.20,
+        "motifs": None,  # G-biased, not AT-biased
     },
 }
 
 
-def _generate_homopolymer(length: int, rng: random.Random) -> str:
-    """Generate a homopolymer run with minor noise."""
-    base = rng.choice(["A", "T", "G", "C"])
-    # ~95% dominant base, ~5% noise (real homopolymer artifacts aren't perfect)
+def _generate_homopolymer_base(length: int, base: str, rng: random.Random) -> str:
+    """Generate a homopolymer run of a specific base with minor noise."""
     seq = []
     for _ in range(length):
         if rng.random() < 0.95:
@@ -83,10 +87,33 @@ def _generate_repeat(length: int, motif: str, rng: random.Random) -> str:
     return "".join(seq)
 
 
+def _generate_poly_n_mixed(length: int, rng: random.Random) -> str:
+    """Generate very low quality mixed sequence from failed clusters.
+
+    Mimics reads where the sequencer couldn't determine any base clearly.
+    High G content with random noise — characteristic of complete cluster
+    failure on two-color chemistry platforms.
+    """
+    seq = []
+    for _ in range(length):
+        if rng.random() < 0.60:
+            seq.append("G")
+        else:
+            seq.append(rng.choice("ACGT"))
+    return "".join(seq)
+
+
 def _generate_low_entropy(length: int, rng: random.Random) -> str:
-    """Generate low-entropy sequence with heavily biased base composition."""
-    # Pick one or two dominant bases (70-90% of sequence)
-    dominant = rng.choice(["A", "T"])
+    """Generate low-entropy sequence mimicking failed Illumina clusters.
+
+    Biased toward G-rich sequences (NovaSeq/NextSeq two-color chemistry)
+    rather than AT-rich sequences (which match human microsatellites).
+    """
+    # 70% chance G-dominant (two-color failure), 30% A/T (signal dropout)
+    if rng.random() < 0.70:
+        dominant = "G"
+    else:
+        dominant = rng.choice(["A", "T"])
     secondary = rng.choice([b for b in "ACGT" if b != dominant])
     dom_freq = rng.uniform(0.70, 0.90)
     sec_freq = rng.uniform(0.05, 1.0 - dom_freq)
@@ -193,8 +220,14 @@ def _generate_artifact_sequence(
     weights = [ARTIFACT_TYPES[t]["weight"] for t in types]
     artifact_type = rng.choices(types, weights=weights, k=1)[0]
 
-    if artifact_type == "homopolymer":
-        return _generate_homopolymer(length, rng), "homopolymer"
+    if artifact_type == "poly_g":
+        return _generate_homopolymer_base(length, "G", rng), "poly_g"
+    elif artifact_type == "homopolymer":
+        motifs = ARTIFACT_TYPES[artifact_type]["motifs"]
+        base = rng.choice(motifs)
+        return _generate_homopolymer_base(length, base, rng), "homopolymer"
+    elif artifact_type == "poly_n_mixed":
+        return _generate_poly_n_mixed(length, rng), "poly_n_mixed"
     elif artifact_type == "low_entropy":
         return _generate_low_entropy(length, rng), "low_entropy"
     else:
