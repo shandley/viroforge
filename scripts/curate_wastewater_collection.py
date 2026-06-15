@@ -51,48 +51,74 @@ idae, Picornaviridae
         """
         logger.info("Selecting human enteric viruses...")
 
-        # Caliciviridae (Norovirus, Sapovirus) - ~30% of enteric
+        # Caliciviridae (Norovirus, Sapovirus) - ~30% of enteric (human strains only)
         query = """
         SELECT g.genome_id, g.genome_name, t.family, t.genus, t.species, g.length, g.gc_content
         FROM genomes g
         JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family = 'Caliciviridae'
+          AND (g.genome_name LIKE '%Norovirus%'
+           OR g.genome_name LIKE '%Norwalk%'
+           OR g.genome_name LIKE '%Sapovirus%'
+           OR g.genome_name LIKE 'Human calicivirus%')
+          AND g.genome_name NOT LIKE '%Murine%'
+          AND g.genome_name NOT LIKE '%murine%'
+          AND g.genome_name NOT LIKE '%Bovine%'
+          AND g.genome_name NOT LIKE '%Porcine%'
+          AND g.genome_name NOT LIKE '%Feline%'
         ORDER BY RANDOM()
         LIMIT ?
         """
         calici = [dict(row) for row in self.conn.execute(query, (int(n_target * 0.3),))]
         logger.info(f"  Caliciviridae (Norovirus, Sapovirus): {len(calici)}")
 
-        # Adenoviridae - ~35% of enteric (very stable in wastewater)
+        # Adenoviridae - ~35% of enteric (very stable in wastewater, human strains only)
         query = """
         SELECT g.genome_id, g.genome_name, t.family, t.genus, t.species, g.length, g.gc_content
         FROM genomes g
         JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family = 'Adenoviridae'
+          AND (g.genome_name LIKE 'Human adenovirus%'
+           OR g.genome_name LIKE 'Human mastadenovirus%')
         ORDER BY RANDOM()
         LIMIT ?
         """
         adeno = [dict(row) for row in self.conn.execute(query, (int(n_target * 0.35),))]
         logger.info(f"  Adenoviridae: {len(adeno)}")
 
-        # Astroviridae - ~10% of enteric
+        # Astroviridae - ~10% of enteric (human strains only)
         query = """
         SELECT g.genome_id, g.genome_name, t.family, t.genus, t.species, g.length, g.gc_content
         FROM genomes g
         JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family = 'Astroviridae'
+          AND (g.genome_name LIKE 'Human astrovirus%'
+           OR g.genome_name LIKE 'Mamastrovirus 1%')
         ORDER BY RANDOM()
         LIMIT ?
         """
         astro = [dict(row) for row in self.conn.execute(query, (max(int(n_target * 0.10), 5),))]
         logger.info(f"  Astroviridae: {len(astro)}")
 
-        # Picornaviridae (Enterovirus, Poliovirus) - ~20% of enteric
+        # Picornaviridae (Enterovirus, Poliovirus) - ~20% of enteric (human strains only)
         query = """
         SELECT g.genome_id, g.genome_name, t.family, t.genus, t.species, g.length, g.gc_content
         FROM genomes g
         JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family = 'Picornaviridae'
+          AND (g.genome_name LIKE 'Enterovirus %'
+           OR g.genome_name LIKE 'Human enterovirus%'
+           OR g.genome_name LIKE 'Human rhinovirus%'
+           OR g.genome_name LIKE 'Hepatitis A virus%'
+           OR g.genome_name LIKE 'Aichivirus A%'
+           OR g.genome_name LIKE 'Human parechovirus%'
+           OR g.genome_name LIKE 'Salivirus%'
+           OR g.genome_name LIKE 'Cosavirus%'
+           OR g.genome_name LIKE 'Cardiovirus%')
+          AND g.genome_name NOT LIKE '%Possum%'
+          AND g.genome_name NOT LIKE '%Bovine%'
+          AND g.genome_name NOT LIKE '%Porcine%'
+          AND g.genome_name NOT LIKE '%Simian%'
         ORDER BY RANDOM()
         LIMIT ?
         """
@@ -219,29 +245,40 @@ idae, Picornaviridae
         """
         logger.info("Selecting emerging pathogens...")
 
-        # Coronaviridae (SARS-CoV-2) - ~60%
+        # Coronaviridae (SARS-CoV-2) - ~60% (human strains only)
         query = """
         SELECT g.genome_id, g.genome_name, t.family, t.genus, t.species, g.length, g.gc_content
         FROM genomes g
         JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family = 'Coronaviridae'
+          AND (g.genome_name LIKE 'Human coronavirus%'
+           OR g.genome_name LIKE 'SARS-CoV-2%'
+           OR g.genome_name LIKE 'Severe acute respiratory syndrome%'
+           OR g.genome_name LIKE 'Middle East respiratory syndrome%')
         ORDER BY RANDOM()
         LIMIT ?
         """
         corona = [dict(row) for row in self.conn.execute(query, (int(n_target * 0.6),))]
-        logger.info(f"  Coronaviridae (SARS-CoV-2): {len(corona)}")
+        logger.info(f"  Coronaviridae (SARS-CoV-2, human): {len(corona)}")
 
-        # Poxviridae (Mpox) - ~40%
+        # Poxviridae (Mpox) - ~40% (human-relevant strains)
         query = """
         SELECT g.genome_id, g.genome_name, t.family, t.genus, t.species, g.length, g.gc_content
         FROM genomes g
         JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family = 'Poxviridae'
+          AND (g.genome_name LIKE '%Monkeypox%'
+           OR g.genome_name LIKE '%monkeypox%'
+           OR g.genome_name LIKE '%Mpox%'
+           OR g.genome_name LIKE '%Variola%'
+           OR g.genome_name LIKE '%Vaccinia%'
+           OR g.genome_name LIKE '%Molluscum contagiosum%'
+           OR g.genome_name LIKE '%Cowpox%')
         ORDER BY RANDOM()
         LIMIT ?
         """
         pox = [dict(row) for row in self.conn.execute(query, (int(n_target * 0.4),))]
-        logger.info(f"  Poxviridae (Mpox): {len(pox)}")
+        logger.info(f"  Poxviridae (Mpox, human-relevant): {len(pox)}")
 
         emerging = corona + pox
         logger.info(f"  Total emerging pathogens: {len(emerging)}")

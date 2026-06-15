@@ -39,6 +39,193 @@ class TaxonTarget:
     rank: str  # 'family', 'genus', 'species', etc.
     host_filter: Optional[str] = None
     genome_type: Optional[str] = None  # 'dsDNA', 'ssRNA', etc.
+    human_only: bool = False  # Filter to human-infecting viruses only
+
+
+# Human-specific genome name patterns for eukaryotic virus families.
+# Used when human_only=True to ensure only human viruses are selected.
+# Derived from fix_animal_virus_contamination.py patterns.
+HUMAN_VIRUS_PATTERNS = {
+    'Adenoviridae': {
+        'include': [
+            "g.genome_name LIKE 'Human adenovirus%'",
+            "g.genome_name LIKE 'Human mastadenovirus%'",
+        ],
+        'exclude': [],
+    },
+    'Herpesviridae': {
+        'include': [
+            "g.genome_name LIKE 'Human herpesvirus%'",
+            "g.genome_name LIKE 'Human alphaherpesvirus%'",
+            "g.genome_name LIKE 'Human betaherpesvirus%'",
+            "g.genome_name LIKE 'Human gammaherpesvirus%'",
+        ],
+        'exclude': [],
+    },
+    'Papillomaviridae': {
+        'include': [
+            "g.genome_name LIKE 'Human papillomavirus%'",
+            "g.genome_name LIKE 'Alphapapillomavirus%'",
+            "g.genome_name LIKE 'Betapapillomavirus%'",
+            "g.genome_name LIKE 'Gammapapillomavirus%'",
+        ],
+        'exclude': [
+            "g.genome_name NOT LIKE '%Felis%'",
+            "g.genome_name NOT LIKE '%Rattus%'",
+            "g.genome_name NOT LIKE '%Bos%'",
+            "g.genome_name NOT LIKE '%Canis%'",
+            "g.genome_name NOT LIKE '%Equus%'",
+            "g.genome_name NOT LIKE '%Trichechus%'",
+            "g.genome_name NOT LIKE '%Rousettus%'",
+            "g.genome_name NOT LIKE '%Alces%'",
+            "g.genome_name NOT LIKE '%Mustela%'",
+        ],
+    },
+    'Polyomaviridae': {
+        'include': [
+            "g.genome_name LIKE 'Human polyomavirus%'",
+            "g.genome_name LIKE 'Merkel cell polyomavirus%'",
+            "g.genome_name LIKE 'JC polyomavirus%'",
+            "g.genome_name LIKE 'BK polyomavirus%'",
+            "g.genome_name LIKE 'Trichodysplasia spinulosa%'",
+            "g.genome_name LIKE 'MW polyomavirus%'",
+            "g.genome_name LIKE 'STL polyomavirus%'",
+        ],
+        'exclude': [],
+    },
+    'Coronaviridae': {
+        'include': [
+            "g.genome_name LIKE 'Human coronavirus%'",
+            "g.genome_name LIKE 'SARS-CoV-2%'",
+            "g.genome_name LIKE 'Severe acute respiratory syndrome%'",
+            "g.genome_name LIKE 'Middle East respiratory syndrome%'",
+        ],
+        'exclude': [],
+    },
+    'Orthomyxoviridae': {
+        'include': [
+            "g.genome_name LIKE 'Influenza A virus%'",
+            "g.genome_name LIKE 'Influenza B virus%'",
+            "g.genome_name LIKE 'Influenza C virus%'",
+        ],
+        'exclude': [
+            "g.genome_name NOT LIKE '%/Goose/%'",
+            "g.genome_name NOT LIKE '%/Duck/%'",
+            "g.genome_name NOT LIKE '%/Chicken/%'",
+            "g.genome_name NOT LIKE '%/Swine/%'",
+            "g.genome_name NOT LIKE '%/Mallard/%'",
+            "g.genome_name NOT LIKE '%/Turkey/%'",
+            "g.genome_name NOT LIKE '%/Equine/%'",
+        ],
+    },
+    'Anelloviridae': {
+        'include': [
+            "g.genome_name LIKE 'Torque teno virus %'",
+            "g.genome_name LIKE 'Torque teno mini virus%'",
+            "g.genome_name LIKE 'Torque teno midi virus%'",
+        ],
+        'exclude': [
+            "g.genome_name NOT LIKE '%canis%'",
+            "g.genome_name NOT LIKE '%felis%'",
+            "g.genome_name NOT LIKE '%tamarin%'",
+            "g.genome_name NOT LIKE '%indri%'",
+            "g.genome_name NOT LIKE '%simian%'",
+            "g.genome_name NOT LIKE '%Simian%'",
+            "g.genome_name NOT LIKE '%porcine%'",
+            "g.genome_name NOT LIKE '%Porcine%'",
+            "g.genome_name NOT LIKE '%bovine%'",
+            "g.genome_name NOT LIKE '%Rodent%'",
+            "g.genome_name NOT LIKE '%rodent%'",
+            "g.genome_name NOT LIKE 'Chicken%'",
+            "g.genome_name NOT LIKE 'Avian%'",
+            "g.genome_name NOT LIKE 'Gyrovirus%'",
+        ],
+    },
+    'Parvoviridae': {
+        'include': [
+            "g.genome_name LIKE 'Human bocavirus%'",
+            "g.genome_name LIKE 'Human parvovirus%'",
+            "g.genome_name LIKE 'Adeno-associated virus%'",
+            "g.genome_name LIKE 'Primate erythroparvovirus%'",
+            "g.genome_name LIKE 'Human erythrovirus%'",
+        ],
+        'exclude': [],
+    },
+    'Paramyxoviridae': {
+        'include': [
+            "g.genome_name LIKE 'Human parainfluenza%'",
+            "g.genome_name LIKE 'Human respirovirus%'",
+            "g.genome_name LIKE 'Human metapneumovirus%'",
+            "g.genome_name LIKE 'Human orthopneumovirus%'",
+            "g.genome_name LIKE 'Respiratory syncytial virus%'",
+            "g.genome_name LIKE 'Human respiratory syncytial%'",
+            "g.genome_name LIKE 'Measles%'",
+            "g.genome_name LIKE 'Mumps%'",
+        ],
+        'exclude': [
+            "g.genome_name NOT LIKE '%Bovine%'",
+            "g.genome_name NOT LIKE '%bovine%'",
+            "g.genome_name NOT LIKE '%Porcine%'",
+            "g.genome_name NOT LIKE '%porcine%'",
+            "g.genome_name NOT LIKE '%Avian%'",
+            "g.genome_name NOT LIKE '%avian%'",
+        ],
+    },
+    'Picornaviridae': {
+        'include': [
+            "g.genome_name LIKE 'Enterovirus %'",
+            "g.genome_name LIKE 'Human enterovirus%'",
+            "g.genome_name LIKE 'Human rhinovirus%'",
+            "g.genome_name LIKE 'Rhinovirus %'",
+            "g.genome_name LIKE 'Hepatitis A virus%'",
+            "g.genome_name LIKE 'Aichivirus A%'",
+            "g.genome_name LIKE 'Human parechovirus%'",
+            "g.genome_name LIKE 'Salivirus%'",
+            "g.genome_name LIKE 'Cosavirus%'",
+            "g.genome_name LIKE 'Cardiovirus%'",
+        ],
+        'exclude': [
+            "g.genome_name NOT LIKE '%Possum%'",
+            "g.genome_name NOT LIKE '%possum%'",
+            "g.genome_name NOT LIKE '%Bovine%'",
+            "g.genome_name NOT LIKE '%bovine%'",
+            "g.genome_name NOT LIKE '%Porcine%'",
+            "g.genome_name NOT LIKE '%porcine%'",
+            "g.genome_name NOT LIKE '%Simian%'",
+            "g.genome_name NOT LIKE '%Aichivirus B%'",
+            "g.genome_name NOT LIKE '%Aichivirus C%'",
+        ],
+    },
+    'Astroviridae': {
+        'include': [
+            "g.genome_name LIKE 'Human astrovirus%'",
+            "g.genome_name LIKE 'Mamastrovirus 1%'",
+        ],
+        'exclude': [],
+    },
+    'Caliciviridae': {
+        'include': [
+            "g.genome_name LIKE '%Norovirus%'",
+            "g.genome_name LIKE '%Norwalk%'",
+            "g.genome_name LIKE '%Sapovirus%'",
+            "g.genome_name LIKE 'Human calicivirus%'",
+        ],
+        'exclude': [
+            "g.genome_name NOT LIKE '%Murine%'",
+            "g.genome_name NOT LIKE '%murine%'",
+            "g.genome_name NOT LIKE '%Bovine%'",
+            "g.genome_name NOT LIKE '%Porcine%'",
+            "g.genome_name NOT LIKE '%Feline%'",
+        ],
+    },
+    'Sedoreoviridae': {
+        'include': [
+            "g.genome_name LIKE 'Rotavirus A%'",
+            "g.genome_name LIKE 'Human rotavirus%'",
+        ],
+        'exclude': [],
+    },
+}
 
 
 @dataclass
@@ -79,8 +266,8 @@ COLLECTION_SPECS = {
             TaxonTarget('Podoviridae', 40, 'family'),    # 8%
             TaxonTarget('Microviridae', 50, 'family'),   # 10%
             TaxonTarget('Inoviridae', 15, 'family'),     # 3%
-            TaxonTarget('Adenoviridae', 10, 'family', genome_type='dsDNA'),  # 2%
-            TaxonTarget('Anelloviridae', 10, 'family', genome_type='ssDNA'), # 2%
+            TaxonTarget('Adenoviridae', 10, 'family', genome_type='dsDNA', human_only=True),  # 2%
+            TaxonTarget('Anelloviridae', 10, 'family', genome_type='ssDNA', human_only=True), # 2%
             TaxonTarget('Other', 15, 'any'),  # 3%
         ],
         abundance_model='mixed',
@@ -106,9 +293,9 @@ COLLECTION_SPECS = {
             TaxonTarget('Podoviridae', 30, 'family'),   # 15%
             TaxonTarget('Microviridae', 20, 'family'),  # 10%
             TaxonTarget('Inoviridae', 15, 'family'),    # 7.5%
-            TaxonTarget('Herpesviridae', 8, 'family', genome_type='dsDNA'),  # 4%
-            TaxonTarget('Papillomaviridae', 4, 'family', genome_type='dsDNA'), # 2%
-            TaxonTarget('Anelloviridae', 3, 'family', genome_type='ssDNA'),    # 1.5%
+            TaxonTarget('Herpesviridae', 8, 'family', genome_type='dsDNA', human_only=True),  # 4%
+            TaxonTarget('Papillomaviridae', 4, 'family', genome_type='dsDNA', human_only=True), # 2%
+            TaxonTarget('Anelloviridae', 3, 'family', genome_type='ssDNA', human_only=True),    # 1.5%
         ],
         abundance_model='log_normal',
         dominant_tier_count=5,
@@ -133,8 +320,8 @@ COLLECTION_SPECS = {
             TaxonTarget('Corynebacterium', 15, 'genus', host_filter='Corynebacterium'), # 10%
             TaxonTarget('Other_Caudoviricetes', 10, 'class'),  # 7%
             TaxonTarget('Microviridae', 8, 'family'),  # 5%
-            TaxonTarget('Papillomaviridae', 4, 'family', genome_type='dsDNA'), # 3%
-            TaxonTarget('Polyomaviridae', 3, 'family', genome_type='dsDNA'),  # 1%
+            TaxonTarget('Papillomaviridae', 4, 'family', genome_type='dsDNA', human_only=True), # 3%
+            TaxonTarget('Polyomaviridae', 3, 'family', genome_type='dsDNA', human_only=True),  # 1%
         ],
         abundance_model='power_law',
         dominant_tier_count=3,
@@ -159,11 +346,11 @@ COLLECTION_SPECS = {
             TaxonTarget('Myoviridae', 30, 'family'),    # 15%
             TaxonTarget('Podoviridae', 25, 'family'),   # 12.5%
             TaxonTarget('Microviridae', 20, 'family'),  # 10%
-            TaxonTarget('Adenoviridae', 10, 'family', genome_type='dsDNA'),  # 5%
-            TaxonTarget('Herpesviridae', 8, 'family', genome_type='dsDNA'),  # 4%
-            TaxonTarget('Orthomyxoviridae', 7, 'family', genome_type='ssRNA'), # 3.5%
-            TaxonTarget('Anelloviridae', 5, 'family', genome_type='ssDNA'),    # 2.5%
-            TaxonTarget('Coronaviridae', 5, 'family', genome_type='ssRNA'),    # 2.5%
+            TaxonTarget('Adenoviridae', 10, 'family', genome_type='dsDNA', human_only=True),  # 5%
+            TaxonTarget('Herpesviridae', 8, 'family', genome_type='dsDNA', human_only=True),  # 4%
+            TaxonTarget('Orthomyxoviridae', 7, 'family', genome_type='ssRNA', human_only=True), # 3.5%
+            TaxonTarget('Anelloviridae', 5, 'family', genome_type='ssDNA', human_only=True),    # 2.5%
+            TaxonTarget('Coronaviridae', 5, 'family', genome_type='ssRNA', human_only=True),    # 2.5%
         ],
         abundance_model='log_normal',
         dominant_tier_count=4,
@@ -358,6 +545,11 @@ class BodySiteCurator:
             cursor = conn.execute(query, (spec.collection_id, target.target_count))
             return [row['genome_id'] for row in cursor.fetchall()]
 
+        # If human_only and we have patterns for this family, use them
+        # instead of the generic taxonomy query
+        if target.human_only and target.taxon_name in HUMAN_VIRUS_PATTERNS:
+            return self._select_human_viruses(conn, target)
+
         # Build query based on rank
         if target.rank == 'order':
             taxonomy_field = 'order_name'
@@ -424,6 +616,50 @@ class BodySiteCurator:
 
                 cursor = conn.execute(query_broad, params_broad)
                 genomes = [row['genome_id'] for row in cursor.fetchall()]
+
+        return genomes
+
+    def _select_human_viruses(
+        self,
+        conn: sqlite3.Connection,
+        target: TaxonTarget,
+    ) -> List[str]:
+        """Select only human-infecting viruses using genome name patterns.
+
+        Uses HUMAN_VIRUS_PATTERNS to build a query that matches human
+        virus names and excludes animal/plant viruses. This replaces the
+        generic family-level query that previously pulled in non-human
+        viruses (bat adenovirus, penguin herpesvirus, etc.).
+        """
+        patterns = HUMAN_VIRUS_PATTERNS[target.taxon_name]
+
+        include_clauses = " OR ".join(patterns['include'])
+        query = f"""
+            SELECT g.genome_id, g.genome_name
+            FROM genomes g
+            LEFT JOIN taxonomy t ON g.genome_id = t.genome_id
+            WHERE ({include_clauses})
+        """
+
+        # Add exclude clauses
+        if patterns['exclude']:
+            exclude_clauses = " AND ".join(patterns['exclude'])
+            query += f" AND {exclude_clauses}"
+
+        # Add genome type filter if specified
+        if target.genome_type:
+            query += f" AND g.genome_type = '{target.genome_type}'"
+
+        query += " ORDER BY RANDOM()"
+
+        cursor = conn.execute(query)
+        genomes = [row['genome_id'] for row in cursor.fetchall()]
+
+        if len(genomes) < target.target_count:
+            logger.warning(
+                f"    human_only: found {len(genomes)}/{target.target_count} "
+                f"human viruses for {target.taxon_name}"
+            )
 
         return genomes
 

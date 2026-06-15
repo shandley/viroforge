@@ -105,12 +105,22 @@ class CFRespiratoryCurator:
         """
         logger.info("Selecting respiratory viruses...")
 
-        # Orthomyxoviridae (Influenza) - get all available (10 total after taxonomy fix)
+        # Orthomyxoviridae (Influenza) - human strains only
         query = """
         SELECT DISTINCT g.genome_id, g.genome_name, t.family, t.genus, t.species, g.length, g.gc_content
         FROM genomes g
         JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family = 'Orthomyxoviridae'
+          AND (g.genome_name LIKE 'Influenza A virus%'
+           OR g.genome_name LIKE 'Influenza B virus%'
+           OR g.genome_name LIKE 'Influenza C virus%')
+          AND g.genome_name NOT LIKE '%/Goose/%'
+          AND g.genome_name NOT LIKE '%/Duck/%'
+          AND g.genome_name NOT LIKE '%/Chicken/%'
+          AND g.genome_name NOT LIKE '%/Swine/%'
+          AND g.genome_name NOT LIKE '%/Mallard/%'
+          AND g.genome_name NOT LIKE '%/Turkey/%'
+          AND g.genome_name NOT LIKE '%/Equine/%'
         ORDER BY RANDOM()
         LIMIT ?
         """
@@ -144,12 +154,14 @@ class CFRespiratoryCurator:
         rsv = [dict(row) for row in self.conn.execute(query, (max(int(n_target * 0.2), 2),))]
         logger.info(f"  RSV: {len(rsv)}")
 
-        # Adenoviridae - 20%
+        # Adenoviridae - 20% (human strains only)
         query = """
         SELECT DISTINCT g.genome_id, g.genome_name, t.family, t.genus, t.species, g.length, g.gc_content
         FROM genomes g
         JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family = 'Adenoviridae'
+          AND (g.genome_name LIKE 'Human adenovirus%'
+           OR g.genome_name LIKE 'Human mastadenovirus%')
         ORDER BY RANDOM()
         LIMIT ?
         """

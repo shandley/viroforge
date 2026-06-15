@@ -70,15 +70,30 @@ class BloodViromeCurator:
         SELECT DISTINCT g.genome_id, g.genome_name, t.family, t.genus, t.species, g.length, g.gc_content
         FROM genomes g
         LEFT JOIN taxonomy t ON g.genome_id = t.genome_id
-        WHERE t.family = 'Anelloviridae'
-           OR g.genome_name LIKE '%Torque teno%'
-           OR g.genome_name LIKE '%TTV%'
+        WHERE (t.family = 'Anelloviridae'
+           OR g.genome_name LIKE 'Torque teno virus %'
+           OR g.genome_name LIKE 'Torque teno mini virus%'
+           OR g.genome_name LIKE 'Torque teno midi virus%')
+          AND g.genome_name NOT LIKE '%canis%'
+          AND g.genome_name NOT LIKE '%felis%'
+          AND g.genome_name NOT LIKE '%tamarin%'
+          AND g.genome_name NOT LIKE '%indri%'
+          AND g.genome_name NOT LIKE '%simian%'
+          AND g.genome_name NOT LIKE '%Simian%'
+          AND g.genome_name NOT LIKE '%porcine%'
+          AND g.genome_name NOT LIKE '%Porcine%'
+          AND g.genome_name NOT LIKE '%bovine%'
+          AND g.genome_name NOT LIKE '%Rodent%'
+          AND g.genome_name NOT LIKE '%rodent%'
+          AND g.genome_name NOT LIKE 'Chicken%'
+          AND g.genome_name NOT LIKE 'Avian%'
+          AND g.genome_name NOT LIKE 'Gyrovirus%'
         ORDER BY RANDOM()
         LIMIT ?
         """
 
         anelloviruses = [dict(row) for row in self.conn.execute(query, (n_target,))]
-        logger.info(f"  Anelloviridae: {len(anelloviruses)}")
+        logger.info(f"  Anelloviridae (human only): {len(anelloviruses)}")
 
         for av in anelloviruses:
             logger.info(f"    - {av['genome_name'][:60]}")
