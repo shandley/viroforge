@@ -277,6 +277,11 @@ class FASTQGenerator:
         Returns:
             Tuple of (sequence_records, abundances, enrichment_stats, contamination_profile)
         """
+        if not genomes:
+            raise ValueError(
+                "Collection contains 0 genomes. Check collection ID and database."
+            )
+
         logger.info(f"Preparing {len(genomes)} viral genomes...")
 
         # Convert genomes to viral sequences
@@ -914,6 +919,20 @@ class FASTQGenerator:
                     f"Very high read count requested ({n_reads:,}). "
                     f"Estimated output size: ~{(n_reads * read_length * 4 / 1e9):.1f} GB"
                 )
+
+        # Enforce minimum abundance floor so every genome gets at least a few reads.
+        # Without this, VLP enrichment + amplification bias can reduce rare genomes
+        # to zero abundance, causing ISS to skip them entirely.
+        min_abundance = 1e-6  # Floor: ~1 read per million
+        abundances_arr = np.array(abundances, dtype=float)
+        below_floor = abundances_arr < min_abundance
+        if np.any(below_floor & (abundances_arr > 0)):
+            n_boosted = int(np.sum(below_floor & (abundances_arr > 0)))
+            abundances_arr[below_floor & (abundances_arr > 0)] = min_abundance
+            abundances_arr /= abundances_arr.sum()
+            logger.info(f"Applied minimum abundance floor ({min_abundance}) to {n_boosted} "
+                       f"rare genomes to ensure read generation")
+            abundances = list(abundances_arr)
 
         # Create abundance file for ISS using actual genome IDs
         abundance_file = self.metadata_dir / f"{self.collection_name}_abundances.txt"
@@ -1676,6 +1695,26 @@ Examples:
     elif collection_defaults and collection_defaults.get('bacterial_pct', 0) > 0:
         logger.info(f"Bacterial background (collection default): {collection_defaults['bacterial_pct']:.1f}%")
 
+    # Validate that reference files exist for requested body sites
+    if collection_defaults and collection_defaults.get('bacterial_pct', 0) > 0:
+        from viroforge.data.references.resolver import get_bacterial_fragments_path
+        bact_site = collection_defaults.get('bacterial_body_site', 'gut_human')
+        if get_bacterial_fragments_path(bact_site) is None:
+            logger.warning(
+                f"Bacterial reference not found for '{bact_site}'. "
+                f"Run 'python scripts/build_bacterial_references.py --site {bact_site}' to generate. "
+                f"Bacterial background will be skipped."
+            )
+    if collection_defaults and collection_defaults.get('fungal_pct', 0) > 0:
+        from viroforge.data.references.resolver import get_fungal_fragments_path
+        fung_site = collection_defaults.get('fungal_body_site', 'gut_human')
+        if get_fungal_fragments_path(fung_site) is None:
+            logger.warning(
+                f"Fungal reference not found for '{fung_site}'. "
+                f"Run 'python scripts/build_fungal_references.py --site {fung_site}' to generate. "
+                f"Fungal background will be skipped."
+            )
+
     if args.fungal_fraction > 0:
         if collection_defaults is None:
             collection_defaults = {}
@@ -1989,6 +2028,12 @@ Examples:
             # Contaminant genomes
             for contaminant in contamination_profile.contaminants:
                 genome_source_map[contaminant.genome_id] = contaminant.contaminant_type.value
+
+            # Validate all sequences have source labels
+            unmapped = set(seq.id for seq in sequences) - set(genome_source_map.keys())
+            if unmapped:
+                logger.warning(f"{len(unmapped)} sequences missing source labels: "
+                             f"{list(unmapped)[:5]}")
 
             logger.info("Labeling read headers with source types...")
             label_fastq_headers(r1_path, genome_source_map)
