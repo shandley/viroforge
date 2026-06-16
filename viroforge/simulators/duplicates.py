@@ -62,34 +62,58 @@ def _compute_gc(seq: str) -> float:
 
 
 def _compute_pcr_bias_weights(
-    records: list[SeqRecord], rng: random.Random
+    records: list[SeqRecord], rng: random.Random,
+    amplification_method: str = "pcr",
 ) -> list[float]:
-    """Compute per-read PCR amplification bias weights.
+    """Compute per-read amplification bias weights.
 
-    Shorter fragments and moderate GC (40-55%) amplify more efficiently
-    in PCR, producing more duplicates. This models real PCR bias where
-    duplication is non-uniform across the library.
+    Different amplification methods have different bias profiles:
+    - PCR/Linker/RdAB: Moderate GC bias (optimal ~50%), mild length bias
+    - MDA (phi29): Extreme GC bias (optimal ~40%), strong stochasticity,
+      no length bias (isothermal, not cycle-dependent)
+
+    Args:
+        records: List of SeqRecord objects.
+        rng: Random number generator.
+        amplification_method: "pcr" (default) or "mda".
 
     Returns:
         List of weights (higher = more likely to be a template).
     """
     weights = []
-    for record in records:
-        seq = str(record.seq)
-        read_len = len(seq)
-        gc = _compute_gc(seq)
 
-        # GC bias: peak efficiency at ~50% GC, drops at extremes
-        # Gaussian centered at 0.50, sigma=0.15
-        gc_weight = 2.718 ** (-((gc - 0.50) ** 2) / (2 * 0.15 ** 2))
+    if amplification_method == "mda":
+        # MDA: phi29 polymerase, isothermal
+        # Extreme GC bias centered at 40% (phi29 optimal)
+        # No length bias (not PCR cycle-dependent)
+        # High stochasticity (log-normal multiplicative noise)
+        for record in records:
+            seq = str(record.seq)
+            gc = _compute_gc(seq)
 
-        # Length bias: shorter fragments amplify better
-        # Normalize read length (150bp typical); shorter = higher weight
-        len_weight = max(0.3, 1.0 - (read_len - 100) / 500)
+            # GC bias: steep penalty away from 40% optimal
+            gc_weight = 2.718 ** (-((gc - 0.40) ** 2) / (2 * 0.10 ** 2))
 
-        # Combined weight with some noise
-        weight = gc_weight * len_weight * rng.uniform(0.7, 1.3)
-        weights.append(max(0.01, weight))
+            # Strong stochastic variation (phi29 is highly variable)
+            stochastic_factor = rng.lognormvariate(0, 0.8)
+            weight = gc_weight * stochastic_factor
+            weights.append(max(0.001, weight))
+    else:
+        # PCR/Linker/RdAB: standard PCR bias
+        for record in records:
+            seq = str(record.seq)
+            read_len = len(seq)
+            gc = _compute_gc(seq)
+
+            # GC bias: peak efficiency at ~50% GC, drops at extremes
+            gc_weight = 2.718 ** (-((gc - 0.50) ** 2) / (2 * 0.15 ** 2))
+
+            # Length bias: shorter fragments amplify better
+            len_weight = max(0.3, 1.0 - (read_len - 100) / 500)
+
+            # Combined weight with some noise
+            weight = gc_weight * len_weight * rng.uniform(0.7, 1.3)
+            weights.append(max(0.01, weight))
 
     return weights
 
@@ -104,16 +128,25 @@ def add_pcr_duplicates(
     copy_distribution: str = "geometric",
     error_rate: float = 0.001,
     gc_length_bias: bool = True,
+    amplification_method: str = "pcr",
     random_seed: Optional[int] = None,
     in_place: bool = False,
     manifest_path: Optional[Path] = None,
 ) -> dict:
-    """Post-process FASTQ files to inject PCR duplicate read pairs.
+    """Post-process FASTQ files to inject duplicate read pairs.
 
     Selects a fraction of read pairs as "templates" and generates
     1 to max_copies duplicate copies of each. Copies are near-identical
-    with optional PCR error rate. Duplicates are shuffled throughout
-    the output file.
+    with optional polymerase error rate. Duplicates are shuffled
+    throughout the output file.
+
+    Behavior changes based on amplification_method:
+    - "pcr" (default): Geometric copy distribution, moderate GC/length
+      bias (Taq optimal ~50% GC), 0.001 error rate.
+    - "mda": Power-law copy distribution (heavy tail — few templates
+      massively over-amplified), extreme GC bias (phi29 optimal ~40%),
+      no length bias, 0.0001 error rate (phi29 high fidelity), higher
+      max_copies (up to 20).
 
     Args:
         r1_path: Path to R1 FASTQ file.
@@ -127,12 +160,17 @@ def add_pcr_duplicates(
             "geometric" (default): Most templates get 1 copy, few get many.
                 P(k copies) = (1-p)^(k-1) * p, where p=0.5.
             "uniform": Equal probability for 1 to max_copies.
+            "power_law": Heavy-tailed (MDA-like), few templates get
+                very many copies. P(k) proportional to k^(-alpha).
         error_rate: Per-base substitution rate in copies (default: 0.001).
-            Models PCR polymerase errors. Set to 0 for exact duplicates.
+            Models polymerase errors. phi29 (MDA) has ~10x lower error
+            rate than Taq (PCR).
         gc_length_bias: If True (default), weight template selection by
-            GC content and fragment length. Moderate GC and shorter
-            fragments are more likely to be duplicated, mimicking real
-            PCR amplification bias.
+            GC content and fragment length, adjusted for amplification
+            method.
+        amplification_method: "pcr" (default) or "mda". Adjusts bias
+            weights and copy distribution to match the amplification
+            chemistry.
         random_seed: Random seed for reproducibility.
         in_place: If True, modify files in place.
         manifest_path: If set, write a TSV manifest mapping copies to
@@ -150,11 +188,20 @@ def add_pcr_duplicates(
     if not (0.0 <= duplicate_rate <= 1.0):
         raise ValueError(f"duplicate_rate must be between 0 and 1, got {duplicate_rate}")
 
-    if copy_distribution not in ("geometric", "uniform"):
+    if copy_distribution not in ("geometric", "uniform", "power_law"):
         raise ValueError(
             f"Unknown copy_distribution: {copy_distribution}. "
-            f"Choose from: geometric, uniform"
+            f"Choose from: geometric, uniform, power_law"
         )
+
+    # Apply MDA-specific defaults if not explicitly overridden
+    if amplification_method == "mda":
+        if max_copies == 5:  # default, not user-set
+            max_copies = 20
+        if error_rate == 0.001:  # default, not user-set
+            error_rate = 0.0001  # phi29 has ~10x lower error rate
+        if copy_distribution == "geometric":  # default, not user-set
+            copy_distribution = "power_law"
 
     if duplicate_rate == 0.0:
         logger.info("Duplicate rate is 0, skipping")
@@ -176,10 +223,11 @@ def add_pcr_duplicates(
         output_r1 = output_r1 or r1_path.parent / f"{r1_path.stem}_dedup{r1_path.suffix}"
         output_r2 = output_r2 or r2_path.parent / f"{r2_path.stem}_dedup{r2_path.suffix}"
 
+    amp_label = "MDA (phi29)" if amplification_method == "mda" else "PCR"
     logger.info(
-        f"Injecting PCR duplicates ({duplicate_rate:.0%} template rate, "
-        f"max {max_copies} copies, {copy_distribution} distribution) "
-        f"into {r1_path.name}"
+        f"Injecting {amp_label} duplicates ({duplicate_rate:.0%} template rate, "
+        f"max {max_copies} copies, {copy_distribution} distribution, "
+        f"error rate {error_rate}) into {r1_path.name}"
     )
 
     r1_records = list(SeqIO.parse(r1_path, "fastq"))
@@ -196,7 +244,7 @@ def add_pcr_duplicates(
 
     # Select template indices (weighted by GC/length bias or uniform)
     if gc_length_bias and total_reads > 0:
-        weights = _compute_pcr_bias_weights(r1_records, rng)
+        weights = _compute_pcr_bias_weights(r1_records, rng, amplification_method)
         # Weighted sampling without replacement
         indices = list(range(total_reads))
         selected = []
@@ -235,6 +283,12 @@ def add_pcr_duplicates(
                 n_copies = 1
                 while n_copies < max_copies and rng.random() > 0.5:
                     n_copies += 1
+            elif copy_distribution == "power_law":
+                # Power-law (MDA-like): heavy tail, few templates get
+                # very many copies. Uses Zipf-like distribution.
+                # alpha=1.5 gives a heavy tail: most get 1-2, some get 10+
+                raw = int(rng.paretovariate(1.5))
+                n_copies = min(max(1, raw), max_copies)
             else:  # uniform
                 n_copies = rng.randint(1, max_copies)
 

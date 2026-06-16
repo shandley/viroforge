@@ -2173,12 +2173,15 @@ Examples:
             from viroforge.simulators.duplicates import add_pcr_duplicates
 
             dup_manifest = generator.metadata_dir / f"{collection_name}_duplicate_manifest.tsv"
+            # Map amplification method to duplicate behavior
+            dup_amp_method = "mda" if args.amplification in ("mda", "mda-long") else "pcr"
             dup_stats = add_pcr_duplicates(
                 r1_path=r1_path,
                 r2_path=r2_path,
                 duplicate_rate=args.duplicate_rate,
                 max_copies=args.duplicate_max_copies,
                 error_rate=args.duplicate_error_rate,
+                amplification_method=dup_amp_method,
                 random_seed=args.seed,
                 in_place=True,
                 manifest_path=dup_manifest,
