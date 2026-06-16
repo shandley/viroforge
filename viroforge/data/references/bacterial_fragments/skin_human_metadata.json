@@ -1,0 +1,99 @@
+{
+  "body_site": "skin_human",
+  "host_organism": "human",
+  "description": "Skin microbiome (sebaceous sites, Cutibacterium-dominated)",
+  "source": "Oh2014/Byrd2018",
+  "n_species": 11,
+  "n_fragments_total": 385,
+  "fragment_length": 50000,
+  "species": [
+    {
+      "species": "Cutibacterium acnes",
+      "accession": "GCF_000144405.1",
+      "abundance": 0.35,
+      "prevalence": 0.95,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Staphylococcus epidermidis",
+      "accession": "GCF_000007645.1",
+      "abundance": 0.15,
+      "prevalence": 0.9,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Staphylococcus aureus",
+      "accession": "GCF_000013425.1",
+      "abundance": 0.02,
+      "prevalence": 0.3,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Corynebacterium kroppenstedtii",
+      "accession": "GCF_000024185.1",
+      "abundance": 0.02,
+      "prevalence": 0.3,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Micrococcus luteus",
+      "accession": "GCF_000023205.1",
+      "abundance": 0.04,
+      "prevalence": 0.5,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Streptococcus mitis",
+      "accession": "GCF_000148585.2",
+      "abundance": 0.04,
+      "prevalence": 0.45,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Brevibacterium linens",
+      "accession": "GCF_000270005.1",
+      "abundance": 0.02,
+      "prevalence": 0.25,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Dermabacter hominis",
+      "accession": "GCF_000374645.1",
+      "abundance": 0.02,
+      "prevalence": 0.3,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Acinetobacter johnsonii",
+      "accession": "GCF_000368385.1",
+      "abundance": 0.03,
+      "prevalence": 0.35,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Enhydrobacter aerosaccus",
+      "accession": "GCF_000368565.1",
+      "abundance": 0.02,
+      "prevalence": 0.25,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Pseudomonas aeruginosa",
+      "accession": "GCF_000006765.1",
+      "abundance": 0.01,
+      "prevalence": 0.15,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    }
+  ]
+}

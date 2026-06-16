@@ -1,0 +1,18 @@
+species	accession	abundance	prevalence
+Streptococcus mitis	GCF_000148585.2	0.12	0.7
+Streptococcus pneumoniae	GCF_000006885.1	0.08	0.35
+Veillonella parvula	GCF_000024945.1	0.08	0.6
+Prevotella melaninogenica	GCF_000024805.1	0.08	0.55
+Haemophilus parainfluenzae	GCF_000191405.1	0.06	0.45
+Fusobacterium nucleatum	GCF_000007325.1	0.04	0.3
+Rothia mucilaginosa	GCF_000175615.1	0.06	0.5
+Neisseria subflava	GCF_001027105.1	0.04	0.35
+Gemella haemolysans	GCF_000186725.1	0.03	0.3
+Actinomyces naeslundii	GCF_000181595.1	0.03	0.25
+Moraxella catarrhalis	GCF_000092265.1	0.04	0.2
+Haemophilus influenzae	GCF_000027305.1	0.05	0.3
+Pseudomonas aeruginosa	GCF_000006765.1	0.03	0.1
+Staphylococcus aureus	GCF_000013425.1	0.03	0.15
+Tropheryma whipplei	GCF_000016285.1	0.04	0.2
+Cutibacterium acnes	GCF_000144405.1	0.05	0.4
+Corynebacterium pseudodiphtheriticum	GCF_000235185.1	0.03	0.25

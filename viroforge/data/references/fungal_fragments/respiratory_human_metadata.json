@@ -1,0 +1,99 @@
+{
+  "body_site": "respiratory_human",
+  "host_organism": "human",
+  "description": "Respiratory/lung mycobiome (Aspergillus + Candida)",
+  "source": "Nguyen2015",
+  "n_species": 11,
+  "n_fragments_total": 220,
+  "fragment_length": 50000,
+  "species": [
+    {
+      "species": "Aspergillus fumigatus",
+      "accession": "GCF_000002655.1",
+      "abundance": 0.2,
+      "prevalence": 0.35,
+      "n_fragments": 20,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Aspergillus niger",
+      "accession": "GCF_000002855.4",
+      "abundance": 0.08,
+      "prevalence": 0.2,
+      "n_fragments": 20,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Candida albicans",
+      "accession": "GCF_000182965.3",
+      "abundance": 0.2,
+      "prevalence": 0.5,
+      "n_fragments": 20,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Candida glabrata",
+      "accession": "GCF_000002545.3",
+      "abundance": 0.05,
+      "prevalence": 0.15,
+      "n_fragments": 20,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Cladosporium herbarum",
+      "accession": "GCF_013340325.1",
+      "abundance": 0.1,
+      "prevalence": 0.3,
+      "n_fragments": 20,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Penicillium rubens",
+      "accession": "GCF_000226395.1",
+      "abundance": 0.08,
+      "prevalence": 0.2,
+      "n_fragments": 20,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Saccharomyces cerevisiae",
+      "accession": "GCF_000146045.2",
+      "abundance": 0.05,
+      "prevalence": 0.15,
+      "n_fragments": 20,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Pneumocystis jirovecii",
+      "accession": "GCF_001477535.1",
+      "abundance": 0.08,
+      "prevalence": 0.15,
+      "n_fragments": 20,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Malassezia restricta",
+      "accession": "GCF_003290485.1",
+      "abundance": 0.04,
+      "prevalence": 0.1,
+      "n_fragments": 20,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Cryptococcus neoformans",
+      "accession": "GCF_000149245.1",
+      "abundance": 0.04,
+      "prevalence": 0.08,
+      "n_fragments": 20,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Fusarium oxysporum",
+      "accession": "GCF_013085055.1",
+      "abundance": 0.03,
+      "prevalence": 0.1,
+      "n_fragments": 20,
+      "fragment_length": 50000
+    }
+  ]
+}

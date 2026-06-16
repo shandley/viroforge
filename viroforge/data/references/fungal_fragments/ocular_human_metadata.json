@@ -1,0 +1,75 @@
+{
+  "body_site": "ocular_human",
+  "host_organism": "human",
+  "description": "Ocular mycobiome (periocular skin-like)",
+  "source": "Proxy: skin fungi",
+  "n_species": 8,
+  "n_fragments_total": 160,
+  "fragment_length": 50000,
+  "species": [
+    {
+      "species": "Malassezia restricta",
+      "accession": "GCF_003290485.1",
+      "abundance": 0.4,
+      "prevalence": 0.9,
+      "n_fragments": 20,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Malassezia globosa",
+      "accession": "GCF_000181695.1",
+      "abundance": 0.25,
+      "prevalence": 0.8,
+      "n_fragments": 20,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Candida albicans",
+      "accession": "GCF_000182965.3",
+      "abundance": 0.05,
+      "prevalence": 0.2,
+      "n_fragments": 20,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Cryptococcus neoformans",
+      "accession": "GCF_000149245.1",
+      "abundance": 0.03,
+      "prevalence": 0.1,
+      "n_fragments": 20,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Aspergillus niger",
+      "accession": "GCF_000002855.4",
+      "abundance": 0.03,
+      "prevalence": 0.1,
+      "n_fragments": 20,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Cladosporium herbarum",
+      "accession": "GCF_013340325.1",
+      "abundance": 0.04,
+      "prevalence": 0.15,
+      "n_fragments": 20,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Rhodotorula mucilaginosa",
+      "accession": "GCF_011057735.1",
+      "abundance": 0.03,
+      "prevalence": 0.1,
+      "n_fragments": 20,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Penicillium rubens",
+      "accession": "GCF_000226395.1",
+      "abundance": 0.02,
+      "prevalence": 0.08,
+      "n_fragments": 20,
+      "fragment_length": 50000
+    }
+  ]
+}

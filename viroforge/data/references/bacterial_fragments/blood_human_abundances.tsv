@@ -1,0 +1,12 @@
+species	accession	abundance	prevalence
+Escherichia coli	GCF_000005845.2	0.15	0.3
+Pseudomonas aeruginosa	GCF_000006765.1	0.08	0.15
+Acinetobacter baumannii	GCF_000746645.1	0.05	0.1
+Staphylococcus epidermidis	GCF_000007645.1	0.12	0.25
+Staphylococcus aureus	GCF_000013425.1	0.08	0.15
+Streptococcus mitis	GCF_000148585.2	0.08	0.2
+Enterococcus faecalis	GCF_000007785.1	0.05	0.1
+Cutibacterium acnes	GCF_000144405.1	0.12	0.25
+Bacteroides fragilis	GCF_000009925.1	0.06	0.1
+Klebsiella pneumoniae	GCF_000240185.1	0.05	0.1
+Serratia marcescens	GCF_000513215.1	0.03	0.05

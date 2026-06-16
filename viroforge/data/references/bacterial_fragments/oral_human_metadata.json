@@ -1,0 +1,139 @@
+{
+  "body_site": "oral_human",
+  "host_organism": "human",
+  "description": "Oral microbiome (saliva, Streptococcus-dominated)",
+  "source": "HOMD/HMP",
+  "n_species": 16,
+  "n_fragments_total": 560,
+  "fragment_length": 50000,
+  "species": [
+    {
+      "species": "Streptococcus mitis",
+      "accession": "GCF_000148585.2",
+      "abundance": 0.15,
+      "prevalence": 0.95,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Streptococcus salivarius",
+      "accession": "GCF_000014205.1",
+      "abundance": 0.08,
+      "prevalence": 0.85,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Streptococcus gordonii",
+      "accession": "GCF_000017005.1",
+      "abundance": 0.04,
+      "prevalence": 0.7,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Streptococcus parasanguinis",
+      "accession": "GCF_000227135.1",
+      "abundance": 0.03,
+      "prevalence": 0.65,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Haemophilus parainfluenzae",
+      "accession": "GCF_000191405.1",
+      "abundance": 0.06,
+      "prevalence": 0.8,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Neisseria subflava",
+      "accession": "GCF_001027105.1",
+      "abundance": 0.05,
+      "prevalence": 0.75,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Veillonella parvula",
+      "accession": "GCF_000024945.1",
+      "abundance": 0.05,
+      "prevalence": 0.85,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Veillonella dispar",
+      "accession": "GCF_000160055.1",
+      "abundance": 0.03,
+      "prevalence": 0.65,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Prevotella melaninogenica",
+      "accession": "GCF_000024805.1",
+      "abundance": 0.04,
+      "prevalence": 0.7,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Prevotella histicola",
+      "accession": "GCF_000382765.1",
+      "abundance": 0.02,
+      "prevalence": 0.5,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Rothia mucilaginosa",
+      "accession": "GCF_000175615.1",
+      "abundance": 0.04,
+      "prevalence": 0.75,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Actinomyces naeslundii",
+      "accession": "GCF_000181595.1",
+      "abundance": 0.03,
+      "prevalence": 0.65,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Gemella haemolysans",
+      "accession": "GCF_000186725.1",
+      "abundance": 0.02,
+      "prevalence": 0.55,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Fusobacterium nucleatum",
+      "accession": "GCF_000007325.1",
+      "abundance": 0.03,
+      "prevalence": 0.6,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Porphyromonas gingivalis",
+      "accession": "GCF_000010505.1",
+      "abundance": 0.015,
+      "prevalence": 0.3,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Granulicatella adiacens",
+      "accession": "GCF_000186165.1",
+      "abundance": 0.02,
+      "prevalence": 0.5,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    }
+  ]
+}

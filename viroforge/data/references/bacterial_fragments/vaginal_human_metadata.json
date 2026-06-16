@@ -1,0 +1,99 @@
+{
+  "body_site": "vaginal_human",
+  "host_organism": "human",
+  "description": "Vaginal microbiome (Lactobacillus-dominated, CST composite)",
+  "source": "Ravel2011/Fettweis2019",
+  "n_species": 11,
+  "n_fragments_total": 385,
+  "fragment_length": 50000,
+  "species": [
+    {
+      "species": "Lactobacillus iners",
+      "accession": "GCF_000160075.2",
+      "abundance": 0.25,
+      "prevalence": 0.85,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Gardnerella vaginalis",
+      "accession": "GCF_000025205.1",
+      "abundance": 0.05,
+      "prevalence": 0.6,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Prevotella bivia",
+      "accession": "GCF_000195635.1",
+      "abundance": 0.025,
+      "prevalence": 0.35,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Sneathia amnii",
+      "accession": "GCF_000759755.1",
+      "abundance": 0.015,
+      "prevalence": 0.2,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Megasphaera genomosp type 1",
+      "accession": "GCF_000284795.1",
+      "abundance": 0.01,
+      "prevalence": 0.15,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Mobiluncus curtisii",
+      "accession": "GCF_000154405.1",
+      "abundance": 0.01,
+      "prevalence": 0.15,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Streptococcus agalactiae",
+      "accession": "GCF_000196055.1",
+      "abundance": 0.02,
+      "prevalence": 0.25,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Enterococcus faecalis",
+      "accession": "GCF_000007785.1",
+      "abundance": 0.01,
+      "prevalence": 0.2,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Escherichia coli",
+      "accession": "GCF_000005845.2",
+      "abundance": 0.01,
+      "prevalence": 0.25,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Ureaplasma parvum",
+      "accession": "GCF_000006625.1",
+      "abundance": 0.015,
+      "prevalence": 0.3,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Mycoplasma hominis",
+      "accession": "GCF_000085865.1",
+      "abundance": 0.01,
+      "prevalence": 0.15,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    }
+  ]
+}

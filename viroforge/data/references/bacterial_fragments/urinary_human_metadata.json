@@ -1,0 +1,99 @@
+{
+  "body_site": "urinary_human",
+  "host_organism": "human",
+  "description": "Female urinary microbiome",
+  "source": "Hilt2014/Thomas-White2018",
+  "n_species": 11,
+  "n_fragments_total": 385,
+  "fragment_length": 50000,
+  "species": [
+    {
+      "species": "Lactobacillus iners",
+      "accession": "GCF_000160075.2",
+      "abundance": 0.12,
+      "prevalence": 0.5,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Lactobacillus gasseri",
+      "accession": "GCF_000014425.1",
+      "abundance": 0.05,
+      "prevalence": 0.25,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Gardnerella vaginalis",
+      "accession": "GCF_000025205.1",
+      "abundance": 0.08,
+      "prevalence": 0.4,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Streptococcus agalactiae",
+      "accession": "GCF_000196055.1",
+      "abundance": 0.06,
+      "prevalence": 0.25,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Staphylococcus epidermidis",
+      "accession": "GCF_000007645.1",
+      "abundance": 0.05,
+      "prevalence": 0.3,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Corynebacterium coyleae",
+      "accession": "GCF_000382825.1",
+      "abundance": 0.04,
+      "prevalence": 0.2,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Enterococcus faecalis",
+      "accession": "GCF_000007785.1",
+      "abundance": 0.05,
+      "prevalence": 0.25,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Escherichia coli",
+      "accession": "GCF_000005845.2",
+      "abundance": 0.06,
+      "prevalence": 0.3,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Prevotella bivia",
+      "accession": "GCF_000195635.1",
+      "abundance": 0.04,
+      "prevalence": 0.2,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Aerococcus urinae",
+      "accession": "GCF_000373925.1",
+      "abundance": 0.04,
+      "prevalence": 0.2,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Actinotignum schaalii",
+      "accession": "GCF_000382085.1",
+      "abundance": 0.03,
+      "prevalence": 0.15,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    }
+  ]
+}

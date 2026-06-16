@@ -1,0 +1,12 @@
+species	accession	abundance	prevalence
+Cutibacterium acnes	GCF_000144405.1	0.35	0.95
+Staphylococcus epidermidis	GCF_000007645.1	0.15	0.9
+Staphylococcus aureus	GCF_000013425.1	0.02	0.3
+Corynebacterium kroppenstedtii	GCF_000024185.1	0.02	0.3
+Micrococcus luteus	GCF_000023205.1	0.04	0.5
+Streptococcus mitis	GCF_000148585.2	0.04	0.45
+Brevibacterium linens	GCF_000270005.1	0.02	0.25
+Dermabacter hominis	GCF_000374645.1	0.02	0.3
+Acinetobacter johnsonii	GCF_000368385.1	0.03	0.35
+Enhydrobacter aerosaccus	GCF_000368565.1	0.02	0.25
+Pseudomonas aeruginosa	GCF_000006765.1	0.01	0.15

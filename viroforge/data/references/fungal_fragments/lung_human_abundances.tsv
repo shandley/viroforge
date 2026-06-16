@@ -1,0 +1,12 @@
+species	accession	abundance	prevalence
+Aspergillus fumigatus	GCF_000002655.1	0.2	0.35
+Aspergillus niger	GCF_000002855.4	0.08	0.2
+Candida albicans	GCF_000182965.3	0.2	0.5
+Candida glabrata	GCF_000002545.3	0.05	0.15
+Cladosporium herbarum	GCF_013340325.1	0.1	0.3
+Penicillium rubens	GCF_000226395.1	0.08	0.2
+Saccharomyces cerevisiae	GCF_000146045.2	0.05	0.15
+Pneumocystis jirovecii	GCF_001477535.1	0.08	0.15
+Malassezia restricta	GCF_003290485.1	0.04	0.1
+Cryptococcus neoformans	GCF_000149245.1	0.04	0.08
+Fusarium oxysporum	GCF_013085055.1	0.03	0.1

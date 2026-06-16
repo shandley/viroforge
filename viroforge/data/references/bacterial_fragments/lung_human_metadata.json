@@ -1,0 +1,147 @@
+{
+  "body_site": "lung_human",
+  "host_organism": "human",
+  "description": "Lower respiratory microbiome (aspiration-derived)",
+  "source": "Dickson2016/Segal2016",
+  "n_species": 17,
+  "n_fragments_total": 595,
+  "fragment_length": 50000,
+  "species": [
+    {
+      "species": "Streptococcus mitis",
+      "accession": "GCF_000148585.2",
+      "abundance": 0.12,
+      "prevalence": 0.7,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Streptococcus pneumoniae",
+      "accession": "GCF_000006885.1",
+      "abundance": 0.08,
+      "prevalence": 0.35,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Veillonella parvula",
+      "accession": "GCF_000024945.1",
+      "abundance": 0.08,
+      "prevalence": 0.6,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Prevotella melaninogenica",
+      "accession": "GCF_000024805.1",
+      "abundance": 0.08,
+      "prevalence": 0.55,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Haemophilus parainfluenzae",
+      "accession": "GCF_000191405.1",
+      "abundance": 0.06,
+      "prevalence": 0.45,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Fusobacterium nucleatum",
+      "accession": "GCF_000007325.1",
+      "abundance": 0.04,
+      "prevalence": 0.3,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Rothia mucilaginosa",
+      "accession": "GCF_000175615.1",
+      "abundance": 0.06,
+      "prevalence": 0.5,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Neisseria subflava",
+      "accession": "GCF_001027105.1",
+      "abundance": 0.04,
+      "prevalence": 0.35,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Gemella haemolysans",
+      "accession": "GCF_000186725.1",
+      "abundance": 0.03,
+      "prevalence": 0.3,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Actinomyces naeslundii",
+      "accession": "GCF_000181595.1",
+      "abundance": 0.03,
+      "prevalence": 0.25,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Moraxella catarrhalis",
+      "accession": "GCF_000092265.1",
+      "abundance": 0.04,
+      "prevalence": 0.2,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Haemophilus influenzae",
+      "accession": "GCF_000027305.1",
+      "abundance": 0.05,
+      "prevalence": 0.3,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Pseudomonas aeruginosa",
+      "accession": "GCF_000006765.1",
+      "abundance": 0.03,
+      "prevalence": 0.1,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Staphylococcus aureus",
+      "accession": "GCF_000013425.1",
+      "abundance": 0.03,
+      "prevalence": 0.15,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Tropheryma whipplei",
+      "accession": "GCF_000016285.1",
+      "abundance": 0.04,
+      "prevalence": 0.2,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Cutibacterium acnes",
+      "accession": "GCF_000144405.1",
+      "abundance": 0.05,
+      "prevalence": 0.4,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Corynebacterium pseudodiphtheriticum",
+      "accession": "GCF_000235185.1",
+      "abundance": 0.03,
+      "prevalence": 0.25,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    }
+  ]
+}

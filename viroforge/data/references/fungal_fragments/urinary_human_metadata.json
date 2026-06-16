@@ -1,0 +1,75 @@
+{
+  "body_site": "urinary_human",
+  "host_organism": "human",
+  "description": "Urinary mycobiome (Candida-dominated)",
+  "source": "Proxy: vaginal fungi",
+  "n_species": 8,
+  "n_fragments_total": 160,
+  "fragment_length": 50000,
+  "species": [
+    {
+      "species": "Candida albicans",
+      "accession": "GCF_000182965.3",
+      "abundance": 0.55,
+      "prevalence": 0.6,
+      "n_fragments": 20,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Candida glabrata",
+      "accession": "GCF_000002545.3",
+      "abundance": 0.15,
+      "prevalence": 0.2,
+      "n_fragments": 20,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Candida parapsilosis",
+      "accession": "GCF_000182765.1",
+      "abundance": 0.08,
+      "prevalence": 0.15,
+      "n_fragments": 20,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Candida tropicalis",
+      "accession": "GCF_000006335.3",
+      "abundance": 0.05,
+      "prevalence": 0.1,
+      "n_fragments": 20,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Saccharomyces cerevisiae",
+      "accession": "GCF_000146045.2",
+      "abundance": 0.05,
+      "prevalence": 0.15,
+      "n_fragments": 20,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Malassezia restricta",
+      "accession": "GCF_003290485.1",
+      "abundance": 0.03,
+      "prevalence": 0.1,
+      "n_fragments": 20,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Cladosporium herbarum",
+      "accession": "GCF_013340325.1",
+      "abundance": 0.03,
+      "prevalence": 0.1,
+      "n_fragments": 20,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Rhodotorula mucilaginosa",
+      "accession": "GCF_011057735.1",
+      "abundance": 0.02,
+      "prevalence": 0.08,
+      "n_fragments": 20,
+      "fragment_length": 50000
+    }
+  ]
+}

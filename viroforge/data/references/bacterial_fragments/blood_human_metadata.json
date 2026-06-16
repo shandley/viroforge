@@ -1,0 +1,99 @@
+{
+  "body_site": "blood_human",
+  "host_organism": "human",
+  "description": "Blood microbiome (low biomass, translocated species)",
+  "source": "Potgieter2015/Castillo2019",
+  "n_species": 11,
+  "n_fragments_total": 385,
+  "fragment_length": 50000,
+  "species": [
+    {
+      "species": "Escherichia coli",
+      "accession": "GCF_000005845.2",
+      "abundance": 0.15,
+      "prevalence": 0.3,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Pseudomonas aeruginosa",
+      "accession": "GCF_000006765.1",
+      "abundance": 0.08,
+      "prevalence": 0.15,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Acinetobacter baumannii",
+      "accession": "GCF_000746645.1",
+      "abundance": 0.05,
+      "prevalence": 0.1,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Staphylococcus epidermidis",
+      "accession": "GCF_000007645.1",
+      "abundance": 0.12,
+      "prevalence": 0.25,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Staphylococcus aureus",
+      "accession": "GCF_000013425.1",
+      "abundance": 0.08,
+      "prevalence": 0.15,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Streptococcus mitis",
+      "accession": "GCF_000148585.2",
+      "abundance": 0.08,
+      "prevalence": 0.2,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Enterococcus faecalis",
+      "accession": "GCF_000007785.1",
+      "abundance": 0.05,
+      "prevalence": 0.1,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Cutibacterium acnes",
+      "accession": "GCF_000144405.1",
+      "abundance": 0.12,
+      "prevalence": 0.25,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Bacteroides fragilis",
+      "accession": "GCF_000009925.1",
+      "abundance": 0.06,
+      "prevalence": 0.1,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Klebsiella pneumoniae",
+      "accession": "GCF_000240185.1",
+      "abundance": 0.05,
+      "prevalence": 0.1,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    },
+    {
+      "species": "Serratia marcescens",
+      "accession": "GCF_000513215.1",
+      "abundance": 0.03,
+      "prevalence": 0.05,
+      "n_fragments": 35,
+      "fragment_length": 50000
+    }
+  ]
+}
