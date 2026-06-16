@@ -372,3 +372,200 @@ def add_pcr_duplicates(
         "copy_count_distribution": copy_count_dist,
         "duplicate_fraction": dup_fraction,
     }
+
+
+def add_mda_chimeras(
+    r1_path: Path,
+    r2_path: Path,
+    chimera_rate: float = 0.15,
+    random_seed: Optional[int] = None,
+    in_place: bool = False,
+    manifest_path: Optional[Path] = None,
+) -> dict:
+    """Inject MDA chimeric reads into FASTQ files.
+
+    MDA (phi29) creates chimeric artifacts when the polymerase
+    displaces a growing strand and the displaced strand re-primes
+    on a different template or region. The result is a read where
+    the first portion comes from one genomic location and the
+    second portion comes from another.
+
+    Types of chimeras modeled:
+    - Inter-genomic: Two halves from different genomes (most common)
+    - Intra-genomic: Two halves from different regions of the same
+      genome (inverted or direct)
+
+    Chimeric reads are created by joining the first half of one read
+    with the second half of another read. The junction point varies
+    randomly (not always at the midpoint).
+
+    Args:
+        r1_path: Path to R1 FASTQ file.
+        r2_path: Path to R2 FASTQ file.
+        chimera_rate: Fraction of reads to replace with chimeras
+            (0.0-0.3, default 0.15). Literature: 5-30% for MDA.
+        random_seed: Random seed for reproducibility.
+        in_place: If True, modify files in place.
+        manifest_path: If set, write a TSV manifest of chimeric reads.
+
+    Returns:
+        Dict with statistics:
+            - reads_total: Total reads in file
+            - chimeras_created: Number of chimeric reads injected
+            - chimera_fraction: Fraction of output that are chimeras
+            - inter_genomic: Count of inter-genomic chimeras
+            - intra_genomic: Count of intra-genomic chimeras
+    """
+    if not (0.0 <= chimera_rate <= 1.0):
+        raise ValueError(f"chimera_rate must be 0-1, got {chimera_rate}")
+
+    if chimera_rate == 0.0:
+        return {
+            "reads_total": 0, "chimeras_created": 0,
+            "chimera_fraction": 0.0,
+            "inter_genomic": 0, "intra_genomic": 0,
+        }
+
+    rng = random.Random(random_seed)
+
+    logger.info(
+        f"Injecting MDA chimeras ({chimera_rate:.0%} rate) into {r1_path.name}"
+    )
+
+    r1_records = list(SeqIO.parse(r1_path, "fastq"))
+    r2_records = list(SeqIO.parse(r2_path, "fastq"))
+
+    if len(r1_records) != len(r2_records):
+        raise ValueError(
+            f"R1 and R2 have different read counts: "
+            f"{len(r1_records)} vs {len(r2_records)}"
+        )
+
+    total_reads = len(r1_records)
+    n_chimeras = int(total_reads * chimera_rate)
+
+    if n_chimeras == 0 or total_reads < 2:
+        return {
+            "reads_total": total_reads, "chimeras_created": 0,
+            "chimera_fraction": 0.0,
+            "inter_genomic": 0, "intra_genomic": 0,
+        }
+
+    # Parse genome IDs from read headers to distinguish inter vs intra
+    def _get_genome_id(record):
+        """Extract genome ID from ISS read header."""
+        rid = record.id
+        parts = rid.rsplit('_', 2)
+        return parts[0] if len(parts) >= 3 else rid
+
+    # Select reads to replace with chimeras
+    chimera_indices = set(rng.sample(range(total_reads), min(n_chimeras, total_reads)))
+
+    manifest_rows = []
+    inter_count = 0
+    intra_count = 0
+
+    for idx in chimera_indices:
+        # Pick a random donor read (different from this one)
+        donor_idx = idx
+        while donor_idx == idx:
+            donor_idx = rng.randint(0, total_reads - 1)
+
+        r1_target = r1_records[idx]
+        r1_donor = r1_records[donor_idx]
+        r2_target = r2_records[idx]
+        r2_donor = r2_records[donor_idx]
+
+        read_len = len(r1_target.seq)
+
+        # Junction point: varies randomly, weighted toward center
+        # (branch migration more likely in middle of displaced strand)
+        junction = int(rng.gauss(read_len * 0.5, read_len * 0.15))
+        junction = max(10, min(junction, read_len - 10))
+
+        # Create chimeric R1: first part from target, second from donor
+        chimera_seq = str(r1_target.seq[:junction]) + str(r1_donor.seq[junction:])
+        chimera_qual = (
+            r1_target.letter_annotations["phred_quality"][:junction]
+            + r1_donor.letter_annotations["phred_quality"][junction:]
+        )
+
+        target_genome = _get_genome_id(r1_target)
+        donor_genome = _get_genome_id(r1_donor)
+        is_inter = target_genome != donor_genome
+
+        if is_inter:
+            inter_count += 1
+        else:
+            intra_count += 1
+
+        chimera_tag = (
+            f"mda_chimera=true junction={junction} "
+            f"donor={r1_donor.id} type={'inter' if is_inter else 'intra'}"
+        )
+
+        # Replace R1 with chimera
+        r1_records[idx] = SeqRecord(
+            Seq(chimera_seq),
+            id=r1_target.id,
+            name=r1_target.name,
+            description=f"{r1_target.description} {chimera_tag}".strip(),
+        )
+        r1_records[idx].letter_annotations["phred_quality"] = chimera_qual
+
+        # R2 stays as-is (chimera affects one end of the insert)
+        # But tag it for ground truth
+        r2_desc = f"{r2_target.description} mda_chimera_mate=true".strip()
+        r2_records[idx] = SeqRecord(
+            r2_target.seq,
+            id=r2_target.id,
+            name=r2_target.name,
+            description=r2_desc,
+        )
+        r2_records[idx].letter_annotations["phred_quality"] = (
+            r2_target.letter_annotations["phred_quality"]
+        )
+
+        manifest_rows.append({
+            "chimera_read_id": r1_target.id,
+            "target_genome": target_genome,
+            "donor_genome": donor_genome,
+            "junction_pos": junction,
+            "chimera_type": "inter_genomic" if is_inter else "intra_genomic",
+        })
+
+    # Write output
+    output_r1 = r1_path if in_place else r1_path.parent / f"{r1_path.stem}_chimera{r1_path.suffix}"
+    output_r2 = r2_path if in_place else r2_path.parent / f"{r2_path.stem}_chimera{r2_path.suffix}"
+
+    SeqIO.write(r1_records, output_r1, "fastq")
+    SeqIO.write(r2_records, output_r2, "fastq")
+
+    # Write manifest
+    if manifest_path and manifest_rows:
+        with open(manifest_path, "w") as f:
+            f.write("chimera_read_id\ttarget_genome\tdonor_genome\t"
+                    "junction_pos\tchimera_type\n")
+            for row in manifest_rows:
+                f.write(
+                    f"{row['chimera_read_id']}\t{row['target_genome']}\t"
+                    f"{row['donor_genome']}\t{row['junction_pos']}\t"
+                    f"{row['chimera_type']}\n"
+                )
+        logger.info(f"Wrote chimera manifest: {manifest_path}")
+
+    chimera_fraction = len(chimera_indices) / total_reads
+
+    logger.info(
+        f"MDA chimera injection complete: {len(chimera_indices)} chimeras "
+        f"({chimera_fraction:.1%}), {inter_count} inter-genomic, "
+        f"{intra_count} intra-genomic"
+    )
+
+    return {
+        "reads_total": total_reads,
+        "chimeras_created": len(chimera_indices),
+        "chimera_fraction": chimera_fraction,
+        "inter_genomic": inter_count,
+        "intra_genomic": intra_count,
+    }
