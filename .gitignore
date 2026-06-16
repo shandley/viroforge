@@ -80,6 +80,10 @@ htmlcov/
 !viroforge/data/references/bacterial_fragments/*.fasta
 !viroforge/data/references/fungal_fragments/*.fasta
 
+# Downloaded genome caches (regenerate with build scripts)
+viroforge/data/references/bacterial_fragments/genome_cache/
+viroforge/data/references/fungal_fragments/genome_cache/
+
 # Output directories
 output/
 results/

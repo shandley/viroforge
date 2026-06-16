@@ -1,8 +1,8 @@
 {
-  "body_site": "gut",
+  "body_site": "gut_human",
   "host_organism": "human",
   "description": "Common human gut fungi (mycobiome)",
-  "source": "Nash et al. 2017, Sokol et al. 2017",
+  "source": "Nash2017/Sokol2017",
   "n_species": 12,
   "n_fragments_total": 240,
   "fragment_length": 50000,

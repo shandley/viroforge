@@ -445,7 +445,10 @@ class FASTQGenerator:
         collection_defaults: Optional[Dict] = None,
     ) -> Tuple[List[SeqRecord], List[float], Dict, ContaminationProfile]:
         """
-        Apply VLP enrichment protocol with size-based enrichment and contamination reduction.
+        Apply VLP enrichment protocol following real lab workflow order.
+
+        Real lab order: sample contains contamination → VLP filtration
+        removes contaminants and applies size bias to viruses → combine.
 
         Args:
             viral_sequences: Viral genome SeqRecords
@@ -466,6 +469,34 @@ class FASTQGenerator:
             'norgen': VLPProtocol.norgen_kit()
         }
 
+        # Build 0.45μm and 0.1μm variants from base protocols
+        tff_045 = VLPProtocol.tangential_flow_standard()
+        tff_045.name = "Tangential Flow Filtration (0.45 \u03bcm)"
+        tff_045.pore_size_um = 0.45
+        tff_045.prefiltration_pore_size_um = 0.80
+        tff_045.retention_curve_steepness = 0.006
+        tff_045.contamination_reduction = 0.80
+        tff_045.recovery_rate = 0.90
+        protocol_map['tangential_flow_045'] = tff_045
+
+        tff_01 = VLPProtocol.tangential_flow_standard()
+        tff_01.name = "Tangential Flow Filtration (0.1 \u03bcm)"
+        tff_01.pore_size_um = 0.1
+        tff_01.prefiltration_pore_size_um = 0.22
+        tff_01.retention_curve_steepness = 0.012
+        tff_01.contamination_reduction = 0.98
+        tff_01.recovery_rate = 0.75
+        protocol_map['tangential_flow_01'] = tff_01
+
+        syr_045 = VLPProtocol.syringe_filter_standard()
+        syr_045.name = "Syringe Filter (0.45 \u03bcm)"
+        syr_045.pore_size_um = 0.45
+        syr_045.prefiltration_pore_size_um = 0.80
+        syr_045.retention_curve_steepness = 0.008
+        syr_045.contamination_reduction = 0.70
+        syr_045.recovery_rate = 0.70
+        protocol_map['syringe_045'] = syr_045
+
         if vlp_protocol not in protocol_map:
             raise ValueError(
                 f"Unknown VLP protocol: {vlp_protocol}. "
@@ -480,15 +511,9 @@ class FASTQGenerator:
             random_seed=self.random_seed
         )
 
-        # Apply size-based enrichment to viral genomes
-        logger.info(f"Applying size-based viral enrichment (read_type={read_type})...")
-        enriched_viral_abundances, viral_stats = vlp.apply_enrichment(
-            genomes=genomes,
-            abundances=viral_abundances,
-            read_type=read_type
-        )
-
-        # Create contamination profile (RNA or DNA specific)
+        # Step 1: Create contamination profile BEFORE VLP
+        # In real lab protocols, the sample already contains host DNA, rRNA,
+        # bacteria, etc. VLP enrichment is specifically done to remove them.
         logger.info(f"Creating contamination profile: {contamination_level} ({self.molecule_type.upper()})")
         if self.molecule_type == 'rna':
             contam_profile = create_rna_contamination_profile(
@@ -506,13 +531,22 @@ class FASTQGenerator:
                 collection_defaults=collection_defaults,
             )
 
-        # Apply contamination reduction
+        # Step 2: Apply VLP enrichment to viral genomes (size-based filtering)
+        logger.info(f"Applying size-based viral enrichment (read_type={read_type})...")
+        enriched_viral_abundances, viral_stats = vlp.apply_enrichment(
+            genomes=genomes,
+            abundances=viral_abundances,
+            read_type=read_type
+        )
+
+        # Step 3: Apply VLP contamination reduction
+        # VLP filtration + nuclease treatment removes most contaminants
         logger.info("Applying VLP contamination reduction...")
         reduced_contam_profile, contam_stats = vlp.apply_contamination_reduction(
             contam_profile
         )
 
-        # Combine viral genomes + reduced contamination
+        # Step 4: Combine VLP-enriched viruses + VLP-reduced contaminants
         sequences, abundances = self._combine_viral_and_contamination(
             viral_sequences,
             enriched_viral_abundances,
@@ -1294,7 +1328,8 @@ Examples:
 
     parser.add_argument(
         '--vlp-protocol',
-        choices=['tangential_flow', 'syringe', 'ultracentrifugation', 'norgen'],
+        choices=['tangential_flow', 'tangential_flow_045', 'tangential_flow_01',
+                 'syringe', 'syringe_045', 'ultracentrifugation', 'norgen'],
         default='tangential_flow',
         help='VLP enrichment protocol (default: tangential_flow)'
     )
@@ -1595,8 +1630,29 @@ Examples:
     vlp_protocol = None if args.no_vlp else args.vlp_protocol
     use_real = not args.no_real_contaminants
     # Extract collection-specific contamination defaults (if available)
+    # Map collection IDs to bacterial/fungal body site identifiers
+    # for site-appropriate background contamination
+    COLLECTION_BODY_SITE_MAP = {
+        1: 'gut_human',         # Gut Virome - Adult Healthy
+        2: 'oral_human',        # Oral Virome - Saliva
+        3: 'skin_human',        # Skin Virome - Sebaceous
+        4: 'respiratory_human', # Respiratory Virome - Nasopharynx
+        8: 'gut_human',         # Mouse Gut (use human gut as proxy)
+        9: 'gut_human',         # Wastewater (gut-derived enteric)
+        10: 'gut_human',        # IBD Gut Virome
+        11: 'gut_human',        # HIV+ Gut Virome
+        12: 'respiratory_human',# CF Respiratory Virome
+        13: 'respiratory_human',# Human Respiratory RNA Virome
+        15: 'gut_human',        # Fecal RNA Virome
+        16: 'vaginal_human',    # Vaginal Virome
+        17: 'blood_human',      # Blood/Plasma Virome
+        18: 'ocular_human',     # Ocular Surface Virome
+        19: 'lung_human',       # Lower Respiratory (Lung) Virome
+        20: 'urinary_human',    # Urinary Virome
+    }
     collection_defaults = None
     if collection_meta.get('default_host_dna_pct') is not None:
+        body_site_key = COLLECTION_BODY_SITE_MAP.get(args.collection_id, 'gut_human')
         collection_defaults = {
             'host_dna_pct': collection_meta['default_host_dna_pct'],
             'rrna_pct': collection_meta.get('default_rrna_pct', 5.0),
@@ -1605,6 +1661,8 @@ Examples:
             'host_organism': collection_meta.get('host_organism', 'human'),
             'bacterial_pct': collection_meta.get('default_bacterial_pct', 0.0),
             'fungal_pct': collection_meta.get('default_fungal_pct', 0.0),
+            'bacterial_body_site': body_site_key,
+            'fungal_body_site': body_site_key,
         }
         logger.info(f"Using collection-specific contamination defaults: {collection_defaults}")
 

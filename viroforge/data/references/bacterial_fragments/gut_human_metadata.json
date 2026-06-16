@@ -1,5 +1,5 @@
 {
-  "body_site": "gut",
+  "body_site": "gut_human",
   "host_organism": "human",
   "description": "Top 50 human gut bacteria (healthy Western diet)",
   "source": "MetaHIT/HMP2/UHGG",
