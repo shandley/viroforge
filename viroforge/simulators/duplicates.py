@@ -61,6 +61,115 @@ def _compute_gc(seq: str) -> float:
     return gc / len(seq) if len(seq) > 0 else 0.5
 
 
+def _extract_genome_and_index(record_id: str):
+    """Extract genome ID and read index from ISS read header.
+
+    ISS format: {genome_id}_{read_index}_{pair}/{read}
+    e.g., GCF_000882635.1_9203_0/1 -> ("GCF_000882635.1", 9203)
+    """
+    import re
+    m = re.match(r'((?:GCF_\d+\.\d+|[a-zA-Z_]+\d+))_(\d+)_\d+/\d+', record_id)
+    if m:
+        return m.group(1), int(m.group(2))
+    # Fallback: try splitting
+    parts = record_id.rsplit('_', 2)
+    if len(parts) >= 3:
+        try:
+            return parts[0], int(parts[1])
+        except ValueError:
+            pass
+    return record_id, 0
+
+
+def _compute_mda_hotspot_weights(
+    records: list[SeqRecord], rng: random.Random,
+    n_hotspots_per_genome: int = 8,
+    hotspot_width: float = 0.05,
+) -> list[float]:
+    """Compute MDA priming hotspot weights for within-genome clustering.
+
+    In real MDA, phi29 uses random hexamer primers. Some genomic regions
+    have more favorable priming sites, creating amplification hotspots
+    where coverage is 10-100x higher than cold spots.
+
+    This function:
+    1. Groups reads by genome
+    2. Places random priming hotspots along each genome
+    3. Weights reads by proximity to nearest hotspot
+    4. Combines with GC bias and stochastic noise
+
+    Args:
+        records: List of SeqRecord objects.
+        rng: Random number generator.
+        n_hotspots_per_genome: Number of priming hotspots per genome
+            (default 8). More hotspots = more even coverage.
+        hotspot_width: Width of hotspot influence as fraction of genome
+            index range (default 0.05 = 5%). Narrower = sharper peaks.
+
+    Returns:
+        List of weights (higher = more likely to be a template).
+    """
+    # Group reads by genome and extract positional indices
+    genome_reads = {}  # genome_id -> [(list_index, read_index)]
+    for i, record in enumerate(records):
+        genome_id, read_idx = _extract_genome_and_index(record.id)
+        if genome_id not in genome_reads:
+            genome_reads[genome_id] = []
+        genome_reads[genome_id].append((i, read_idx))
+
+    weights = [0.0] * len(records)
+
+    for genome_id, read_list in genome_reads.items():
+        if not read_list:
+            continue
+
+        # Get the range of read indices for this genome
+        indices = [idx for _, idx in read_list]
+        min_idx = min(indices)
+        max_idx = max(indices)
+        idx_range = max(max_idx - min_idx, 1)
+
+        # Place random priming hotspots along the genome
+        # Scale hotspots to number based on genome size (more reads = larger genome)
+        n_hotspots = max(3, min(n_hotspots_per_genome, len(read_list) // 50))
+        hotspot_positions = [rng.uniform(0, 1) for _ in range(n_hotspots)]
+
+        # Hotspot intensities: not all hotspots are equal
+        # Some are strong priming sites, others weak
+        hotspot_intensities = [rng.lognormvariate(0, 1.0) for _ in range(n_hotspots)]
+
+        # Width in index space
+        width = hotspot_width * idx_range
+
+        for list_idx, read_idx in read_list:
+            # Normalize read position to [0, 1]
+            norm_pos = (read_idx - min_idx) / idx_range if idx_range > 0 else 0.5
+
+            # Compute hotspot proximity weight: sum of Gaussian contributions
+            # from all hotspots
+            hotspot_weight = 0.0
+            for hp, intensity in zip(hotspot_positions, hotspot_intensities):
+                dist = abs(norm_pos - hp)
+                # Wrap-around for circular genomes
+                dist = min(dist, 1.0 - dist)
+                hotspot_weight += intensity * 2.718 ** (-(dist ** 2) / (2 * (hotspot_width ** 2)))
+
+            # Add baseline weight (even cold regions get some amplification)
+            hotspot_weight = max(0.1, hotspot_weight)
+
+            # GC bias (phi29 optimal at 40%)
+            gc = _compute_gc(str(records[list_idx].seq))
+            gc_weight = 2.718 ** (-((gc - 0.40) ** 2) / (2 * 0.10 ** 2))
+
+            # Stochastic noise
+            stochastic = rng.lognormvariate(0, 0.5)
+
+            weight = hotspot_weight * gc_weight * stochastic
+            weights[list_idx] = max(0.001, weight)
+
+    return weights
+
+
 def _compute_pcr_bias_weights(
     records: list[SeqRecord], rng: random.Random,
     amplification_method: str = "pcr",
@@ -70,7 +179,8 @@ def _compute_pcr_bias_weights(
     Different amplification methods have different bias profiles:
     - PCR/Linker/RdAB: Moderate GC bias (optimal ~50%), mild length bias
     - MDA (phi29): Extreme GC bias (optimal ~40%), strong stochasticity,
-      no length bias (isothermal, not cycle-dependent)
+      within-genome hotspot clustering (reads near priming hotspots are
+      much more likely to be duplicated)
 
     Args:
         records: List of SeqRecord objects.
@@ -80,40 +190,25 @@ def _compute_pcr_bias_weights(
     Returns:
         List of weights (higher = more likely to be a template).
     """
-    weights = []
-
     if amplification_method == "mda":
-        # MDA: phi29 polymerase, isothermal
-        # Extreme GC bias centered at 40% (phi29 optimal)
-        # No length bias (not PCR cycle-dependent)
-        # High stochasticity (log-normal multiplicative noise)
-        for record in records:
-            seq = str(record.seq)
-            gc = _compute_gc(seq)
+        return _compute_mda_hotspot_weights(records, rng)
 
-            # GC bias: steep penalty away from 40% optimal
-            gc_weight = 2.718 ** (-((gc - 0.40) ** 2) / (2 * 0.10 ** 2))
+    # PCR/Linker/RdAB: standard PCR bias
+    weights = []
+    for record in records:
+        seq = str(record.seq)
+        read_len = len(seq)
+        gc = _compute_gc(seq)
 
-            # Strong stochastic variation (phi29 is highly variable)
-            stochastic_factor = rng.lognormvariate(0, 0.8)
-            weight = gc_weight * stochastic_factor
-            weights.append(max(0.001, weight))
-    else:
-        # PCR/Linker/RdAB: standard PCR bias
-        for record in records:
-            seq = str(record.seq)
-            read_len = len(seq)
-            gc = _compute_gc(seq)
+        # GC bias: peak efficiency at ~50% GC, drops at extremes
+        gc_weight = 2.718 ** (-((gc - 0.50) ** 2) / (2 * 0.15 ** 2))
 
-            # GC bias: peak efficiency at ~50% GC, drops at extremes
-            gc_weight = 2.718 ** (-((gc - 0.50) ** 2) / (2 * 0.15 ** 2))
+        # Length bias: shorter fragments amplify better
+        len_weight = max(0.3, 1.0 - (read_len - 100) / 500)
 
-            # Length bias: shorter fragments amplify better
-            len_weight = max(0.3, 1.0 - (read_len - 100) / 500)
-
-            # Combined weight with some noise
-            weight = gc_weight * len_weight * rng.uniform(0.7, 1.3)
-            weights.append(max(0.01, weight))
+        # Combined weight with some noise
+        weight = gc_weight * len_weight * rng.uniform(0.7, 1.3)
+        weights.append(max(0.01, weight))
 
     return weights
 
