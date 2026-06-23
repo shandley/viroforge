@@ -2208,8 +2208,10 @@ Examples:
                     metadata = json.load(f)
                 metadata["duplicate_stats"] = {
                     "duplicate_rate": args.duplicate_rate,
-                    "max_copies": args.duplicate_max_copies,
-                    "error_rate": args.duplicate_error_rate,
+                    "max_copies": dup_stats.get("max_copies_used", args.duplicate_max_copies),
+                    "error_rate": dup_stats.get("error_rate_used", args.duplicate_error_rate),
+                    "amplification_method": dup_stats.get("amplification_method", "pcr"),
+                    "copy_distribution": dup_stats.get("copy_distribution", "geometric"),
                     "reads_original": dup_stats["reads_original"],
                     "reads_output": dup_stats["reads_output"],
                     "templates": dup_stats["templates"],

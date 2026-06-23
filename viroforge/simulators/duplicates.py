@@ -371,6 +371,10 @@ def add_pcr_duplicates(
         "copies_generated": total_copies,
         "copy_count_distribution": copy_count_dist,
         "duplicate_fraction": dup_fraction,
+        "max_copies_used": max_copies,
+        "error_rate_used": error_rate,
+        "amplification_method": amplification_method,
+        "copy_distribution": copy_distribution,
     }
 
 
