@@ -199,6 +199,10 @@ class DatasetValidator:
             self.log_error(f"Invalid JSON: {e}")
             return None
 
+        # Metadata v1.1 renamed 'genomes' to 'sequences'; alias for compatibility
+        if 'genomes' not in metadata and 'sequences' in metadata:
+            metadata['genomes'] = metadata['sequences']
+
         # Check required fields
         required_fields = ['genomes']  # Minimal required field
         missing = [f for f in required_fields if f not in metadata]
