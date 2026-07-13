@@ -364,9 +364,24 @@ class FASTQGenerator:
             if total > 0:
                 viral_abundances = viral_abundances / total
 
+            # Rebuild genome metadata list to mirror post-RNA-workflow sequences.
+            # VLP apply_enrichment requires a list parallel to viral_sequences
+            # (uses 'length' and 'genome_type' per entry). RNA degradation can
+            # fragment a genome into multiple shorter sequences, changing the count.
+            genome_meta_map = {g['genome_id']: g for g in genomes}
+            genomes = []
+            for seq_record in viral_sequences:
+                parent_id = seq_record.id.split('_frag')[0]
+                parent_meta = genome_meta_map.get(parent_id, {})
+                genomes.append({
+                    **parent_meta,
+                    'genome_id': seq_record.id,
+                    'length': len(seq_record.seq),
+                })
+
             logger.info(
                 f"RNA workflow complete: {len(viral_sequences)} sequences "
-                f"(was {len(genomes)})"
+                f"(was {len(genome_meta_map)})"
             )
             logger.info("=" * 80)
 
