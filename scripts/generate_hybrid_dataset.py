@@ -74,7 +74,7 @@ def create_hybrid_metadata(args, short_output, long_output, output_dir):
     metadata = {
         "hybrid_dataset": True,
         "generation_timestamp": datetime.now().isoformat(),
-        "viroforge_version": "0.9.0",
+        "viroforge_version": "0.12.0",
         "random_seed": args.seed,
         "collection": {
             "id": args.collection_id
@@ -103,7 +103,7 @@ def create_hybrid_metadata(args, short_output, long_output, output_dir):
         },
         "usage": {
             "unicycler_example": f"unicycler -1 {short_output}/fastq/*_R1.fastq -2 {short_output}/fastq/*_R2.fastq -l {long_output}/fastq/*.fastq* -o results/unicycler",
-            "spades_example": f"spades.py --meta -1 {short_output}/fastq/*_R1.fastq -2 {short_output}/fastq/*_R2.fastq --pacbio {long_output}/fastq/*.fastq* -o results/spades"
+            "spades_example": f"spades.py --meta -1 {short_output}/fastq/*_R1.fastq -2 {short_output}/fastq/*_R2.fastq --{'pacbio' if args.long_platform == 'pacbio-hifi' else 'nanopore'} {long_output}/fastq/*.fastq* -o results/spades"
         }
     }
 
@@ -323,7 +323,7 @@ Contamination:        {args.contamination_level}
     # Step 1: Generate SHORT-READ dataset
     # ========================================================================
     short_cmd = [
-        'python3', str(generator_script),
+        sys.executable, str(generator_script),
         '--collection-id', str(args.collection_id),
         '--output', str(short_output),
         '--platform', args.short_platform,
@@ -351,7 +351,7 @@ Contamination:        {args.contamination_level}
     # Step 2: Generate LONG-READ dataset
     # ========================================================================
     long_cmd = [
-        'python3', str(generator_script),
+        sys.executable, str(generator_script),
         '--collection-id', str(args.collection_id),
         '--output', str(long_output),
         '--platform', args.long_platform,
