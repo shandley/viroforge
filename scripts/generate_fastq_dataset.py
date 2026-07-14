@@ -477,18 +477,25 @@ class FASTQGenerator:
         # Map protocol name to VLPProtocol
         protocol_map = {
             'tangential_flow': VLPProtocol.tangential_flow_standard(),
+            'tangential_flow_045': VLPProtocol.tangential_flow_045(),
+            'tangential_flow_01': VLPProtocol.tangential_flow_01(),
             'syringe': VLPProtocol.syringe_filter_standard(),
+            'syringe_045': VLPProtocol.syringe_filter_045(),
             'ultracentrifugation': VLPProtocol.ultracentrifugation(),
             'norgen': VLPProtocol.norgen_kit()
         }
 
-        if vlp_protocol not in protocol_map:
+        # Check for dynamically registered custom pore size configs
+        custom_configs = getattr(self, '_custom_vlp_configs', {})
+        if vlp_protocol in custom_configs:
+            protocol_config = custom_configs[vlp_protocol]
+        elif vlp_protocol not in protocol_map:
             raise ValueError(
                 f"Unknown VLP protocol: {vlp_protocol}. "
                 f"Choose from: {', '.join(protocol_map.keys())}"
             )
-
-        protocol_config = protocol_map[vlp_protocol]
+        else:
+            protocol_config = protocol_map[vlp_protocol]
 
         # Initialize VLP enrichment
         vlp = VLPEnrichment(
@@ -1296,9 +1303,25 @@ Examples:
 
     parser.add_argument(
         '--vlp-protocol',
-        choices=['tangential_flow', 'syringe', 'ultracentrifugation', 'norgen'],
+        choices=['tangential_flow', 'tangential_flow_045', 'tangential_flow_01',
+                 'syringe', 'syringe_045',
+                 'ultracentrifugation', 'norgen'],
         default='tangential_flow',
-        help='VLP enrichment protocol (default: tangential_flow)'
+        help='VLP enrichment protocol (default: tangential_flow). '
+             'Filtration pore sizes: tangential_flow=0.2um, '
+             'tangential_flow_045=0.45um (giant viruses), '
+             'tangential_flow_01=0.1um (tight, phage-focused), '
+             'syringe=0.2um, syringe_045=0.45um. '
+             'Or use --pore-size for custom values.'
+    )
+
+    parser.add_argument(
+        '--pore-size',
+        type=float,
+        default=None,
+        help='Custom filtration pore size in micrometers (overrides protocol default). '
+             'Common values: 0.1, 0.2, 0.22, 0.45. '
+             'Only applies to filtration protocols (tangential_flow, syringe).'
     )
 
     parser.add_argument(
@@ -1574,6 +1597,32 @@ Examples:
 
     # Prepare genomes with VLP enrichment
     vlp_protocol = None if args.no_vlp else args.vlp_protocol
+
+    # Handle custom pore size override — map to matching protocol variant
+    if args.pore_size is not None and vlp_protocol is not None:
+        base = vlp_protocol.split('_0')[0]  # Strip existing pore size suffix
+        if base in ('tangential_flow', 'syringe'):
+            pore_map = {0.1: '_01', 0.2: '', 0.22: '', 0.45: '_045'}
+            suffix = pore_map.get(args.pore_size)
+            if suffix is not None:
+                vlp_protocol = base + suffix
+                logger.info(f"Pore size {args.pore_size} μm → protocol: {vlp_protocol}")
+            else:
+                # For non-standard pore sizes, dynamically create a config
+                # and register it in the protocol map
+                from viroforge.enrichment.vlp import VLPProtocol as _VLP
+                custom_config = _VLP.with_custom_pore_size(base, args.pore_size)
+                custom_key = f"{base}_custom"
+                # Monkey-patch: we'll add it to the map inside _apply_vlp_enrichment
+                # by setting vlp_protocol to the custom key and storing the config
+                vlp_protocol = custom_key
+                generator._custom_vlp_configs = getattr(generator, '_custom_vlp_configs', {})
+                generator._custom_vlp_configs[custom_key] = custom_config
+                logger.info(f"Custom pore size: {args.pore_size} μm for {base}")
+        else:
+            logger.warning(f"--pore-size ignored: only applies to tangential_flow or syringe, "
+                         f"not {vlp_protocol}")
+
     use_real = not args.no_real_contaminants
 
     # Build ERV kwargs if any ERV rates are specified

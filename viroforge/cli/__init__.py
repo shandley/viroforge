@@ -119,8 +119,16 @@ For more information: https://github.com/hecatomb/viroforge
     )
     generate_parser.add_argument(
         '--vlp-protocol',
-        choices=['tangential_flow', 'syringe', 'ultracentrifugation', 'norgen'],
-        help='VLP enrichment protocol (default: tangential_flow)'
+        choices=['tangential_flow', 'tangential_flow_045', 'tangential_flow_01',
+                 'syringe', 'syringe_045',
+                 'ultracentrifugation', 'norgen'],
+        help='VLP enrichment protocol (default: tangential_flow). '
+             'Pore sizes: 0.2um (default), _045=0.45um, _01=0.1um'
+    )
+    generate_parser.add_argument(
+        '--pore-size',
+        type=float,
+        help='Custom pore size in um (overrides protocol default)'
     )
     generate_parser.add_argument(
         '--no-vlp',

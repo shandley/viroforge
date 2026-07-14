@@ -127,6 +127,8 @@ def generate_with_params(args):
         params['contamination_level'] = args.contamination_level
     if getattr(args, 'vlp_protocol', None):
         params['vlp_protocol'] = args.vlp_protocol
+    if getattr(args, 'pore_size', None):
+        params['pore_size'] = args.pore_size
     if getattr(args, 'no_vlp', False):
         params['no_vlp'] = True
 
@@ -334,6 +336,9 @@ def build_command(script_path: Path, params: Dict) -> List[str]:
         cmd.append('--no-vlp')
     elif 'vlp_protocol' in params:
         cmd.extend(['--vlp-protocol', params['vlp_protocol']])
+
+    if 'pore_size' in params:
+        cmd.extend(['--pore-size', str(params['pore_size'])])
 
     if 'contamination_level' in params:
         cmd.extend(['--contamination-level', params['contamination_level']])
