@@ -969,6 +969,16 @@ The vaginal virome is an understudied but clinically important microbial communi
 - **Herpesviruses**: Moderate prevalence (HSV-1, HSV-2, CMV, EBV)
 - **Lactobacillus phages**: Reflect dominance of vaginal Lactobacillus (L. crispatus, L. iners, L. jensenii, L. gasseri)
 
+> **Known Limitation — Proxy Phages**: The Lactobacillus phages in this
+> collection are from RefSeq and mostly originate from dairy/food species
+> (L. plantarum, L. delbrueckii, L. casei), not vaginal species. Only ~1
+> phage (Lv-1) is from a vaginal L. jensenii isolate. No L. crispatus or
+> L. iners phages exist in RefSeq. No Gardnerella/Prevotella phages are
+> available, preventing CST IV (BV) virome modeling. The collection is
+> biologically plausible at the family level but not species-specific.
+> CST support is deferred until vaginal-specific phage genomes become
+> available in public databases.
+
 ### Implementation Details
 
 **Genome Selection**:

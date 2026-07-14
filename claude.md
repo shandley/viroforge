@@ -395,6 +395,23 @@ sqlite3 viroforge/data/viral_genomes.db \
   Illumina spike-in control. Including it as a natural virus causes QC tools
   that remove PhiX to also remove "natural" community reads.
 
+**Vaginal Virome: Proxy Phages from Dairy/Food Lactobacillus (2026-06-02)**
+- The vaginal virome collection (Collection 16) uses Lactobacillus phages from
+  RefSeq as proxies for vaginal Lactobacillus phages. However, nearly all 60
+  Lactobacillus phages in RefSeq infect dairy/food species (L. plantarum,
+  L. delbrueckii, L. casei), not vaginal species (L. crispatus, L. iners,
+  L. gasseri, L. jensenii).
+- Only ~1 phage (Lv-1, infecting L. jensenii) is from a vaginal isolate.
+- No Gardnerella, Prevotella, Atopobium, or Sneathia phages exist in RefSeq,
+  preventing accurate modeling of CST IV (bacterial vaginosis) communities.
+- Impact: The vaginal virome is biologically plausible at the family level
+  (Lactobacillus phages dominate, HPV present) but not species-specific.
+  Benchmarking results for vaginal datasets should note this limitation.
+- CST (Community State Type) modeling is deferred until vaginal-specific
+  phage genomes become available in public databases (RefSeq, INPHARED, GPD).
+- Reference: Lv-1 vaginal phage (Lactobacillus jensenii) described in
+  Miller-Ensminger et al. 2020 (PLOS One, PMC7289420).
+
 ---
 
 ## Recent Bug Fixes (2025-11-16)

@@ -14,6 +14,21 @@ Represents DNA virome of healthy vaginal microbiome (cervicovaginal samples).
 Bacteriophages dominate (~80% of reads), Lactobacillus phages reflect dominance
 of vaginal Lactobacillus (L. crispatus, L. iners, L. jensenii, L. gasseri).
 
+KNOWN LIMITATION - Proxy Phages:
+  The Lactobacillus phages used in this collection are from RefSeq and mostly
+  originate from dairy/food Lactobacillus species (L. plantarum, L. delbrueckii,
+  L. casei), NOT from vaginal Lactobacillus species. Only ~1 phage (Lv-1) is
+  from a vaginal L. jensenii isolate. No L. crispatus, L. iners, or L. gasseri
+  phages are available in RefSeq. No Gardnerella or Prevotella phages exist
+  in RefSeq, preventing CST IV (BV/dysbiotic) virome modeling.
+
+  The collection is biologically plausible at the family level (Lactobacillus
+  phages dominate healthy vaginal viromes) but not species-specific. Users
+  should note this when interpreting benchmarking results.
+
+  CST (Community State Type) support is planned for when vaginal-specific
+  phage genomes become available in public databases.
+
 Literature basis:
 - Wylie et al. 2014 (BMC Biol): Metagenomic analysis of dsDNA viruses
 - Dols et al. 2016: Vaginal virome and bacterial vaginosis
