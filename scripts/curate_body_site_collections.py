@@ -39,6 +39,7 @@ class TaxonTarget:
     rank: str  # 'family', 'genus', 'species', etc.
     host_filter: Optional[str] = None
     genome_type: Optional[str] = None  # 'dsDNA', 'ssRNA', etc.
+    body_site_filter: Optional[str] = None  # Filter by host_associations.association_type
 
 
 @dataclass
@@ -74,11 +75,11 @@ COLLECTION_SPECS = {
         phage_fraction=0.96,
         composition=[
             TaxonTarget('Crassvirales', 150, 'order'),  # 30%
-            TaxonTarget('Siphoviridae', 140, 'family'),  # 28%
-            TaxonTarget('Myoviridae', 70, 'family'),     # 14%
-            TaxonTarget('Podoviridae', 40, 'family'),    # 8%
-            TaxonTarget('Microviridae', 50, 'family'),   # 10%
-            TaxonTarget('Inoviridae', 15, 'family'),     # 3%
+            TaxonTarget('Siphoviridae', 140, 'family', body_site_filter='gut'),  # 28%
+            TaxonTarget('Myoviridae', 70, 'family', body_site_filter='gut'),     # 14%
+            TaxonTarget('Podoviridae', 40, 'family', body_site_filter='gut'),    # 8%
+            TaxonTarget('Microviridae', 50, 'family', body_site_filter='gut'),   # 10%
+            TaxonTarget('Inoviridae', 15, 'family', body_site_filter='gut'),     # 3%
             TaxonTarget('Adenoviridae', 10, 'family', genome_type='dsDNA'),  # 2%
             TaxonTarget('Anelloviridae', 10, 'family', genome_type='ssDNA'), # 2%
             TaxonTarget('Other', 15, 'any'),  # 3%
@@ -101,11 +102,11 @@ COLLECTION_SPECS = {
         target_size=200,
         phage_fraction=0.925,
         composition=[
-            TaxonTarget('Siphoviridae', 80, 'family'),  # 40%
-            TaxonTarget('Myoviridae', 40, 'family'),    # 20%
-            TaxonTarget('Podoviridae', 30, 'family'),   # 15%
-            TaxonTarget('Microviridae', 20, 'family'),  # 10%
-            TaxonTarget('Inoviridae', 15, 'family'),    # 7.5%
+            TaxonTarget('Siphoviridae', 80, 'family', body_site_filter='oral'),  # 40%
+            TaxonTarget('Myoviridae', 40, 'family', body_site_filter='oral'),    # 20%
+            TaxonTarget('Podoviridae', 30, 'family', body_site_filter='oral'),   # 15%
+            TaxonTarget('Microviridae', 20, 'family', body_site_filter='oral'),  # 10%
+            TaxonTarget('Inoviridae', 15, 'family', body_site_filter='oral'),    # 7.5%
             TaxonTarget('Herpesviridae', 8, 'family', genome_type='dsDNA'),  # 4%
             TaxonTarget('Papillomaviridae', 4, 'family', genome_type='dsDNA'), # 2%
             TaxonTarget('Anelloviridae', 3, 'family', genome_type='ssDNA'),    # 1.5%
@@ -155,10 +156,10 @@ COLLECTION_SPECS = {
         phage_fraction=0.875,
         composition=[
             TaxonTarget('Cutibacterium', 40, 'genus', host_filter='Cutibacterium'),  # 20%
-            TaxonTarget('Siphoviridae', 50, 'family'),  # 25%
-            TaxonTarget('Myoviridae', 30, 'family'),    # 15%
-            TaxonTarget('Podoviridae', 25, 'family'),   # 12.5%
-            TaxonTarget('Microviridae', 20, 'family'),  # 10%
+            TaxonTarget('Siphoviridae', 50, 'family', body_site_filter='respiratory'),  # 25%
+            TaxonTarget('Myoviridae', 30, 'family', body_site_filter='respiratory'),    # 15%
+            TaxonTarget('Podoviridae', 25, 'family', body_site_filter='respiratory'),   # 12.5%
+            TaxonTarget('Microviridae', 20, 'family', body_site_filter='respiratory'),  # 10%
             TaxonTarget('Adenoviridae', 10, 'family', genome_type='dsDNA'),  # 5%
             TaxonTarget('Herpesviridae', 8, 'family', genome_type='dsDNA'),  # 4%
             TaxonTarget('Orthomyxoviridae', 7, 'family', genome_type='ssRNA'), # 3.5%
@@ -253,10 +254,10 @@ COLLECTION_SPECS = {
         phage_fraction=0.90,
         composition=[
             TaxonTarget('Lactobacillus', 45, 'genus', host_filter='Lactobacillus'),  # 30%
-            TaxonTarget('Siphoviridae', 45, 'family'),  # 30%
-            TaxonTarget('Myoviridae', 23, 'family'),    # 15%
-            TaxonTarget('Podoviridae', 15, 'family'),   # 10%
-            TaxonTarget('Microviridae', 7, 'family'),   # 5%
+            TaxonTarget('Siphoviridae', 45, 'family', body_site_filter='gut'),  # 30%
+            TaxonTarget('Myoviridae', 23, 'family', body_site_filter='gut'),    # 15%
+            TaxonTarget('Podoviridae', 15, 'family', body_site_filter='gut'),   # 10%
+            TaxonTarget('Microviridae', 7, 'family', body_site_filter='gut'),   # 5%
             TaxonTarget('Murine_viruses', 15, 'any', host_filter='Mus'),  # 10%
         ],
         abundance_model='log_normal',
@@ -385,7 +386,7 @@ class BodySiteCurator:
             query += " AND g.genome_type = ?"
             params.append(target.genome_type)
 
-        # Add host filter if specified
+        # Add host filter if specified (filter by host genus name)
         if target.host_filter:
             query += """
                 AND EXISTS (
@@ -395,6 +396,17 @@ class BodySiteCurator:
                 )
             """
             params.append(f"%{target.host_filter}%")
+
+        # Add body site filter if specified (filter by association_type from host_associations)
+        if target.body_site_filter:
+            query += """
+                AND EXISTS (
+                    SELECT 1 FROM host_associations h
+                    WHERE h.genome_id = g.genome_id
+                    AND h.association_type LIKE ?
+                )
+            """
+            params.append(f"%{target.body_site_filter}%")
 
         query += " ORDER BY RANDOM()"
 
