@@ -308,7 +308,36 @@ def add_low_complexity_reads(
     n_to_modify = int(total_reads * rate)
     read_length = len(r1_records[0].seq) if r1_records else 150
 
-    modify_indices = set(rng.sample(range(total_reads), min(n_to_modify, total_reads)))
+    # Protect rare genomes: identify genomes with very few reads and
+    # exclude their indices from the replacement pool. This prevents
+    # artifact injection from wiping out all reads from rare genomes.
+    min_reads_to_protect = 50  # Genomes with fewer reads are protected
+    genome_read_counts: dict[str, int] = {}
+    genome_read_indices: dict[str, list[int]] = {}
+    for i, r1 in enumerate(r1_records):
+        # Parse genome ID from ISS header: @{genome_id}_{index}_{pair}
+        read_id = r1.id
+        parts = read_id.rsplit('_', 2)
+        genome_id = parts[0] if len(parts) >= 3 else read_id
+        genome_read_counts[genome_id] = genome_read_counts.get(genome_id, 0) + 1
+        if genome_id not in genome_read_indices:
+            genome_read_indices[genome_id] = []
+        genome_read_indices[genome_id].append(i)
+
+    protected_indices = set()
+    for genome_id, count in genome_read_counts.items():
+        if count < min_reads_to_protect:
+            protected_indices.update(genome_read_indices[genome_id])
+
+    # Sample from non-protected indices only
+    eligible_indices = [i for i in range(total_reads) if i not in protected_indices]
+    n_to_modify = min(n_to_modify, len(eligible_indices))
+    modify_indices = set(rng.sample(eligible_indices, n_to_modify))
+
+    if protected_indices:
+        n_protected_genomes = sum(1 for g, c in genome_read_counts.items() if c < min_reads_to_protect)
+        logger.info(f"Protected {len(protected_indices)} reads from {n_protected_genomes} "
+                   f"rare genomes (<{min_reads_to_protect} reads each)")
 
     modified_r1 = []
     modified_r2 = []
