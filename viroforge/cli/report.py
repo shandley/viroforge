@@ -156,18 +156,26 @@ def show_platform_info(metadata: Dict):
     table.add_column("Property", style="cyan")
     table.add_column("Value")
 
+    # v1.1: platform name is in configuration.platform
+    # v1.0: platform name is in platform.name
     if 'platform' in metadata:
         platform = metadata['platform']
         table.add_row("Platform", platform.get('name', 'Unknown').upper())
-
         if 'read_type' in platform:
             table.add_row("Read Type", platform['read_type'])
+    elif 'configuration' in metadata and 'platform' in metadata['configuration']:
+        platform_name = metadata['configuration']['platform'].upper()
+        table.add_row("Platform", platform_name)
+        read_type = 'long' if platform_name.lower() in ['pacbio-hifi', 'nanopore'] else 'short'
+        table.add_row("Read Type", f"paired-end {read_type}" if read_type == 'short' else read_type)
 
     # Configuration
     if 'configuration' in metadata:
         config = metadata['configuration']
 
-        if 'target_coverage' in config:
+        if 'coverage' in config:
+            table.add_row("Target Coverage", f"{config['coverage']}x")
+        elif 'target_coverage' in config:
             table.add_row("Target Coverage", f"{config['target_coverage']}x")
         elif 'target_depth' in config:
             table.add_row("Target Depth", f"{config['target_depth']}x")
@@ -189,7 +197,7 @@ def show_composition_summary(metadata: Dict, dataset_path: Path):
     composition = load_composition_file(dataset_path)
 
     if composition is not None:
-        viral_count = len([g for g in composition if g.get('genome_type') == 'viral'])
+        viral_count = len([g for g in composition if g.get('sequence_type', g.get('genome_type')) == 'viral'])
         total_count = len(composition)
 
         console.print(f"  Total genomes: [green]{total_count}[/green]")
@@ -387,7 +395,7 @@ def generate_html_report_content(metadata: Dict, dataset_path: Path, composition
     top_genomes_html = ""
 
     if composition:
-        viral_count = len([g for g in composition if g.get('genome_type') == 'viral'])
+        viral_count = len([g for g in composition if g.get('sequence_type', g.get('genome_type')) == 'viral'])
         total_count = len(composition)
 
         # Get viral fraction from enrichment_stats
