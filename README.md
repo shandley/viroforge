@@ -34,6 +34,8 @@ ViroForge requires external tools depending on which sequencing platform you wan
 | Oxford Nanopore | PBSIM3 | `conda install -c bioconda pbsim3` |
 | PacBio HiFi | PBSIM3, samtools, pbccs | `conda install -c bioconda pbsim3 samtools pbccs` |
 
+**Note**: `pbccs` (the PacBio CCS tool) is only available for **Linux x86-64**. It does not support macOS ARM (Apple Silicon) or other architectures. If you need PacBio HiFi generation, run ViroForge on a Linux x86-64 machine or cluster.
+
 ViroForge will check for these tools before starting generation and tell you what to install if anything is missing. See [Long-Read Tutorial](docs/LONGREAD_TUTORIAL.md) for details.
 
 For the web interface:
