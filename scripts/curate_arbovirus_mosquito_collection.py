@@ -23,6 +23,7 @@ Date: 2025-11-09
 """
 
 import sqlite3
+import random
 import numpy as np
 from pathlib import Path
 from typing import List, Dict
@@ -38,6 +39,8 @@ class ArbovirusCurator:
     def __init__(self, db_path: str = 'viroforge/data/viral_genomes.db'):
         self.db_path = db_path
         self.conn = sqlite3.connect(db_path)
+        # Seeded, reproducible replacement for SQLite's unseeded RANDOM().
+        self.conn.create_function("seeded_rand", 0, random.Random(42).random)
         self.conn.row_factory = sqlite3.Row
         self.random_seed = 42
         np.random.seed(self.random_seed)
@@ -71,7 +74,7 @@ class ArbovirusCurator:
            OR g.genome_name LIKE '%Tick-borne encephalitis%'
            OR g.genome_name LIKE '%encephalitis virus%'
            OR t.genus = 'Flavivirus')
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -107,7 +110,7 @@ class ArbovirusCurator:
            OR g.genome_name LIKE '%O%nyong-nyong%'
            OR g.genome_name LIKE '%Mayaro%'
            OR t.genus = 'Alphavirus')
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -142,7 +145,7 @@ class ArbovirusCurator:
            OR g.genome_name LIKE '%California encephalitis%'
            OR g.genome_name LIKE '%Hantavirus%'
            OR g.genome_name LIKE '%Bunyamwera%')
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -185,7 +188,7 @@ class ArbovirusCurator:
             OR t.family = 'Iflaviridae'
             OR t.family = 'Mesoniviridae'
         )
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 

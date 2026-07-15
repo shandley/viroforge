@@ -26,6 +26,7 @@ Applications: Ophthalmology, infectious keratitis diagnosis, ocular health
 """
 
 import sqlite3
+import random
 import logging
 from pathlib import Path
 from typing import List, Dict
@@ -46,6 +47,8 @@ class OcularViromeCurator:
         """Initialize connection to viral genomes database."""
         db_path = Path(__file__).parent.parent / "viroforge" / "data" / "viral_genomes.db"
         self.conn = sqlite3.connect(db_path)
+        # Seeded, reproducible replacement for SQLite's unseeded RANDOM().
+        self.conn.create_function("seeded_rand", 0, random.Random(42).random)
         self.conn.row_factory = sqlite3.Row
         logger.info(f"Connected to database: {db_path}")
 
@@ -68,7 +71,7 @@ class OcularViromeCurator:
         WHERE t.family = 'Anelloviridae'
            OR g.genome_name LIKE '%Torque teno%'
            OR g.genome_name LIKE '%TTV%'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -98,7 +101,7 @@ class OcularViromeCurator:
         LEFT JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family = 'Adenoviridae'
            AND g.genome_name LIKE '%Human adenovirus%'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -137,7 +140,7 @@ class OcularViromeCurator:
            OR g.genome_name LIKE '%Human gammaherpesvirus 4%'    -- EBV alternate name
            OR g.genome_name LIKE '%Human herpesvirus 5%'         -- CMV
            OR g.genome_name LIKE '%Human betaherpesvirus 5%')    -- CMV alternate name
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -166,7 +169,7 @@ class OcularViromeCurator:
         LEFT JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family = 'Polyomaviridae'
            AND g.genome_name LIKE '%Merkel cell polyomavirus%'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -195,7 +198,7 @@ class OcularViromeCurator:
         LEFT JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family = 'Papillomaviridae'
            AND g.genome_name LIKE '%Human papillomavirus%'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -224,7 +227,7 @@ class OcularViromeCurator:
         LEFT JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE g.genome_name LIKE '%Staphylococcus phage%'
            OR g.genome_name LIKE '%Staphylococcus virus%'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -255,7 +258,7 @@ class OcularViromeCurator:
            OR g.genome_name LIKE '%Propionibacterium virus%'
            OR g.genome_name LIKE '%Cutibacterium phage%'
            OR g.genome_name LIKE '%Cutibacterium virus%'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -283,7 +286,7 @@ class OcularViromeCurator:
         LEFT JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE g.genome_name LIKE '%Corynebacterium phage%'
            OR g.genome_name LIKE '%Corynebacterium virus%'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 

@@ -21,6 +21,7 @@ Date: 2025-11-09
 """
 
 import sqlite3
+import random
 import numpy as np
 from pathlib import Path
 from typing import List, Dict
@@ -36,6 +37,8 @@ class CFRespiratoryCurator:
     def __init__(self, db_path: str = 'viroforge/data/viral_genomes.db'):
         self.db_path = db_path
         self.conn = sqlite3.connect(db_path)
+        # Seeded, reproducible replacement for SQLite's unseeded RANDOM().
+        self.conn.create_function("seeded_rand", 0, random.Random(42).random)
         self.conn.row_factory = sqlite3.Row
         self.random_seed = 42
         np.random.seed(self.random_seed)
@@ -59,7 +62,7 @@ class CFRespiratoryCurator:
            OR g.genome_name LIKE '%Pseudomonas%virus%'
            OR t.genus LIKE '%Pseudomonas%')
         AND g.genome_name NOT LIKE '%prophage%'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -84,7 +87,7 @@ class CFRespiratoryCurator:
            OR g.genome_name LIKE '%Staphylococcus%virus%'
            OR t.genus LIKE '%Staphylococcus%')
         AND g.genome_name NOT LIKE '%prophage%'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -111,7 +114,7 @@ class CFRespiratoryCurator:
         FROM genomes g
         JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family = 'Orthomyxoviridae'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
         influenza = [dict(row) for row in self.conn.execute(query, (max(int(n_target * 0.5), 10),))]
@@ -124,7 +127,7 @@ class CFRespiratoryCurator:
         JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family = 'Picornaviridae'
            AND (g.genome_name LIKE '%Rhinovirus%' OR g.genome_name LIKE '%rhinovirus%')
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
         rhino = [dict(row) for row in self.conn.execute(query, (max(int(n_target * 0.3), 3),))]
@@ -138,7 +141,7 @@ class CFRespiratoryCurator:
         WHERE t.family = 'Pneumoviridae'
            OR g.genome_name LIKE '%Respiratory syncytial%'
            OR g.genome_name LIKE '%RSV%'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
         rsv = [dict(row) for row in self.conn.execute(query, (max(int(n_target * 0.2), 2),))]
@@ -150,7 +153,7 @@ class CFRespiratoryCurator:
         FROM genomes g
         JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family = 'Adenoviridae'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
         adeno = [dict(row) for row in self.conn.execute(query, (max(int(n_target * 0.2), 2),))]
@@ -180,7 +183,7 @@ class CFRespiratoryCurator:
            OR g.genome_name LIKE '%Stenotrophomonas%phage%'
            OR g.genome_name LIKE '%Haemophilus%phage%')
         AND g.genome_name NOT LIKE '%prophage%'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -201,7 +204,7 @@ class CFRespiratoryCurator:
         FROM genomes g
         JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family IN ('Herpesviridae', 'Anelloviridae', 'Polyomaviridae')
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 

@@ -25,6 +25,7 @@ Applications: Pneumonia diagnosis, COPD monitoring, lung transplant surveillance
 """
 
 import sqlite3
+import random
 import logging
 from pathlib import Path
 from typing import List, Dict
@@ -45,6 +46,8 @@ class LungViromeCurator:
         """Initialize connection to viral genomes database."""
         db_path = Path(__file__).parent.parent / "viroforge" / "data" / "viral_genomes.db"
         self.conn = sqlite3.connect(db_path)
+        # Seeded, reproducible replacement for SQLite's unseeded RANDOM().
+        self.conn.create_function("seeded_rand", 0, random.Random(42).random)
         self.conn.row_factory = sqlite3.Row
         logger.info(f"Connected to database: {db_path}")
 
@@ -67,7 +70,7 @@ class LungViromeCurator:
         WHERE t.family = 'Anelloviridae'
            OR g.genome_name LIKE '%Torque teno%'
            OR g.genome_name LIKE '%TTV%'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -101,7 +104,7 @@ class LungViromeCurator:
            OR g.genome_name LIKE 'Human respiratory syncytial virus%')
            AND g.genome_name NOT LIKE '%Bovine%'
            AND g.genome_name NOT LIKE '%Potato%'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -131,7 +134,7 @@ class LungViromeCurator:
         LEFT JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE g.genome_name LIKE '%Rhinovirus%'
            AND g.genome_name LIKE '%Human%'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -162,7 +165,7 @@ class LungViromeCurator:
         WHERE g.genome_name LIKE 'Influenza A virus%'
            AND g.genome_name NOT LIKE '%parainfluenza%'
            AND g.genome_name NOT LIKE '%Parainfluenza%'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -192,7 +195,7 @@ class LungViromeCurator:
         WHERE (g.genome_name LIKE '%SARS-CoV-2%'
            OR g.genome_name LIKE '%Human coronavirus%'
            OR (g.genome_name LIKE '%Coronavirus%' AND g.genome_name LIKE '%Human%'))
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -221,7 +224,7 @@ class LungViromeCurator:
         LEFT JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE g.genome_name LIKE '%Human metapneumovirus%'
            OR g.genome_name LIKE '%Metapneumovirus%'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -249,7 +252,7 @@ class LungViromeCurator:
         FROM genomes g
         LEFT JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE g.genome_name LIKE 'Human bocavirus%'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -278,7 +281,7 @@ class LungViromeCurator:
         LEFT JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family = 'Adenoviridae'
            AND g.genome_name LIKE '%Human adenovirus%'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -312,7 +315,7 @@ class LungViromeCurator:
            OR g.genome_name LIKE '%Human gammaherpesvirus 4%'    -- EBV alternate
            OR g.genome_name LIKE '%Human herpesvirus 5%'         -- CMV
            OR g.genome_name LIKE '%Human betaherpesvirus 5%')    -- CMV alternate
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -341,7 +344,7 @@ class LungViromeCurator:
         LEFT JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family = 'Papillomaviridae'
            AND g.genome_name LIKE '%Human papillomavirus%'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -370,7 +373,7 @@ class LungViromeCurator:
         LEFT JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE g.genome_name LIKE '%Propionibacterium phage%'
            OR g.genome_name LIKE '%Cutibacterium phage%'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -398,7 +401,7 @@ class LungViromeCurator:
         LEFT JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE g.genome_name LIKE '%Streptococcus phage%'
            OR g.genome_name LIKE '%Streptococcus virus%'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -426,7 +429,7 @@ class LungViromeCurator:
         LEFT JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE g.genome_name LIKE '%Haemophilus phage%'
            OR g.genome_name LIKE '%Haemophilus virus%'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -454,7 +457,7 @@ class LungViromeCurator:
         LEFT JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE g.genome_name LIKE '%Pseudomonas phage%'
            OR g.genome_name LIKE '%Pseudomonas virus%'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 

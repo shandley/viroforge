@@ -15,6 +15,7 @@ Date: 2025-11-09
 """
 
 import sqlite3
+import random
 import numpy as np
 from pathlib import Path
 from typing import List, Dict, Tuple
@@ -30,6 +31,8 @@ class WastewaterCurator:
     def __init__(self, db_path: str = 'viroforge/data/viral_genomes.db'):
         self.db_path = db_path
         self.conn = sqlite3.connect(db_path)
+        # Seeded, reproducible replacement for SQLite's unseeded RANDOM().
+        self.conn.create_function("seeded_rand", 0, random.Random(42).random)
         self.conn.row_factory = sqlite3.Row
         self.random_seed = 42
         np.random.seed(self.random_seed)
@@ -57,7 +60,7 @@ idae, Picornaviridae
         FROM genomes g
         JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family = 'Caliciviridae'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
         calici = [dict(row) for row in self.conn.execute(query, (int(n_target * 0.3),))]
@@ -69,7 +72,7 @@ idae, Picornaviridae
         FROM genomes g
         JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family = 'Adenoviridae'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
         adeno = [dict(row) for row in self.conn.execute(query, (int(n_target * 0.35),))]
@@ -81,7 +84,7 @@ idae, Picornaviridae
         FROM genomes g
         JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family = 'Astroviridae'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
         astro = [dict(row) for row in self.conn.execute(query, (max(int(n_target * 0.10), 5),))]
@@ -93,7 +96,7 @@ idae, Picornaviridae
         FROM genomes g
         JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family = 'Picornaviridae'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
         picorna = [dict(row) for row in self.conn.execute(query, (int(n_target * 0.20),))]
@@ -107,7 +110,7 @@ idae, Picornaviridae
         WHERE t.family = 'Sedoreoviridae'
            OR g.genome_name LIKE '%Rotavirus%'
            OR g.genome_name LIKE '%rotavirus%'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
         rotavirus = [dict(row) for row in self.conn.execute(query, (max(int(n_target * 0.05), 5),))]
@@ -136,7 +139,7 @@ idae, Picornaviridae
         WHERE g.genome_name LIKE '%crAss%'
            OR t.genus LIKE '%crAss%'
            OR t.family IN ('Intestiviridae', 'Suoliviridae', 'Steigviridae', 'Crevaviridae')
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
         crassphage = [dict(row) for row in self.conn.execute(query, (int(n_target * 0.5),))]
@@ -148,7 +151,7 @@ idae, Picornaviridae
         FROM genomes g
         JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family = 'Microviridae'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
         microvir = [dict(row) for row in self.conn.execute(query, (int(n_target * 0.3),))]
@@ -160,7 +163,7 @@ idae, Picornaviridae
         FROM genomes g
         JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family = 'Inoviridae'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
         inovir = [dict(row) for row in self.conn.execute(query, (int(n_target * 0.2),))]
@@ -186,7 +189,7 @@ idae, Picornaviridae
         FROM genomes g
         JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family IN ('Baculoviridae', 'Iflaviridae', 'Dicistroviridae')
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
         insect = [dict(row) for row in self.conn.execute(query, (int(n_target * 0.5),))]
@@ -198,7 +201,7 @@ idae, Picornaviridae
         FROM genomes g
         JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family IN ('Virgaviridae', 'Tombusviridae', 'Bromoviridae')
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
         plant = [dict(row) for row in self.conn.execute(query, (int(n_target * 0.5),))]
@@ -225,7 +228,7 @@ idae, Picornaviridae
         FROM genomes g
         JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family = 'Coronaviridae'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
         corona = [dict(row) for row in self.conn.execute(query, (int(n_target * 0.6),))]
@@ -237,7 +240,7 @@ idae, Picornaviridae
         FROM genomes g
         JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family = 'Poxviridae'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
         pox = [dict(row) for row in self.conn.execute(query, (int(n_target * 0.4),))]

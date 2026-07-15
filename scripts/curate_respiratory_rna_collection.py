@@ -24,6 +24,7 @@ Date: 2025-11-09
 """
 
 import sqlite3
+import random
 import numpy as np
 from pathlib import Path
 from typing import List, Dict
@@ -39,6 +40,8 @@ class RespiratoryRNACurator:
     def __init__(self, db_path: str = 'viroforge/data/viral_genomes.db'):
         self.db_path = db_path
         self.conn = sqlite3.connect(db_path)
+        # Seeded, reproducible replacement for SQLite's unseeded RANDOM().
+        self.conn.create_function("seeded_rand", 0, random.Random(42).random)
         self.conn.row_factory = sqlite3.Row
         self.random_seed = 42
         np.random.seed(self.random_seed)
@@ -67,7 +70,7 @@ class RespiratoryRNACurator:
            OR g.genome_name LIKE '%OC43%'
            OR g.genome_name LIKE '%NL63%'
            OR g.genome_name LIKE '%HKU1%')
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -95,7 +98,7 @@ class RespiratoryRNACurator:
            OR g.genome_name LIKE '%Enterovirus%'
            OR g.genome_name LIKE '%rhinovirus%'
            OR t.genus = 'Enterovirus')
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -119,7 +122,7 @@ class RespiratoryRNACurator:
         WHERE t.family = 'Orthomyxoviridae'
           AND (g.genome_name LIKE '%Influenza%'
            OR g.genome_name LIKE '%influenza%')
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -144,7 +147,7 @@ class RespiratoryRNACurator:
           AND (g.genome_name LIKE '%Respiratory syncytial%'
            OR g.genome_name LIKE '%RSV%'
            OR g.genome_name LIKE '%Human orthopneumovirus%')
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -174,7 +177,7 @@ class RespiratoryRNACurator:
            OR g.genome_name LIKE '%Parainfluenza%'
            OR g.genome_name LIKE '%Human respirovirus%'
            OR g.genome_name LIKE '%Human rubulavirus%')
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -199,7 +202,7 @@ class RespiratoryRNACurator:
         JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family = 'Adenoviridae'
           AND g.genome_name LIKE '%Human%'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 

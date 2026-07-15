@@ -303,6 +303,8 @@ class BodySiteCurator:
         logger.info(f"  Phage fraction: {spec.phage_fraction:.1%}")
 
         conn = sqlite3.connect(self.db_path)
+        # Seeded, reproducible replacement for SQLite's unseeded RANDOM().
+        conn.create_function("seeded_rand", 0, random.Random(self.random_seed).random)
         conn.row_factory = sqlite3.Row
 
         selected_genomes = []
@@ -361,7 +363,7 @@ class BodySiteCurator:
                     SELECT genome_id FROM collection_genomes
                     WHERE collection_id = ?
                 )
-                ORDER BY RANDOM()
+                ORDER BY seeded_rand()
                 LIMIT ?
             """
             cursor = conn.execute(query, (spec.collection_id, target.target_count))
@@ -405,7 +407,7 @@ class BodySiteCurator:
             """
             params.append(f"%{target.host_filter}%")
 
-        query += " ORDER BY RANDOM()"
+        query += " ORDER BY seeded_rand()"
 
         cursor = conn.execute(query, params)
         genomes = [row['genome_id'] for row in cursor.fetchall()]
@@ -429,7 +431,7 @@ class BodySiteCurator:
                     query_broad += " AND g.genome_type = ?"
                     params_broad.append(target.genome_type)
 
-                query_broad += " ORDER BY RANDOM()"
+                query_broad += " ORDER BY seeded_rand()"
 
                 cursor = conn.execute(query_broad, params_broad)
                 genomes = [row['genome_id'] for row in cursor.fetchall()]
@@ -488,6 +490,8 @@ class BodySiteCurator:
         output_dir.mkdir(parents=True, exist_ok=True)
 
         conn = sqlite3.connect(self.db_path)
+        # Seeded, reproducible replacement for SQLite's unseeded RANDOM().
+        conn.create_function("seeded_rand", 0, random.Random(self.random_seed).random)
 
         # Insert collection metadata
         logger.info(f"Saving collection to database...")

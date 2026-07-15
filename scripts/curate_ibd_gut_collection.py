@@ -21,6 +21,7 @@ Date: 2025-11-09
 """
 
 import sqlite3
+import random
 import numpy as np
 from pathlib import Path
 from typing import List, Dict
@@ -36,6 +37,8 @@ class IBDGutCurator:
     def __init__(self, db_path: str = 'viroforge/data/viral_genomes.db'):
         self.db_path = db_path
         self.conn = sqlite3.connect(db_path)
+        # Seeded, reproducible replacement for SQLite's unseeded RANDOM().
+        self.conn.create_function("seeded_rand", 0, random.Random(42).random)
         self.conn.row_factory = sqlite3.Row
         self.random_seed = 42
         np.random.seed(self.random_seed)
@@ -66,7 +69,7 @@ class IBDGutCurator:
         FROM genomes g
         JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family IN ('Intestiviridae', 'Suoliviridae', 'Steigviridae', 'Crevaviridae')
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -91,7 +94,7 @@ class IBDGutCurator:
         WHERE t.family IN ('Ackermannviridae', 'Drexlerviridae', 'Demerecviridae')
            OR (t.genus LIKE '%phage%' AND g.genome_name LIKE '%Lactobacillus%')
            OR (t.genus LIKE '%phage%' AND g.genome_name LIKE '%Enterococcus%')
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -112,7 +115,7 @@ class IBDGutCurator:
         FROM genomes g
         JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family = 'Microviridae'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -133,7 +136,7 @@ class IBDGutCurator:
         FROM genomes g
         JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family = 'Inoviridae'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -155,7 +158,7 @@ class IBDGutCurator:
         FROM genomes g
         JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family IN ('Adenoviridae', 'Picornaviridae', 'Anelloviridae', 'Parvoviridae')
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 

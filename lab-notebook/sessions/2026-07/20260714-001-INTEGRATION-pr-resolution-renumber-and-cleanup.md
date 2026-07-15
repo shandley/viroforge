@@ -81,6 +81,17 @@ then merged with credit to Leran10, or deferred with written feedback.
    --dark-matter-fraction 0 so the core-pipeline tests stay deterministic.
    #39 got rework feedback (FASTA out of git + verify accessions); still blocked.
 
+6. **Follow-up (2026-07-15): seeded the curation genome selection.** The 13
+   curation scripts used unseeded SQLite `ORDER BY RANDOM()` for genome
+   selection, so a fresh `setup-db` produced a different collection membership
+   each run (the `self.random_seed = 42` only seeded numpy, never SQLite).
+   Registered a reproducible `seeded_rand()` function on each connection
+   (backed by `random.Random(seed)`) and replaced all 98 `ORDER BY RANDOM()`
+   occurrences with `ORDER BY seeded_rand()`. Verified: identical selection
+   across separate processes, and the IBD curator's create_collection() returns
+   the same 90 genomes on repeat runs. Collection membership is now reproducible
+   end to end (curation + the seeded #41/#50 cleanups).
+
 ## Key findings
 
 - The live `body_site_collections` had metadata only for IDs 9-28, but

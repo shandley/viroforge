@@ -21,6 +21,7 @@ Date: 2025-11-09
 """
 
 import sqlite3
+import random
 import numpy as np
 from pathlib import Path
 from typing import List, Dict
@@ -36,6 +37,8 @@ class HIVGutCurator:
     def __init__(self, db_path: str = 'viroforge/data/viral_genomes.db'):
         self.db_path = db_path
         self.conn = sqlite3.connect(db_path)
+        # Seeded, reproducible replacement for SQLite's unseeded RANDOM().
+        self.conn.create_function("seeded_rand", 0, random.Random(42).random)
         self.conn.row_factory = sqlite3.Row
         self.random_seed = 42
         np.random.seed(self.random_seed)
@@ -69,7 +72,7 @@ class HIVGutCurator:
         FROM genomes g
         JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family IN ('Intestiviridae', 'Suoliviridae', 'Steigviridae', 'Crevaviridae')
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -100,7 +103,7 @@ class HIVGutCurator:
         FROM genomes g
         JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family = 'Anelloviridae'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
         anello = [dict(row) for row in self.conn.execute(query, (int(n_target * 0.4),))]
@@ -118,7 +121,7 @@ class HIVGutCurator:
            OR g.genome_name LIKE 'Human betaherpesvirus%'
            OR g.genome_name LIKE 'Human gammaherpesvirus%'
            OR g.genome_name LIKE 'Human alphaherpesvirus%')
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
         herpes = [dict(row) for row in self.conn.execute(query, (int(n_target * 0.3),))]
@@ -130,7 +133,7 @@ class HIVGutCurator:
         FROM genomes g
         JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family = 'Adenoviridae'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
         adeno = [dict(row) for row in self.conn.execute(query, (int(n_target * 0.2),))]
@@ -142,7 +145,7 @@ class HIVGutCurator:
         FROM genomes g
         JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family = 'Parvoviridae'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
         parvo = [dict(row) for row in self.conn.execute(query, (max(int(n_target * 0.1), 2),))]
@@ -171,7 +174,7 @@ class HIVGutCurator:
         WHERE t.family IN ('Microviridae', 'Inoviridae', 'Ackermannviridae', 'Drexlerviridae')
            OR (t.genus LIKE '%phage%' AND g.genome_name LIKE '%Lactobacillus%')
            OR (t.genus LIKE '%phage%' AND g.genome_name LIKE '%Enterococcus%')
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -192,7 +195,7 @@ class HIVGutCurator:
         FROM genomes g
         JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family IN ('Papillomaviridae', 'Polyomaviridae')
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 

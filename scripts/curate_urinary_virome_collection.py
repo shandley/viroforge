@@ -25,6 +25,7 @@ Applications: Transplant monitoring (BK/JC viremia), UTI diagnosis, hemorrhagic 
 """
 
 import sqlite3
+import random
 import logging
 from pathlib import Path
 from typing import List, Dict
@@ -45,6 +46,8 @@ class UrinaryViromeCurator:
         """Initialize connection to viral genomes database."""
         db_path = Path(__file__).parent.parent / "viroforge" / "data" / "viral_genomes.db"
         self.conn = sqlite3.connect(db_path)
+        # Seeded, reproducible replacement for SQLite's unseeded RANDOM().
+        self.conn.create_function("seeded_rand", 0, random.Random(42).random)
         self.conn.row_factory = sqlite3.Row
         logger.info(f"Connected to database: {db_path}")
 
@@ -66,7 +69,7 @@ class UrinaryViromeCurator:
         LEFT JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family = 'Papillomaviridae'
            AND g.genome_name LIKE '%Human papillomavirus%'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -96,7 +99,7 @@ class UrinaryViromeCurator:
         LEFT JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE g.genome_name LIKE 'BK polyomavirus%'
            OR g.genome_name LIKE 'BK virus%'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -126,7 +129,7 @@ class UrinaryViromeCurator:
         LEFT JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE g.genome_name LIKE 'JC polyomavirus%'
            OR g.genome_name LIKE 'JC virus%'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -155,7 +158,7 @@ class UrinaryViromeCurator:
         FROM genomes g
         LEFT JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE g.genome_name LIKE 'Torque teno virus%'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -185,7 +188,7 @@ class UrinaryViromeCurator:
         LEFT JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family = 'Adenoviridae'
            AND g.genome_name LIKE '%Human adenovirus%'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -216,7 +219,7 @@ class UrinaryViromeCurator:
         LEFT JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE (g.genome_name LIKE '%Human herpesvirus 5%'
            OR g.genome_name LIKE '%Human betaherpesvirus 5%')
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT 1
         """
 
@@ -227,7 +230,7 @@ class UrinaryViromeCurator:
         LEFT JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE (g.genome_name LIKE '%Human herpesvirus 4%'
            OR g.genome_name LIKE '%Human gammaherpesvirus 4%')
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT 1
         """
 
@@ -260,7 +263,7 @@ class UrinaryViromeCurator:
         WHERE (g.genome_name LIKE '%Escherichia phage%'
            OR g.genome_name LIKE '%Escherichia virus%'
            OR g.genome_name LIKE '%Enterobacteria phage%')
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -288,7 +291,7 @@ class UrinaryViromeCurator:
         LEFT JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE g.genome_name LIKE '%Enterococcus phage%'
            OR g.genome_name LIKE '%Enterococcus virus%'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -316,7 +319,7 @@ class UrinaryViromeCurator:
         LEFT JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE g.genome_name LIKE '%Staphylococcus phage%'
            OR g.genome_name LIKE '%Staphylococcus virus%'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -344,7 +347,7 @@ class UrinaryViromeCurator:
         LEFT JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE g.genome_name LIKE '%Lactobacillus phage%'
            OR g.genome_name LIKE '%Lactobacillus virus%'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 

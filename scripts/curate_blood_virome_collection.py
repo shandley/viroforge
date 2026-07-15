@@ -31,6 +31,7 @@ Applications: Viremia detection, transplant monitoring, blood safety screening
 """
 
 import sqlite3
+import random
 import logging
 from pathlib import Path
 from typing import List, Dict
@@ -51,6 +52,8 @@ class BloodViromeCurator:
         """Initialize connection to viral genomes database."""
         db_path = Path(__file__).parent.parent / "viroforge" / "data" / "viral_genomes.db"
         self.conn = sqlite3.connect(db_path)
+        # Seeded, reproducible replacement for SQLite's unseeded RANDOM().
+        self.conn.create_function("seeded_rand", 0, random.Random(42).random)
         self.conn.row_factory = sqlite3.Row
         logger.info(f"Connected to database: {db_path}")
 
@@ -73,7 +76,7 @@ class BloodViromeCurator:
         WHERE t.family = 'Anelloviridae'
            OR g.genome_name LIKE '%Torque teno%'
            OR g.genome_name LIKE '%TTV%'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -106,7 +109,7 @@ class BloodViromeCurator:
            OR g.genome_name LIKE '%Human betaherpes%'
            OR g.genome_name LIKE '%Human gammaherpes%'
            OR g.genome_name LIKE '%Human alphaherpes%')
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -140,7 +143,7 @@ class BloodViromeCurator:
                 OR g.genome_name LIKE '%JC polyomavirus%'
                 OR g.genome_name LIKE '%Merkel cell polyomavirus%'
                 OR g.genome_name LIKE '%Human polyomavirus%')
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -172,7 +175,7 @@ class BloodViromeCurator:
            AND (g.genome_name LIKE '%Human parvovirus B19%'
                 OR g.genome_name LIKE '%Human parvovirus 4%'
                 OR g.genome_name LIKE '%Primate erythroparvovirus%')
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -202,7 +205,7 @@ class BloodViromeCurator:
         LEFT JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family = 'Papillomaviridae'
            AND g.genome_name LIKE '%Human papillomavirus%'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -231,7 +234,7 @@ class BloodViromeCurator:
         LEFT JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family = 'Adenoviridae'
            AND g.genome_name LIKE '%Human adenovirus%'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -263,7 +266,7 @@ class BloodViromeCurator:
         LEFT JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE (g.genome_name LIKE 'Hepatitis C virus%')
            OR (g.genome_name LIKE 'Human immunodeficiency virus%' OR g.genome_name LIKE 'HIV-1%' OR g.genome_name LIKE 'HIV-2%')
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 

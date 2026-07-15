@@ -49,6 +49,7 @@ Date: 2025-11-09
 """
 
 import sqlite3
+import random
 import numpy as np
 from pathlib import Path
 from typing import List, Dict
@@ -64,6 +65,8 @@ class VaginalViromeCurator:
     def __init__(self, db_path: str = 'viroforge/data/viral_genomes.db'):
         self.db_path = db_path
         self.conn = sqlite3.connect(db_path)
+        # Seeded, reproducible replacement for SQLite's unseeded RANDOM().
+        self.conn.create_function("seeded_rand", 0, random.Random(42).random)
         self.conn.row_factory = sqlite3.Row
         self.random_seed = 42
         np.random.seed(self.random_seed)
@@ -88,7 +91,7 @@ class VaginalViromeCurator:
           AND (g.genome_name LIKE '%Human papillomavirus%'
            OR g.genome_name LIKE '%human papillomavirus%'
            OR g.genome_name LIKE '%HPV%')
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -118,7 +121,7 @@ class VaginalViromeCurator:
            OR g.genome_name LIKE '%TTV%'
            OR g.genome_name LIKE '%TTMV%'
            OR t.genus IN ('Alphatorquevirus', 'Betatorquevirus', 'Gammatorquevirus'))
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -148,7 +151,7 @@ class VaginalViromeCurator:
            OR g.genome_name LIKE '%Human betaherpes%'
            OR g.genome_name LIKE '%Human gammaherpes%'
            OR g.genome_name LIKE '%Human alphaherpes%')
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -188,7 +191,7 @@ class VaginalViromeCurator:
         WHERE (g.genome_name LIKE '%Lactobacillus phage%'
            OR g.genome_name LIKE '%Lactobacillus prophage%'
            OR g.genome_name LIKE '%lactobacillus phage%')
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -219,7 +222,7 @@ class VaginalViromeCurator:
         FROM genomes g
         JOIN taxonomy t ON g.genome_id = t.genome_id
         WHERE t.family = 'Microviridae'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -248,7 +251,7 @@ class VaginalViromeCurator:
            OR g.genome_name LIKE '%JC polyomavirus%'
            OR g.genome_name LIKE '%BKV%'
            OR g.genome_name LIKE '%JCV%')
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -275,7 +278,7 @@ class VaginalViromeCurator:
           AND (g.genome_name LIKE '%Human adenovirus%'
            OR g.genome_name LIKE '%human adenovirus%'
            OR g.genome_name LIKE '%HAdV%')
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 

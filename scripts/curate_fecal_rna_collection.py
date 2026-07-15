@@ -25,6 +25,7 @@ Date: 2025-11-09
 """
 
 import sqlite3
+import random
 import numpy as np
 from pathlib import Path
 from typing import List, Dict
@@ -40,6 +41,8 @@ class FecalRNACurator:
     def __init__(self, db_path: str = 'viroforge/data/viral_genomes.db'):
         self.db_path = db_path
         self.conn = sqlite3.connect(db_path)
+        # Seeded, reproducible replacement for SQLite's unseeded RANDOM().
+        self.conn.create_function("seeded_rand", 0, random.Random(42).random)
         self.conn.row_factory = sqlite3.Row
         self.random_seed = 42
         np.random.seed(self.random_seed)
@@ -65,7 +68,7 @@ class FecalRNACurator:
            OR g.genome_name LIKE '%Sapovirus%'
            OR g.genome_name LIKE '%sapovirus%'
            OR t.genus IN ('Norovirus', 'Sapovirus'))
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -93,7 +96,7 @@ class FecalRNACurator:
            OR g.genome_name LIKE '%rotavirus%'
            OR g.genome_name LIKE '%Reovirus%'
            OR t.genus IN ('Rotavirus', 'Orthoreovirus'))
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -121,7 +124,7 @@ class FecalRNACurator:
            OR g.genome_name LIKE '%astrovirus%'
            OR g.genome_name LIKE '%Mamastrovirus%'
            OR t.genus IN ('Mamastrovirus', 'Avastrovirus'))
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -153,7 +156,7 @@ class FecalRNACurator:
            OR g.genome_name LIKE '%Parechovirus%'
            OR g.genome_name LIKE '%Aichivirus%'
            OR t.genus IN ('Enterovirus', 'Parechovirus', 'Kobuvirus'))
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -179,7 +182,7 @@ class FecalRNACurator:
         WHERE t.family = 'Picobirnaviridae'
            OR g.genome_name LIKE '%Picobirnavirus%'
            OR g.genome_name LIKE '%picobirnavirus%'
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
@@ -217,7 +220,7 @@ class FecalRNACurator:
                 OR g.genome_name LIKE '%Mastadenovirus F%'
             ))
         )
-        ORDER BY RANDOM()
+        ORDER BY seeded_rand()
         LIMIT ?
         """
 
