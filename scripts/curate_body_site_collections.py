@@ -39,6 +39,7 @@ class TaxonTarget:
     rank: str  # 'family', 'genus', 'species', etc.
     host_filter: Optional[str] = None
     genome_type: Optional[str] = None  # 'dsDNA', 'ssRNA', etc.
+    body_site_filter: Optional[str] = None  # Soft-prefer hosts at this body site (host_associations.body_site)
 
 
 @dataclass
@@ -76,11 +77,11 @@ COLLECTION_SPECS = {
         phage_fraction=0.96,
         composition=[
             TaxonTarget('Crassvirales', 150, 'order'),  # 30%
-            TaxonTarget('Siphoviridae', 140, 'family'),  # 28%
-            TaxonTarget('Myoviridae', 70, 'family'),     # 14%
-            TaxonTarget('Podoviridae', 40, 'family'),    # 8%
-            TaxonTarget('Microviridae', 50, 'family'),   # 10%
-            TaxonTarget('Inoviridae', 15, 'family'),     # 3%
+            TaxonTarget('Siphoviridae', 140, 'family', body_site_filter='gut'),  # 28%
+            TaxonTarget('Myoviridae', 70, 'family', body_site_filter='gut'),     # 14%
+            TaxonTarget('Podoviridae', 40, 'family', body_site_filter='gut'),    # 8%
+            TaxonTarget('Microviridae', 50, 'family', body_site_filter='gut'),   # 10%
+            TaxonTarget('Inoviridae', 15, 'family', body_site_filter='gut'),     # 3%
             TaxonTarget('Adenoviridae', 10, 'family', genome_type='dsDNA'),  # 2%
             TaxonTarget('Anelloviridae', 10, 'family', genome_type='ssDNA'), # 2%
             TaxonTarget('Other', 15, 'any'),  # 3%
@@ -104,11 +105,11 @@ COLLECTION_SPECS = {
         target_size=200,
         phage_fraction=0.925,
         composition=[
-            TaxonTarget('Siphoviridae', 80, 'family'),  # 40%
-            TaxonTarget('Myoviridae', 40, 'family'),    # 20%
-            TaxonTarget('Podoviridae', 30, 'family'),   # 15%
-            TaxonTarget('Microviridae', 20, 'family'),  # 10%
-            TaxonTarget('Inoviridae', 15, 'family'),    # 7.5%
+            TaxonTarget('Siphoviridae', 80, 'family', body_site_filter='oral'),  # 40%
+            TaxonTarget('Myoviridae', 40, 'family', body_site_filter='oral'),    # 20%
+            TaxonTarget('Podoviridae', 30, 'family', body_site_filter='oral'),   # 15%
+            TaxonTarget('Microviridae', 20, 'family', body_site_filter='oral'),  # 10%
+            TaxonTarget('Inoviridae', 15, 'family', body_site_filter='oral'),    # 7.5%
             TaxonTarget('Herpesviridae', 8, 'family', genome_type='dsDNA'),  # 4%
             TaxonTarget('Papillomaviridae', 4, 'family', genome_type='dsDNA'), # 2%
             TaxonTarget('Anelloviridae', 3, 'family', genome_type='ssDNA'),    # 1.5%
@@ -160,10 +161,10 @@ COLLECTION_SPECS = {
         phage_fraction=0.875,
         composition=[
             TaxonTarget('Cutibacterium', 40, 'genus', host_filter='Cutibacterium'),  # 20%
-            TaxonTarget('Siphoviridae', 50, 'family'),  # 25%
-            TaxonTarget('Myoviridae', 30, 'family'),    # 15%
-            TaxonTarget('Podoviridae', 25, 'family'),   # 12.5%
-            TaxonTarget('Microviridae', 20, 'family'),  # 10%
+            TaxonTarget('Siphoviridae', 50, 'family', body_site_filter='respiratory'),  # 25%
+            TaxonTarget('Myoviridae', 30, 'family', body_site_filter='respiratory'),    # 15%
+            TaxonTarget('Podoviridae', 25, 'family', body_site_filter='respiratory'),   # 12.5%
+            TaxonTarget('Microviridae', 20, 'family', body_site_filter='respiratory'),  # 10%
             TaxonTarget('Adenoviridae', 10, 'family', genome_type='dsDNA'),  # 5%
             TaxonTarget('Herpesviridae', 8, 'family', genome_type='dsDNA'),  # 4%
             TaxonTarget('Orthomyxoviridae', 7, 'family', genome_type='ssRNA'), # 3.5%
@@ -262,10 +263,10 @@ COLLECTION_SPECS = {
         phage_fraction=0.90,
         composition=[
             TaxonTarget('Lactobacillus', 45, 'genus', host_filter='Lactobacillus'),  # 30%
-            TaxonTarget('Siphoviridae', 45, 'family'),  # 30%
-            TaxonTarget('Myoviridae', 23, 'family'),    # 15%
-            TaxonTarget('Podoviridae', 15, 'family'),   # 10%
-            TaxonTarget('Microviridae', 7, 'family'),   # 5%
+            TaxonTarget('Siphoviridae', 45, 'family', body_site_filter='gut'),  # 30%
+            TaxonTarget('Myoviridae', 23, 'family', body_site_filter='gut'),    # 15%
+            TaxonTarget('Podoviridae', 15, 'family', body_site_filter='gut'),   # 10%
+            TaxonTarget('Microviridae', 7, 'family', body_site_filter='gut'),   # 5%
             TaxonTarget('Murine_viruses', 15, 'any', host_filter='Mus'),  # 10%
         ],
         abundance_model='log_normal',
@@ -396,7 +397,7 @@ class BodySiteCurator:
             query += " AND g.genome_type = ?"
             params.append(target.genome_type)
 
-        # Add host filter if specified
+        # Add host filter if specified (filter by host genus name)
         if target.host_filter:
             query += """
                 AND EXISTS (
@@ -407,34 +408,52 @@ class BodySiteCurator:
             """
             params.append(f"%{target.host_filter}%")
 
+        # Add body site filter if specified. This is a soft preference: it
+        # prefers phages whose host bacterium occurs at this body site, but the
+        # broader-search fallback below relaxes it when too few genomes match, so
+        # it does not shrink collections where host coverage is thin.
+        if target.body_site_filter:
+            query += """
+                AND EXISTS (
+                    SELECT 1 FROM host_associations h
+                    WHERE h.genome_id = g.genome_id
+                    AND h.body_site LIKE ?
+                )
+            """
+            params.append(f"%{target.body_site_filter}%")
+
         query += " ORDER BY seeded_rand()"
 
         cursor = conn.execute(query, params)
         genomes = [row['genome_id'] for row in cursor.fetchall()]
 
-        # If not enough genomes found, try broader search
-        if len(genomes) < target.target_count:
-            logger.warning(f"    Only found {len(genomes)}/{target.target_count} for {target.taxon_name}")
-            logger.warning(f"    Trying broader search...")
+        # Soft fallback: if the host/body-site filter left too few genomes, keep
+        # the ones it did find (they are the site-appropriate preference) and top
+        # up the remainder from the broader unfiltered pool. This makes the filter
+        # a preference rather than a hard constraint, so collections never shrink.
+        if len(genomes) < target.target_count and (target.host_filter or target.body_site_filter):
+            logger.info(f"    {target.taxon_name}: {len(genomes)}/{target.target_count} "
+                        f"site-appropriate; topping up from broader pool")
+            already = set(genomes)
+            query_broad = f"""
+                SELECT g.genome_id
+                FROM genomes g
+                LEFT JOIN taxonomy t ON g.genome_id = t.genome_id
+                WHERE t.{taxonomy_field} LIKE ?
+            """
+            params_broad = [f"%{target.taxon_name}%"]
+            if target.genome_type:
+                query_broad += " AND g.genome_type = ?"
+                params_broad.append(target.genome_type)
+            query_broad += " ORDER BY seeded_rand()"
 
-            # Try without host filter
-            if target.host_filter:
-                query_broad = f"""
-                    SELECT g.genome_id
-                    FROM genomes g
-                    LEFT JOIN taxonomy t ON g.genome_id = t.genome_id
-                    WHERE t.{taxonomy_field} LIKE ?
-                """
-                params_broad = [f"%{target.taxon_name}%"]
-
-                if target.genome_type:
-                    query_broad += " AND g.genome_type = ?"
-                    params_broad.append(target.genome_type)
-
-                query_broad += " ORDER BY seeded_rand()"
-
-                cursor = conn.execute(query_broad, params_broad)
-                genomes = [row['genome_id'] for row in cursor.fetchall()]
+            for row in conn.execute(query_broad, params_broad):
+                if len(genomes) >= target.target_count:
+                    break
+                gid = row['genome_id']
+                if gid not in already:
+                    genomes.append(gid)
+                    already.add(gid)
 
         return genomes
 

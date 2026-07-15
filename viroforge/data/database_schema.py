@@ -113,7 +113,11 @@ CREATE TABLE IF NOT EXISTS host_associations (
     -- Host name
     host_name TEXT NOT NULL,
 
-    -- Association type
+    -- Body site(s) the host occupies (comma-separated, e.g. 'gut,vaginal').
+    -- Derived from host_genus for body-site-aware curation.
+    body_site TEXT,
+
+    -- Association type ('predicted' for name-parsed, 'experimental', etc.)
     association_type TEXT,
     evidence TEXT,
 
@@ -125,6 +129,7 @@ CREATE_HOST_ASSOCIATIONS_INDEXES = """
 CREATE INDEX IF NOT EXISTS idx_host_domain ON host_associations(host_domain);
 CREATE INDEX IF NOT EXISTS idx_host_species ON host_associations(host_species);
 CREATE INDEX IF NOT EXISTS idx_genome_host ON host_associations(genome_id);
+CREATE INDEX IF NOT EXISTS idx_host_body_site ON host_associations(body_site);
 """
 
 CREATE_ECOLOGICAL_METADATA_TABLE = """
