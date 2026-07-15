@@ -1,5 +1,12 @@
 # Library Preparation Amplification Comparison Tutorial
 
+<!-- collection-id-scheme-note -->
+> **Collection IDs use the 1-20 scheme.** ViroForge renumbered its collections to a
+> contiguous 1-20 layout (healthy gut = 1). Example commands in this document may still
+> show legacy IDs from the older 9-28 numbering. For the current collection-to-ID map,
+> run `viroforge browse` or query the `body_site_collections` table.
+
+
 **ViroForge Phase 6 Feature**
 
 This tutorial demonstrates how to compare different library preparation amplification methods and understand their biases on viral community composition.

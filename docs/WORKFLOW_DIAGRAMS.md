@@ -1,5 +1,12 @@
 # ViroForge Workflow Diagrams
 
+<!-- collection-id-scheme-note -->
+> **Collection IDs use the 1-20 scheme.** ViroForge renumbered its collections to a
+> contiguous 1-20 layout (healthy gut = 1). Example commands in this document may still
+> show legacy IDs from the older 9-28 numbering. For the current collection-to-ID map,
+> run `viroforge browse` or query the `body_site_collections` table.
+
+
 **Visual Guide to ViroForge Data Flow**
 
 This document provides visual representations of how data flows through ViroForge, from genome database to final FASTQ files.

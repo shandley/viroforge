@@ -9,7 +9,7 @@ output_base: "data/virome_qc_references/tissue_truseq"
 
 datasets:
   - name: clean_tissue
-    collection_id: 27   # Lung virome (tissue-relevant)
+    collection_id: 19   # Lung virome (tissue-relevant)
     platform: novaseq
     coverage: 30
     no_vlp: true
@@ -21,7 +21,7 @@ datasets:
     seed: 42
 
   - name: typical_tissue
-    collection_id: 27
+    collection_id: 19
     platform: novaseq
     coverage: 30
     no_vlp: true
@@ -33,7 +33,7 @@ datasets:
     seed: 43
 
   - name: high_host_tissue
-    collection_id: 25   # Blood/plasma (high host)
+    collection_id: 17   # Blood/plasma (high host)
     platform: novaseq
     coverage: 30
     no_vlp: true
@@ -45,7 +45,7 @@ datasets:
     seed: 44
 
   - name: degraded_tissue
-    collection_id: 27
+    collection_id: 19
     platform: novaseq
     coverage: 30
     no_vlp: true
@@ -58,7 +58,7 @@ datasets:
     seed: 45
 
   - name: ffpe_like
-    collection_id: 27
+    collection_id: 19
     platform: novaseq
     coverage: 30
     no_vlp: true

@@ -1,5 +1,12 @@
 # Phase 12: CLI Enhancements & User Experience
 
+<!-- collection-id-scheme-note -->
+> **Collection IDs use the 1-20 scheme.** ViroForge renumbered its collections to a
+> contiguous 1-20 layout (healthy gut = 1). Example commands in this document may still
+> show legacy IDs from the older 9-28 numbering. For the current collection-to-ID map,
+> run `viroforge browse` or query the `body_site_collections` table.
+
+
 **Version**: 0.10.0 (planned)
 **Timeline**: 2-3 weeks
 **Goal**: Transform ViroForge from a powerful tool into a delightful user experience

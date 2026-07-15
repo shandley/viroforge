@@ -1,8 +1,59 @@
 # ViroForge - Development Context
 
-**Last Updated**: 2026-04-29
+**Last Updated**: 2026-07-14
 **Current Version**: v0.12.0
-**Status**: QC Validation Toolkit Complete - Ready for Phase 13B
+**Status**: QC Validation Toolkit Complete - PR triage in progress (see Session Handoff below)
+
+---
+
+## Session Handoff (2026-07-14)
+
+Reviewed Leran10's 30 issues and 27 PRs (she is a developer on the team, using
+Claude Code). Full per-PR triage and the verified facts are in the memory file
+`session_handoff.md`.
+
+### Landed on main (pushed, origin up to 3482003)
+
+- Three local fixes committed: #34 (RNA metadata rebuild), #35 (hybrid version
+  and SPAdes flag), #36 (validator sequences alias).
+- Code from PR #29 extracted (commit 13eced4): PacBio HiFi BAM merge (#17, #33),
+  Nanopore ERRHMM names (#15), per-genome depth (#19, #31), setup-db command
+  (#2, #3), browse checks (#7, #13), batch time estimate (#26), report/compare
+  metadata (#24), web fixes (#28). Applied on top of main so #34/#35/#36 are
+  preserved; the TSV accession swaps, the curate-script renumbering, and two
+  regressed scripts were deliberately excluded.
+- PR #23 pbccs Linux x86-64 note (commit c525e33, #22).
+- Merged scientific PRs: #48 (vaginal docs), #47 (VLP pore size), #58 (poly-G
+  low-complexity), #53 (rare-genome floor).
+- Closed 14 PRs and 19 issues. Rework feedback posted on PRs #41, #50, #51, #55,
+  #56.
+
+### Verified facts that correct older docs
+
+- The live database has 20 collections at IDs 9-28; IDs 1-8 are empty. The
+  "28 collections" and "VLP-comparison collections at 9-16" descriptions
+  elsewhere in this file are not backed by the database. VLP is applied via
+  `--vlp-protocol` flags, not separate collections. Issue #5's gap complaint is
+  real.
+- Test interpreter is `.venv_test/bin/python` (the older `.venv` path is gone).
+  `.venv_test` lacks rich and flask, so CLI and web runtime imports fail there.
+
+### Open, needs Scott's decision (blocks the remaining scientific PRs)
+
+1. Collection renumbering to 1-20 (PR #6 / #5). Leran10 has been developing
+   against a renumbered 1-20 database, so PRs #41 and #50 hardcode collection
+   IDs that do not match the 9-28 DB on main. This decision now blocks that
+   batch.
+2. PR #39 (collection-specific contamination) is blocked: it hardcodes ~107
+   bacterial GCF accessions that are unverified, and at least four are wrong
+   (one labeled Megasphaera elsdenii is actually Salmonella enterica). Run
+   /verify-references before it can merge.
+3. Defaults debate: PR #43 (30% dark matter) and PR #45 (artifacts on by
+   default) each change what a no-flags dataset looks like.
+
+### Open PRs after this session
+
+6, 39, 41, 43, 45, 50, 51, 55, 56.
 
 ---
 
@@ -341,7 +392,7 @@ For production deployment: Add authentication, HTTPS, job queue, rate limiting.
 # CLI Commands
 viroforge browse                              # Browse collections (TUI)
 viroforge generate --preset gut-standard      # Generate with preset
-viroforge generate --collection-id 9 --output data/gut --platform novaseq --coverage 30
+viroforge generate --collection-id 1 --output data/gut --platform novaseq --coverage 30
 viroforge batch config.yaml --parallel 4      # Batch generation
 viroforge report data/gut-standard            # View report
 viroforge compare data/gut_* --format json    # Compare datasets
@@ -350,7 +401,7 @@ viroforge web                                 # Launch web UI
 
 # Generation Script (Direct)
 python scripts/generate_fastq_dataset.py \
-    --collection-id 9 \
+    --collection-id 1 \
     --output data/gut \
     --platform novaseq \
     --coverage 30 \
@@ -358,7 +409,7 @@ python scripts/generate_fastq_dataset.py \
 
 # Hybrid Assembly
 python scripts/generate_hybrid_dataset.py \
-    --collection-id 9 \
+    --collection-id 1 \
     --output data/gut_hybrid \
     --short-platform novaseq \
     --long-platform pacbio-hifi \

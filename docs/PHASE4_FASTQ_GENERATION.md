@@ -1,5 +1,12 @@
 # Phase 4: FASTQ Generation Workflows
 
+<!-- collection-id-scheme-note -->
+> **Collection IDs use the 1-20 scheme.** ViroForge renumbered its collections to a
+> contiguous 1-20 layout (healthy gut = 1). Example commands in this document may still
+> show legacy IDs from the older 9-28 numbering. For the current collection-to-ID map,
+> run `viroforge browse` or query the `body_site_collections` table.
+
+
 **Status**: ✅ Completed (Enhanced in Phase 5 & 6)
 **Date**: 2025-11-01 (Updated: 2025-11-09)
 **ViroForge Version**: 0.5.0-dev

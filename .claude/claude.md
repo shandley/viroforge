@@ -240,11 +240,11 @@ SELECT COUNT(*) FROM taxonomy WHERE family = 'Unknown'"
 
 ```bash
 # Test with dry-run first
-python scripts/generate_fastq_dataset.py --collection-id 21 --dry-run
+python scripts/generate_fastq_dataset.py --collection-id 13 --dry-run
 
 # Generate full dataset
 python scripts/generate_fastq_dataset.py \
-  --collection-id 21 \
+  --collection-id 13 \
   --output-dir datasets/respiratory_rna \
   --num-reads 1000000 \
   --read-length 150 \

@@ -1,5 +1,12 @@
 # Phase 11: Hybrid Assembly Support
 
+<!-- collection-id-scheme-note -->
+> **Collection IDs use the 1-20 scheme.** ViroForge renumbered its collections to a
+> contiguous 1-20 layout (healthy gut = 1). Example commands in this document may still
+> show legacy IDs from the older 9-28 numbering. For the current collection-to-ID map,
+> run `viroforge browse` or query the `body_site_collections` table.
+
+
 **Date**: 2025-11-10
 **Status**: In Progress
 **Goal**: Enable matched short-read + long-read dataset generation for hybrid assembly benchmarking

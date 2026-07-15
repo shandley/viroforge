@@ -1,5 +1,12 @@
 # Body Site Collection Implementation Guide
 
+<!-- collection-id-scheme-note -->
+> **Collection IDs use the 1-20 scheme.** ViroForge renumbered its collections to a
+> contiguous 1-20 layout (healthy gut = 1). Example commands in this document may still
+> show legacy IDs from the older 9-28 numbering. For the current collection-to-ID map,
+> run `viroforge browse` or query the `body_site_collections` table.
+
+
 **Date**: 2025-11-09 (Updated for Phase 7)
 **ViroForge Version**: 0.5.0-dev
 **Status**: 12 Collections Implemented (8 Original + 4 Phase 7)

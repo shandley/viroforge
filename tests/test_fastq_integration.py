@@ -39,8 +39,8 @@ class TestFASTQGeneration:
     def test_vlp_tangential_flow_generation(self, generation_script, temp_output):
         """Test FASTQ generation with tangential flow VLP protocol"""
         cmd = [
-            'python', str(generation_script),
-            '--collection-id', '16',  # Mouse gut (smallest)
+            sys.executable, str(generation_script),
+            '--collection-id', '8',  # Mouse gut (smallest)
             '--output', str(temp_output),
             '--n-reads', '100',  # Very small for speed
             '--vlp-protocol', 'tangential_flow',
@@ -85,8 +85,8 @@ class TestFASTQGeneration:
     def test_bulk_metagenome_generation(self, generation_script, temp_output):
         """Test FASTQ generation without VLP (bulk metagenome)"""
         cmd = [
-            'python', str(generation_script),
-            '--collection-id', '16',
+            sys.executable, str(generation_script),
+            '--collection-id', '8',
             '--output', str(temp_output),
             '--n-reads', '100',
             '--no-vlp',
@@ -116,8 +116,8 @@ class TestFASTQGeneration:
         for protocol in protocols:
             protocol_output = temp_output / protocol
             cmd = [
-                'python', str(generation_script),
-                '--collection-id', '16',
+                sys.executable, str(generation_script),
+                '--collection-id', '8',
                 '--output', str(protocol_output),
                 '--n-reads', '100',
                 '--vlp-protocol', protocol,
@@ -151,8 +151,8 @@ class TestFASTQGeneration:
         for level in levels:
             level_output = temp_output / level
             cmd = [
-                'python', str(generation_script),
-                '--collection-id', '16',
+                sys.executable, str(generation_script),
+                '--collection-id', '8',
                 '--output', str(level_output),
                 '--n-reads', '100',
                 '--vlp-protocol', 'tangential_flow',
@@ -177,8 +177,8 @@ class TestFASTQGeneration:
     def test_dry_run_mode(self, generation_script, temp_output):
         """Test dry-run mode (no FASTQ generation)"""
         cmd = [
-            'python', str(generation_script),
-            '--collection-id', '16',
+            sys.executable, str(generation_script),
+            '--collection-id', '8',
             '--output', str(temp_output),
             '--coverage', '10',
             '--vlp-protocol', 'tangential_flow',
@@ -199,8 +199,8 @@ class TestFASTQGeneration:
     def test_amplification_rdab(self, generation_script, temp_output):
         """Test FASTQ generation with RdAB amplification"""
         cmd = [
-            'python', str(generation_script),
-            '--collection-id', '16',
+            sys.executable, str(generation_script),
+            '--collection-id', '8',
             '--output', str(temp_output),
             '--n-reads', '100',
             '--vlp-protocol', 'tangential_flow',
@@ -229,8 +229,8 @@ class TestFASTQGeneration:
         for method in methods:
             method_output = temp_output / method
             cmd = [
-                'python', str(generation_script),
-                '--collection-id', '16',
+                sys.executable, str(generation_script),
+                '--collection-id', '8',
                 '--output', str(method_output),
                 '--n-reads', '100',
                 '--vlp-protocol', 'tangential_flow',
@@ -277,8 +277,8 @@ class TestVLPEnrichmentStats:
     def _generate_and_load_metadata(self, generation_script, temp_output, vlp_protocol, contam_level):
         """Helper to generate dataset and load metadata"""
         cmd = [
-            'python', str(generation_script),
-            '--collection-id', '16',
+            sys.executable, str(generation_script),
+            '--collection-id', '8',
             '--output', str(temp_output),
             '--n-reads', '100',
             '--vlp-protocol', vlp_protocol,
@@ -387,7 +387,7 @@ class TestBatchGeneration:
     def test_quick_test_preset(self, batch_script, temp_output):
         """Test quick-test preset"""
         cmd = [
-            'python', str(batch_script),
+            sys.executable, str(batch_script),
             '--preset', 'quick-test',
             '--output', str(temp_output),
             '--dry-run'
@@ -403,7 +403,7 @@ class TestBatchGeneration:
     def test_vlp_protocol_comparison_preset(self, batch_script, temp_output):
         """Test VLP protocol comparison preset"""
         cmd = [
-            'python', str(batch_script),
+            sys.executable, str(batch_script),
             '--preset', 'vlp-protocol-comparison',
             '--output', str(temp_output),
             '--dry-run'
@@ -427,7 +427,7 @@ class TestBatchGeneration:
     def test_amplification_comparison_preset(self, batch_script, temp_output):
         """Test amplification comparison preset"""
         cmd = [
-            'python', str(batch_script),
+            sys.executable, str(batch_script),
             '--preset', 'amplification-comparison',
             '--output', str(temp_output),
             '--dry-run'

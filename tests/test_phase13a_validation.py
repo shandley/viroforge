@@ -266,7 +266,7 @@ def main():
         print("Next Steps:")
         print("1. Install dependencies: pip install biopython numpy pandas")
         print("2. Test with real data: python scripts/generate_fastq_dataset.py \\")
-        print("     --collection-id 9 --output /tmp/test --coverage 10 --dry-run")
+        print("     --collection-id 1 --output /tmp/test --coverage 10 --dry-run")
         print("3. Verify metadata: cat /tmp/test/metadata/*_metadata.json | jq '.benchmarking'")
         sys.exit(0)
 

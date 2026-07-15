@@ -98,7 +98,7 @@ viroforge generate --preset gut-standard --seed 123 --output my_data
 
 ```bash
 viroforge generate \
-    --collection-id 9 \
+    --collection-id 1 \
     --output data/gut \
     --platform novaseq \
     --coverage 30 \
@@ -109,7 +109,7 @@ viroforge generate \
 
 ```bash
 viroforge generate \
-    --collection-id 21 \
+    --collection-id 13 \
     --output data/respiratory_rna \
     --molecule-type rna \
     --rna-depletion ribo_zero \
@@ -122,14 +122,14 @@ viroforge generate \
 ```bash
 # PacBio HiFi
 viroforge generate \
-    --collection-id 9 \
+    --collection-id 1 \
     --output data/gut_hifi \
     --platform pacbio-hifi \
     --depth 15
 
 # Oxford Nanopore
 viroforge generate \
-    --collection-id 7 \
+    --collection-id 6 \
     --output data/soil_nanopore \
     --platform nanopore \
     --depth 20
@@ -139,7 +139,7 @@ viroforge generate \
 
 ```bash
 python scripts/generate_hybrid_dataset.py \
-    --collection-id 9 \
+    --collection-id 1 \
     --output data/gut_hybrid \
     --short-platform novaseq \
     --long-platform pacbio-hifi \
