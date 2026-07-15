@@ -138,12 +138,14 @@ def generate_with_params(args):
     if getattr(args, 'rna_depletion', None):
         params['rna_depletion'] = args.rna_depletion
 
-    # Artifact injection
-    if getattr(args, 'adapter_rate', None):
+    # Artifact injection. Use "is not None" so an explicit 0 disables the
+    # artifact (the underlying script now defaults these to non-zero rates);
+    # a truthy check would swallow 0 and leave the default in place.
+    if getattr(args, 'adapter_rate', None) is not None:
         params['adapter_rate'] = args.adapter_rate
-    if getattr(args, 'low_complexity_rate', None):
+    if getattr(args, 'low_complexity_rate', None) is not None:
         params['low_complexity_rate'] = args.low_complexity_rate
-    if getattr(args, 'duplicate_rate', None):
+    if getattr(args, 'duplicate_rate', None) is not None:
         params['duplicate_rate'] = args.duplicate_rate
 
     # ERV injection
@@ -151,6 +153,11 @@ def generate_with_params(args):
         params['erv_endogenous_rate'] = args.erv_endogenous_rate
     if getattr(args, 'erv_exogenous_rate', None):
         params['erv_exogenous_rate'] = args.erv_exogenous_rate
+
+    # Dark matter
+    dm_frac = getattr(args, 'dark_matter_fraction', None)
+    if dm_frac is not None:
+        params['dark_matter_fraction'] = dm_frac
 
     console.print()
     console.print("[bold cyan]Generating dataset with custom parameters[/bold cyan]")
@@ -402,6 +409,9 @@ def build_command(script_path: Path, params: Dict) -> List[str]:
 
     if 'erv_exogenous_rate' in params:
         cmd.extend(['--erv-exogenous-rate', str(params['erv_exogenous_rate'])])
+
+    if 'dark_matter_fraction' in params:
+        cmd.extend(['--dark-matter-fraction', str(params['dark_matter_fraction'])])
 
     # Random seed
     if 'seed' in params:

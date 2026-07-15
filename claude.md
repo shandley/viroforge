@@ -463,6 +463,20 @@ sqlite3 viroforge/data/viral_genomes.db \
 - Reference: Lv-1 vaginal phage (Lactobacillus jensenii) described in
   Miller-Ensminger et al. 2020 (PLOS One, PMC7289420).
 
+**Dark Matter Sequences: Random Selection, Not Body-Site-Specific (2026-06-05)**
+- The `--dark-matter-fraction` flag adds unclassified viral genomes (family='Unknown')
+  to simulate the large fraction of reads in real viromes that do not match known
+  references. As of v0.13.0 it is on by default (0.30).
+- Dark matter genomes are selected randomly from the Unknown pool, NOT filtered by
+  body site. A gut virome and a vaginal virome draw dark matter from the same pool.
+- In reality dark matter is body-site-specific, but most Unknown-family genomes lack
+  host/habitat metadata, making body-site filtering impractical.
+- Exclusions applied: animal viruses, insect viruses, and known human viruses are
+  excluded from the pool. Plant viruses are intentionally kept (dietary plant viruses
+  are a real component of human gut viromes).
+- Impact on QC benchmarking: none (QC tools process reads the same regardless of dark
+  matter origin). Body-site specificity only matters for taxonomy benchmarking.
+
 ---
 
 ## Recent Bug Fixes (2025-11-16)

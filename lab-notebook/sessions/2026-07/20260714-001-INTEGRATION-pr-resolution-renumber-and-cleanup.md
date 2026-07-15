@@ -67,6 +67,20 @@ then merged with credit to Leran10, or deferred with written feedback.
    replacements, human biomarkers preserved (the one enteric removal was a bat
    rotavirus), idempotent, FK clean.
 
+5. **PRs #50, #43, #45, #55 (this batch).** #50 (replace non-site-appropriate
+   phages) merged with the same rework pattern as #41 (seeded selection, Mouse
+   Gut excluded, wired into setup-db): 82 phages swapped, counts preserved. The
+   defaults cluster (#43 dark matter, #45 artifact defaults, #55 host filter)
+   landed together as the v0.13.0 realistic-defaults change: a no-flags run now
+   injects 30% viral dark matter (unclassified genomes, filtered to exclude
+   animal/insect/known-human and keep dietary plant viruses, seeded) and enables
+   realistic adapter/low-complexity/duplicate/linker artifacts. #55's filter was
+   folded into #43's loader and its duplicated already-merged VLP/low-complexity
+   code was dropped; #43's near-inert hash seed was replaced with a seeded
+   sample. Version bumped 0.12.0 -> 0.13.0. Integration tests pinned to
+   --dark-matter-fraction 0 so the core-pipeline tests stay deterministic.
+   #39 got rework feedback (FASTA out of git + verify accessions); still blocked.
+
 ## Key findings
 
 - The live `body_site_collections` had metadata only for IDs 9-28, but

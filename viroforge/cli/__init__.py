@@ -46,7 +46,7 @@ For more information: https://github.com/hecatomb/viroforge
     parser.add_argument(
         '--version',
         action='version',
-        version='ViroForge 0.12.0 (QC Validation Toolkit)'
+        version='ViroForge 0.13.0 (Realistic Defaults)'
     )
 
     # Create subparsers for subcommands
@@ -169,6 +169,13 @@ For more information: https://github.com/hecatomb/viroforge
         '--erv-exogenous-rate',
         type=float,
         help='Exogenous retroviral read rate (e.g., 0.002)'
+    )
+    generate_parser.add_argument(
+        '--dark-matter-fraction',
+        type=float,
+        default=0.30,
+        help='Fraction of reads from unclassified viral genomes (default: 0.30). '
+             'Set to 0.0 to disable.'
     )
     generate_parser.add_argument(
         '-v', '--verbose',

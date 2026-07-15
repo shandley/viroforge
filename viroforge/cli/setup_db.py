@@ -32,7 +32,7 @@ def download_with_progress(url: str, dest: Path, label: str = "Downloading") -> 
     print(f"  -> {dest}")
 
     try:
-        req = urllib.request.Request(url, headers={"User-Agent": "ViroForge/0.12.0"})
+        req = urllib.request.Request(url, headers={"User-Agent": "ViroForge/0.13.0"})
         with urllib.request.urlopen(req) as response:
             total = response.getheader("Content-Length")
             total = int(total) if total else None

@@ -9,7 +9,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="viroforge",
-    version="0.12.0",
+    version="0.13.0",
     author="Scott Handley Lab",
     author_email="scott.handley@wustl.edu",
     description="A comprehensive mock metavirome data generator for benchmarking and validation",

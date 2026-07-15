@@ -74,7 +74,7 @@ def create_hybrid_metadata(args, short_output, long_output, output_dir):
     metadata = {
         "hybrid_dataset": True,
         "generation_timestamp": datetime.now().isoformat(),
-        "viroforge_version": "0.12.0",
+        "viroforge_version": "0.13.0",
         "random_seed": args.seed,
         "collection": {
             "id": args.collection_id

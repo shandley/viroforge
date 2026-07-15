@@ -41,6 +41,7 @@ class TestFASTQGeneration:
         cmd = [
             sys.executable, str(generation_script),
             '--collection-id', '8',  # Mouse gut (smallest)
+            '--dark-matter-fraction', '0',
             '--output', str(temp_output),
             '--n-reads', '100',  # Very small for speed
             '--vlp-protocol', 'tangential_flow',
@@ -87,6 +88,7 @@ class TestFASTQGeneration:
         cmd = [
             sys.executable, str(generation_script),
             '--collection-id', '8',
+            '--dark-matter-fraction', '0',
             '--output', str(temp_output),
             '--n-reads', '100',
             '--no-vlp',
@@ -118,6 +120,7 @@ class TestFASTQGeneration:
             cmd = [
                 sys.executable, str(generation_script),
                 '--collection-id', '8',
+                '--dark-matter-fraction', '0',
                 '--output', str(protocol_output),
                 '--n-reads', '100',
                 '--vlp-protocol', protocol,
@@ -153,6 +156,7 @@ class TestFASTQGeneration:
             cmd = [
                 sys.executable, str(generation_script),
                 '--collection-id', '8',
+                '--dark-matter-fraction', '0',
                 '--output', str(level_output),
                 '--n-reads', '100',
                 '--vlp-protocol', 'tangential_flow',
@@ -179,6 +183,7 @@ class TestFASTQGeneration:
         cmd = [
             sys.executable, str(generation_script),
             '--collection-id', '8',
+            '--dark-matter-fraction', '0',
             '--output', str(temp_output),
             '--coverage', '10',
             '--vlp-protocol', 'tangential_flow',
@@ -201,6 +206,7 @@ class TestFASTQGeneration:
         cmd = [
             sys.executable, str(generation_script),
             '--collection-id', '8',
+            '--dark-matter-fraction', '0',
             '--output', str(temp_output),
             '--n-reads', '100',
             '--vlp-protocol', 'tangential_flow',
@@ -231,6 +237,7 @@ class TestFASTQGeneration:
             cmd = [
                 sys.executable, str(generation_script),
                 '--collection-id', '8',
+                '--dark-matter-fraction', '0',
                 '--output', str(method_output),
                 '--n-reads', '100',
                 '--vlp-protocol', 'tangential_flow',
@@ -279,6 +286,7 @@ class TestVLPEnrichmentStats:
         cmd = [
             sys.executable, str(generation_script),
             '--collection-id', '8',
+            '--dark-matter-fraction', '0',
             '--output', str(temp_output),
             '--n-reads', '100',
             '--vlp-protocol', vlp_protocol,

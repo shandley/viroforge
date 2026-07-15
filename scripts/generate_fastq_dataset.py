@@ -214,6 +214,134 @@ class CollectionLoader:
 
         return collection_meta, genomes
 
+    def load_dark_matter_genomes(
+        self,
+        n_genomes: int,
+        exclude_ids: set,
+        random_seed: int = 42
+    ) -> List[Dict]:
+        """
+        Load unclassified viral genomes (dark matter) from the database.
+
+        Selects genomes with family='Unknown' (real viral sequences that lack
+        taxonomic classification, mirroring the large unclassifiable fraction of
+        real virome datasets), excluding genomes already in the collection and
+        genomes that are not true dark matter:
+        - Known human viruses that belong in the classified pool (HHV, HIV, HPV,
+          norovirus, influenza, hepatitis, etc.)
+        - Animal viruses (bovine, porcine, avian, murine, bat, etc.)
+        - Insect viruses (baculoviruses, nucleopolyhedroviruses)
+
+        Plant viruses are intentionally kept: dietary plant viruses (PMMoV, ToMV,
+        TMV) are a real and abundant component of human gut viromes.
+
+        Args:
+            n_genomes: Number of dark matter genomes to select
+            exclude_ids: Set of genome_ids already in the collection
+            random_seed: Seed for reproducible selection
+
+        Returns:
+            List of genome dictionaries (same format as load_collection)
+        """
+        import random
+
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
+
+        # Genomes in the Unknown family that are not true dark matter. Plant
+        # viruses are deliberately not excluded (dietary viruses are real).
+        host_exclusions = """
+            AND g.genome_name NOT LIKE 'Human herpesvirus%'
+            AND g.genome_name NOT LIKE 'Human alpha%herpes%'
+            AND g.genome_name NOT LIKE 'Human beta%herpes%'
+            AND g.genome_name NOT LIKE 'Human gamma%herpes%'
+            AND g.genome_name NOT LIKE 'Human immunodeficiency%'
+            AND g.genome_name NOT LIKE 'Human papillomavirus%'
+            AND g.genome_name NOT LIKE 'Human bocavirus%'
+            AND g.genome_name NOT LIKE 'Human enterovirus%'
+            AND g.genome_name NOT LIKE 'Human rhinovirus%'
+            AND g.genome_name NOT LIKE 'Human adenovirus%'
+            AND g.genome_name NOT LIKE 'Human astrovirus%'
+            AND g.genome_name NOT LIKE 'Human rotavirus%'
+            AND g.genome_name NOT LIKE 'Hepatitis%'
+            AND g.genome_name NOT LIKE 'Norovirus%'
+            AND g.genome_name NOT LIKE 'Influenza%'
+            AND g.genome_name NOT LIKE '%Gallid%'
+            AND g.genome_name NOT LIKE '%Bovine%'
+            AND g.genome_name NOT LIKE '%Porcine%'
+            AND g.genome_name NOT LIKE '%Canine%'
+            AND g.genome_name NOT LIKE '%Feline%'
+            AND g.genome_name NOT LIKE '%Murine%'
+            AND g.genome_name NOT LIKE '%Equine%'
+            AND g.genome_name NOT LIKE '%Avian%'
+            AND g.genome_name NOT LIKE '%Simian%'
+            AND g.genome_name NOT LIKE '%Bat %'
+            AND g.genome_name NOT LIKE '%Alcelaphine%'
+            AND g.genome_name NOT LIKE '%Helicoverpa%'
+            AND g.genome_name NOT LIKE '%Acyrthosiphon%'
+            AND g.genome_name NOT LIKE '%nucleopolyhedrovirus%'
+            AND g.genome_name NOT LIKE '%granulovirus%'
+            AND g.genome_name NOT LIKE '%baculovirus%'
+            AND g.genome_name NOT LIKE '%Drosophila%'
+        """
+
+        if exclude_ids:
+            placeholders = ','.join('?' for _ in exclude_ids)
+            exclude_clause = f"AND g.genome_id NOT IN ({placeholders})"
+            params = list(exclude_ids)
+        else:
+            exclude_clause = ""
+            params = []
+
+        # Fetch eligible genome IDs in a deterministic order, then sample with a
+        # seeded RNG (SQLite has no seedable RANDOM()). Only the selected rows'
+        # sequences are fetched, to avoid loading thousands of sequences.
+        id_rows = conn.execute(f"""
+            SELECT g.genome_id
+            FROM genomes g
+            JOIN taxonomy t ON g.genome_id = t.genome_id
+            WHERE t.family = 'Unknown'
+            AND g.sequence IS NOT NULL
+            AND length(g.sequence) > 500
+            {host_exclusions}
+            {exclude_clause}
+            ORDER BY g.genome_id
+        """, params).fetchall()
+        eligible_ids = [r['genome_id'] for r in id_rows]
+
+        if not eligible_ids:
+            logger.warning("No dark matter genomes available in database")
+            conn.close()
+            return []
+
+        n_to_select = min(n_genomes, len(eligible_ids))
+        selected_ids = random.Random(random_seed).sample(eligible_ids, n_to_select)
+
+        sel_placeholders = ','.join('?' for _ in selected_ids)
+        cursor = conn.execute(f"""
+            SELECT g.genome_id, g.genome_name, g.length, g.gc_content,
+                   g.genome_type, g.sequence, t.family, t.genus, t.species
+            FROM genomes g
+            JOIN taxonomy t ON g.genome_id = t.genome_id
+            WHERE g.genome_id IN ({sel_placeholders})
+        """, selected_ids)
+
+        dark_matter = []
+        for row in cursor.fetchall():
+            genome = dict(row)
+            genome['relative_abundance'] = 0.0  # Will be set by caller
+            genome['abundance_rank'] = 0
+            genome['is_dark_matter'] = True
+            dark_matter.append(genome)
+
+        conn.close()
+
+        logger.info(f"Loaded {len(dark_matter)} dark matter genomes "
+                   f"(from {len(eligible_ids)} eligible; excluded animal/insect/"
+                   f"known-human, kept plant/dietary)")
+
+        return dark_matter
+
 
 class FASTQGenerator:
     """Generate FASTQ files from collection genomes."""
@@ -1026,7 +1154,7 @@ class FASTQGenerator:
             'metadata_version': '1.1' if enable_benchmarking else '1.0',
             'generation_info': {
                 'timestamp': datetime.now().isoformat(),
-                'viroforge_version': '0.12.0',
+                'viroforge_version': '0.13.0',
                 'random_seed': self.random_seed
             },
             'collection': {
@@ -1372,8 +1500,8 @@ Examples:
     parser.add_argument(
         '--amplification',
         choices=['none', 'rdab', 'rdab-30', 'mda', 'mda-long', 'linker'],
-        default='none',
-        help='Library preparation amplification method (default: none). ' +
+        default='linker',
+        help='Library preparation amplification method (default: linker). ' +
              'rdab=RdAB 40 cycles (standard), rdab-30=RdAB 30 cycles (moderate), ' +
              'mda=MDA 4h (low biomass), mda-long=MDA 16h (overnight), ' +
              'linker=Linker-based (minimal bias), none=No amplification'
@@ -1412,9 +1540,9 @@ Examples:
     contam_group.add_argument(
         '--adapter-rate',
         type=float,
-        default=0.0,
-        help='Fraction of reads with adapter read-through (0.0-1.0, default: 0.0). '
-             'Set to 0.05 for typical adapter contamination.'
+        default=0.03,
+        help='Fraction of reads with adapter read-through (0.0-1.0, default: 0.03). '
+             'Set to 0.0 to disable.'
     )
     contam_group.add_argument(
         '--adapter-type',
@@ -1468,9 +1596,9 @@ Examples:
     contam_group.add_argument(
         '--low-complexity-rate',
         type=float,
-        default=0.0,
+        default=0.005,
         help='Fraction of reads replaced with low-complexity artifacts (0.0-1.0, '
-             'default: 0.0). Set to 0.01 for typical artifact rate. '
+             'default: 0.005). Set to 0.0 to disable. '
              'Models homopolymer runs, dinucleotide repeats, simple repeats, '
              'and low-entropy sequences from adapter dimers and PCR failures.'
     )
@@ -1486,9 +1614,9 @@ Examples:
     contam_group.add_argument(
         '--duplicate-rate',
         type=float,
-        default=0.0,
+        default=0.10,
         help='Fraction of reads that become PCR duplicate templates (0.0-1.0, '
-             'default: 0.0). Set to 0.10-0.30 for typical PCR duplicate rates. '
+             'default: 0.10). Set to 0.0 to disable. '
              'Each template gets 1-5 copies (geometric distribution).'
     )
     contam_group.add_argument(
@@ -1540,6 +1668,26 @@ Examples:
              'Example: --erv-exogenous-viruses "Human immunodeficiency" "Primate T-lymphotropic"'
     )
 
+    # Dark matter (unclassified viral sequences)
+    dm_group = parser.add_argument_group('viral dark matter')
+    dm_group.add_argument(
+        '--dark-matter-fraction',
+        type=float,
+        default=0.30,
+        help='Fraction of reads from unclassified viral genomes (0.0-1.0, '
+             'default: 0.30). Adds real but taxonomically unclassified '
+             'sequences from RefSeq to simulate the 60-90%% of reads in '
+             'real viromes that do not match known references. '
+             'Set to 0.0 to disable.'
+    )
+    dm_group.add_argument(
+        '--dark-matter-count',
+        type=int,
+        default=None,
+        help='Number of dark matter genomes to include (default: auto, '
+             'scales with collection size). Overrides automatic calculation.'
+    )
+
     args = parser.parse_args()
 
     # Load collections
@@ -1567,6 +1715,59 @@ Examples:
 
     # Load collection
     collection_meta, genomes = loader.load_collection(args.collection_id)
+
+    # Add viral dark matter (unclassified genomes)
+    dark_matter_stats = {}
+    if args.dark_matter_fraction > 0:
+        dm_fraction = min(args.dark_matter_fraction, 0.95)  # Cap at 95%
+
+        # Determine how many dark matter genomes to add
+        n_collection = len(genomes)
+        if args.dark_matter_count is not None:
+            n_dark_matter = args.dark_matter_count
+        else:
+            # Scale with collection size: roughly 0.5x the collection size
+            # e.g., 90 genomes → ~45 dark matter genomes
+            n_dark_matter = max(10, int(n_collection * 0.5))
+
+        # Load dark matter genomes
+        existing_ids = {g['genome_id'] for g in genomes}
+        dark_matter_genomes = loader.load_dark_matter_genomes(
+            n_genomes=n_dark_matter,
+            exclude_ids=existing_ids,
+            random_seed=args.seed
+        )
+
+        if dark_matter_genomes:
+            # Rescale existing abundances: known viral fraction = (1 - dm_fraction)
+            known_fraction = 1.0 - dm_fraction
+            for g in genomes:
+                g['relative_abundance'] *= known_fraction
+
+            # Distribute dark matter abundance using log-normal distribution
+            rng = np.random.default_rng(args.seed + 1000)
+            dm_raw = rng.lognormal(mean=0.0, sigma=1.5, size=len(dark_matter_genomes))
+            dm_raw /= dm_raw.sum()
+            dm_abundances = dm_raw * dm_fraction
+
+            for i, dm_genome in enumerate(dark_matter_genomes):
+                dm_genome['relative_abundance'] = float(dm_abundances[i])
+                dm_genome['abundance_rank'] = n_collection + i + 1
+                genomes.append(dm_genome)
+
+            dark_matter_stats = {
+                'dark_matter_fraction': dm_fraction,
+                'dark_matter_genomes': len(dark_matter_genomes),
+                'known_viral_genomes': n_collection,
+                'total_genomes': len(genomes),
+            }
+
+            logger.info(f"Added {len(dark_matter_genomes)} dark matter genomes "
+                       f"({dm_fraction*100:.0f}% of total abundance)")
+        else:
+            logger.warning("No dark matter genomes available — proceeding without")
+    else:
+        logger.info("Dark matter disabled (--dark-matter-fraction 0.0)")
 
     # Create generator (sanitize collection name for file system)
     import re
@@ -1682,7 +1883,8 @@ Examples:
         'molecule_type': args.molecule_type,
         'vlp_protocol': vlp_protocol if vlp_protocol else 'none',
         'contamination_level': args.contamination_level,
-        'amplification': args.amplification
+        'amplification': args.amplification,
+        'dark_matter': dark_matter_stats if dark_matter_stats else None,
     }
 
     # Add RNA-specific parameters if applicable
@@ -2043,10 +2245,15 @@ Examples:
         # Post-process: add source type labels to read headers
         if contamination_profile is not None:
             genome_source_map = {}
-            # Viral genomes
+            # Viral genomes (check if dark matter)
             n_viral = enrichment_stats.get('n_viral_genomes', 0)
+            # Build set of dark matter genome IDs for labeling
+            dark_matter_ids = {g['genome_id'] for g in genomes if g.get('is_dark_matter')}
             for seq in sequences[:n_viral]:
-                genome_source_map[seq.id] = "viral"
+                if seq.id in dark_matter_ids:
+                    genome_source_map[seq.id] = "dark_matter"
+                else:
+                    genome_source_map[seq.id] = "viral"
             # Contaminant genomes
             for contaminant in contamination_profile.contaminants:
                 genome_source_map[contaminant.genome_id] = contaminant.contaminant_type.value

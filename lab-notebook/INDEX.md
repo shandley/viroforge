@@ -762,9 +762,10 @@ fixes from PR #29 without pulling in the deferred data and schema changes.
 **Type**: INTEGRATION
 **Status**: In progress
 
-**Purpose**: Resolve open PRs one at a time. Landed #56 (Okabe-Ito palette),
-#6 (renumber collections to 1-20 with a migration), and #41 (remove animal/plant
-viruses from human collections); deferred #51 with feedback.
+**Purpose**: Resolve open PRs one at a time. Landed #56 (palette), #6 (renumber
+to 1-20 + migration), #41 and #50 (collection cleanup), and the v0.13.0
+realistic-defaults cluster (#43 dark matter, #45 artifact defaults, #55 filter).
+Deferred #51 and #39 with feedback.
 
 ---
 
