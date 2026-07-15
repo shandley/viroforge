@@ -5,7 +5,7 @@
 **ViroForge** is a synthetic viral metagenomics dataset generator for benchmarking virome analysis pipelines. It generates realistic FASTQ sequencing data with known ground truth for validation.
 
 **Key Features**:
-- 28 curated viral genome collections (body sites, disease states, environmental)
+- 20 curated viral genome collections (body sites, disease states, environmental)
 - Realistic abundance distributions (log-normal, power-law)
 - Multi-step library preparation modeling (VLP extraction, amplification bias, sequencing)
 - RNA and DNA virome workflows
@@ -18,7 +18,7 @@
 
 ---
 
-## Current Status (v0.12.0 - QC Validation Toolkit Complete)
+## Current Status (v0.13.0 - Realistic Defaults)
 
 ### Phases Completed
 
@@ -48,7 +48,7 @@
 
 ### Project Status: Production Ready
 
-**28 curated collections** covering:
+**20 curated collections** covering:
 - Host-associated viromes (gut, oral, skin, respiratory, vaginal, blood, etc.)
 - Environmental viromes (marine, soil, freshwater, wastewater)
 - Disease states (IBD, HIV+, CF)
@@ -148,7 +148,7 @@ viroforge/data/viral_genomes.db
 - **NOTE**: `family` has NOT NULL constraint - use 'Unknown' for unassigned
 - **IMPORTANT**: After taxonomy fix, check family != 'Unknown' for critical viruses
 
-**body_site_collections**: 23 curated collections
+**body_site_collections**: 20 curated collections
 - collection_id, collection_name, description, n_genomes
 - literature_references (verify citations!)
 
@@ -157,40 +157,42 @@ viroforge/data/viral_genomes.db
 
 ---
 
-## Collections Overview (23 Total)
+## Collections Overview (20 Total)
 
-### Original Collections (1-8)
-1. Healthy Human Gut Virome (133 genomes)
-2. Healthy Human Skin Virome (42 genomes)
-3. Healthy Human Oral Virome (67 genomes)
-4. Healthy Human Urogenital Virome (31 genomes)
-5. Healthy Human Respiratory Virome (58 genomes)
-6. Marine Virome (78 genomes)
-7. Soil Virome (82 genomes)
-8. Freshwater Virome (71 genomes)
+Collections use contiguous IDs 1-20 (renumbered from the legacy 9-28 scheme in
+PR #6; see scripts/migrate_renumber_collections.py). There are no separate
+"VLP comparison" collections: VLP enrichment is applied to any collection via
+`--vlp-protocol`. Genome counts below reflect the live database after the
+animal-virus (#41) and phage-host (#50) cleanups. Verify with
+`viroforge browse` or a query against `body_site_collections`.
 
-### VLP Comparison Collections (9-15)
-9. Healthy Gut (Comparison baseline) (133 genomes)
-10. High Bacterial Lysis (142 genomes)
-11. Low Bacterial Lysis (128 genomes)
-12. High Prophage Induction (149 genomes)
-13. Low Prophage Induction (127 genomes)
-14. High Eukaryotic Virus Shedding (139 genomes)
-15. Low Eukaryotic Virus Shedding (127 genomes)
+### Body-site collections (1-8)
+1. Gut Virome - Adult Healthy (Western Diet) (133 genomes)
+2. Oral Virome - Saliva (Healthy) (46 genomes)
+3. Skin Virome - Sebaceous Sites (Healthy) (15 genomes)
+4. Respiratory Virome - Nasopharynx (Healthy) (40 genomes)
+5. Marine Virome - Coastal Surface Water (446 genomes)
+6. Soil Virome - Agricultural (290 genomes)
+7. Freshwater Virome - Lake Surface Water (200 genomes)
+8. Mouse Gut Virome - Laboratory (C57BL/6) (21 genomes)
 
-### Amplification Comparison (16)
-16. Pre-Amplification Control (100 genomes)
+### Disease and environmental collections (9-12)
+9. Wastewater Virome - Urban Treatment Plant (351 genomes)
+10. IBD Gut Virome (Inflammatory Bowel Disease) (89 genomes)
+11. HIV+ Gut Virome (55 genomes) - includes human herpesviruses
+12. Cystic Fibrosis (CF) Respiratory Virome (78 genomes)
 
-### Critical Disease/Environmental Collections (17-20) - **FIXED AFTER TAXONOMY BUG**
-17. Wastewater Virome (351 genomes) - Now includes rotavirus
-18. IBD Gut Virome (89 genomes)
-19. HIV+ Gut Virome (55 genomes) - **CRITICAL FIX**: Now has herpesviruses
-20. CF Respiratory Virome (81 genomes) - Now has all 10 influenza
+### RNA virome collections (13-15)
+13. Human Respiratory RNA Virome (53 genomes)
+14. Arbovirus Environmental (Mosquito Virome) (39 genomes)
+15. Fecal RNA Virome (47 genomes) - includes rotavirus/norovirus
 
-### RNA Virome Collections (21-23) - **FIXED AFTER TAXONOMY BUG**
-21. Human Respiratory RNA Virome (56 genomes) - Now includes influenza
-22. Arbovirus Environmental (39 genomes)
-23. Fecal RNA Virome (58 genomes) - **MAJOR FIX**: +81% size, now has rotavirus/norovirus
+### Additional host niches (16-20)
+16. Vaginal Virome (Healthy) (26 genomes) - proxy Lactobacillus phages (see notes)
+17. Blood/Plasma Virome (Healthy) (21 genomes)
+18. Ocular Surface Virome (Healthy) (17 genomes)
+19. Lower Respiratory (Lung) Virome (Healthy) (31 genomes)
+20. Urinary Virome (Healthy) (20 genomes)
 
 ---
 
@@ -261,11 +263,11 @@ python scripts/generate_fastq_dataset.py \
 - `scripts/fix_taxonomy_unmatched.py` - **CRITICAL**: Fuzzy matching for taxonomy assignment
 - `scripts/generate_fastq_dataset.py` - Main FASTQ generation
 - `scripts/batch_generate_fastq.py` - Generate multiple datasets
-- `scripts/curate_*_collection.py` - Collection curation scripts (23 total)
+- `scripts/curate_*_collection.py` - Collection curation scripts (20 total)
 
 ### Documentation
 - `docs/TAXONOMY_BUG_FIX.md` - **READ FIRST** if revisiting taxonomy issues
-- `docs/COLLECTION_IMPLEMENTATION_GUIDE.md` - All 23 collections documented
+- `docs/COLLECTION_IMPLEMENTATION_GUIDE.md` - All 20 collections documented
 - `docs/PHASE4_FASTQ_GENERATION.md` - FASTQ generation guide
 - `ROADMAP.md` - Development roadmap (current: Phase 8)
 
@@ -371,13 +373,14 @@ LIMIT 10"
 ## Contact & History
 
 **Project**: ViroForge
-**Repository**: hecatomb/viroforge
-**Current Version**: 0.6.0
-**Last Major Update**: 2025-11-09 (Taxonomy bug fix)
+**Repository**: shandley/viroforge
+**Current Version**: 0.13.0
+**Last Major Update**: 2026-07-14 (1-20 renumber + realistic defaults)
 
 **Development Team**: ViroForge Development Team
 **Assistant**: Claude Code (Anthropic)
 
 **Major Milestones**:
+- 2026-07-14: Collections renumbered to 1-20; v0.13.0 realistic default output
 - 2025-11-09: Taxonomy bug discovered and fixed (Phase 7-8)
 - Earlier: Phases 1-6 completed (core functionality)

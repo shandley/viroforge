@@ -1,8 +1,8 @@
 # ViroForge - Development Context
 
 **Last Updated**: 2026-07-14
-**Current Version**: v0.12.0
-**Status**: QC Validation Toolkit Complete - PR triage in progress (see Session Handoff below)
+**Current Version**: v0.13.0
+**Status**: v0.13.0 realistic defaults - PR backlog resolved (see Session Handoff below)
 
 ---
 
@@ -28,32 +28,36 @@ Claude Code). Full per-PR triage and the verified facts are in the memory file
 - Closed 14 PRs and 19 issues. Rework feedback posted on PRs #41, #50, #51, #55,
   #56.
 
-### Verified facts that correct older docs
+### Second session (2026-07-14): PR backlog resolved
 
-- The live database has 20 collections at IDs 9-28; IDs 1-8 are empty. The
-  "28 collections" and "VLP-comparison collections at 9-16" descriptions
-  elsewhere in this file are not backed by the database. VLP is applied via
-  `--vlp-protocol` flags, not separate collections. Issue #5's gap complaint is
-  real.
+Scott decided to adopt the 1-20 renumbering and move to realistic default
+output with a version bump. Worked through the open PRs one at a time:
+
+- **Merged/landed** (credited to Leran10): #56 (Okabe-Ito palette, `fdd5682`),
+  #6 (renumber to 1-20 + migration, `1e3af14`), #41 (remove animal/plant
+  viruses, `9eae691`), #50 (replace non-site phages, `68439a5`), and the
+  v0.13.0 realistic-defaults cluster `74e33b4` (#43 dark matter, #45 artifact
+  defaults, #55 host filter folded in).
+- **Deferred with feedback (still open)**: #51 (host_associations - consumer-less
+  infra, needs a real body_site column) and #39 (collection-specific
+  contamination - commits ~4.4M lines of FASTA into git and hardcodes unverified
+  bacterial accessions; needs the FASTA out of git and /verify-references).
+- **Issues**: closed #5, #40, #42, #44, #49, #54 (resolved by the merges).
+  Still open: #37, #38 (both tied to blocked #39), #30 (web form builder).
+
+### Verified facts
+
+- The live database has **20 collections at contiguous IDs 1-20** (renumbered
+  from 9-28). There are no separate "VLP comparison" collections; VLP is applied
+  via `--vlp-protocol`. The animal-virus and phage-host cleanups run as a
+  post-curation step in `viroforge setup-db`.
 - Test interpreter is `.venv_test/bin/python` (the older `.venv` path is gone).
   `.venv_test` lacks rich and flask, so CLI and web runtime imports fail there.
+  It has numpy + viroforge, enough for dry-run generation.
 
-### Open, needs Scott's decision (blocks the remaining scientific PRs)
+### Open PRs
 
-1. Collection renumbering to 1-20 (PR #6 / #5). Leran10 has been developing
-   against a renumbered 1-20 database, so PRs #41 and #50 hardcode collection
-   IDs that do not match the 9-28 DB on main. This decision now blocks that
-   batch.
-2. PR #39 (collection-specific contamination) is blocked: it hardcodes ~107
-   bacterial GCF accessions that are unverified, and at least four are wrong
-   (one labeled Megasphaera elsdenii is actually Salmonella enterica). Run
-   /verify-references before it can merge.
-3. Defaults debate: PR #43 (30% dark matter) and PR #45 (artifacts on by
-   default) each change what a no-flags dataset looks like.
-
-### Open PRs after this session
-
-6, 39, 41, 43, 45, 50, 51, 55, 56.
+39, 51 (both intentionally deferred with feedback).
 
 ---
 
@@ -62,7 +66,7 @@ Claude Code). Full per-PR triage and the verified facts are in the memory file
 ViroForge is a comprehensive mock metavirome data generator for benchmarking virome analysis pipelines. It generates synthetic FASTQ datasets with complete ground truth for validation.
 
 **Core Capabilities**:
-- 28 curated virome collections (host-associated, environmental, disease states)
+- 20 curated virome collections (host-associated, environmental, disease states)
 - 14,423 RefSeq viral genomes with ICTV taxonomy (57.1% coverage)
 - 5 sequencing platforms (NovaSeq, MiSeq, HiSeq, PacBio HiFi, Oxford Nanopore)
 - DNA and RNA virome workflows (RT, rRNA depletion, degradation)
@@ -167,7 +171,7 @@ viroforge web                 # Launch web interface
 **Key Tables**:
 - `genomes` - 14,423 RefSeq viral genome sequences
 - `taxonomy` - ICTV taxonomy mappings (57.1% matched)
-- `body_site_collections` - 28 collection metadata records
+- `body_site_collections` - 20 collection metadata records
 - `collection_genomes` - Collection-genome associations with abundances
 
 **Regeneration**: Database can be regenerated from RefSeq if needed (scripts in `scripts/` directory)
@@ -213,7 +217,7 @@ viroforge web                 # Launch web interface
 - `viroforge/database/manager.py` - Collection management
 
 ### Collection Curation
-- `scripts/curate_*_virome_collection.py` - 28 collection curation scripts
+- `scripts/curate_*_virome_collection.py` - 20 collection curation scripts
 - Follow proactive taxonomy rescanning protocol (see below)
 
 ### Documentation
@@ -222,7 +226,7 @@ viroforge web                 # Launch web interface
 - `docs/PHASE12.3_SUMMARY.md` - Web interface documentation
 - `docs/LONGREAD_TUTORIAL.md` - PacBio HiFi and Nanopore guide
 - `docs/HYBRID_ASSEMBLY_TUTORIAL.md` - Hybrid assembly workflows
-- `docs/COLLECTION_IMPLEMENTATION_GUIDE.md` - All 28 collections documented
+- `docs/COLLECTION_IMPLEMENTATION_GUIDE.md` - All 20 collections documented
 - `docs/TAXONOMY_BUG_FIX.md` - Critical taxonomy fix documentation
 
 ### Example Configurations

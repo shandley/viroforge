@@ -102,6 +102,9 @@ data/benchmark_datasets/
 
 # SQLite databases with genome data (too large for git)
 *.db
+# Database backups (e.g. viral_genomes.db.bak-pre-renumber-...)
+*.db.bak*
+*.db.bak-*
 
 # Gzipped genome files
 *.fna.gz
@@ -144,6 +147,9 @@ test_html_fix.py
 
 # Project config
 PROJECT.yaml
+
+# Slack responses
+slack_response_*.txt
 
 # Generated data directories
 data/gut_virome/
