@@ -2,13 +2,13 @@
 
 **Project**: ViroForge - Synthetic Virome Data Generator
 **Started**: January 30, 2025
-**Last Updated**: April 16, 2026
+**Last Updated**: July 14, 2026
 
 ---
 
 ## Quick Stats
 
-**Total Entries**: 18
+**Total Entries**: 20
 **Phase 1**: Complete (100%)
 **Phase 2**: Complete (100%)
 **Phase 3**: Complete (100%)
@@ -19,7 +19,7 @@
 **Phase 10-12**: Complete (100%) (Long-read, hybrid, CLI, web)
 **Phase 13A**: Complete (100%) (Benchmarking metadata)
 **Realistic Contamination**: Complete (100%) (Real reference sequences)
-**Total Collections**: 28 (23 host-associated, 5 environmental)
+**Total Collections**: 20 (15 host-associated, 5 environmental)
 **Genomes**: 14,423 RefSeq viral genomes
 **Taxonomy Coverage**: 57.1% (8,241 genomes with ICTV taxonomy)
 **Tests**: 80+ passing
@@ -37,7 +37,7 @@
 - Adapter read-through post-processor
 - 23 new tests, all passing
 
-**Latest Entry**: 20260322-001-IMPLEMENTATION (Realistic contamination)
+**Latest Entry**: 20260714-001-INTEGRATION (PR resolution: renumber, cleanup)
 
 ### Phase 8.2 Complete - RNA Virome Workflow
 
@@ -742,6 +742,29 @@
 **Status**: Complete
 
 **Purpose**: Sync version strings and documentation before session restart
+
+---
+
+### 2026-07-13
+
+**ID**: `20260713-001-INTEGRATION-pr-triage-and-pr29-extraction.md`
+**Type**: INTEGRATION
+**Status**: Complete
+
+**Purpose**: Triage Leran10's open PRs and issues; extract the accepted code
+fixes from PR #29 without pulling in the deferred data and schema changes.
+
+---
+
+### 2026-07-14
+
+**ID**: `20260714-001-INTEGRATION-pr-resolution-renumber-and-cleanup.md`
+**Type**: INTEGRATION
+**Status**: In progress
+
+**Purpose**: Resolve open PRs one at a time. Landed #56 (Okabe-Ito palette),
+#6 (renumber collections to 1-20 with a migration), and #41 (remove animal/plant
+viruses from human collections); deferred #51 with feedback.
 
 ---
 

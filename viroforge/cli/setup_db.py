@@ -152,7 +152,7 @@ def run_setup_db(args) -> int:
             "--all", "--database", str(db_path),
         ])
 
-        # Additional collections (17-28) — each script has its own hardcoded DB path
+        # Additional collections (9-20) — each script has its own hardcoded DB path
         # but they all default to viroforge/data/viral_genomes.db
         additional_scripts = [
             "scripts/curate_wastewater_collection.py",
@@ -181,6 +181,19 @@ def run_setup_db(args) -> int:
             print(f"\n  {len(failed)} curation script(s) failed (see warnings above).")
         else:
             print(f"\n  All collection curation scripts completed successfully.")
+
+        # Post-curation cleanup: remove non-host-appropriate genomes that the
+        # name-pattern curation queries can pull in. These mutate the collections
+        # in place, so they must run after all curation scripts.
+        print("\n  Cleaning up collection contents...")
+        cleanup_scripts = [
+            "scripts/fix_animal_virus_contamination.py",
+        ]
+        for script in cleanup_scripts:
+            try:
+                _run_script(project_root, script, ["--apply", "--database", str(db_path)])
+            except RuntimeError as e:
+                print(f"  WARNING: {script} failed: {e}")
     else:
         print("\n[Step 5/5] Skipping collection curation")
 
