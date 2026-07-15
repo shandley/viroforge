@@ -188,6 +188,7 @@ def run_setup_db(args) -> int:
         print("\n  Cleaning up collection contents...")
         cleanup_scripts = [
             "scripts/fix_animal_virus_contamination.py",
+            "scripts/fix_phage_host_specificity.py",
         ]
         for script in cleanup_scripts:
             try:
