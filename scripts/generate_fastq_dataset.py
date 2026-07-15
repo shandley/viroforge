@@ -1632,6 +1632,15 @@ Examples:
         help='Per-base substitution rate in PCR copies (default: 0.001). '
              'Models PCR polymerase errors. Set to 0 for exact duplicates.'
     )
+    contam_group.add_argument(
+        '--mda-chimera-rate',
+        type=float,
+        default=0.0,
+        help='Fraction of reads replaced with MDA chimeric artifacts '
+             '(0.0-0.3, default: 0.0, or 0.15 when --amplification is mda/mda-long '
+             'and this is left at 0). Models phi29 branch-migration chimeras where '
+             'a read joins sequence from two different genomic regions.'
+    )
 
     # ERV injection options
     erv_group = parser.add_argument_group('retroviral read injection')
@@ -2396,12 +2405,16 @@ Examples:
             from viroforge.simulators.duplicates import add_pcr_duplicates
 
             dup_manifest = generator.metadata_dir / f"{collection_name}_duplicate_manifest.tsv"
+            # MDA (phi29) produces a different duplicate profile than PCR
+            # (power-law copies, stronger GC bias); map the amplification method.
+            dup_amp_method = "mda" if args.amplification in ("mda", "mda-long") else "pcr"
             dup_stats = add_pcr_duplicates(
                 r1_path=r1_path,
                 r2_path=r2_path,
                 duplicate_rate=args.duplicate_rate,
                 max_copies=args.duplicate_max_copies,
                 error_rate=args.duplicate_error_rate,
+                amplification_method=dup_amp_method,
                 random_seed=args.seed,
                 in_place=True,
                 manifest_path=dup_manifest,
@@ -2428,6 +2441,44 @@ Examples:
                     "duplicate_fraction": dup_stats["duplicate_fraction"],
                     "copy_count_distribution": dup_stats["copy_count_distribution"],
                     "manifest_file": str(dup_manifest),
+                }
+                with open(mf, "w") as f:
+                    json.dump(metadata, f, indent=2)
+
+        # Post-process: inject MDA chimeras (only for MDA amplification)
+        chimera_rate = args.mda_chimera_rate
+        if chimera_rate == 0.0 and args.amplification in ('mda', 'mda-long'):
+            chimera_rate = 0.15  # Default 15% for MDA if not set
+        if chimera_rate > 0 and args.amplification in ('mda', 'mda-long'):
+            from viroforge.simulators.duplicates import add_mda_chimeras
+
+            chimera_manifest = generator.metadata_dir / f"{collection_name}_chimera_manifest.tsv"
+            chimera_stats = add_mda_chimeras(
+                r1_path=r1_path,
+                r2_path=r2_path,
+                chimera_rate=chimera_rate,
+                random_seed=args.seed,
+                in_place=True,
+                manifest_path=chimera_manifest,
+            )
+            logger.info(
+                f"MDA chimeras: {chimera_stats['chimeras_created']} chimeric reads "
+                f"({chimera_stats['chimera_fraction']:.1%}), "
+                f"{chimera_stats['inter_genomic']} inter-genomic, "
+                f"{chimera_stats['intra_genomic']} intra-genomic"
+            )
+
+            import glob as _glob3
+            for mf in _glob3.glob(str(generator.metadata_dir / "*_metadata.json")):
+                with open(mf) as f:
+                    metadata = json.load(f)
+                metadata["chimera_stats"] = {
+                    "chimera_rate": chimera_rate,
+                    "chimeras_created": chimera_stats["chimeras_created"],
+                    "chimera_fraction": chimera_stats["chimera_fraction"],
+                    "inter_genomic": chimera_stats["inter_genomic"],
+                    "intra_genomic": chimera_stats["intra_genomic"],
+                    "manifest_file": str(chimera_manifest),
                 }
                 with open(mf, "w") as f:
                     json.dump(metadata, f, indent=2)

@@ -2,13 +2,13 @@
 
 **Project**: ViroForge - Synthetic Virome Data Generator
 **Started**: January 30, 2025
-**Last Updated**: July 14, 2026
+**Last Updated**: July 15, 2026
 
 ---
 
 ## Quick Stats
 
-**Total Entries**: 20
+**Total Entries**: 21
 **Phase 1**: Complete (100%)
 **Phase 2**: Complete (100%)
 **Phase 3**: Complete (100%)
@@ -37,7 +37,7 @@
 - Adapter read-through post-processor
 - 23 new tests, all passing
 
-**Latest Entry**: 20260714-001-INTEGRATION (PR resolution: renumber, cleanup)
+**Latest Entry**: 20260715-001-IMPLEMENTATION (MDA duplicate/chimera model)
 
 ### Phase 8.2 Complete - RNA Virome Workflow
 
@@ -766,6 +766,17 @@ fixes from PR #29 without pulling in the deferred data and schema changes.
 to 1-20 + migration), #41 and #50 (collection cleanup), and the v0.13.0
 realistic-defaults cluster (#43 dark matter, #45 artifact defaults, #55 filter).
 Deferred #51 and #39 with feedback. Follow-up: seeded the curation genome selection (reproducible setup-db).
+
+---
+
+### 2026-07-15
+
+**ID**: `20260715-001-IMPLEMENTATION-mda-duplicate-model.md`
+**Type**: IMPLEMENTATION
+**Status**: Complete
+
+**Purpose**: Land the MDA (phi29) duplicate/chimera model, extracted as a
+standalone feature from the deferred PR #39.
 
 ---
 
