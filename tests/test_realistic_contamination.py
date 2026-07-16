@@ -378,7 +378,12 @@ class TestLowComplexityInjection:
 
     @pytest.fixture
     def sample_fastq(self, tmp_path):
-        """Create minimal FASTQ files for testing."""
+        """Create minimal FASTQ files for testing.
+
+        Uses ISS-style headers ({genome_id}_{index}_{pair}) under a single
+        genome so the injector's rare-genome protection (skips genomes with
+        <50 reads) does not blanket-protect every read.
+        """
         from Bio.SeqRecord import SeqRecord
         from Bio.Seq import Seq
         from Bio import SeqIO
@@ -392,10 +397,10 @@ class TestLowComplexityInjection:
         for i in range(200):
             seq = "".join(rng.choice("ACGT") for _ in range(150))
             qual = [30] * 150
-            r1 = SeqRecord(Seq(seq), id=f"read_{i}/1", description="")
+            r1 = SeqRecord(Seq(seq), id=f"genome1_{i}_1", description="")
             r1.letter_annotations["phred_quality"] = qual
             r1_records.append(r1)
-            r2 = SeqRecord(Seq(seq), id=f"read_{i}/2", description="")
+            r2 = SeqRecord(Seq(seq), id=f"genome1_{i}_2", description="")
             r2.letter_annotations["phred_quality"] = qual
             r2_records.append(r2)
 
@@ -548,6 +553,8 @@ class TestEntropyRange:
 
     @pytest.fixture
     def sample_fastq(self, tmp_path):
+        # ISS-style headers under a single genome so the injector's
+        # rare-genome protection (<50 reads) does not protect every read.
         from Bio.SeqRecord import SeqRecord
         from Bio.Seq import Seq
         from Bio import SeqIO
@@ -561,10 +568,10 @@ class TestEntropyRange:
         for i in range(200):
             seq = "".join(rng.choice("ACGT") for _ in range(150))
             qual = [30] * 150
-            r1 = SeqRecord(Seq(seq), id=f"read_{i}/1", description="")
+            r1 = SeqRecord(Seq(seq), id=f"genome1_{i}_1", description="")
             r1.letter_annotations["phred_quality"] = qual
             r1_records.append(r1)
-            r2 = SeqRecord(Seq(seq), id=f"read_{i}/2", description="")
+            r2 = SeqRecord(Seq(seq), id=f"genome1_{i}_2", description="")
             r2.letter_annotations["phred_quality"] = qual
             r2_records.append(r2)
 
