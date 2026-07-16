@@ -37,7 +37,7 @@
 - Adapter read-through post-processor
 - 23 new tests, all passing
 
-**Latest Entry**: 20260715-001-IMPLEMENTATION (MDA duplicate/chimera model)
+**Latest Entry**: 20260716-001-BUGFIX (validation debt, setup-db fixes, canonical DB)
 
 ### Phase 8.2 Complete - RNA Virome Workflow
 
@@ -777,6 +777,20 @@ Deferred #51 and #39 with feedback. Follow-up: seeded the curation genome select
 
 **Purpose**: Land the MDA (phi29) duplicate/chimera model, extracted as a
 standalone feature from the deferred PR #39.
+
+---
+
+### 2026-07-16
+
+**ID**: `20260716-001-BUGFIX-validation-debt-and-canonical-db.md`
+**Type**: BUGFIX
+**Status**: Complete
+
+**Purpose**: Pay down v0.13.0 validation debt (real env, default and MDA
+generation, test suite, setup-db reproducibility). Fix stale low-complexity
+tests, MDA duplicate metadata, vaginal-curation idempotency, and n_genomes
+reconcile. Adopt a fresh seeded rebuild as the canonical database and add a
+collection membership provenance manifest.
 
 ---
 
