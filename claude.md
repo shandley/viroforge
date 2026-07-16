@@ -121,7 +121,7 @@ ViroForge is a comprehensive mock metavirome data generator for benchmarking vir
 
 **Core Capabilities**:
 - 20 curated virome collections (host-associated, environmental, disease states)
-- 14,423 RefSeq viral genomes with ICTV taxonomy (57.1% coverage)
+- 14,423 RefSeq viral genomes with ICTV taxonomy (71.7% family, 88.9% class coverage after 2026-07-16 NCBI rank enrichment)
 - 5 sequencing platforms (NovaSeq, MiSeq, HiSeq, PacBio HiFi, Oxford Nanopore)
 - DNA and RNA virome workflows (RT, rRNA depletion, degradation)
 - VLP enrichment modeling (5 protocols)
@@ -224,7 +224,7 @@ viroforge web                 # Launch web interface
 
 **Key Tables**:
 - `genomes` - 14,423 RefSeq viral genome sequences
-- `taxonomy` - ICTV taxonomy mappings (57.1% matched)
+- `taxonomy` - ICTV/NCBI taxonomy mappings (71.7% family, 88.9% class matched)
 - `body_site_collections` - 20 collection metadata records
 - `collection_genomes` - Collection-genome associations with abundances
 
@@ -420,9 +420,13 @@ WHERE g.genome_name LIKE 'Respiratory syncytial virus%'
 For production deployment: Add authentication, HTTPS, job queue, rate limiting.
 
 ### Taxonomy Limitations
-- 57.1% of genomes have ICTV taxonomy matches
-- 42.9% have `family="Unknown"` (strain-specific nomenclature issues)
-- Enhanced fuzzy matching fixed 469 genomes (7.1%)
+- 88.9% of genomes are classified to class, 71.7% to family (after the 2026-07-16
+  NCBI rank enrichment; see docs/BIOLOGICAL_ACCURACY_REVIEW.md)
+- 28.3% (4,080) have `family="Unknown"` - largely modern bacteriophages that ICTV
+  assigns to a genus but no family (families abolished 2021), so this is correct
+  taxonomy, not a gap. 1,481 genomes are genuinely unclassified (no class).
+- Enhanced fuzzy matching fixed 469 genomes; NCBI enrichment then classified 4,577
+  more to class and 2,102 to family
 - See `docs/TAXONOMY_BUG_FIX.md` for details
 
 ### Platform Requirements

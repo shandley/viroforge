@@ -138,7 +138,8 @@ viroforge/data/viral_genomes.db
 - genome_id (RefSeq accession)
 - genome_name, length, gc_content, sequences
 
-**taxonomy**: ICTV taxonomy (NOW 57.1% assigned after fix)
+**taxonomy**: ICTV/NCBI taxonomy (71.7% family, 88.9% class assigned after the
+2026-07-16 NCBI rank enrichment)
 - genome_id → realm, kingdom, phylum, class, order_name, **family**, genus, species
 - **NOTE**: `family` has NOT NULL constraint - use 'Unknown' for unassigned
 - **IMPORTANT**: After taxonomy fix, check family != 'Unknown' for critical viruses
@@ -301,8 +302,10 @@ pytest tests/test_fastq_integration.py -v
 ## Known Issues
 
 ### Taxonomy Assignment
-- **6,182 genomes still have `family='Unknown'` (42.8%)**
-  - Mostly: Plant viruses, bacteriophages, novel viruses
+- **4,080 genomes have `family='Unknown'` (28.3%)** after the 2026-07-16 NCBI
+  enrichment (was 6,182 / 42.8%)
+  - Mostly: modern bacteriophages ICTV assigns to a genus but no family (families
+    abolished 2021) - correct taxonomy, not a gap. Only 1,481 have no class at all.
   - Not critical: All major human pathogens now assigned
   - See `data/ictv/still_unmatched_after_fix.tsv`
 

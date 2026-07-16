@@ -7,7 +7,7 @@ ViroForge creates realistic FASTQ sequencing data from curated viral genome coll
 ## Features
 
 - 20 curated virome collections (human body sites, disease states, environmental)
-- 14,423 RefSeq viral genomes with ICTV taxonomy
+- 14,423 RefSeq viral genomes with ICTV/NCBI taxonomy (71.7% family, 88.9% class coverage)
 - 5 sequencing platforms (NovaSeq, MiSeq, HiSeq, PacBio HiFi, Oxford Nanopore)*
 - DNA and RNA virome workflows
 - VLP enrichment modeling (5 protocols)
