@@ -8,15 +8,40 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+import json
+
 from ..benchmarking import benchmark_qc, read_labels, read_names
-from ..benchmarking.report import to_markdown, write_reports
+from ..benchmarking.report import assembly_to_markdown, to_markdown, write_reports
 
 
 def run_benchmark(args) -> int:
     if args.benchmark_command == "qc":
         return _run_qc(args)
-    print("Usage: viroforge benchmark qc --raw-reads R1 --cleaned-reads R1", file=sys.stderr)
+    if args.benchmark_command == "assembly":
+        return _run_assembly(args)
+    print("Usage: viroforge benchmark {qc,assembly} ...", file=sys.stderr)
     return 2
+
+
+def _run_assembly(args) -> int:
+    from ..benchmarking.assembly import benchmark_assembly
+
+    for p in (args.contigs, args.genomes):
+        if not Path(p).exists():
+            print(f"ERROR: file not found: {p}", file=sys.stderr)
+            return 2
+    metadata = None
+    if args.ground_truth:
+        gt = Path(args.ground_truth)
+        if not gt.exists():
+            print(f"ERROR: file not found: {gt}", file=sys.stderr)
+            return 2
+        metadata = json.loads(gt.read_text())
+
+    metrics = benchmark_assembly(args.contigs, args.genomes, metadata)
+    write_reports(metrics, json_path=args.output, md_path=args.markdown, kind="assembly")
+    print(assembly_to_markdown(metrics))
+    return 0
 
 
 def _run_qc(args) -> int:

@@ -61,6 +61,9 @@ setup(
         "web": [
             "flask>=2.0.0",
         ],
+        "benchmark": [
+            "mappy>=2.24",  # minimap2 bindings for assembly benchmarking
+        ],
     },
     entry_points={
         "console_scripts": [

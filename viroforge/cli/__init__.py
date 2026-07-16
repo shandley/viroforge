@@ -425,6 +425,25 @@ For more information: https://github.com/hecatomb/viroforge
         help='Override the keep/remove policy per source label '
              '(e.g. erv_exogenous:remove)'
     )
+    assembly_parser = benchmark_subparsers.add_parser(
+        'assembly',
+        help='Assembly benchmarking: genome recovery, chimeras, abundance',
+        description='Align assembled contigs to the true genomes and measure '
+                    'genome recovery, chimeras, contiguity, and abundance accuracy'
+    )
+    assembly_parser.add_argument(
+        '--contigs', required=True, help='Assembled contigs FASTA'
+    )
+    assembly_parser.add_argument(
+        '--genomes', required=True,
+        help='ViroForge source genome FASTA for this dataset (fasta/*.fasta)'
+    )
+    assembly_parser.add_argument(
+        '--ground-truth',
+        help='Dataset metadata JSON (per-genome expected values and abundances)'
+    )
+    assembly_parser.add_argument('--output', help='Write metrics JSON to this path')
+    assembly_parser.add_argument('--markdown', help='Write a markdown summary to this path')
 
     # Parse arguments
     args = parser.parse_args()

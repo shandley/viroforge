@@ -37,7 +37,7 @@
 - Adapter read-through post-processor
 - 23 new tests, all passing
 
-**Latest Entry**: 20260716-002-IMPLEMENTATION (QC benchmarking module)
+**Latest Entry**: 20260716-003-IMPLEMENTATION (assembly benchmarking module)
 
 ### Phase 8.2 Complete - RNA Virome Workflow
 
@@ -804,6 +804,18 @@ collection membership provenance manifest.
 `viroforge/benchmarking/` and `viroforge benchmark qc` to score contamination
 removal and viral retention against per-read ground truth, with an
 independently-counted test oracle.
+
+---
+
+### 2026-07-16 (3)
+
+**ID**: `20260716-003-IMPLEMENTATION-assembly-benchmark.md`
+**Type**: IMPLEMENTATION
+**Status**: Complete
+
+**Purpose**: Add Module 2, assembly benchmarking. `viroforge benchmark assembly`
+aligns contigs to the true genomes (mappy) and scores genome recovery, chimeras,
+contiguity, and abundance accuracy, with an independent mock-contig oracle.
 
 ---
 
