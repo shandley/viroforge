@@ -2430,10 +2430,15 @@ Examples:
             for mf in _glob2.glob(str(generator.metadata_dir / "*_metadata.json")):
                 with open(mf) as f:
                     metadata = json.load(f)
+                # Record the values actually used, not the raw CLI args: MDA
+                # auto-upgrades max_copies/error_rate/distribution inside
+                # add_pcr_duplicates, so args would misreport them for MDA runs.
                 metadata["duplicate_stats"] = {
                     "duplicate_rate": args.duplicate_rate,
-                    "max_copies": args.duplicate_max_copies,
-                    "error_rate": args.duplicate_error_rate,
+                    "amplification_method": dup_stats["amplification_method"],
+                    "max_copies": dup_stats["max_copies_used"],
+                    "error_rate": dup_stats["error_rate_used"],
+                    "copy_distribution": dup_stats["copy_distribution"],
                     "reads_original": dup_stats["reads_original"],
                     "reads_output": dup_stats["reads_output"],
                     "templates": dup_stats["templates"],
