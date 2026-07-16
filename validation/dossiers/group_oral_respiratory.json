@@ -1,0 +1,56 @@
+{
+  "sites": {
+    "2": {
+      "site": "Oral virome, saliva (healthy)",
+      "expected_phage_vs_eukaryote": "Strongly bacteriophage-dominated (vast majority of reads phage); eukaryotic viruses minor (~10-25%).",
+      "expected_na_type": "DNA-dominated; RNA negligible.",
+      "plausibility_verdict": "MATCH with one top-family flag. Phage dominance (66%) correct direction (arguably low side); DNA-only correct. Flag: top family Microviridae, but saliva viromes are dominated by tailed Caudovirales (Siphoviridae), not Microviridae.",
+      "citations": [
+        {"pmid": "22158393", "doi": "10.1038/ismej.2011.169", "first_author": "Pride", "year": "2012", "journal": "The ISME Journal", "title": "Evidence of a robust resident bacteriophage population revealed through analysis of the human salivary virome.", "supports": "Healthy saliva viral communities dominated by bacteriophages; DNA virome."},
+        {"pmid": "24846382", "doi": "10.1128/mBio.01133-14", "first_author": "Ly", "year": "2014", "journal": "mBio", "title": "Altered oral viral ecology in association with periodontal disease.", "supports": "Saliva and oral biofilm viromes composed largely of bacteriophage; predators of bacteria dominate."}
+      ]
+    },
+    "4": {
+      "site": "Respiratory virome, nasopharynx (healthy)",
+      "expected_phage_vs_eukaryote": "Eukaryote-dominated, led by Anelloviridae; bacteriophages present but comparatively low in health.",
+      "expected_na_type": "Predominantly DNA (Anelloviridae ssDNA); small RNA fraction (rhinovirus).",
+      "plausibility_verdict": "MISMATCH (balance inverted + wrong top taxon). Observed phage 50 > euk 35 (phage-dominated); healthy nasopharynx is eukaryote/Anellovirus-dominated. Top family should be Anelloviridae, not a phage family (Aliceevansviridae). Caveat: strongest evidence pediatric/asthma cohorts, but Anellovirus dominance robust.",
+      "citations": [
+        {"pmid": "26802214", "doi": "10.1016/j.cmi.2016.01.006", "first_author": "Wang", "year": "2016", "journal": "Clinical Microbiology and Infection", "title": "Metagenomic analysis of viral genetic diversity in respiratory samples from children with severe acute respiratory infection in China.", "supports": "Respiratory virome of children without severe infection dominated by Anelloviridae."},
+        {"pmid": "37221274", "doi": "10.1038/s41598-023-34730-7", "first_author": "Megremis", "year": "2023", "journal": "Scientific Reports", "title": "Respiratory eukaryotic virome expansion and bacteriophage deficiency characterize childhood asthma.", "supports": "Nasopharyngeal virome dominated by eukaryotic viruses; Anelloviridae most abundant family; bacteriophages low."},
+        {"pmid": "28671295", "doi": "10.1002/jmv.24895", "first_author": "Xu", "year": "2017", "journal": "Journal of Medical Virology", "title": "Characterization of the nasopharyngeal viral microbiome from children with community-acquired pneumonia but negative for Luminex xTAG respiratory viral panel assay detection.", "supports": "Nasopharyngeal virome dominated by eukaryotic respiratory viruses (Paramyxo/Herpes/Anello/Polyoma)."}
+      ]
+    },
+    "12": {
+      "site": "Cystic fibrosis respiratory virome",
+      "expected_phage_vs_eukaryote": "Substantial phage (Pseudomonas/Staphylococcus) plus notable eukaryotic (herpes/retro); majority of viral diversity uncharacterized.",
+      "expected_na_type": "DNA-dominated with RNA component.",
+      "disease_signature": "Enrichment of Pseudomonas/Staphylococcus phages; eukaryotic fraction dominated by herpesviruses and retroviruses; large dark-matter fraction.",
+      "plausibility_verdict": "MATCH. phage 43%, euk 24%, unknown-fam 33% all supported (Willner 2009: majority of CF viral diversity uncharacterized). DNA-dominant with RNA present consistent. Best-supported respiratory site.",
+      "citations": [
+        {"pmid": "19816605", "doi": "10.1371/journal.pone.0007370", "first_author": "Willner", "year": "2009", "journal": "PLoS One", "title": "Metagenomic analysis of respiratory tract DNA viral communities in cystic fibrosis and non-cystic fibrosis individuals.", "supports": "Majority of CF sputum viral diversity uncharacterized; eukaryotic communities dominated by herpesviruses and retroviruses."},
+        {"pmid": "21178461", "doi": "10.4161/viru.1.4.12071", "first_author": "Willner", "year": "2010", "journal": "Virulence", "title": "Deciphering the role of phage in the cystic fibrosis airway.", "supports": "CF-associated phage share a common core metabolism reflecting disease state (secondary support)."}
+      ]
+    },
+    "13": {
+      "site": "Human respiratory RNA virome",
+      "expected_phage_vs_eukaryote": "Eukaryotic RNA viruses overwhelmingly dominate; bacteriophages ~0 (RNA phages rare/not captured).",
+      "expected_na_type": "RNA-dominated by design; residual DNA fraction expected.",
+      "plausibility_verdict": "MATCH on structure (lower confidence sourcing). euk 87%, RNA 72%, phage ~0 correct; Orthomyxoviridae defensible top (rhinovirus often equally prevalent). DNA 15% acceptable as residual. Caveat: primary source (Minor 2023) is air-sampling, confirms families circulate but not healthy-host composition.",
+      "citations": [
+        {"pmid": "38049453", "doi": "10.1038/s41598-023-48352-6", "first_author": "Minor", "year": "2023", "journal": "Scientific Reports", "title": "Metagenomic sequencing detects human respiratory and enteric viruses in air samples collected from congregate settings.", "supports": "Detects influenza A/C, RSV, human coronaviruses, rhinovirus, SARS-CoV-2 as expected respiratory RNA families (families circulate; not a healthy-host composition study)."}
+      ]
+    },
+    "19": {
+      "site": "Lower respiratory (lung) virome, healthy",
+      "expected_phage_vs_eukaryote": "Eukaryote-dominated, led by Anelloviridae/TTV; phages of respiratory bacteria secondary.",
+      "expected_na_type": "DNA-dominated; small RNA fraction.",
+      "plausibility_verdict": "MISMATCH on top taxon and unknown fraction (euk-dominance direction correct). euk 47 > phage 20 correct; but top family Unknown where Anelloviridae expected; unknown-fam 33.6% too high and suspiciously near-identical to CF 33.4% (shared-default tell).",
+      "citations": [
+        {"pmid": "25403800", "doi": "10.1111/ajt.13031", "first_author": "Young", "year": "2015", "journal": "American Journal of Transplantation", "title": "Viral metagenomics reveal blooms of anelloviruses in the respiratory tract of lung transplant recipients.", "supports": "All BAL samples (including healthy controls) contained anelloviruses; anelloviruses define the respiratory DNA virome."},
+        {"pmid": "27731934", "doi": "10.1111/ajt.14076", "first_author": "Abbas", "year": "2017", "journal": "American Journal of Transplantation", "title": "The Perioperative Lung Transplant Virome: Torque Teno Viruses Are Elevated in Donor Lungs and Show Divergent Dynamics in Primary Graft Dysfunction.", "supports": "Lung/BAL virome mainly Torque teno viruses (Anellovirus) and bacteriophages of respiratory bacteria."},
+        {"pmid": "30344303", "doi": "10.3390/medicina54050072", "first_author": "Jankauskaite", "year": "2018", "journal": "Medicina", "title": "Lower Airway Virology in Health and Disease-From Invaders to Symbionts.", "supports": "Review: lower airway virome includes Anelloviridae, Herpesviridae, bacteriophages (secondary support)."}
+      ]
+    }
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "sites": {
+    "5": {
+      "site": "Marine virome, coastal surface water",
+      "expected_phage_vs_eukaryote": "Overwhelmingly bacteriophage-dominated (>90% of classifiable reads in surface seawater); eukaryotic NCLDVs a small fraction, higher at depth.",
+      "expected_na_type": "DNA-dominated (dsDNA tailed phages + ssDNA Microviridae); RNA low single digits.",
+      "plausibility_verdict": "MATCH. phage 95.4% / DNA 97% squarely expected; Gong 2018 reports Caudovirales 67.7-72% of surface viruses, euk NCLDVs enriched at depth not surface. Top Peduoviridae is a P2-like Caudoviricetes phage family.",
+      "citations": [
+        {"pmid": "30559737", "doi": "10.3389/fmicb.2018.02981", "first_author": "Gong", "year": "2018", "journal": "Frontiers in Microbiology", "title": "Viral Diversity and Its Relationship With Environmental Factors at the Surface and Deep Sea of Prydz Bay, Antarctica.", "supports": "Surface seawater viromes 79.7-94.1% dsDNA; Caudovirales most abundant in surface (67.7-72%); eukaryotic NCLDVs dominate only deep water."},
+        {"pmid": "33089595", "doi": "10.1111/1462-2920.15290", "first_author": "Li", "year": "2020", "journal": "Environmental Microbiology", "title": "T4-like myovirus community shaped by dispersal and deterministic processes in the South China Sea.", "supports": "Abundant tailed dsDNA (T4-like/Straboviridae-type) phage communities structure marine surface waters."},
+        {"pmid": "37452097", "doi": "10.1038/s41396-023-01466-1", "first_author": "Buchholz", "year": "2023", "journal": "The ISME Journal", "title": "Novel pelagiphage isolate Polarivirus skadi is a polar specialist that dominates SAR11-associated bacteriophage communities at high latitudes.", "supports": "Pelagiphages dominate marine bacteriophage communities."}
+      ]
+    },
+    "6": {
+      "site": "Soil virome, agricultural",
+      "expected_phage_vs_eukaryote": "Strongly bacteriophage-dominated; largest single category typically unknown/novel rather than eukaryotic virus.",
+      "expected_na_type": "DNA-dominated (RNA under-sampled by DNA protocols).",
+      "plausibility_verdict": "MATCH. phage 89.2% / DNA 89.3% with 10.2% unknown-host matches soil-virome reality (Santos-Medellin 2021, Ter Horst 2021: majority of vOTUs novel/unclassified). Top Straboviridae (T4-like) is a Caudoviricetes phage family.",
+      "citations": [
+        {"pmid": "33612831", "doi": "10.1038/s41396-021-00897-y", "first_author": "Santos-Medellin", "year": "2021", "journal": "The ISME Journal", "title": "Viromes outperform total metagenomes in revealing the spatiotemporal patterns of agricultural soil viral communities.", "supports": "Agricultural-soil dsDNA viral communities; 2684 of 2961 vOTUs exclusive to viromes; dsDNA phage-dominated with large novel fraction."},
+        {"pmid": "34836550", "doi": "10.1186/s40168-021-01156-0", "first_author": "Ter Horst", "year": "2021", "journal": "Microbiome", "title": "Minnesota peat viromes reveal terrestrial and aquatic niche partitioning for local and global viral populations.", "supports": "dsDNA soil viral communities (4326 vOTUs) with narrow (single-genus) predicted host ranges; bacteriophage dominance."},
+        {"pmid": "28327667", "doi": "10.1038/srep45142", "first_author": "Han", "year": "2017", "journal": "Scientific Reports", "title": "Genetic and functional diversity of ubiquitous DNA viruses in selected Chinese agricultural soils.", "supports": "Agricultural soils harbor ubiquitous diverse DNA viruses (bacteriophages)."}
+      ]
+    },
+    "7": {
+      "site": "Freshwater virome, lake surface water",
+      "expected_phage_vs_eukaryote": "Strongly bacteriophage-dominated (Caudoviricetes + Microviridae); eukaryotic algal Phycodnaviridae a small fraction.",
+      "expected_na_type": "DNA-dominated; a modest single-digit RNA share acceptable.",
+      "plausibility_verdict": "MATCH. phage 99.2% / DNA 92.7% consistent with temperate freshwater lakes (Roux 2012; Aguirre de Carcer 2015). Top Autotranscriptaviridae is a T7-like Caudoviricetes phage family. Minor: euk 0.6% low (Phycodnaviridae may be underrepresented); RNA 7% slightly high but plausible.",
+      "citations": [
+        {"pmid": "22432038", "doi": "10.1371/journal.pone.0033641", "first_author": "Roux", "year": "2012", "journal": "PLoS One", "title": "Assessing the diversity and specificity of two freshwater viral communities through metagenomics.", "supports": "Temperate lakes; DNA phage-dominated with Caudovirales plus Microviridae/Circoviridae/Nanoviridae."},
+        {"pmid": "26601189", "doi": "10.1126/sciadv.1400127", "first_author": "Aguirre de Carcer", "year": "2015", "journal": "Science Advances", "title": "Biodiversity and distribution of polar freshwater DNA viruses.", "supports": "Freshwater DNA-virus (phage) biodiversity; DNA/bacteriophage dominance."},
+        {"pmid": "33916464", "doi": "10.3390/microorganisms9040760", "first_author": "Butina", "year": "2021", "journal": "Microorganisms", "title": "Extended Evaluation of Viral Diversity in Lake Baikal through Metagenomics.", "supports": "Large freshwater lake viral community is phage-dominated."}
+      ]
+    },
+    "9": {
+      "site": "Wastewater virome, urban treatment plant",
+      "expected_phage_vs_eukaryote": "Strongly bacteriophage-dominated by richness and abundance (~60-95% of classifiable reads); enteric eukaryotic pathogens usually only ~1-2% of reads. ViroForge inverts this.",
+      "expected_na_type": "DNA phages dominate abundance; RNA (enteric ssRNA+ plus plant RNA) a minority unless RNA-enriched; ~45% RNA is high for a combined DNA+RNA virome.",
+      "plausibility_verdict": "MISMATCH - eukaryotic and RNA fractions over-weighted. ViroForge correctly INCLUDES enteric eukaryotic families but inverts the proportion (65% euk / 45% RNA vs expected phage-majority). Internal inconsistency: top family Microviridae is an ssDNA phage, yet phage totals only 35%. Rebalance to phage-majority/DNA-majority unless explicitly modeling an RNA-enriched enteric-surveillance protocol.",
+      "citations": [
+        {"pmid": "32546676", "doi": "10.1128/mSystems.00876-19", "first_author": "Gulino", "year": "2020", "journal": "mSystems", "title": "Initial Mapping of the New York City Wastewater Virome.", "supports": "14 NYC WWTPs: phages the largest viral component; ~1,700 novel virus clusters per sample."},
+        {"pmid": "37088208", "doi": "10.1016/j.chemosphere.2023.138713", "first_author": "Kuo", "year": "2023", "journal": "Chemosphere", "title": "Occurrences of similar viral diversity in campus wastewater and reclaimed water of a university dormitory.", "supports": "Bacteriophages (Myoviridae/Podoviridae/Siphoviridae) predominant; pathogenic eukaryotic viruses <1%."},
+        {"pmid": "26568175", "doi": "10.1111/1462-2920.13127", "first_author": "Calusinska", "year": "2016", "journal": "Environmental Microbiology", "title": "Analysis of dsDNA and RNA viromes in methanogenic digesters reveals novel viral genetic diversity.", "supports": "dsDNA viromes dominated by Caudovirales; RNA viruses less diverse, mostly plant-infecting; <2% putative human/animal pathogens."},
+        {"pmid": "31955099", "doi": "10.1016/j.scitotenv.2020.136604", "first_author": "Martinez-Puchol", "year": "2020", "journal": "Science of the Total Environment", "title": "Characterisation of the sewage virome: comparison of NGS tools and occurrence of significant pathogens.", "supports": "Untargeted urban sewage virome dominated by bacteriophages; human/vertebrate viruses a smaller component."},
+        {"pmid": "21972239", "doi": "10.1128/mBio.00180-11", "first_author": "Cantalupo", "year": "2011", "journal": "mBio", "title": "Raw sewage harbors diverse viral populations.", "supports": "Raw sewage extremely diverse and phage-rich; human viruses one of many minor categories; vast majority of reads unclassified."}
+      ]
+    },
+    "14": {
+      "site": "Arbovirus environmental (mosquito virome)",
+      "expected_phage_vs_eukaryote": "For an arbovirus/RNA-focused mosquito virome: essentially 100% eukaryotic RNA viruses, no phage.",
+      "expected_na_type": "RNA.",
+      "plausibility_verdict": "MATCH. 100% eukaryotic / 100% RNA with Flaviviridae top is correct (Faizah 2020; Wang 2021; Mohamed Ali 2023). Nuance (not a defect): in real mosquito viromes insect-specific viruses usually dominate and true arboviruses are a minority; a Flaviviridae-top abstraction is reasonable for an arbovirus-focused design.",
+      "citations": [
+        {"pmid": "32121094", "doi": "10.3390/v12030264", "first_author": "Faizah", "year": "2020", "journal": "Viruses", "title": "Deciphering the Virome of Culex vishnui Subgroup Mosquitoes, the Major Vectors of Japanese Encephalitis, in Japan.", "supports": "Arbovirus-vector mosquito virome composed of eukaryotic RNA viruses including Flaviviridae."},
+        {"pmid": "33883261", "doi": "10.1128/mSphere.01229-20", "first_author": "Wang", "year": "2021", "journal": "mSphere", "title": "Establishment of Culex modestus in Belgium and a Glance into the Virome of Belgian Mosquito Species.", "supports": "Belgian mosquito viromes: >=33 eukaryotic viral species, predominantly RNA insect-specific viruses."},
+        {"pmid": "37766237", "doi": "10.3390/v15091831", "first_author": "Mohamed Ali", "year": "2023", "journal": "Viruses", "title": "Longitudinal Study of Viral Diversity Associated with Mosquito Species Circulating in Cambodia.", "supports": "Mosquito-associated viral diversity dominated by eukaryotic RNA viruses."}
+      ]
+    }
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "sites": {
+    "3": {
+      "site": "Skin virome, sebaceous sites (healthy)",
+      "expected_phage_vs_eukaryote": "Phage-DOMINANT (~80-95%+ of identifiable reads); eukaryotic papilloma/polyoma a small minority; large phage dark matter.",
+      "expected_na_type": "dsDNA-dominant; RNA negligible.",
+      "plausibility_verdict": "NOT PLAUSIBLE / likely error. Observed phage 0%, euk 49%, unknown-fam 51%. Skin sebaceous virome is bacteriophage-DOMINATED (Cutibacterium/Staphylococcus/Corynebacterium phages). 0% phage contradicts primary literature; phage genomes appear missing or unlabeled.",
+      "citations": [
+        {"pmid": "26489866", "doi": "10.1128/mBio.01578-15", "first_author": "Hannigan", "year": "2015", "journal": "mBio", "title": "The human skin double-stranded DNA virome: topographical and temporal diversity, genetic enrichment, and dynamic associations with the host microbiome.", "supports": "Healthy skin dsDNA VLP virome dominated by temperate tailed bacteriophages."},
+        {"pmid": "36949545", "doi": "10.1186/s12985-023-02012-3", "first_author": "Graham", "year": "2023", "journal": "Virology Journal", "title": "The persistence and stabilization of auxiliary genes in the human skin virome.", "supports": "Cutaneous bacteriophage populations across 60 subjects mainly tailed Caudovirales phages."}
+      ]
+    },
+    "16": {
+      "site": "Vaginal virome (healthy)",
+      "expected_phage_vs_eukaryote": "Phage-DOMINANT; eukaryotic viruses only ~4% of reads (Jakobsen 2020).",
+      "expected_na_type": "dsDNA-dominant; RNA negligible.",
+      "plausibility_verdict": "PARTIAL match with family-rank/proxy problem. Phage-present DNA-only structure is directionally correct, but eukaryotic fraction (25%) far above ~4%; top family Herelleviridae is a proxy artifact (large Firmicutes phages, not temperate Lactobacillus siphophages). Consistent with documented dairy-proxy limitation.",
+      "citations": [
+        {"pmid": "33050261", "doi": "10.3390/v12101143", "first_author": "Jakobsen", "year": "2020", "journal": "Viruses", "title": "Characterization of the Vaginal DNA Virome in Health and Dysbiosis.", "supports": "Majority of vaginal viruses are dsDNA bacteriophages; eukaryotic viruses only ~4% of reads."},
+        {"pmid": "35343798", "doi": "10.1128/msystems.00064-22", "first_author": "Kaelin", "year": "2022", "journal": "mSystems", "title": "Cervicovaginal DNA Virome Alterations Are Associated with Genital Inflammation and Microbiota Composition.", "supports": "Lactobacillus bacteriophages closely associated with Lactobacillus abundance."}
+      ]
+    },
+    "20": {
+      "site": "Urinary virome (healthy)",
+      "expected_phage_vs_eukaryote": "Phage present and usually the largest identifiable fraction by richness, with a substantial signature eukaryotic DNA-virus signal (HPV, BK/JC).",
+      "expected_na_type": "dsDNA-dominant; RNA negligible.",
+      "plausibility_verdict": "PARTIAL match. Top family Papillomaviridae well supported (HPV ~95% prevalence); DNA-only correct; Polyomaviridae expected. But phage at 14% with euk 68% likely under-represents bacteriophages.",
+      "citations": [
+        {"pmid": "25667584", "doi": "10.3389/fmicb.2015.00014", "first_author": "Santiago-Rodriguez", "year": "2015", "journal": "Frontiers in Microbiology", "title": "The human urine virome in association with urinary tract infections.", "supports": "Most identifiable urine viruses were bacteriophages; HPV in 95% of subjects."},
+        {"pmid": "29889019", "doi": "10.1099/jgv.0.001097", "first_author": "Garretto", "year": "2018", "journal": "Journal of General Virology", "title": "Detecting viral genomes in the female urinary microbiome.", "supports": "Female bladder virome contains bacteriophages and the eukaryotic JC polyomavirus."},
+        {"pmid": "38916313", "doi": "10.1128/spectrum.04055-23", "first_author": "Maqsood", "year": "2024", "journal": "Microbiology Spectrum", "title": "Longitudinal alterations in the urinary virome of kidney transplant recipients are influenced by BK viremia and patient sex.", "supports": "Urinary virome carries anelloviruses and BK polyomavirus."}
+      ]
+    },
+    "18": {
+      "site": "Ocular surface virome (healthy)",
+      "expected_phage_vs_eukaryote": "Eukaryote-DOMINANT (paucibacterial surface; TTV/Anelloviridae + polyomavirus); low phage.",
+      "expected_na_type": "ssDNA/dsDNA; DNA-dominant; RNA negligible.",
+      "plausibility_verdict": "GOOD match. euk 80%, phage 10%, top Anelloviridae, DNA 90%. Aligns with paucibacterial DNA-based ocular virome led by TTV.",
+      "citations": [
+        {"pmid": "27699405", "doi": "10.1167/iovs.16-19803", "first_author": "Doan", "year": "2016", "journal": "Investigative Ophthalmology & Visual Science", "title": "Paucibacterial Microbiome and Resident DNA Virome of the Healthy Conjunctiva.", "supports": "Healthy conjunctiva paucibacterial; torque teno virus (Anelloviridae) frequent constituent."},
+        {"pmid": "34321490", "doi": "10.1038/s41598-021-92642-w", "first_author": "Siegal", "year": "2021", "journal": "Scientific Reports", "title": "Elevated levels of Merkel cell polyoma virus in the anophthalmic conjunctiva.", "supports": "TTV and Merkel cell polyomavirus frequently detected in healthy conjunctiva."}
+      ]
+    },
+    "17": {
+      "site": "Blood/plasma virome (healthy)",
+      "expected_phage_vs_eukaryote": "Eukaryote-DOMINANT and Anellovirus-dominant (~97% of viral reads, Cebria-Mendoza 2021); herpesviruses minor; phage ~0.",
+      "expected_na_type": "ssDNA-dominant (Anelloviridae); herpesviruses dsDNA; RNA ~0.",
+      "plausibility_verdict": "PARTIAL match with clear TOP-FAMILY RANK ERROR. Eukaryote-dominant DNA-based phage-~0 structure correct, but top family Orthoherpesviridae is WRONG: healthy plasma should be Anelloviridae-DOMINATED, herpesviruses secondary.",
+      "citations": [
+        {"pmid": "33767340", "doi": "10.1038/s41598-021-86427-4", "first_author": "Cebria-Mendoza", "year": "2021", "journal": "Scientific Reports", "title": "Deep viral blood metagenomics reveals extensive anellovirus diversity in healthy humans.", "supports": "Anellovirus sequences ~97% of total viral reads in 120 healthy donors."},
+        {"pmid": "37199659", "doi": "10.1128/spectrum.04928-22", "first_author": "Cebria-Mendoza", "year": "2023", "journal": "Microbiology Spectrum", "title": "Human Anelloviruses: Influence of Demographic Factors, Recombination, and Worldwide Diversity.", "supports": "Anelloviruses the major and most diverse component of the healthy human virome; detected in 86% of blood donors."},
+        {"pmid": "29979780", "doi": "10.1371/journal.pone.0200428", "first_author": "Segura-Wang", "year": "2018", "journal": "PLoS One", "title": "Temporal dynamics of the lung and plasma viromes in lung transplant recipients.", "supports": "In plasma, Anelloviridae most abundant, followed by Herpesviridae and Coronaviridae."}
+      ]
+    }
+  }
+}

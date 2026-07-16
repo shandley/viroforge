@@ -8,7 +8,7 @@
 
 ## Quick Stats
 
-**Total Entries**: 21
+**Total Entries**: 22
 **Phase 1**: Complete (100%)
 **Phase 2**: Complete (100%)
 **Phase 3**: Complete (100%)
@@ -37,7 +37,7 @@
 - Adapter read-through post-processor
 - 23 new tests, all passing
 
-**Latest Entry**: 20260716-006-IMPLEMENTATION (contig-based taxonomy + shared aligner)
+**Latest Entry**: 20260716-008-REVIEW (composition accuracy review + setup-db data corrections)
 
 ### Phase 8.2 Complete - RNA Virome Workflow
 
@@ -853,6 +853,19 @@ classifier calls via `--taxdump-dir`, over the known-virus stratum.
 **Purpose**: Add contig-based taxonomy (`--mode contig-based`) with a
 chimera-handling option (exclude/lca), and refactor the mappy aligner into a
 shared `align.py` both the assembly and taxonomy modules call.
+
+---
+
+### 20260716-008-REVIEW
+
+**ID**: `20260716-008-REVIEW-composition-accuracy.md`
+**Type**: REVIEW
+**Status**: Complete
+
+**Purpose**: Biological-accuracy review of all 20 collections' viral composition
+vs verified literature (tunable cited reference profile + strictness dial;
+50-ref bibliography via /verify-references). Fixed the genome_type=dsDNA mislabel
+and folded that fix + abundance renormalization into `viroforge setup-db`.
 
 ---
 

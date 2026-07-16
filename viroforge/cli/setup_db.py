@@ -196,6 +196,31 @@ def run_setup_db(args) -> int:
             except RuntimeError as e:
                 print(f"  WARNING: {script} failed: {e}")
 
+        # Post-build data corrections. These run after all curation + cleanup so
+        # they see the final genome set, and are idempotent (safe to re-run).
+        print("\n  Applying data corrections...")
+
+        # (a) genome_type: the stored nucleic-acid type silently defaults RNA
+        # viruses to dsDNA. Relabel from the verified ICTV family property map.
+        props = project_root / "data/reference_profiles/family_properties.tsv"
+        if props.exists():
+            try:
+                _run_script(project_root, "scripts/fix_genome_type.py",
+                            ["--apply", "--db", str(db_path), "--properties", str(props)])
+            except RuntimeError as e:
+                print(f"  WARNING: genome_type correction failed: {e}")
+        else:
+            print(f"  SKIP genome_type correction: {props} not found "
+                  "(run scripts/build_composition_reference.py to generate it).")
+
+        # (b) abundances: cleanup removes genomes without renormalizing, so some
+        # collections no longer sum to 1.0. Rescale each collection back to 1.0.
+        try:
+            _run_script(project_root, "scripts/renormalize_abundances.py",
+                        ["--db", str(db_path), "--apply"])
+        except RuntimeError as e:
+            print(f"  WARNING: abundance renormalization failed: {e}")
+
         # Reconcile stored n_genomes with the actual number of associations.
         # Some curation inserts collapse a few duplicate genome_ids, so the
         # stored count can overcount; this makes the metadata field trustworthy.

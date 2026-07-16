@@ -1,0 +1,56 @@
+{
+  "sites": {
+    "1": {
+      "site": "Human gut virome, adult healthy (Western diet)",
+      "expected_phage_vs_eukaryote": "Overwhelmingly phage-dominated (~85-95%); eukaryotic virus low single digits.",
+      "expected_na_type": "Predominantly dsDNA (tailed phages) + ssDNA (Microviridae); RNA minor.",
+      "plausibility_verdict": "PLAUSIBLE / GOOD. phage 88.5% / euk 3% / DNA 90.3% match consensus. Top family Suoliviridae is a valid crAss-like Crassvirales family. No red flags.",
+      "citations": [
+        {"pmid": "37293229", "doi": "10.3389/fmicb.2023.963173", "first_author": "Pargin", "year": "2023", "journal": "Frontiers in Microbiology", "title": "The human gut virome: composition, colonization, interactions, and impacts on human health.", "supports": "Healthy adult gut virome dominated by bacteriophages, predominantly Crassvirales (crAss-like) in industrialized populations; large dark-matter fraction."},
+        {"pmid": "34665009", "doi": "10.1128/mSystems.00382-21", "first_author": "Van Espen", "year": "2021", "journal": "mSystems", "title": "A Previously Undescribed Highly Prevalent Phage Identified in a Danish Enteric Virome Catalog.", "supports": "Gut viromes of 91 healthy subjects dominated by phages; crAss-like phage among the two most prevalent worldwide."}
+      ]
+    },
+    "10": {
+      "site": "IBD gut virome",
+      "expected_phage_vs_eukaryote": "Still phage-dominated; disease signal is a phage-community shift (Caudovirales expansion), not eukaryotic takeover.",
+      "expected_na_type": "Predominantly DNA (dsDNA tailed phages + ssDNA Microviridae).",
+      "disease_signature": "Hallmark is EXPANSION of Caudovirales bacteriophages (Crohn's and UC) with decreased viral evenness/diversity; disease- and cohort-specific (Norman 2015; Zuo 2019).",
+      "plausibility_verdict": "PLAUSIBLE. phage 80% / euk 10% / DNA 90% keeps correct structure; top family Demerecviridae (Caudoviricetes) consistent with Caudovirales-expansion signature. Caveat: primary lit reports order-level Caudovirales; the modest euk rise is within-noise, not a validated signature.",
+      "citations": [
+        {"pmid": "25619688", "doi": "10.1016/j.cell.2015.01.002", "first_author": "Norman", "year": "2015", "journal": "Cell", "title": "Disease-specific alterations in the enteric virome in inflammatory bowel disease.", "supports": "CD and UC associated with significant expansion of Caudovirales bacteriophages; not secondary to bacterial changes."},
+        {"pmid": "30842211", "doi": "10.1136/gutjnl-2018-318131", "first_author": "Zuo", "year": "2019", "journal": "Gut", "title": "Gut mucosal virome alterations in ulcerative colitis.", "supports": "UC shows expansion of Caudovirales bacteriophages and decreased mucosal viral diversity/richness/evenness."}
+      ]
+    },
+    "11": {
+      "site": "HIV+ gut virome",
+      "expected_phage_vs_eukaryote": "Shift toward INCREASED eukaryotic-virus abundance/richness (immunodeficiency-driven); phages remain present; euk fraction markedly higher than healthy.",
+      "expected_na_type": "Expanded eukaryotic viruses of interest are DNA (Adenoviridae, Anelloviridae, Papillomaviridae); phages DNA; DNA-dominated.",
+      "disease_signature": "Low CD4 associated with expansion of enteric eukaryotic DNA viruses: adenovirus (Monaco 2016); Anelloviridae/Adenoviridae/Papillomaviridae in CD4<200, anellovirus predicting poor immune recovery, declining after ART (Boukadida 2024).",
+      "plausibility_verdict": "PLAUSIBLE in DIRECTION, with annotation-quality flag. euk 19% (vs ~3% healthy) captures the expansion; DNA 71% consistent. BUT 29.3% unknown-family and top=Unknown obscure the diagnostic Adenoviridae/Anelloviridae/Papillomaviridae taxa; discriminating eukaryotic viruses appear under-annotated. RNA=0 acceptable (signature taxa are DNA).",
+      "citations": [
+        {"pmid": "26962942", "doi": "10.1016/j.chom.2016.02.011", "first_author": "Monaco", "year": "2016", "journal": "Cell Host & Microbe", "title": "Altered Virome and Bacterial Microbiome in Human Immunodeficiency Virus-Associated Acquired Immunodeficiency Syndrome.", "supports": "Low CD4 associated with expansion of enteric adenovirus sequences, independent of ART."},
+        {"pmid": "39420423", "doi": "10.1186/s40168-024-01925-7", "first_author": "Boukadida", "year": "2024", "journal": "Microbiome", "title": "Alterations of the gut microbiome in HIV infection highlight human anelloviruses as potential predictors of immune recovery.", "supports": "Expansion of Anelloviridae/Adenoviridae/Papillomaviridae in stool of people with HIV and CD4<200; anellovirus expansion predicts poor immune recovery."}
+      ]
+    },
+    "8": {
+      "site": "Mouse gut virome, laboratory C57BL/6",
+      "expected_phage_vs_eukaryote": "Bacteriophage-dominated (Caudovirales + Microviridae); very high diversity and interindividual variation; large uncharacterized fraction.",
+      "expected_na_type": "Predominantly DNA (Caudovirales dsDNA + Microviridae ssDNA); minor eukaryotic RNA.",
+      "plausibility_verdict": "PARTLY PLAUSIBLE, flag on phage/unknown balance. Large unknown share defensible (real dark matter), BUT mouse gut is phage-DOMINATED; observed phage 36.7% with unknown-host 58.6% and top=Unknown inverts expectation. Likely Caudovirales/Microviridae phages sitting in the unknown pool. RNA 6.2% acceptable.",
+      "citations": [
+        {"pmid": "35718835", "doi": "10.1002/jmv.27946", "first_author": "Bao", "year": "2022", "journal": "Journal of Medical Virology", "title": "Dynamic alterations of the mice gut virome after Coxsackievirus B3 infection.", "supports": "Mouse gut virome dominated by Caudovirales and Microviridae."},
+        {"pmid": "36413074", "doi": "10.1093/g3journal/jkac293", "first_author": "Moltzau Anderson", "year": "2023", "journal": "G3", "title": "Impact of antibiotic perturbation on fecal viral communities in mice.", "supports": "Wild-type C57BL/6J fecal virome shows high diversity and interindividual variation; eukaryotic viruses and bacteriophages."}
+      ]
+    },
+    "15": {
+      "site": "Fecal RNA virome (enteric RNA viruses)",
+      "expected_phage_vs_eukaryote": "Eukaryotic-RNA-virus-dominated by design; RNA phages minor; an enteric-pathogen RNA virome legitimately near-0% phage.",
+      "expected_na_type": "RNA; DNA ~0% correct by construction.",
+      "plausibility_verdict": "PLAUSIBLE / GOOD. euk 90.8% / phage 0 / RNA 90.8% correct. Top Caliciviridae (norovirus) reasonable, though cohort-dependent (Picornaviridae, Reoviridae/Rotavirus often equally abundant). No red flags.",
+      "citations": [
+        {"pmid": "33167516", "doi": "10.3390/v12111260", "first_author": "Mogotsi", "year": "2020", "journal": "Viruses", "title": "Metagenomic Analysis of the Enteric RNA Virome of Infants from the Oukasie Clinic, North West Province, South Africa, Reveals Diverse Eukaryotic Viruses.", "supports": "Enteric RNA virome dominated by diverse eukaryotic RNA viruses: Reoviridae/Rotavirus, Picornaviridae, Astroviridae, Caliciviridae/norovirus."},
+        {"pmid": "31446609", "doi": "10.1007/s12560-019-09402-3", "first_author": "Strubbia", "year": "2019", "journal": "Food and Environmental Virology", "title": "Characterization of Norovirus and Other Human Enteric Viruses in Sewage and Stool Samples Through Next-Generation Sequencing.", "supports": "Human enteric RNA viruses from stool/sewage include norovirus, rotavirus, enterovirus, astrovirus, sapovirus."}
+      ]
+    }
+  }
+}
