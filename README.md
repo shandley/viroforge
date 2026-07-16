@@ -6,15 +6,24 @@ ViroForge creates realistic FASTQ sequencing data from curated viral genome coll
 
 ## Features
 
-- 28 curated virome collections (human body sites, disease states, environmental)
+- 20 curated virome collections (human body sites, disease states, environmental)
 - 14,423 RefSeq viral genomes with ICTV taxonomy
-- 5 sequencing platforms (NovaSeq, MiSeq, HiSeq, PacBio HiFi, Oxford Nanopore)
+- 5 sequencing platforms (NovaSeq, MiSeq, HiSeq, PacBio HiFi, Oxford Nanopore)*
 - DNA and RNA virome workflows
 - VLP enrichment modeling (5 protocols)
 - Real reference contamination (rRNA, host DNA, PhiX, adapters)
 - Per-read source labels for exact classification metrics
 - Sequencing artifact injection (adapters, low-complexity, PCR duplicates, ERVs)
 - Complete ground truth metadata for every dataset
+
+### Known limitations
+
+- *The three Illumina platforms (NovaSeq, MiSeq, HiSeq) currently run InSilicoSeq
+  in basic mode and produce identical 125 bp reads regardless of the platform
+  chosen or `--read-length`. They are interchangeable for short-read output; the
+  platform choice does not change read length or error profile. Long-read
+  platforms (PacBio HiFi, Nanopore) use PBSIM3 and are differentiated. See
+  `docs/DATA_QUALITY_EVALUATION.md` for the full evaluation.
 
 ## Installation
 

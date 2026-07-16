@@ -20,7 +20,8 @@ benchmarking later. The most important two are that the default 30 percent dark
 matter is not actually delivered (realized 11 to 48 percent depending on
 collection and seed), and that the three Illumina platforms produce byte for
 byte identical reads, so platform selection currently does nothing for short
-reads. Details and recommendations below.
+reads. Both have since been addressed: dark matter now delivers about 0.30, and
+the platform behavior is documented. Details, evidence, and resolutions below.
 
 ## Method
 
@@ -143,6 +144,12 @@ ratio through amplification), and record the realized post-amplification fractio
 in the metadata alongside the target. This is a composition-realism and
 taxonomy-benchmarking issue, not a QC label issue.
 
+Resolution (applied 2026-07-16): the dark-matter and known-viral blocks are now
+renormalized to the configured ratio after VLP enrichment and amplification, with
+total viral mass and each block's internal structure preserved. Realized dark
+matter is now 0.295 to 0.301 across the collections and seeds above (was 0.11 to
+0.48), and the metadata records `realized_fraction_of_viral`.
+
 ### 2. Illumina platform selection is a no-op for short reads (high priority)
 
 NovaSeq, MiSeq, and HiSeq runs with the same seed produce byte-for-byte identical
@@ -164,6 +171,11 @@ length and error profile, and honor `--read-length`. If basic mode is a
 deliberate speed or determinism choice, document that the three Illumina
 platforms are interchangeable and that reads are 125 bp regardless of settings, so
 users do not benchmark "platform effects" that do not exist.
+
+Resolution (applied 2026-07-16): documented as interchangeable. The `--platform`
+help text and the README now state that the three Illumina platforms produce
+identical 125 bp reads in basic mode. Real per-platform differentiation (kde
+error models, honoring `--read-length`) is deferred as a larger change.
 
 ### 3. Contamination fraction is approximate, not calibrated (medium priority)
 
