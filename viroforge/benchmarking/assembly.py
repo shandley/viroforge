@@ -18,67 +18,12 @@ from __future__ import annotations
 import re
 from collections import defaultdict
 
-import mappy
+from .align import align_contigs, merge_len, read_fasta
 
-# ---- fixed thresholds --------------------------------------------------------
-ASM_PRESET = "asm5"          # contigs vs their source genome: near-identical
-MIN_IDENTITY = 0.90          # drop alignments below this (spurious)
-COMPLETE = 0.95              # genome recovery category cutoffs (fraction covered)
+# genome recovery category cutoffs (fraction of the genome covered by contigs)
+COMPLETE = 0.95
 HIGH = 0.75
 PARTIAL = 0.50
-CHIMERA_MIN_SEGMENT = 0.20   # each genome must cover >=20% of the contig
-CHIMERA_MAX_SEGMENT_OVERLAP = 0.50  # segments must be largely non-overlapping
-
-_SPADES_COV = re.compile(r"_cov_([0-9]+\.?[0-9]*)")
-_MEGAHIT_COV = re.compile(r"multi=([0-9]+\.?[0-9]*)")
-
-
-def parse_coverage(header: str) -> float | None:
-    """Per-contig coverage from a SPAdes or MEGAHIT contig header, else None."""
-    m = _SPADES_COV.search(header) or _MEGAHIT_COV.search(header)
-    return float(m.group(1)) if m else None
-
-
-def _read_fasta(path):
-    name = None
-    header = None
-    buf: list[str] = []
-    with open(path) as fh:
-        for line in fh:
-            if line.startswith(">"):
-                if name is not None:
-                    yield name, header, "".join(buf)
-                header = line[1:].rstrip("\n")
-                name = header.split()[0]
-                buf = []
-            else:
-                buf.append(line.strip())
-    if name is not None:
-        yield name, header, "".join(buf)
-
-
-def _merge(intervals: list[tuple[int, int]]) -> int:
-    """Total length covered by a set of [start,end) intervals after merging."""
-    if not intervals:
-        return 0
-    intervals = sorted(intervals)
-    total = 0
-    cur_s, cur_e = intervals[0]
-    for s, e in intervals[1:]:
-        if s > cur_e:
-            total += cur_e - cur_s
-            cur_s, cur_e = s, e
-        else:
-            cur_e = max(cur_e, e)
-    total += cur_e - cur_s
-    return total
-
-
-def _overlap_frac(a: tuple[int, int], b: tuple[int, int]) -> float:
-    """Fraction of the shorter interval that overlaps the other."""
-    ov = max(0, min(a[1], b[1]) - max(a[0], b[0]))
-    shorter = min(a[1] - a[0], b[1] - b[0]) or 1
-    return ov / shorter
 
 
 def _assembly_stats(lengths: list[int]) -> dict:
@@ -131,7 +76,7 @@ def load_ground_truth(genome_fasta, metadata: dict | None):
                 "expected_completeness": g.get("expected_completeness"),
             }
     if not gt:  # fall back to the FASTA headers
-        for name, header, seq in _read_fasta(genome_fasta):
+        for name, header, seq in read_fasta(genome_fasta):
             mid = header.split("|")[1].strip() if "|" in header else ""
             typ = mid if mid in ("host_dna", "rrna", "phix", "reagent_bacteria") else "viral"
             m = re.search(r"abundance=([0-9.eE+-]+)", header)
@@ -145,56 +90,18 @@ def benchmark_assembly(contigs_fasta, genome_fasta, metadata=None) -> dict:
     gt = load_ground_truth(genome_fasta, metadata)
     viral_ids = {g for g, v in gt.items() if v["type"] == "viral"}
 
-    aligner = mappy.Aligner(str(genome_fasta), preset=ASM_PRESET)
-    if not aligner:
-        raise RuntimeError(f"failed to index genome FASTA: {genome_fasta}")
+    al = align_contigs(contigs_fasta, genome_fasta)
+    contigs = al["contigs"]
+    genome_intervals = al["genome_intervals"]
+    genome_match_bp = al["genome_match_bp"]
+    genome_block_bp = al["genome_block_bp"]
 
-    genome_intervals: dict[str, list[tuple[int, int]]] = defaultdict(list)
-    genome_match_bp: dict[str, int] = defaultdict(int)
-    genome_block_bp: dict[str, int] = defaultdict(int)
-    contig_lengths: list[int] = []
-    contig_primary_genome: dict[str, str] = {}
-    contig_coverage: dict[str, float | None] = {}
-    chimeras: list[dict] = []
-    n_unmatched = 0
-
-    for name, header, seq in _read_fasta(contigs_fasta):
-        contig_lengths.append(len(seq))
-        contig_coverage[name] = parse_coverage(header)
-        # gather per-genome contig-coordinate spans for this contig
-        per_genome_qspans: dict[str, list[tuple[int, int]]] = defaultdict(list)
-        best_blen = 0
-        for hit in aligner.map(seq):
-            if hit.blen == 0 or hit.mlen / hit.blen < MIN_IDENTITY:
-                continue
-            genome_intervals[hit.ctg].append((hit.r_st, hit.r_en))
-            genome_match_bp[hit.ctg] += hit.mlen
-            genome_block_bp[hit.ctg] += hit.blen
-            per_genome_qspans[hit.ctg].append((hit.q_st, hit.q_en))
-            if hit.blen > best_blen:
-                best_blen = hit.blen
-                contig_primary_genome[name] = hit.ctg
-        if name not in contig_primary_genome:
-            n_unmatched += 1
-            continue
-        # chimera: >=2 genomes each covering a distinct large span of the contig
-        clen = len(seq)
-        spans = {}
-        for g, qs in per_genome_qspans.items():
-            covered = _merge(qs)
-            if covered / clen >= CHIMERA_MIN_SEGMENT:
-                spans[g] = (min(s for s, _ in qs), max(e for _, e in qs), covered)
-        if len(spans) >= 2:
-            items = sorted(spans.items(), key=lambda kv: -kv[1][2])[:2]
-            (g1, s1), (g2, s2) = items
-            if _overlap_frac(s1[:2], s2[:2]) < CHIMERA_MAX_SEGMENT_OVERLAP:
-                chimeras.append({
-                    "contig": name, "length": clen,
-                    "segments": [
-                        {"genome": g1, "contig_span": [s1[0], s1[1]]},
-                        {"genome": g2, "contig_span": [s2[0], s2[1]]},
-                    ],
-                })
+    contig_lengths = [c["length"] for c in contigs]
+    contig_primary_genome = {c["name"]: c["primary_genome"]
+                             for c in contigs if c["primary_genome"] is not None}
+    n_unmatched = sum(1 for c in contigs if c["primary_genome"] is None)
+    chimeras = [{"contig": c["name"], "length": c["length"], "segments": c["chimera_segments"]}
+                for c in contigs if c["is_chimera"]]
 
     # per-genome completeness (viral only for recovery)
     per_genome = {}
@@ -202,7 +109,7 @@ def benchmark_assembly(contigs_fasta, genome_fasta, metadata=None) -> dict:
     completeness_vals = []
     for gid in viral_ids:
         length = gt[gid]["length"]
-        covered = _merge(genome_intervals.get(gid, []))
+        covered = merge_len(genome_intervals.get(gid, []))
         comp = covered / length if length else 0.0
         ident = (genome_match_bp[gid] / genome_block_bp[gid]) if genome_block_bp[gid] else None
         if comp >= COMPLETE:
@@ -226,9 +133,7 @@ def benchmark_assembly(contigs_fasta, genome_fasta, metadata=None) -> dict:
     recovered = n_viral - cats["missing"]
 
     # abundance accuracy (viral genomes with per-contig coverage available)
-    abundance = _abundance_accuracy(
-        contig_primary_genome, contig_coverage, contig_lengths,
-        list(_read_fasta(contigs_fasta)), gt, viral_ids)
+    abundance = _abundance_accuracy(contigs, gt, viral_ids)
 
     # observed vs expected completeness
     exp_pairs = [(per_genome[g]["completeness"], gt[g]["expected_completeness"])
@@ -267,17 +172,14 @@ def benchmark_assembly(contigs_fasta, genome_fasta, metadata=None) -> dict:
     }
 
 
-def _abundance_accuracy(primary, coverage, _lengths, contig_records, gt, viral_ids):
-    length_by_contig = {name: len(seq) for name, _h, seq in contig_records}
-    have_cov = [c for c in primary if coverage.get(c) is not None]
-    if len(have_cov) < 3:
+def _abundance_accuracy(contigs, gt, viral_ids):
+    viral_with_cov = [c for c in contigs
+                      if c["coverage"] is not None and c["primary_genome"] in viral_ids]
+    if len(viral_with_cov) < 3:
         return {"available": False, "reason": "per-contig coverage not found in headers"}
     est: dict[str, float] = defaultdict(float)
-    for contig, genome in primary.items():
-        cov = coverage.get(contig)
-        if cov is None or genome not in viral_ids:
-            continue
-        est[genome] += cov * length_by_contig.get(contig, 0)
+    for c in viral_with_cov:
+        est[c["primary_genome"]] += c["coverage"] * c["length"]
     genomes = [g for g in viral_ids if gt[g]["abundance"] is not None]
     total_est = sum(est.values()) or 1.0
     total_true = sum(gt[g]["abundance"] for g in genomes) or 1.0

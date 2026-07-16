@@ -39,6 +39,25 @@ viroforge benchmark taxonomy --pipeline-output results/kraken2.out \
 The taxdump is nodes.dmp + names.dmp from
 ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz (Kraken2 users already have it).
 
+```bash
+# Contig-based: classify contigs (CAT/BAT, geNomad, MMseqs2, Kraken2-on-contigs)
+viroforge benchmark taxonomy --mode contig-based \
+  --contigs results/assembly/contigs.fasta \
+  --genomes data/gut/fasta/gut.fasta \
+  --contig-taxonomy results/cat/contig_tax.tsv --format generic \
+  --ground-truth data/gut/metadata/gut_metadata.json \
+  --taxdump-dir /path/to/taxdump \
+  --chimera-handling exclude   # or: lca (requires --taxdump-dir)
+```
+
+In contig-based mode the true taxonomy of each contig is derived by aligning it
+to the genomes (the same aligner the assembly module uses): the contig's primary
+genome gives its true taxid. Contigs that align to nothing are counted as novel;
+contigs aligning to a contaminant genome are excluded. Chimeric contigs are
+handled per `--chimera-handling`: `exclude` (reported, not scored) or `lca` (true
+taxid is the lowest common ancestor of the two segment genomes, so a call is
+credited only up to the rank the two genomes share).
+
 ## What it measures
 
 Reads are stratified into two groups, which is the crux of scoring viromes fairly:
@@ -72,7 +91,9 @@ per-taxid read fractions.
 - Per-rank (with `--taxdump-dir`): genus/family precision/recall/F1 that credit
   correct-but-higher-rank calls, resolved through the NCBI taxonomy tree.
   Without the taxdump, only taxid-exact is reported.
-- Read-based only. Contig-based taxonomy is a later mode.
+- Read-based and contig-based modes. Contig-based reuses the assembly aligner to
+  derive each contig's true taxonomy and adds a chimera-handling option
+  (exclude / lca).
 - Formats: Kraken2 per-read output and a generic `read_id\ttaxid` TSV. Kraken2
   `--use-names` output (`Name (taxid N)`) is parsed. Centrifuge, MMseqs2, and
   DIAMOND are not yet supported.

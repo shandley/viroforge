@@ -452,8 +452,8 @@ For more information: https://github.com/hecatomb/viroforge
                     'to the true taxonomy (taxid-exact, read-based)'
     )
     taxonomy_parser.add_argument(
-        '--pipeline-output', required=True,
-        help='Classifier output (Kraken2 per-read output, or a generic TSV)'
+        '--pipeline-output',
+        help='read-based: classifier per-read output (Kraken2 or generic TSV)'
     )
     taxonomy_parser.add_argument(
         '--ground-truth', required=True,
@@ -464,8 +464,22 @@ For more information: https://github.com/hecatomb/viroforge
         help='Classifier output format (default: kraken2)'
     )
     taxonomy_parser.add_argument(
-        '--mode', default='read-based', choices=['read-based'],
-        help='Benchmark mode (v1: read-based)'
+        '--mode', default='read-based', choices=['read-based', 'contig-based'],
+        help='Benchmark mode (default: read-based)'
+    )
+    taxonomy_parser.add_argument(
+        '--contig-taxonomy',
+        help='contig-based: classifier per-contig taxid output (Kraken2 or TSV)'
+    )
+    taxonomy_parser.add_argument(
+        '--contigs', help='contig-based: assembled contigs FASTA'
+    )
+    taxonomy_parser.add_argument(
+        '--genomes', help='contig-based: ViroForge source genome FASTA'
+    )
+    taxonomy_parser.add_argument(
+        '--chimera-handling', default='exclude', choices=['exclude', 'lca'],
+        help='contig-based: how to handle chimeric contigs (default: exclude)'
     )
     taxonomy_parser.add_argument(
         '--taxdump-dir',

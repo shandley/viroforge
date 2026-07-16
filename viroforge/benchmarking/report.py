@@ -197,9 +197,70 @@ def taxonomy_to_markdown(m: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
+def _strata_and_rank_md(m: dict) -> list:
+    """Shared known/dark/per-rank/abundance rendering for taxonomy reports."""
+    lines = ["## Known viruses (ICTV family assigned)", ""]
+    k = m["known_viruses"]
+    lines += [
+        f"- Units: {k['n']:,}",
+        f"- Sensitivity (correct / all): **{_pct(k['sensitivity'])}**",
+        f"- Precision (correct / classified): {_pct(k['precision'])}",
+        f"- Left unclassified: {_pct(k['unclassified_rate'])}   "
+        f"misclassified: {k['misclassified']:,}",
+        "",
+        "## Dark matter (family Unknown / novel)",
+        "",
+    ]
+    d = m["dark_matter"]
+    lines += [
+        f"- Units: {d['n']:,}",
+        f"- Correctly left unclassified: **{_pct(d['unclassified_rate'])}** "
+        "(expected high; classifiers should not force a call on novel content)",
+        "",
+    ]
+    pr = m.get("per_rank")
+    if pr:
+        lines += [
+            "## Per-rank accuracy (known viruses, via NCBI lineage)",
+            "",
+            "| rank | units | precision | recall | F1 |",
+            "|---|---:|---:|---:|---:|",
+        ]
+        for rank in ("species", "genus", "family"):
+            if rank in pr:
+                s = pr[rank]
+                lines.append(f"| {rank} | {s['n']:,} | {_pct(s['precision'])} | "
+                             f"{_pct(s['recall'])} | {_pct(s['f1'])} |")
+        lines.append("")
+    ab = m["abundance_profile"]
+    lines += [
+        "## Abundance profile (classifier vs true, over NCBI taxids)",
+        "",
+        f"- Taxa: {ab['n_taxa']:,}   Bray-Curtis dissimilarity: {_num(ab['bray_curtis'])}",
+        f"- Pearson: {_num(ab['pearson'])}   Spearman: {_num(ab['spearman'])}   "
+        f"mean abs error: {_num(ab['mean_abs_error'], 4)}",
+    ]
+    return lines
+
+
+def taxonomy_contig_to_markdown(m: dict) -> str:
+    lines = ["# Taxonomy Benchmark (contig-based, taxid-exact)", ""]
+    if not m.get("reliable", True):
+        lines += ["> WARNING: no contigs mapped to known viral genomes.", ""]
+    lines += [
+        f"Contigs: {m['n_contigs']:,}   viral {m['n_viral_contigs']:,}   "
+        f"novel {m['n_novel_contigs']:,}   contaminant {m['n_contaminant_contigs']:,}   "
+        f"chimeric {m['n_chimeric_contigs']:,} ({m['chimera_handling']})",
+        "",
+    ]
+    lines += _strata_and_rank_md(m)
+    return "\n".join(lines) + "\n"
+
+
 def write_reports(m: dict, json_path=None, md_path=None, kind="qc") -> None:
     render = {"assembly": assembly_to_markdown,
-              "taxonomy": taxonomy_to_markdown}.get(kind, to_markdown)
+              "taxonomy": taxonomy_to_markdown,
+              "taxonomy_contig": taxonomy_contig_to_markdown}.get(kind, to_markdown)
     if json_path:
         Path(json_path).write_text(json.dumps(m, indent=2))
     if md_path:

@@ -179,3 +179,93 @@ def test_per_rank_metrics(tmp_path):
 def test_per_rank_absent_without_tree():
     r = benchmark_taxonomy(_assignments(), TAX_GT)
     assert r["per_rank"] is None
+
+
+# ---- contig-based mode ------------------------------------------------------
+
+import random as _random
+
+from viroforge.benchmarking.ncbi_tree import NcbiTree
+from viroforge.benchmarking.taxonomy import benchmark_taxonomy_contigs
+
+
+def _seq(seed, n=10000):
+    rng = _random.Random(seed)
+    return "".join(rng.choice("ACGT") for _ in range(n))
+
+
+def _contig_taxdump(tmp_path):
+    # family 10 ; genus 20,21 (in fam10) ; species 100(A,gen20) 200(B,gen21)
+    # 300(C,gen20) 400(D,gen21)
+    nodes = "\n".join([
+        "1\t|\t1\t|\tno rank\t|",
+        "10\t|\t1\t|\tfamily\t|",
+        "20\t|\t10\t|\tgenus\t|",
+        "21\t|\t10\t|\tgenus\t|",
+        "100\t|\t20\t|\tspecies\t|",
+        "200\t|\t21\t|\tspecies\t|",
+        "300\t|\t20\t|\tspecies\t|",
+        "400\t|\t21\t|\tspecies\t|",
+    ]) + "\n"
+    p = tmp_path / "nodes.dmp"
+    p.write_text(nodes)
+    return p
+
+
+@pytest.fixture
+def contig_dataset(tmp_path):
+    g = {"A": _seq(1), "B": _seq(2), "C": _seq(3), "D": _seq(4), "HOST": _seq(5, 5000)}
+    gfa = tmp_path / "genomes.fasta"
+    with open(gfa, "w") as f:
+        for n, s in g.items():
+            f.write(f">{n}\n{s}\n")
+    contigs = [
+        ("cA", g["A"]),                       # primary A
+        ("cB", g["B"][:6000]),                # primary B
+        ("cC", g["C"][:5000]),                # primary C (dark)
+        ("cChim", g["A"][:3000] + g["B"][:3000]),  # chimera A+B
+        ("cHost", g["HOST"]),                 # contaminant
+        ("cNovel", _seq(999, 4000)),          # aligns to nothing
+    ]
+    cfa = tmp_path / "contigs.fasta"
+    with open(cfa, "w") as f:
+        for n, s in contigs:
+            f.write(f">{n}\n{s}\n")
+    gt = {
+        "A": {"ncbi_taxid": 100, "is_known": True},
+        "B": {"ncbi_taxid": 200, "is_known": True},
+        "C": {"ncbi_taxid": 300, "is_known": False},  # dark
+        "D": {"ncbi_taxid": 400, "is_known": True},
+    }
+    assignments = {"cA": 100, "cB": 999, "cC": None, "cChim": 100, "cHost": 5, "cNovel": None}
+    return cfa, gfa, gt, assignments
+
+
+def test_contig_classification_counts(contig_dataset):
+    cfa, gfa, gt, a = contig_dataset
+    r = benchmark_taxonomy_contigs(a, cfa, gfa, gt)
+    assert r["n_contigs"] == 6
+    assert r["n_viral_contigs"] == 3        # cA, cB, cC (cChim excluded)
+    assert r["n_novel_contigs"] == 1        # cNovel
+    assert r["n_contaminant_contigs"] == 1  # cHost
+    assert r["n_chimeric_contigs"] == 1     # cChim
+
+
+def test_contig_exclude_mode(contig_dataset):
+    cfa, gfa, gt, a = contig_dataset
+    r = benchmark_taxonomy_contigs(a, cfa, gfa, gt, chimera_handling="exclude")
+    k = r["known_viruses"]
+    assert (k["correct"], k["misclassified"], k["unclassified"]) == (1, 1, 0)  # cA ok, cB wrong
+    d = r["dark_matter"]
+    assert (d["correct"], d["unclassified"]) == (0, 1)  # cC left unclassified
+
+
+def test_contig_lca_mode_scores_chimera(contig_dataset, tmp_path):
+    cfa, gfa, gt, a = contig_dataset
+    tree = NcbiTree(_contig_taxdump(tmp_path))
+    r = benchmark_taxonomy_contigs(a, cfa, gfa, gt, ncbi_tree=tree, chimera_handling="lca")
+    # chimera now scored: known stratum gains cChim (assigned A's species != family LCA)
+    k = r["known_viruses"]
+    assert (k["correct"], k["misclassified"]) == (1, 2)  # cA ok; cB, cChim wrong at exact
+    # but at family the chimera is credited (cA and cChim share family 10)
+    assert r["per_rank"]["family"]["correct"] == 2

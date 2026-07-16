@@ -37,7 +37,7 @@
 - Adapter read-through post-processor
 - 23 new tests, all passing
 
-**Latest Entry**: 20260716-005-IMPLEMENTATION (higher-rank taxonomy metrics)
+**Latest Entry**: 20260716-006-IMPLEMENTATION (contig-based taxonomy + shared aligner)
 
 ### Phase 8.2 Complete - RNA Virome Workflow
 
@@ -841,6 +841,18 @@ into known viruses and dark matter so unclassified novel content is not penalize
 **Purpose**: Extend Module 4 with genus/family metrics. Add a minimal NCBI taxdump
 parser (`ncbi_tree.py`) and a `per_rank` block that credits correct-but-higher
 classifier calls via `--taxdump-dir`, over the known-virus stratum.
+
+---
+
+### 2026-07-16 (6)
+
+**ID**: `20260716-006-IMPLEMENTATION-taxonomy-contig-mode.md`
+**Type**: IMPLEMENTATION
+**Status**: Complete
+
+**Purpose**: Add contig-based taxonomy (`--mode contig-based`) with a
+chimera-handling option (exclude/lca), and refactor the mappy aligner into a
+shared `align.py` both the assembly and taxonomy modules call.
 
 ---
 

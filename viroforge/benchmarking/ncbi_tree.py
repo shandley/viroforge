@@ -65,3 +65,17 @@ class NcbiTree:
     def rank_taxid(self, taxid: int | None, rank: str) -> int | None:
         """The taxid's ancestor at `rank`, or None if it has none at that rank."""
         return self.lineage(taxid).get(rank)
+
+    def path_to_root(self, taxid: int | None) -> list[int]:
+        """Ordered ancestor taxids from `taxid` up to the root (inclusive)."""
+        out: list[int] = []
+        t = taxid
+        seen: set[int] = set()
+        while t and t not in seen:
+            seen.add(t)
+            out.append(t)
+            p = self.parent.get(t)
+            if p is None or p == t:
+                break
+            t = p
+        return out

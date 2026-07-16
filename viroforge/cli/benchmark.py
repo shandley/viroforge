@@ -31,17 +31,19 @@ def run_benchmark(args) -> int:
 
 
 def _run_taxonomy(args) -> int:
-    from ..benchmarking.taxonomy import PARSERS, benchmark_taxonomy
+    from ..benchmarking.taxonomy import (
+        PARSERS,
+        benchmark_taxonomy,
+        benchmark_taxonomy_contigs,
+    )
 
-    for p in (args.pipeline_output, args.ground_truth):
-        if not Path(p).exists():
-            print(f"ERROR: file not found: {p}", file=sys.stderr)
-            return 2
+    if not Path(args.ground_truth).exists():
+        print(f"ERROR: file not found: {args.ground_truth}", file=sys.stderr)
+        return 2
     if args.format not in PARSERS:
         print(f"ERROR: --format must be one of {sorted(PARSERS)}", file=sys.stderr)
         return 2
-    metadata = json.loads(Path(args.ground_truth).read_text())
-    tax_gt = metadata.get("benchmarking", {}).get("taxonomy")
+    tax_gt = json.loads(Path(args.ground_truth).read_text()).get("benchmarking", {}).get("taxonomy")
     if not tax_gt:
         print("ERROR: metadata has no benchmarking.taxonomy block. Regenerate the "
               "dataset with a current version to export per-genome taxonomy.",
@@ -51,16 +53,42 @@ def _run_taxonomy(args) -> int:
     tree = None
     if args.taxdump_dir:
         from ..benchmarking.ncbi_tree import NcbiTree
-        nodes = Path(args.taxdump_dir) / "nodes.dmp"
-        if not nodes.exists():
+        if not (Path(args.taxdump_dir) / "nodes.dmp").exists():
             print(f"ERROR: nodes.dmp not found in {args.taxdump_dir}", file=sys.stderr)
             return 2
         tree = NcbiTree.from_dir(args.taxdump_dir)
 
-    assignments = PARSERS[args.format](args.pipeline_output)
-    metrics = benchmark_taxonomy(assignments, tax_gt, ncbi_tree=tree)
-    write_reports(metrics, json_path=args.output, md_path=args.markdown, kind="taxonomy")
-    print(taxonomy_to_markdown(metrics))
+    if args.mode == "contig-based":
+        missing = [f for f in ("contig_taxonomy", "contigs", "genomes")
+                   if getattr(args, f) is None]
+        if missing:
+            print(f"ERROR: contig-based mode needs --{', --'.join(m.replace('_', '-') for m in missing)}",
+                  file=sys.stderr)
+            return 2
+        for p in (args.contig_taxonomy, args.contigs, args.genomes):
+            if not Path(p).exists():
+                print(f"ERROR: file not found: {p}", file=sys.stderr)
+                return 2
+        if args.chimera_handling == "lca" and tree is None:
+            print("ERROR: --chimera-handling lca requires --taxdump-dir", file=sys.stderr)
+            return 2
+        assignments = PARSERS[args.format](args.contig_taxonomy)
+        metrics = benchmark_taxonomy_contigs(
+            assignments, args.contigs, args.genomes, tax_gt,
+            ncbi_tree=tree, chimera_handling=args.chimera_handling)
+        kind = "taxonomy_contig"
+    else:
+        if not args.pipeline_output or not Path(args.pipeline_output).exists():
+            print("ERROR: read-based mode needs --pipeline-output", file=sys.stderr)
+            return 2
+        assignments = PARSERS[args.format](args.pipeline_output)
+        metrics = benchmark_taxonomy(assignments, tax_gt, ncbi_tree=tree)
+        kind = "taxonomy"
+
+    write_reports(metrics, json_path=args.output, md_path=args.markdown, kind=kind)
+    from ..benchmarking.report import taxonomy_contig_to_markdown
+    render = taxonomy_contig_to_markdown if kind == "taxonomy_contig" else taxonomy_to_markdown
+    print(render(metrics))
     return 0 if metrics["reliable"] else 1
 
 

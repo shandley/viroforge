@@ -125,21 +125,21 @@ def _stratum_metrics(s: dict) -> dict:
 RANKS = ("species", "genus", "family")
 
 
-def _per_rank_metrics(assignments, taxonomy_gt, tree, ranks) -> dict:
+def _per_rank_metrics(items, tree, ranks) -> dict:
     """Per-rank precision/recall/F1 over the known-virus stratum.
 
-    For each rank, a read counts only if its true genome has an NCBI taxid at that
-    rank. The assigned taxid is resolved to its ancestor at the rank; correct when
-    it equals the true rank taxid, misclassified when it differs, unclassified when
-    the classifier made no call or its call was too shallow to reach the rank. Dark
-    matter is excluded, so correctly-unclassified novel content is not penalized.
+    items are (assigned_taxid, true_taxid, is_known) tuples (one per read or
+    contig). For each rank, a unit counts only if its true taxid has an ancestor
+    at that rank. The assigned taxid is resolved to its ancestor at the rank;
+    correct when it equals the true rank taxid, misclassified when it differs,
+    unclassified when the classifier made no call or its call was too shallow to
+    reach the rank. Dark matter is excluded, so correctly-unclassified novel
+    content is not penalized.
     """
     stats = {r: {"correct": 0, "misclassified": 0, "unclassified": 0} for r in ranks}
-    for rid, assigned in assignments.items():
-        gt = taxonomy_gt.get(parse_genome_id(rid))
-        if gt is None or not gt.get("is_known"):
+    for assigned, true_taxid, is_known in items:
+        if not is_known:
             continue
-        true_taxid = gt.get("ncbi_taxid")
         for r in ranks:
             true_r = tree.rank_taxid(true_taxid, r)
             if true_r is None:
@@ -181,20 +181,41 @@ def benchmark_taxonomy(
         ncbi_tree: optional NcbiTree; enables per-rank (genus/family) metrics.
         ranks: taxonomic ranks to score when a tree is given.
     """
-    known = {"correct": 0, "unclassified": 0, "misclassified": 0}
-    dark = {"correct": 0, "unclassified": 0, "misclassified": 0}
+    items = []
     non_viral = 0
-    true_counts: Counter = Counter()
-    obs_counts: Counter = Counter()
-
     for rid, assigned in assignments.items():
-        gid = parse_genome_id(rid)
-        gt = taxonomy_gt.get(gid)
+        gt = taxonomy_gt.get(parse_genome_id(rid))
         if gt is None:
             non_viral += 1
             continue
-        true_taxid = gt.get("ncbi_taxid")
-        stratum = known if gt.get("is_known") else dark
+        items.append((assigned, gt.get("ncbi_taxid"), gt.get("is_known")))
+
+    core = _score(items, ncbi_tree, ranks)
+    return {
+        "reliable": core["reliable"],
+        "n_assignments": len(assignments),
+        "n_viral_reads": core["n_viral"],
+        "n_non_viral_reads": non_viral,
+        "known_viruses": core["known_viruses"],
+        "dark_matter": core["dark_matter"],
+        "per_rank": core["per_rank"],
+        "abundance_profile": core["abundance_profile"],
+    }
+
+
+def _score(items, ncbi_tree, ranks) -> dict:
+    """Score (assigned_taxid, true_taxid, is_known) items into strata + profile.
+
+    Shared by read-based and contig-based modes; the unit (read or contig) is
+    whatever produced the items.
+    """
+    known = {"correct": 0, "unclassified": 0, "misclassified": 0}
+    dark = {"correct": 0, "unclassified": 0, "misclassified": 0}
+    true_counts: Counter = Counter()
+    obs_counts: Counter = Counter()
+
+    for assigned, true_taxid, is_known in items:
+        stratum = known if is_known else dark
         true_counts[true_taxid] += 1
         if assigned is None:
             stratum["unclassified"] += 1
@@ -206,34 +227,94 @@ def benchmark_taxonomy(
                 stratum["misclassified"] += 1
 
     n_viral = sum(true_counts.values())
-    reliable = n_viral > 0
-
-    # abundance profile: fraction of viral reads per taxid, truth vs classifier
     true_prof = {t: c / n_viral for t, c in true_counts.items()} if n_viral else {}
     obs_prof = {t: c / n_viral for t, c in obs_counts.items()} if n_viral else {}
     taxa = sorted(set(true_prof) | set(obs_prof), key=lambda t: (t is None, t))
     xs = [true_prof.get(t, 0.0) for t in taxa]
     ys = [obs_prof.get(t, 0.0) for t in taxa]
-    abundance = {
-        "n_taxa": len(taxa),
-        "bray_curtis": _bray_curtis(true_prof, obs_prof) if n_viral else None,
-        "pearson": _pearson(xs, ys),
-        "spearman": _spearman(xs, ys),
-        "mean_abs_error": (sum(abs(a - b) for a, b in zip(xs, ys)) / len(taxa)
-                           if taxa else None),
-    }
-
-    per_rank = None
-    if ncbi_tree is not None:
-        per_rank = _per_rank_metrics(assignments, taxonomy_gt, ncbi_tree, ranks)
-
     return {
-        "reliable": reliable,
-        "n_assignments": len(assignments),
-        "n_viral_reads": n_viral,
-        "n_non_viral_reads": non_viral,
+        "reliable": n_viral > 0,
+        "n_viral": n_viral,
         "known_viruses": _stratum_metrics(known),
         "dark_matter": _stratum_metrics(dark),
-        "per_rank": per_rank,
-        "abundance_profile": abundance,
+        "per_rank": _per_rank_metrics(items, ncbi_tree, ranks) if ncbi_tree else None,
+        "abundance_profile": {
+            "n_taxa": len(taxa),
+            "bray_curtis": _bray_curtis(true_prof, obs_prof) if n_viral else None,
+            "pearson": _pearson(xs, ys),
+            "spearman": _spearman(xs, ys),
+            "mean_abs_error": (sum(abs(a - b) for a, b in zip(xs, ys)) / len(taxa)
+                               if taxa else None),
+        },
+    }
+
+
+def _lca(tree, a, b):
+    """Lowest common ancestor taxid of two taxids (None if either is None)."""
+    if a is None or b is None:
+        return None
+    b_anc = set(tree.path_to_root(b))
+    for t in tree.path_to_root(a):
+        if t in b_anc:
+            return t
+    return None
+
+
+def benchmark_taxonomy_contigs(
+    contig_assignments: dict[str, int | None],
+    contigs_fasta,
+    genome_fasta,
+    taxonomy_gt: dict,
+    ncbi_tree=None,
+    chimera_handling: str = "exclude",
+    ranks=RANKS,
+) -> dict:
+    """Contig-based taxonomy benchmark.
+
+    Ground truth per contig is derived by aligning contigs to the true genomes
+    (shared aligner): the contig's primary genome gives its true taxid. Contigs
+    that align to no genome are novel; contigs aligning to a contaminant genome
+    are excluded. Chimeric contigs are handled per `chimera_handling`:
+    "exclude" (reported, not scored) or "lca" (true taxid = LCA of the two segment
+    genomes, requires an NCBI tree).
+    """
+    from .align import align_contigs
+
+    al = align_contigs(contigs_fasta, genome_fasta)
+    items = []
+    n_novel = n_contaminant = n_chimera = 0
+    for c in al["contigs"]:
+        assigned = contig_assignments.get(c["name"])  # None if classifier omitted it
+        primary = c["primary_genome"]
+        if primary is None:
+            n_novel += 1
+            continue
+        gt = taxonomy_gt.get(primary)
+        if gt is None:
+            n_contaminant += 1
+            continue
+        if c["is_chimera"]:
+            n_chimera += 1
+            if chimera_handling == "lca" and ncbi_tree is not None:
+                segs = c["chimera_segments"]
+                t1 = taxonomy_gt.get(segs[0]["genome"], {}).get("ncbi_taxid")
+                t2 = taxonomy_gt.get(segs[1]["genome"], {}).get("ncbi_taxid")
+                items.append((assigned, _lca(ncbi_tree, t1, t2), gt.get("is_known")))
+            # "exclude" (or lca without a tree): reported but not scored
+            continue
+        items.append((assigned, gt.get("ncbi_taxid"), gt.get("is_known")))
+
+    core = _score(items, ncbi_tree, ranks)
+    return {
+        "reliable": core["reliable"],
+        "n_contigs": len(al["contigs"]),
+        "n_viral_contigs": core["n_viral"],
+        "n_novel_contigs": n_novel,
+        "n_contaminant_contigs": n_contaminant,
+        "n_chimeric_contigs": n_chimera,
+        "chimera_handling": chimera_handling,
+        "known_viruses": core["known_viruses"],
+        "dark_matter": core["dark_matter"],
+        "per_rank": core["per_rank"],
+        "abundance_profile": core["abundance_profile"],
     }

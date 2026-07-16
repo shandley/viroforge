@@ -10,7 +10,8 @@ import random
 
 import pytest
 
-from viroforge.benchmarking.assembly import benchmark_assembly, parse_coverage
+from viroforge.benchmarking.align import parse_coverage
+from viroforge.benchmarking.assembly import benchmark_assembly
 
 GLEN = 10000
 
