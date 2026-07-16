@@ -1,8 +1,62 @@
 # ViroForge - Development Context
 
-**Last Updated**: 2026-07-14
-**Current Version**: v0.13.0
-**Status**: v0.13.0 realistic defaults - PR backlog resolved (see Session Handoff below)
+**Last Updated**: 2026-07-16
+**Current Version**: v0.13.0 (a version bump for the benchmarking framework is a pending decision)
+**Status**: Canonical DB adopted; data quality evaluated; benchmarking framework Modules 1/2/4 built
+
+---
+
+## Session Handoff (2026-07-16)
+
+origin/main is at `6edef85`. Working tree clean except the pre-existing untracked
+`data/web/` + `scripts/export_web_data.py` (a prior static web export) and the
+gitignored `validation/` scratch dir.
+
+### Environment
+
+A full `.venv` (CPython 3.12) now exists with `viroforge[web]` + InSilicoSeq 2.0.1
++ mappy (the `benchmark` extra). Real generation, the test suite, and the
+benchmarks all run in it. PBSIM3 is not built and `pbccs` is Linux-x86-64 only, so
+long-read generation is not exercisable on this macOS-arm64 machine.
+
+### Canonical database
+
+Adopted a fresh seeded `setup-db` rebuild as the canonical DB (the prior DB
+predated the seeding fix and was not regenerable). It is reproducible via
+`setup-db`; provenance is pinned by `data/collection_membership.tsv` +
+`scripts/export_collection_manifest.py` (the 500 MB DB is gitignored). Also fixed:
+vaginal-curation idempotency and an `n_genomes` reconcile step.
+
+### Data quality evaluation
+
+Ran a full pre-QC technical evaluation (`docs/DATA_QUALITY_EVALUATION.md`,
+`scripts/evaluate_dataset.py`). Verdict: per-read `source=` labels and artifact
+tags are accurate, traceable, and reproducible. Fixes from it: the default 0.30
+dark-matter fraction is now actually delivered (was 0.11-0.48; amplification
+reweighting); the three Illumina platforms are documented as interchangeable in
+ISS basic mode (identical 125 bp reads); MDA duplicate metadata records real values.
+
+### Benchmarking framework (Phase 13B/C) - `viroforge/benchmarking/`
+
+Three modules built, each with `viroforge benchmark <module>`, JSON + markdown
+reports, and an independent-oracle test suite (26 tests):
+- **Module 1 QC** (`benchmark qc`): contamination removal + viral retention vs
+  per-read labels; match-rate gate; dedup scored separately.
+- **Module 2 Assembly** (`benchmark assembly`): genome recovery/completeness,
+  chimeras, N50/L50, observed-vs-expected completeness, abundance accuracy. Uses
+  minimap2 via mappy (shared `benchmarking/align.py`).
+- **Module 4 Taxonomy** (`benchmark taxonomy`): read- and contig-based;
+  taxid-exact + genus/family (via NCBI taxdump); abundance profile;
+  known/dark-matter stratification; Kraken2/Centrifuge/DIAMOND/MMseqs2/generic
+  parsers. Metadata now exports `benchmarking.taxonomy` (ncbi_taxid + lineage).
+
+Deferred: Module 5 (completeness across coverage), HTML reports + visualizations,
+length-weighted contig taxonomy metrics.
+
+### Still open (unchanged)
+
+- PR #39 (collection-specific contamination, blocked - bad accessions), PR #51
+  (host_associations, deferred). Issues #37, #38 (tied to #39), #30 (web form builder).
 
 ---
 
