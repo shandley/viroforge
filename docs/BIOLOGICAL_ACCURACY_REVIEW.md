@@ -1,9 +1,9 @@
 # Biological Accuracy Review: Per-Site Viral Composition
 
-**Status**: Complete for this pass (Layers 1-2). Bibliography verified against source.
+**Status**: Complete. Corrections applied and folded into `setup-db`.
 **Date**: 2026-07-16
-**Scope**: Viral taxonomic composition + data integrity. Phage host-community
-inference (Layer 3) and generation-side tuning are out of scope here.
+**Scope**: Viral taxonomic composition + data integrity (Layers 1-2). Phage
+host-community inference and generation-side tuning are out of scope.
 
 ---
 
@@ -13,194 +13,136 @@ Do the per-collection abundance proportions of viral taxonomic types (phage vs
 eukaryotic virus, nucleic-acid class, dominant/signature families) match current
 biological and literature-based expectations for each body site or environment?
 
-## Answer in one paragraph
+## Answer
 
-Eleven of twenty collections are biologically sound. Nine deviate from the
-literature: one major (nasopharynx), five moderate (skin, wastewater, vaginal,
-blood, lung), and three minor (mouse gut, HIV+ gut, urinary). Separately, a
-confirmed data-integrity bug (`genome_type` mislabels every RNA virus as `dsDNA`)
-affects all RNA-aware analysis and is the first fix. The recurring biological
-problems are: bacteriophages under-represented at sites that should be
-phage-dominated (skin, wastewater, vaginal, urinary), a eukaryote-dominant site
-modeled as phage-dominant (nasopharynx), a dominant-family rank error (blood:
-Orthoherpesviridae over Anelloviridae), and inflated "unknown-family" fractions
-that bury signature taxa (mouse gut, lung, HIV+, with lung and CF sharing a
-suspicious ~33% placeholder).
+After correcting two measurement/data problems and four genuinely-off collections,
+**biology is sound for 19 of 20 collections**. The sole remaining biology flag is
+vaginal (minor) — a documented data-availability limitation (RefSeq has no vaginal
+Lactobacillus-phage genomes, so dairy/food proxies are used). Four collections
+carry data-quality (taxonomy-coverage) flags: skin, mouse gut, HIV+ gut, and vaginal
+have large fractions of bacteriophages that are real but sit unclassified
+(`family=Unknown`) in the database. That is a DB-wide taxonomy-coverage issue
+(42.9% of genomes are unclassified), not a composition error, and is reported
+separately from the biology verdict.
 
 ## Method
 
-Composition is judged **semi-quantitatively** (rank order, presence/absence of
-signature taxa, gross balance), because virome literature rarely reports clean
-numeric family percentages. Three choices make it trustworthy:
+Composition is judged semi-quantitatively (rank order, signature-taxon presence,
+gross balance). Design choices that make it trustworthy:
 
-1. **Properties from ICTV, not the DB's `genome_type`.** A verified family-level
-   map (`data/reference_profiles/family_properties.tsv`, built by
-   `scripts/build_composition_reference.py` from ICTV VMR MSL40) supplies each
-   family's nucleic-acid/Baltimore type and host type (phage if bacteria/archaea,
-   else eukaryotic). It covers 108/108 named families across the collections.
-2. **Three currencies**: abundance-weighted (primary), genome count, prevalence.
-3. **A tunable, cited reference profile** (`virome_composition.yaml`) with per-site
-   expected *bands* and a global `strictness` dial;
-   `scripts/evaluate_composition.py` scores observed vs expected.
+1. **Properties from ICTV, not the DB's `genome_type`.** A verified family map
+   (`data/reference_profiles/family_properties.tsv`, from ICTV VMR MSL40) gives each
+   family's nucleic-acid/Baltimore type and host type. For genomes ICTV leaves
+   unclassified, a name-based phage heuristic recovers the large pool of
+   bacteriophages carried as `family=Unknown` (see Finding 2).
+2. **Three currencies**: abundance-weighted (primary), count, prevalence.
+3. **A tunable, cited reference profile** (`virome_composition.yaml`) of per-site
+   expected bands + a global `strictness` dial; `scripts/evaluate_composition.py`
+   scores observed vs expected.
+4. **Biology vs data-quality are separated.** The site verdict reflects biology
+   (balance, signature taxa); the unknown-family fraction is reported as a distinct
+   data-quality verdict so taxonomy gaps do not masquerade as biology errors.
 
-Two "unknown" axes are reported separately and never conflated: **Unknown-family%**
-(taxonomically unclassified, a data-quality metric) and **Unknown-host** (named
-families ICTV leaves without a host; excluded from the phage:eukaryote ratio).
-
-**Bibliography**: 50 references, every DOI verified via CrossRef and every PMID via
-PubMed with `/verify-references`. All 50 resolve to the correct papers; three
-publication years were off by one (online-vs-print) and were corrected. See
-`docs/composition_references.bib` and `validation/VERIFICATION_SUMMARY.md`.
+Bibliography: 50 references, every DOI+PMID confirmed via `/verify-references`
+(3 years corrected). See `docs/composition_references.bib`, `validation/VERIFICATION_SUMMARY.md`.
 
 ---
 
-## Finding 1 (confirmed data-integrity bug): `genome_type` mislabels RNA viruses as dsDNA
+## Finding 1 (fixed): `genome_type` mislabeled RNA viruses as dsDNA
 
-`genomes.genome_type` marks RNA-virus genomes as `dsDNA`. The arbovirus collection
-(14) is the clearest case: its genomes are correct arboviruses (Dengue, Yellow
-fever, West Nile, La Crosse, Saint Louis encephalitis, Mayaro; Flaviviridae,
-Peribunyaviridae, Togaviridae) but every one is stamped `dsDNA`. RNA collections
-13 and 15 are ~98% / 90% `dsDNA` by this column. The field is populated (non-NULL)
-for all 14,423 genomes, so the error is silent, and any analysis trusting it is
-wrong for RNA viruses. This review derives nucleic-acid type from ICTV instead.
-**Remediation**: relabel `genome_type` from the ICTV Baltimore class per family
-(clear-cut, backed up, reversible).
+`genomes.genome_type` silently defaulted RNA viruses to `dsDNA` (the arbovirus
+collection was 100% dsDNA despite being RNA viruses). `scripts/fix_genome_type.py`
+relabeled 3,516 genomes from the ICTV Baltimore class; collection 14 is now 100%
+ssRNA, fecal RNA shows rotavirus as dsRNA, and the DB-wide ssDNA count went from 6
+to 1,520. Folded into `setup-db`.
+
+## Finding 2 (fixed): the phage metric missed unclassified bacteriophages
+
+Many RefSeq bacteriophages carry `family=Unknown` in the DB, so an ICTV-only host
+map counted them as host-unknown and made phage-dominated sites look phage-empty.
+Skin, for example, is ~51% Propionibacterium/Cutibacterium phages that were all
+unclassified — it read as 0% phage. Adding a name-based phage heuristic corrected
+skin to 51% phage and reclassified CF (76%), vaginal (75%), HIV+ (81%), mouse gut
+(71%). This resolved several apparent "deviations" that were measurement artifacts.
+
+## Corrections applied to four genuinely-off collections
+
+After Findings 1-2, four collections had real composition problems, fixed by
+`scripts/fix_collection_composition.py` (reweighting existing genomes and adding
+only real DB genomes; idempotent; folded into `setup-db`):
+
+- **Blood (17)**: Anelloviridae reweighted to dominant (0.60), Orthoherpesviridae
+  demoted to secondary — healthy plasma is anellovirus-dominated (Cebria-Mendoza 2021).
+- **Lung (19)**: Anelloviridae to dominant (0.45), unclassified-phage share reduced
+  below its ceiling — healthy lung is Anellovirus-led (Young 2015; Abbas 2017).
+- **Nasopharynx (4)**: 6 Anelloviridae genomes added (none were present) and the
+  balance shifted to eukaryote-dominant, Anelloviridae top — healthy upper
+  respiratory is eukaryote/Anellovirus-dominated (Wang 2016; Megremis 2023).
+- **Wastewater (9)**: rebalanced to phage-majority (0.85 phage / 0.15 eukaryotic) —
+  urban wastewater is phage-dominated by richness, enteric eukaryotic viruses a
+  minority (Gulino 2020; Kuo 2023; Calusinska 2016).
 
 ---
 
-## Scorecard
+## Final scorecard
 
 Full detail: `validation/composition_scorecard.json`. Figure:
-`docs/figures/composition_review.png` (Panel A: observed phage fraction vs
-expected band; Panel B: unknown-family fraction vs ceiling).
+`docs/figures/composition_review.png`.
 
-| ID | Collection | Verdict | Key discrepancies |
-|----|-----------|---------|-------------------|
-| 4 | Respiratory - Nasopharynx (Healthy) | MAJOR | Anelloviridae not dominant; phage-dominant where eukaryote-dominant expected |
-| 3 | Skin - Sebaceous Sites (Healthy) | MODERATE | phage 0.00 vs band 0.40-0.90; unknown-fam 0.51 > 0.25 ceiling |
-| 9 | Wastewater - Urban Treatment Plant | MODERATE | phage 0.35 vs band 0.60-0.95; RNA 0.45 above band |
-| 16 | Vaginal (Healthy) | MODERATE | phage 0.61 vs band 0.75-0.98 (eukaryotic over-weighted) |
-| 17 | Blood/Plasma (Healthy) | MODERATE | Anelloviridae present but not dominant (top is Orthoherpesviridae) |
-| 19 | Lower Respiratory (Lung, Healthy) | MODERATE | Anelloviridae not dominant; unknown-fam 0.34 > 0.20 |
-| 8 | Mouse Gut - Laboratory (C57BL/6) | MINOR | phage slightly below band; high unknown-host |
-| 11 | HIV+ Gut | MINOR | phage slightly below band; unknown buries signature taxa |
-| 20 | Urinary (Healthy) | MINOR | phage below band (bacteriophages under-represented) |
-| 1 | Gut - Adult Healthy (Western Diet) | OK | — |
-| 2 | Oral - Saliva (Healthy) | OK | (Microviridae top-rank nuance, see below) |
-| 5 | Marine - Coastal Surface Water | OK | — |
-| 6 | Soil - Agricultural | OK | — |
-| 7 | Freshwater - Lake Surface Water | OK | — |
-| 10 | IBD Gut | OK | — |
-| 12 | Cystic Fibrosis Respiratory | OK | high unknown is genuinely expected here |
-| 13 | Human Respiratory RNA | OK | (after genome_type fix) |
-| 14 | Arbovirus (Mosquito) | OK | (after genome_type fix) |
-| 15 | Fecal RNA | OK | (after genome_type fix) |
-| 18 | Ocular Surface (Healthy) | OK | — |
-
----
-
-## Flagged sites (with cited expectations)
-
-**Nasopharynx (4) - MAJOR.** Observed phage-dominant (phage 50% > euk 35%), top
-family a phage (Aliceevansviridae). The healthy upper-respiratory virome is
-eukaryote-dominated and led by Anelloviridae, with bacteriophages comparatively
-low in health (Wang 2016; Megremis 2023; Xu 2017). The balance is inverted and the
-dominant family is wrong. Note the strongest sources are pediatric/asthma cohorts;
-adult healthy-nasopharynx data are sparser, but Anellovirus dominance is robust.
-
-**Skin (3) - MODERATE.** Observed 0% phage, 51% unknown-family. The healthy
-sebaceous skin virome is bacteriophage-dominated (Cutibacterium/Staphylococcus/
-Corynebacterium phages) with Papillomaviridae/Polyomaviridae a minority (Hannigan
-2015; Graham 2023). Zero phage is not credible; skin phages appear missing from the
-collection, and the dark matter that is present is itself overwhelmingly phage.
-
-**Wastewater (9) - MODERATE.** Observed 65% eukaryotic / 45% RNA. Urban wastewater
-viromes are strongly bacteriophage-dominated by richness and abundance (~60-95% of
-classifiable reads), with enteric eukaryotic viruses typically ~1-2% (Gulino 2020;
-Kuo 2023; Calusinska 2016; Martinez-Puchol 2020; Cantalupo 2011). ViroForge
-correctly includes the right enteric eukaryotic families but inverts their
-proportion. Internal tell: the collection's own top family is Microviridae (an
-ssDNA phage), inconsistent with phage totalling only 35%.
-
-**Vaginal (16) - MODERATE.** Observed phage fraction 0.61 of classified; eukaryotic
-viruses ~25% where literature reports ~4% (Jakobsen 2020; Kaelin 2022). Top family
-Herelleviridae (large Firmicutes phages) is the documented dairy/food-Lactobacillus
-proxy artifact, not the temperate Lactobacillus siphophages expected in a healthy
-Lactobacillus-CST vaginal virome. This is a known limitation (RefSeq lacks vaginal
-Lactobacillus-phage genomes); documenting it precisely is the action here.
-
-**Blood/plasma (17) - MODERATE.** Structure correct (eukaryote-dominant, DNA-based,
-phage ~0), but the dominant family is wrong: healthy plasma is Anelloviridae-
-dominated (~97% of viral reads), herpesviruses secondary (Cebria-Mendoza 2021,
-2023; Segura-Wang 2018). Observed top is Orthoherpesviridae; Anelloviridae is
-present but not the most abundant.
-
-**Lung (19) - MODERATE.** Eukaryote-dominant direction is right, but the top family
-should be Anelloviridae/Torque teno virus (Young 2015; Abbas 2017), not Unknown.
-Its 33.6% unknown-family is implausibly high for the comparatively well-defined
-healthy lung and is near-identical to CF's 33.4% - a tell of a shared placeholder
-default rather than a site-specific value.
-
-**Mouse gut (8), HIV+ gut (11), urinary (20) - MINOR.** Mouse gut is phage-dominated
-in reality (Caudovirales + Microviridae; Bao 2022; Moltzau Anderson 2023), but the
-observed 37% phage / 59% unknown-host suggests phages sitting unlabeled in the dark
-pool. HIV+ gut correctly shows eukaryotic-virus expansion (Monaco 2016; Boukadida
-2024), but 29% unknown-family buries the diagnostic Adenoviridae/Anelloviridae/
-Papillomaviridae signature. Urinary correctly tops with Papillomaviridae (Santiago-
-Rodriguez 2015; Garretto 2018; Maqsood 2024) but under-represents bacteriophages.
-
-## Sites that pass
-
-Gut (1: Pargin 2023; Van Espen 2021), oral (2: Pride 2012; Ly 2014 - with a
-top-rank nuance that saliva is led by tailed Caudovirales, not Microviridae), marine
-(5), soil (6), freshwater (7), IBD (10: Caudovirales-expansion signature, Norman
-2015; Zuo 2019), CF (12: high unknown genuinely expected, Willner 2009), the three
-RNA collections (13/14/15) once `genome_type` is fixed, and ocular (18: Anellovirus-
-led, Doan 2016; Siegal 2021).
-
-## Cross-cutting themes
-
-1. **Bacteriophages under-represented at phage-dominated sites** (skin, wastewater,
-   vaginal, urinary) - the single most common failure.
-2. **Inflated unknown-family fractions bury signature taxa** (mouse gut, lung,
-   HIV+), and at least one shared placeholder (~33%) is reused across CF and lung.
-3. **A few dominant-family rank errors** (blood, lung, nasopharynx, oral).
+| ID | Collection | Biology | Data-quality | Notes |
+|----|-----------|---------|--------------|-------|
+| 16 | Vaginal (Healthy) | MINOR | MINOR | proxy Lactobacillus phages (dairy/food); documented limitation |
+| 1 | Gut - Adult Healthy | OK | OK | — |
+| 2 | Oral - Saliva | OK | OK | — |
+| 3 | Skin - Sebaceous Sites | OK | MODERATE | 51% unclassified Propionibacterium phages (taxonomy coverage) |
+| 4 | Respiratory - Nasopharynx | OK | OK | corrected: added Anelloviridae, eukaryote-dominant |
+| 5 | Marine - Coastal Surface | OK | OK | — |
+| 6 | Soil - Agricultural | OK | OK | — |
+| 7 | Freshwater - Lake Surface | OK | OK | — |
+| 8 | Mouse Gut (C57BL/6) | OK | MINOR | 37% unclassified phages (taxonomy coverage) |
+| 9 | Wastewater | OK | OK | corrected: phage-majority |
+| 10 | IBD Gut | OK | OK | — |
+| 11 | HIV+ Gut | OK | MINOR | 29% unclassified phages (taxonomy coverage) |
+| 12 | Cystic Fibrosis Respiratory | OK | OK | high unknown genuinely expected |
+| 13 | Human Respiratory RNA | OK | OK | after genome_type fix |
+| 14 | Arbovirus (Mosquito) | OK | OK | after genome_type fix |
+| 15 | Fecal RNA | OK | OK | after genome_type fix |
+| 17 | Blood/Plasma | OK | OK | corrected: Anelloviridae dominant |
+| 18 | Ocular Surface | OK | OK | — |
+| 19 | Lower Respiratory (Lung) | OK | OK | corrected: Anelloviridae dominant |
+| 20 | Urinary | OK | OK | — |
 
 ---
 
-## Remediation
+## Remaining, and why not "fixed"
 
-Applied this pass (clear-cut, backed up, reversible; see the accompanying
-lab-notebook entry):
-- **`genome_type` relabel** from ICTV Baltimore class (fixes Finding 1).
+- **Data-quality flags (skin, mouse gut, HIV+ gut, vaginal)** are unclassified
+  bacteriophages (`family=Unknown`). They are real phages and biologically correct
+  to include; the flag reflects the DB's taxonomy-coverage gap, addressable only by
+  improving classification, not by curation. Left visible rather than hidden.
+- **Vaginal (16)** biology minor: RefSeq has no vaginal Lactobacillus-phage genomes,
+  so dairy/food Lactobacillus phages are proxies and the eukaryotic share sits a
+  little high. Documented limitation; deferred until suitable genomes exist.
 
-Recommended follow-ups (larger or judgment-dependent, tracked separately):
-- Re-query **skin (3)** to add Cutibacterium/Staphylococcus/Corynebacterium phages.
-- Rebalance **wastewater (9)** toward phage-majority / DNA-majority.
-- Replace the shared ~33% unknown default in **lung (19)** with a site-specific
-  value and add Anelloviridae as the dominant family; same for **nasopharynx (4)**.
-- Trim/annotate the dark pool in **mouse gut (8)** and **HIV+ gut (11)** so phages
-  and diagnostic eukaryotic viruses are labeled.
-- Re-rank **blood (17)** and **oral (2)** dominant families.
-- Keep **vaginal (16)** documented as a proxy limitation until vaginal Lactobacillus
-  phage genomes are available.
+## Durability
 
----
+All three corrections are idempotent and run as post-curation steps in
+`viroforge setup-db` (`genome_type` relabel, `fix_collection_composition.py`,
+`renormalize_abundances.py`), so a fresh rebuild reproduces the corrected state.
 
 ## Artifacts and reproduction
 
 ```
 scripts/build_composition_reference.py   # ICTV family property map
-scripts/evaluate_composition.py observe  # -> validation/observed_composition.json
-scripts/evaluate_composition.py evaluate # -> validation/composition_scorecard.json
+scripts/evaluate_composition.py observe|evaluate
+scripts/fix_genome_type.py               # Finding 1 fix
+scripts/fix_collection_composition.py    # 4-collection curation fix
+scripts/renormalize_abundances.py        # normalize sums to 1.0
 scripts/build_bibliography.py            # -> docs/composition_references.bib
 scripts/plot_composition_review.py       # -> docs/figures/composition_review.{png,pdf}
-data/reference_profiles/family_properties.tsv     # verified property map
-data/reference_profiles/virome_composition.yaml   # tunable cited profile (strictness dial)
-docs/composition_references.bib                    # verified bibliography
-validation/dossiers/*.json                         # per-site literature dossiers
-validation/VERIFICATION_SUMMARY.md                 # /verify-references outcome
+data/reference_profiles/{family_properties.tsv, virome_composition.yaml}
+validation/dossiers/*.json, validation/VERIFICATION_SUMMARY.md
 ```
 
-Adjust the yardstick with the `strictness` dial or any per-site band in
+Tune the yardstick via the `strictness` dial or any band in
 `virome_composition.yaml`, then re-run `evaluate_composition.py evaluate`.

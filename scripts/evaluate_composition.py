@@ -53,11 +53,23 @@ def _pct(d: dict[str, float]) -> dict[str, float]:
     return {k: round(v / tot, 4) for k, v in d.items()}
 
 
-def observe_collection(rows: list[dict], props: dict[str, dict]) -> dict:
-    """rows: per-genome dicts with family, relative_abundance, prevalence, class.
+def _looks_like_phage(name: str) -> bool:
+    """Heuristic host call for genomes ICTV leaves unclassified. RefSeq phage
+    names reliably contain 'phage' (or 'bacteriophage'/'prophage'); this recovers
+    the large pool of bacteriophages carried as family='Unknown' so they are not
+    miscounted as host-unknown."""
+    n = (name or "").lower()
+    return "phage" in n
 
-    Returns observed composition in three currencies. Genomes whose family is
-    'Unknown' or absent from the property map are bucketed as host/na 'unknown'.
+
+def observe_collection(rows: list[dict], props: dict[str, dict]) -> dict:
+    """rows: per-genome dicts with family, genome_name, relative_abundance,
+    prevalence, class.
+
+    Returns observed composition in three currencies. Host type comes from the
+    ICTV family map; for genomes whose family is unmapped/Unknown, a name-based
+    phage heuristic is applied before falling back to 'unknown'. Nucleic-acid
+    class is only taken from the ICTV map (no name inference).
     """
     host_ab, host_n, host_prev = defaultdict(float), defaultdict(float), defaultdict(float)
     na_ab, na_n = defaultdict(float), defaultdict(float)
@@ -65,14 +77,21 @@ def observe_collection(rows: list[dict], props: dict[str, dict]) -> dict:
     cls_ab = defaultdict(float)
     unknown_ab = 0.0
     unknown_n = 0
+    inferred_phage_ab = 0.0
 
     for r in rows:
         fam = r["family"] or "Unknown"
         ab = r["relative_abundance"] or 0.0
         prev = r["prevalence"] if r["prevalence"] is not None else 1.0
         p = props.get(fam)
-        host = p["host_type"] if p else "unknown"
         na = p["na_class"] if p else "unknown"
+        if p:
+            host = p["host_type"]
+        elif _looks_like_phage(r.get("genome_name", "")):
+            host = "phage"
+            inferred_phage_ab += ab
+        else:
+            host = "unknown"
 
         host_ab[host] += ab
         host_n[host] += 1
@@ -92,6 +111,7 @@ def observe_collection(rows: list[dict], props: dict[str, dict]) -> dict:
     return {
         "n_genomes": len(rows),
         "unknown_family": {"abundance": round(unknown_ab, 4), "count": unknown_n},
+        "inferred_phage": {"abundance": round(inferred_phage_ab, 4)},  # phage by name, family=Unknown
         "host_balance": {
             "abundance": _pct(host_ab),
             "count": _pct(host_n),
@@ -196,8 +216,13 @@ def evaluate_site(obs: dict, expect: dict, strictness: float) -> dict:
                              "deviation": dev, "severity": _severity(dev),
                              "kind": "data_quality", "cite": expect["max_unknown_family"].get("cite", [])})
 
-    worst = max((f["severity"] for f in findings), key=lambda s: ["ok", "minor", "moderate", "major"].index(s), default="ok")
-    return {"site_verdict": worst, "findings": findings}
+    rank = ["ok", "minor", "moderate", "major"]
+    bio = [f["severity"] for f in findings if f.get("kind") != "data_quality"]
+    dq = [f["severity"] for f in findings if f.get("kind") == "data_quality"]
+    bio_verdict = max(bio, key=rank.index, default="ok")
+    dq_verdict = max(dq, key=rank.index, default="ok")
+    # headline verdict reflects BIOLOGY; data-quality (taxonomy coverage) reported separately
+    return {"site_verdict": bio_verdict, "data_quality_verdict": dq_verdict, "findings": findings}
 
 
 def cmd_evaluate(args) -> None:
@@ -216,9 +241,11 @@ def cmd_evaluate(args) -> None:
     for c in colls:
         cid = str(c["collection_id"])
         rows = [dict(r) for r in con.execute(
-            """SELECT t.family AS family, t.class AS class,
+            """SELECT t.family AS family, t.class AS class, g.genome_name AS genome_name,
                       cg.relative_abundance AS relative_abundance, cg.prevalence AS prevalence
-               FROM collection_genomes cg LEFT JOIN taxonomy t ON cg.genome_id = t.genome_id
+               FROM collection_genomes cg
+               JOIN genomes g ON cg.genome_id = g.genome_id
+               LEFT JOIN taxonomy t ON cg.genome_id = t.genome_id
                WHERE cg.collection_id = ?""", (c["collection_id"],)).fetchall()]
         obs = observe_collection(rows, props)
         obs["collection_name"] = c["collection_name"]
@@ -234,9 +261,11 @@ def cmd_evaluate(args) -> None:
     args.out.write_text(json.dumps(report, indent=2))
     print(f"evaluation (strictness={strictness}) for {len(report['sites'])} sites -> {args.out}\n")
     order = {"major": 0, "moderate": 1, "minor": 2, "ok": 3, "no_profile": 4}
+    print(f"  {'id':>2} {'collection':36} {'biology':10} {'data-qual':10} flags")
     for cid, s in sorted(report["sites"].items(), key=lambda kv: order.get(kv[1]["site_verdict"], 9)):
         flags = [f["metric"] for f in s["findings"] if f["severity"] in ("major", "moderate")]
-        print(f"  [{cid:>2}] {s['name'][:36]:36} {s['site_verdict']:10} {'; '.join(flags[:4])}")
+        dq = s.get("data_quality_verdict", "ok")
+        print(f"  [{cid:>2}] {s['name'][:36]:36} {s['site_verdict']:10} {dq:10} {'; '.join(flags[:4])}")
 
 
 def cmd_observe(args) -> None:
@@ -252,9 +281,11 @@ def cmd_observe(args) -> None:
         rows = [
             dict(r)
             for r in con.execute(
-                """SELECT t.family AS family, t.class AS class,
+                """SELECT t.family AS family, t.class AS class, g.genome_name AS genome_name,
                           cg.relative_abundance AS relative_abundance, cg.prevalence AS prevalence
-                   FROM collection_genomes cg LEFT JOIN taxonomy t ON cg.genome_id = t.genome_id
+                   FROM collection_genomes cg
+                   JOIN genomes g ON cg.genome_id = g.genome_id
+                   LEFT JOIN taxonomy t ON cg.genome_id = t.genome_id
                    WHERE cg.collection_id = ?""",
                 (c["collection_id"],),
             ).fetchall()

@@ -213,7 +213,17 @@ def run_setup_db(args) -> int:
             print(f"  SKIP genome_type correction: {props} not found "
                   "(run scripts/build_composition_reference.py to generate it).")
 
-        # (b) abundances: cleanup removes genomes without renormalizing, so some
+        # (b) composition: correct the collections the biological-accuracy review
+        # flagged as genuinely off (blood/lung/nasopharynx dominant family,
+        # wastewater phage-majority). Reweights existing genomes and adds real DB
+        # genomes only; idempotent. Must run before renormalization.
+        try:
+            _run_script(project_root, "scripts/fix_collection_composition.py",
+                        ["--apply", "--db", str(db_path), "--properties", str(props)])
+        except RuntimeError as e:
+            print(f"  WARNING: collection composition correction failed: {e}")
+
+        # (c) abundances: cleanup + corrections change per-genome weights, so some
         # collections no longer sum to 1.0. Rescale each collection back to 1.0.
         try:
             _run_script(project_root, "scripts/renormalize_abundances.py",

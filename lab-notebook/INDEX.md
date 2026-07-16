@@ -8,7 +8,7 @@
 
 ## Quick Stats
 
-**Total Entries**: 22
+**Total Entries**: 23
 **Phase 1**: Complete (100%)
 **Phase 2**: Complete (100%)
 **Phase 3**: Complete (100%)
@@ -37,7 +37,7 @@
 - Adapter read-through post-processor
 - 23 new tests, all passing
 
-**Latest Entry**: 20260716-008-REVIEW (composition accuracy review + setup-db data corrections)
+**Latest Entry**: 20260716-009-CURATION (composition corrections; biology 19/20 OK)
 
 ### Phase 8.2 Complete - RNA Virome Workflow
 
@@ -866,6 +866,20 @@ shared `align.py` both the assembly and taxonomy modules call.
 vs verified literature (tunable cited reference profile + strictness dial;
 50-ref bibliography via /verify-references). Fixed the genome_type=dsDNA mislabel
 and folded that fix + abundance renormalization into `viroforge setup-db`.
+
+---
+
+### 20260716-009-CURATION
+
+**ID**: `20260716-009-CURATION-composition-corrections.md`
+**Type**: CURATION
+**Status**: Complete
+
+**Purpose**: Act on the review: add name-based phage detection (fixes the
+family=Unknown blind spot; split biology vs data-quality verdicts), then curate
+the 4 genuinely-off collections (blood/lung/nasopharynx Anelloviridae-dominant,
+wastewater phage-majority) via idempotent `fix_collection_composition.py` folded
+into setup-db. Biology now 19/20 OK.
 
 ---
 
