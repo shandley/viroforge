@@ -15,6 +15,8 @@ ViroForge creates realistic FASTQ sequencing data from curated viral genome coll
 - Per-read source labels for exact classification metrics
 - Sequencing artifact injection (adapters, low-complexity, PCR duplicates, ERVs)
 - Complete ground truth metadata for every dataset
+- Benchmarking framework: validate QC, assembly, and taxonomy pipelines against
+  ground truth (`viroforge benchmark`)
 
 ### Known limitations
 
@@ -177,6 +179,33 @@ viroforge report data/gut-standard
 viroforge compare data/gut_novaseq data/gut_hiseq data/gut_pacbio_hifi
 ```
 
+### Benchmark analysis pipelines
+
+Validate a pipeline stage against ViroForge ground truth. Install the extra with
+`pip install -e ".[benchmark]"` (adds mappy for assembly/contig alignment).
+
+```bash
+# QC: contamination removal and viral retention
+viroforge benchmark qc \
+    --raw-reads data/gut/fastq/gut_R1.fastq \
+    --cleaned-reads results/qc/cleaned_R1.fastq.gz
+
+# Assembly: genome recovery, chimeras, contiguity, abundance
+viroforge benchmark assembly \
+    --contigs results/assembly/contigs.fasta \
+    --genomes data/gut/fasta/gut.fasta \
+    --ground-truth data/gut/metadata/gut_metadata.json
+
+# Taxonomy: read- or contig-based classification (Kraken2, Centrifuge, DIAMOND, MMseqs2)
+viroforge benchmark taxonomy \
+    --pipeline-output results/kraken2.out --format kraken2 \
+    --ground-truth data/gut/metadata/gut_metadata.json \
+    --taxdump-dir /path/to/taxdump   # optional: enables genus/family metrics
+```
+
+See `docs/PHASE13B_QC_BENCHMARK.md`, `docs/PHASE13B_ASSEMBLY_BENCHMARK.md`, and
+`docs/PHASE13C_TAXONOMY_BENCHMARK.md` for details.
+
 ### Web interface
 
 ```bash
@@ -201,45 +230,47 @@ viroforge web
 
 Use `viroforge browse` or `--list-collections` to see all available collections with descriptions.
 
+Collections use contiguous IDs 1-20. Genome counts reflect the current database.
+
 ### Host-associated
 
 | ID | Collection | Genomes | Notes |
 |----|-----------|---------|-------|
-| 9 | Gut Virome (Healthy) | 133 | Western diet, adult |
-| 10 | Oral Virome (Healthy) | 46 | Saliva |
-| 11 | Skin Virome (Healthy) | 15 | Sebaceous sites |
-| 12 | Respiratory Virome (Healthy) | 40 | Nasopharynx |
-| 16 | Mouse Gut Virome | 21 | Laboratory C57BL/6 |
-| 24 | Vaginal Virome (Healthy) | 26 | Women's health |
-| 25 | Blood/Plasma Virome (Healthy) | 21 | Viremia, blood safety |
-| 26 | Ocular Surface Virome (Healthy) | 17 | Ophthalmology |
-| 27 | Lower Respiratory/Lung (Healthy) | 31 | Pneumonia, transplant |
-| 28 | Urinary Virome (Healthy) | 20 | Kidney transplant |
+| 1 | Gut Virome (Healthy) | 134 | Western diet, adult |
+| 2 | Oral Virome (Healthy) | 47 | Saliva |
+| 3 | Skin Virome (Healthy) | 15 | Sebaceous sites |
+| 4 | Respiratory Virome (Healthy) | 43 | Nasopharynx |
+| 8 | Mouse Gut Virome | 22 | Laboratory C57BL/6 |
+| 16 | Vaginal Virome (Healthy) | 26 | Women's health (proxy phages) |
+| 17 | Blood/Plasma Virome (Healthy) | 21 | Viremia, blood safety |
+| 18 | Ocular Surface Virome (Healthy) | 17 | Ophthalmology |
+| 19 | Lower Respiratory/Lung (Healthy) | 31 | Pneumonia, transplant |
+| 20 | Urinary Virome (Healthy) | 20 | Kidney transplant |
 
 ### Disease states
 
 | ID | Collection | Genomes | Notes |
 |----|-----------|---------|-------|
-| 18 | IBD Gut Virome | 89 | Inflammatory bowel disease |
-| 19 | HIV+ Gut Virome | 55 | Includes herpesviruses |
-| 20 | CF Respiratory Virome | 81 | Cystic fibrosis lung |
+| 10 | IBD Gut Virome | 90 | Inflammatory bowel disease |
+| 11 | HIV+ Gut Virome | 55 | Includes herpesviruses |
+| 12 | CF Respiratory Virome | 79 | Cystic fibrosis lung |
 
 ### Environmental
 
 | ID | Collection | Genomes | Notes |
 |----|-----------|---------|-------|
-| 13 | Marine Virome | 446 | Coastal surface water |
-| 14 | Soil Virome | 290 | Agricultural |
-| 15 | Freshwater Virome | 200 | Lake surface water |
-| 17 | Wastewater Virome | 351 | Epidemiological surveillance |
+| 5 | Marine Virome | 445 | Coastal surface water |
+| 6 | Soil Virome | 290 | Agricultural |
+| 7 | Freshwater Virome | 200 | Lake surface water |
+| 9 | Wastewater Virome | 352 | Epidemiological surveillance |
 
 ### RNA viromes
 
 | ID | Collection | Genomes | Notes |
 |----|-----------|---------|-------|
-| 21 | Human Respiratory RNA | 56 | Influenza, RSV, coronaviruses |
-| 22 | Arbovirus Environmental | 39 | Flaviviruses, alphaviruses |
-| 23 | Fecal RNA | 58 | Rotavirus, norovirus |
+| 13 | Human Respiratory RNA | 53 | Influenza, RSV, coronaviruses |
+| 14 | Arbovirus Environmental | 39 | Flaviviruses, alphaviruses |
+| 15 | Fecal RNA | 46 | Rotavirus, norovirus |
 
 ## VLP enrichment protocols
 

@@ -58,35 +58,30 @@
 
 **Complete CLI** with 7 commands: browse, generate, batch, report, compare, presets, web
 
-### Next Phase: Benchmarking Framework (Phase 13)
+### Benchmarking Framework (Phase 13) - Modules 1/2/4 built
 
-**Status**: Phase 13A Complete ✅ (2025-11-11) | Phase 13B In Progress
-**Timeline**: 6-8 weeks for MVP (2 weeks elapsed)
-**Priority**: VERY HIGH
+**Status**: Phase 13A metadata complete; Modules 1 (QC), 2 (Assembly), 4 (Taxonomy)
+implemented in `viroforge/benchmarking/` with the `viroforge benchmark` command.
 
-### Phase 13A Complete (v0.11.0)
+Implemented (JSON + markdown reports, independent-oracle tests, 26 tests total):
+- **Module 1 QC** (`benchmark qc`): contamination removal + viral retention
+  against per-read `source=` labels; read-name match-rate gate; dedup scored
+  separately. See `docs/PHASE13B_QC_BENCHMARK.md`.
+- **Module 2 Assembly** (`benchmark assembly`): genome recovery/completeness/
+  identity, chimeras, N50/L50, observed-vs-expected completeness, abundance
+  accuracy. minimap2 via mappy (`benchmarking/align.py`, the `benchmark` extra).
+  See `docs/PHASE13B_ASSEMBLY_BENCHMARK.md`.
+- **Module 4 Taxonomy** (`benchmark taxonomy`): read- and contig-based; taxid-exact
+  + genus/family (NCBI taxdump via `--taxdump-dir`); abundance profile;
+  known/dark-matter stratification; Kraken2/Centrifuge/DIAMOND/MMseqs2/generic
+  formats. Metadata exports `benchmarking.taxonomy`. See `docs/PHASE13C_TAXONOMY_BENCHMARK.md`.
 
-**Delivered**:
-- ✅ Metadata version 1.1 with benchmarking support
-- ✅ Contamination manifest export
-- ✅ Expected coverage calculation per genome
-- ✅ `--enable-benchmarking` CLI flag
-- ✅ Coverage categorization (complete/high/partial/fragmented/missing)
-- ✅ Unit tests for metadata enhancements
+Data quality was independently evaluated before QC (`docs/DATA_QUALITY_EVALUATION.md`,
+`scripts/evaluate_dataset.py`): read-level ground truth is accurate and reproducible.
 
-ViroForge now exports enhanced ground truth metadata that benchmarking tools (Phase 13B-D) will use to validate pipeline performance.
-
-See `docs/PHASE13A_IMPLEMENTATION_SUMMARY.md` for complete implementation details.
-
-### Next: Phase 13B-D
-
-Modular benchmarking tools for:
-- QC validation (contamination removal)
-- Assembly quality (genome recovery, completeness)
-- Taxonomy accuracy (classification)
-- And 6 more modules...
-
-See `ROADMAP.md` and `docs/PHASE13_BENCHMARKING_FRAMEWORK.md` for complete specifications.
+**Next**: Module 5 (completeness across coverage), HTML reports + visualizations,
+length-weighted contig taxonomy metrics, remaining modules (binning, annotation,
+host, discovery, end-to-end). See `ROADMAP.md` and `docs/PHASE13_BENCHMARKING_FRAMEWORK.md`.
 
 ---
 
