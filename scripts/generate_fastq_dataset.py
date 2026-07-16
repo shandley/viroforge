@@ -1400,7 +1400,9 @@ Examples:
         choices=['novaseq', 'miseq', 'hiseq', 'pacbio-hifi', 'nanopore'],
         default='novaseq',
         help='Sequencing platform (default: novaseq). ' +
-             'Short-read: novaseq, miseq, hiseq. ' +
+             'Short-read: novaseq, miseq, hiseq (NOTE: these run InSilicoSeq in ' +
+             'basic mode and currently produce identical 125 bp reads regardless ' +
+             'of choice or --read-length; they are interchangeable). ' +
              'Long-read: pacbio-hifi, nanopore'
     )
 
@@ -1878,6 +1880,35 @@ Examples:
         abundances,
         args.amplification
     )
+
+    # Preserve the configured dark-matter fraction through VLP enrichment and
+    # amplification bias. Both reweight genomes by their properties, which pulls
+    # the realized dark-matter share off the target (observed 0.11-0.48 for a
+    # 0.30 target). Rescale the dark-matter and known-viral blocks to the
+    # configured ratio while preserving total viral mass and each block's
+    # internal (enriched, amplified) structure, then record the realized value.
+    if dark_matter_stats:
+        dm_ids = {g['genome_id'] for g in genomes if g.get('is_dark_matter')}
+        viral_ids = {g['genome_id'] for g in genomes}
+        abund = np.asarray(abundances, dtype=float)
+        dark_idx = [i for i, s in enumerate(sequences) if s.id in dm_ids]
+        known_idx = [i for i, s in enumerate(sequences)
+                     if s.id in viral_ids and s.id not in dm_ids]
+        d_sum = float(abund[dark_idx].sum()) if dark_idx else 0.0
+        k_sum = float(abund[known_idx].sum()) if known_idx else 0.0
+        target = dark_matter_stats['dark_matter_fraction']
+        if d_sum > 0 and k_sum > 0:
+            viral_mass = d_sum + k_sum
+            abund[dark_idx] *= (target * viral_mass) / d_sum
+            abund[known_idx] *= ((1.0 - target) * viral_mass) / k_sum
+            abundances = abund.tolist()
+            d2 = float(abund[dark_idx].sum())
+            k2 = float(abund[known_idx].sum())
+            dark_matter_stats['realized_fraction_of_viral'] = d2 / (d2 + k2)
+        else:
+            dark_matter_stats['realized_fraction_of_viral'] = (
+                d_sum / (d_sum + k_sum) if (d_sum + k_sum) > 0 else None
+            )
 
     # Write FASTA
     fasta_path = generator.write_fasta(sequences, abundances)
