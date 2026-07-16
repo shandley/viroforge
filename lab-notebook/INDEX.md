@@ -2,13 +2,13 @@
 
 **Project**: ViroForge - Synthetic Virome Data Generator
 **Started**: January 30, 2025
-**Last Updated**: July 15, 2026
+**Last Updated**: July 16, 2026
 
 ---
 
 ## Quick Stats
 
-**Total Entries**: 24
+**Total Entries**: 25
 **Phase 1**: Complete (100%)
 **Phase 2**: Complete (100%)
 **Phase 3**: Complete (100%)
@@ -853,6 +853,19 @@ classifier calls via `--taxdump-dir`, over the known-virus stratum.
 **Purpose**: Add contig-based taxonomy (`--mode contig-based`) with a
 chimera-handling option (exclude/lca), and refactor the mappy aligner into a
 shared `align.py` both the assembly and taxonomy modules call.
+
+---
+
+### 20260716-007-INTEGRATION
+
+**ID**: `20260716-007-INTEGRATION-web-export-contract.md`
+**Type**: INTEGRATION
+**Status**: Complete
+
+**Purpose**: Harden `scripts/export_web_data.py` into a tested contract (first
+`.github/` CI + export schema test), single-source the version (setup.py reads
+`__init__.py`; CITATION/README bumped to 0.14.0), and add
+`renormalize_abundances.py` (applied: collections 12/13/15 rescaled to sum 1.0).
 
 ---
 

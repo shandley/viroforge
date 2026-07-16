@@ -1,0 +1,33 @@
+name: export-web-data
+
+# Validates scripts/export_web_data.py: the web-visualization export contract.
+# Runs on PRs and pushes that touch the export script, the package, or the test.
+
+on:
+  pull_request:
+    paths:
+      - "scripts/export_web_data.py"
+      - "viroforge/**"
+      - "tests/test_export_web_data.py"
+      - ".github/workflows/export-web-data.yml"
+  push:
+    branches: [main]
+    paths:
+      - "scripts/export_web_data.py"
+      - "viroforge/**"
+
+jobs:
+  export-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install package and pytest
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install pytest
+      - name: Run export-web-data test
+        run: pytest tests/test_export_web_data.py -v
