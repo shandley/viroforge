@@ -5,7 +5,7 @@ A comprehensive mock metavirome data generator for testing and validating
 virome analysis pipelines.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.14.0"
 __author__ = "Scott Handley Lab"
 __email__ = "scott.handley@wustl.edu"
 

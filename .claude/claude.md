@@ -18,7 +18,7 @@
 
 ---
 
-## Current Status (v0.13.0 - Realistic Defaults)
+## Current Status (v0.14.0 - Benchmarking Framework)
 
 ### Phases Completed
 
@@ -369,13 +369,14 @@ LIMIT 10"
 
 **Project**: ViroForge
 **Repository**: shandley/viroforge
-**Current Version**: 0.13.0
-**Last Major Update**: 2026-07-14 (1-20 renumber + realistic defaults)
+**Current Version**: 0.14.0
+**Last Major Update**: 2026-07-16 (benchmarking framework: Modules 1/2/4)
 
 **Development Team**: ViroForge Development Team
 **Assistant**: Claude Code (Anthropic)
 
 **Major Milestones**:
+- 2026-07-16: Benchmarking framework (QC, assembly, taxonomy); v0.14.0
 - 2026-07-14: Collections renumbered to 1-20; v0.13.0 realistic default output
 - 2025-11-09: Taxonomy bug discovered and fixed (Phase 7-8)
 - Earlier: Phases 1-6 completed (core functionality)

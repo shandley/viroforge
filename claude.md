@@ -1,7 +1,7 @@
 # ViroForge - Development Context
 
 **Last Updated**: 2026-07-16
-**Current Version**: v0.13.0 (a version bump for the benchmarking framework is a pending decision)
+**Current Version**: v0.14.0 (benchmarking framework)
 **Status**: Canonical DB adopted; data quality evaluated; benchmarking framework Modules 1/2/4 built
 
 ---

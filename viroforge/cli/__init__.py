@@ -43,10 +43,11 @@ For more information: https://github.com/hecatomb/viroforge
         """
     )
 
+    from .. import __version__
     parser.add_argument(
         '--version',
         action='version',
-        version='ViroForge 0.13.0 (Realistic Defaults)'
+        version=f'ViroForge {__version__}'
     )
 
     # Create subparsers for subcommands
