@@ -40,7 +40,7 @@ def main() -> None:
 
     labels, verdicts = [], []
     ph_obs, ph_lo, ph_hi = [], [], []
-    unk_obs, unk_ceil = [], []
+    fam_unk, unclassified = [], []
     for cid, s in items:
         labels.append(f"{cid}. {s['name'].split(' - ')[0].split(' (')[0]}")
         verdicts.append(s["site_verdict"])
@@ -49,11 +49,10 @@ def main() -> None:
             ph_obs.append(pf["observed"]); ph_lo.append(pf["effective_band"][0]); ph_hi.append(pf["effective_band"][1])
         else:
             ph_obs.append(float("nan")); ph_lo.append(float("nan")); ph_hi.append(float("nan"))
-        uf = next((f for f in s["findings"] if f["metric"] == "unknown_family_fraction"), None)
-        # observed unknown-fam is in obs even when within ceiling: recover from scorecard observed block
-        obs_uf = s["observed"]["unknown_family"]["abundance"]
-        unk_obs.append(obs_uf)
-        unk_ceil.append(uf["ceiling"] if uf else None)
+        # Panel B: family-unassigned (ICTV omits family for many phages) vs the
+        # genuinely unclassified fraction (no class even in NCBI).
+        fam_unk.append(s["observed"]["unknown_family"]["abundance"])
+        unclassified.append(s["observed"].get("unclassified", {}).get("abundance", 0.0))
 
     n = len(labels)
     y = list(range(n))[::-1]  # top = worst verdict
@@ -72,20 +71,24 @@ def main() -> None:
     axA.set_title("A", loc="left", fontsize=12, fontweight="bold")
     axA.text(0.5, n + 0.2, "grey = expected band, dot = observed", ha="center", fontsize=7, color="#555555")
 
-    # Panel B: unknown-family fraction vs ceiling
-    for yi, obs, ceil, v in zip(y, unk_obs, unk_ceil, verdicts):
-        axB.barh(yi, obs, color=OK[v], height=0.6, zorder=2)
-        if ceil is not None:
-            axB.plot([ceil, ceil], [yi - 0.35, yi + 0.35], color="#000000", lw=1.3, zorder=3)
-    axB.set_xlim(0, max(unk_obs) * 1.1 + 0.01)
-    axB.set_xlabel("Unknown-family fraction")
+    # Panel B: family-unassigned (light, ICTV omits family for phages) with the
+    # genuinely-unclassified fraction (dark, no class in NCBI) overlaid.
+    for yi, fu, uc in zip(y, fam_unk, unclassified):
+        axB.barh(yi, fu, color="#CCCCCC", height=0.6, zorder=2)
+        if uc > 0:
+            axB.barh(yi, uc, color="#D55E00", height=0.6, zorder=3)
+    axB.set_xlim(0, max(fam_unk) * 1.1 + 0.01)
+    axB.set_xlabel("Fraction of community")
     axB.set_title("B", loc="left", fontsize=12, fontweight="bold")
-    axB.text(axB.get_xlim()[1] * 0.55, n + 0.2, "bar = observed, | = ceiling", ha="center", fontsize=7, color="#555555")
+    axB.text(axB.get_xlim()[1] * 0.5, n + 0.2, "grey = no ICTV family (expected for phages)",
+             ha="center", fontsize=7, color="#555555")
 
     handles = [Line2D([0], [0], marker="o", color="white", markerfacecolor=OK[k], markersize=7,
                       label=k.capitalize()) for k in ["ok", "minor", "moderate", "major"]]
-    fig.legend(handles=handles, loc="lower center", ncol=4, frameon=False, fontsize=8,
-               bbox_to_anchor=(0.5, -0.02), title="Site verdict")
+    handles.append(Line2D([0], [0], marker="s", color="white", markerfacecolor="#D55E00",
+                          markersize=7, label="Unclassified (no class)"))
+    fig.legend(handles=handles, loc="lower center", ncol=5, frameon=False, fontsize=8,
+               bbox_to_anchor=(0.5, -0.02), title="Panel A: site verdict   |   Panel B bar overlay")
 
     fig.suptitle("ViroForge collections: observed viral composition vs literature expectation",
                  fontsize=10, y=0.99)

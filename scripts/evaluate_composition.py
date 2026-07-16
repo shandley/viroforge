@@ -77,6 +77,8 @@ def observe_collection(rows: list[dict], props: dict[str, dict]) -> dict:
     cls_ab = defaultdict(float)
     unknown_ab = 0.0
     unknown_n = 0
+    unclassified_ab = 0.0  # no CLASS assigned (genuinely unplaced, even by NCBI)
+    unclassified_n = 0
     inferred_phage_ab = 0.0
 
     for r in rows:
@@ -100,17 +102,22 @@ def observe_collection(rows: list[dict], props: dict[str, dict]) -> dict:
         na_n[na] += 1
         fam_ab[fam] += ab
         fam_n[fam] += 1
-        cls_ab[r["class"] or "(none)"] += ab
+        cls = r["class"]
+        cls_ab[cls or "(none)"] += ab
         if fam == "Unknown" or p is None:
             unknown_ab += ab
             unknown_n += 1
+        if cls is None or cls in ("Unknown", ""):
+            unclassified_ab += ab
+            unclassified_n += 1
 
     top_fam = sorted(fam_ab.items(), key=lambda kv: kv[1], reverse=True)
     top_cls = sorted(cls_ab.items(), key=lambda kv: kv[1], reverse=True)
 
     return {
         "n_genomes": len(rows),
-        "unknown_family": {"abundance": round(unknown_ab, 4), "count": unknown_n},
+        "unknown_family": {"abundance": round(unknown_ab, 4), "count": unknown_n},  # informational (ICTV omits family for many phages)
+        "unclassified": {"abundance": round(unclassified_ab, 4), "count": unclassified_n},  # no class = genuinely unplaced
         "inferred_phage": {"abundance": round(inferred_phage_ab, 4)},  # phage by name, family=Unknown
         "host_balance": {
             "abundance": _pct(host_ab),
@@ -204,17 +211,19 @@ def evaluate_site(obs: dict, expect: dict, strictness: float) -> dict:
                          "observed_rank": rank, "status": status, "severity": sev,
                          "cite": sig.get("cite", [])})
 
-    # unknown-family ceiling (data quality, not biology)
-    if "max_unknown_family" in expect:
-        v = obs["unknown_family"]["abundance"]
-        ceil = expect["max_unknown_family"]["high"]
+    # unclassified ceiling (data quality, not biology). Measured at CLASS level:
+    # a genus-level Caudoviricetes phage is classified even though ICTV assigns it
+    # no family, so we do not penalize family=Unknown - only genuine non-placement.
+    if "max_unclassified" in expect:
+        v = obs["unclassified"]["abundance"]
+        ceil = expect["max_unclassified"]["high"]
         ceil_eff = ceil / (strictness if strictness > 0 else 1.0)
         if v > ceil_eff:
             dev = round((v - ceil_eff) / max(ceil_eff, 1e-6), 3)
-            findings.append({"metric": "unknown_family_fraction", "observed": round(v, 3),
+            findings.append({"metric": "unclassified_fraction", "observed": round(v, 3),
                              "ceiling": round(ceil_eff, 3), "status": "above",
                              "deviation": dev, "severity": _severity(dev),
-                             "kind": "data_quality", "cite": expect["max_unknown_family"].get("cite", [])})
+                             "kind": "data_quality", "cite": expect["max_unclassified"].get("cite", [])})
 
     rank = ["ok", "minor", "moderate", "major"]
     bio = [f["severity"] for f in findings if f.get("kind") != "data_quality"]

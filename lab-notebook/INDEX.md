@@ -8,7 +8,7 @@
 
 ## Quick Stats
 
-**Total Entries**: 23
+**Total Entries**: 24
 **Phase 1**: Complete (100%)
 **Phase 2**: Complete (100%)
 **Phase 3**: Complete (100%)
@@ -37,7 +37,7 @@
 - Adapter read-through post-processor
 - 23 new tests, all passing
 
-**Latest Entry**: 20260716-009-CURATION (composition corrections; biology 19/20 OK)
+**Latest Entry**: 20260716-010-TAXONOMY (NCBI rank enrichment; data-quality flags cleared)
 
 ### Phase 8.2 Complete - RNA Virome Workflow
 
@@ -866,6 +866,20 @@ shared `align.py` both the assembly and taxonomy modules call.
 vs verified literature (tunable cited reference profile + strictness dial;
 50-ref bibliography via /verify-references). Fixed the genome_type=dsDNA mislabel
 and folded that fix + abundance renormalization into `viroforge setup-db`.
+
+---
+
+### 20260716-010-TAXONOMY
+
+**ID**: `20260716-010-TAXONOMY-ncbi-rank-enrichment.md`
+**Type**: TAXONOMY
+**Status**: Complete
+
+**Purpose**: Fill missing realm..genus ranks from NCBI for the 6,182 wholly-
+unclassified genomes (class coverage ~89%, family 57->72%) without inventing
+families (ICTV omits family for most phage genera). Refactor the data-quality
+metric to class-based unclassified. All data-quality flags cleared; 1,481 genomes
+remain genuinely unclassified DB-wide. Folded into setup-db.
 
 ---
 

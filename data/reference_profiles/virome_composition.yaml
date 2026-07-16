@@ -19,8 +19,10 @@
 #   rna_fraction     RNA / (DNA + RNA + RT).
 #   signature_taxa   families literature says should be present; role `dominant`
 #                    also requires a top-3 abundance rank.
-#   max_unknown_family  DATA-QUALITY ceiling on unknown-family abundance (a
-#                    curation/taxonomy-coverage metric, not biology).
+#   max_unclassified  DATA-QUALITY ceiling on the UNCLASSIFIED abundance (genomes
+#                    with no class assigned even by NCBI). Not family=Unknown:
+#                    ICTV omits family for most phage genera, so a genus-level
+#                    Caudoviricetes phage is classified, not dark matter.
 
 strictness: 1.0
 
@@ -33,7 +35,7 @@ sites:
       signature_taxa:
         - {family: Suoliviridae, role: dominant, cite: [pargin2023]}   # crAss-like / Crassvirales
         - {family: Microviridae, role: present, cite: [pargin2023]}
-      max_unknown_family: {high: 0.20, cite: [pargin2023]}
+      max_unclassified: {high: 0.20, cite: [pargin2023]}
 
   2:
     name: Oral Virome - Saliva (Healthy)
@@ -42,7 +44,7 @@ sites:
       rna_fraction:   {low: 0.00, expected: 0.01, high: 0.05, cite: [pride2012]}
       signature_taxa:
         - {family: Microviridae, role: present, cite: [pride2012]}
-      max_unknown_family: {high: 0.20, cite: [pride2012]}
+      max_unclassified: {high: 0.20, cite: [pride2012]}
       # NOTE: saliva is dominated by tailed Caudovirales (Siphoviridae-type); the
       # observed Microviridae top-family rank is flagged in the report narrative.
 
@@ -53,7 +55,7 @@ sites:
       rna_fraction:   {low: 0.00, expected: 0.01, high: 0.05, cite: [hannigan2015]}
       signature_taxa:
         - {family: Papillomaviridae, role: present, cite: [hannigan2015]}
-      max_unknown_family: {high: 0.25, cite: [hannigan2015]}
+      max_unclassified: {high: 0.25, cite: [hannigan2015]}
 
   4:
     name: Respiratory Virome - Nasopharynx (Healthy)
@@ -62,28 +64,28 @@ sites:
       rna_fraction:   {low: 0.00, expected: 0.05, high: 0.20, cite: [xu2017]}
       signature_taxa:
         - {family: Anelloviridae, role: dominant, cite: [wang2016, megremis2023]}
-      max_unknown_family: {high: 0.20, cite: [megremis2023]}
+      max_unclassified: {high: 0.20, cite: [megremis2023]}
 
   5:
     name: Marine Virome - Coastal Surface Water
     expected:
       phage_fraction: {low: 0.90, expected: 0.97, high: 1.00, cite: [gong2018, li2020, buchholz2023]}
       rna_fraction:   {low: 0.00, expected: 0.03, high: 0.15, cite: [gong2018]}
-      max_unknown_family: {high: 0.15, cite: [gong2018]}
+      max_unclassified: {high: 0.15, cite: [gong2018]}
 
   6:
     name: Soil Virome - Agricultural
     expected:
       phage_fraction: {low: 0.88, expected: 0.97, high: 1.00, cite: [santosmedellin2021, ter2021, han2017]}
       rna_fraction:   {low: 0.00, expected: 0.02, high: 0.10, cite: [santosmedellin2021]}
-      max_unknown_family: {high: 0.35, cite: [santosmedellin2021, ter2021]}   # soil genuinely novel-heavy
+      max_unclassified: {high: 0.35, cite: [santosmedellin2021, ter2021]}   # soil genuinely novel-heavy
 
   7:
     name: Freshwater Virome - Lake Surface Water
     expected:
       phage_fraction: {low: 0.90, expected: 0.97, high: 1.00, cite: [roux2012, aguirre2015, butina2021]}
       rna_fraction:   {low: 0.00, expected: 0.05, high: 0.15, cite: [roux2012]}
-      max_unknown_family: {high: 0.15, cite: [roux2012]}
+      max_unclassified: {high: 0.15, cite: [roux2012]}
 
   8:
     name: Mouse Gut Virome - Laboratory (C57BL/6)
@@ -92,7 +94,7 @@ sites:
       rna_fraction:   {low: 0.00, expected: 0.05, high: 0.15, cite: [moltzau2023]}
       signature_taxa:
         - {family: Microviridae, role: present, cite: [bao2022]}
-      max_unknown_family: {high: 0.35, cite: [moltzau2023]}   # high diversity real, but 59% too high
+      max_unclassified: {high: 0.35, cite: [moltzau2023]}   # high diversity real, but 59% too high
 
   9:
     name: Wastewater Virome - Urban Treatment Plant
@@ -101,14 +103,14 @@ sites:
       rna_fraction:   {low: 0.02, expected: 0.12, high: 0.30, cite: [calusinska2016, cantalupo2011]}
       signature_taxa:
         - {family: Microviridae, role: present, cite: [gulino2020]}
-      max_unknown_family: {high: 0.20, cite: [cantalupo2011]}
+      max_unclassified: {high: 0.20, cite: [cantalupo2011]}
 
   10:
     name: IBD Gut Virome (Inflammatory Bowel Disease)
     expected:
       phage_fraction: {low: 0.75, expected: 0.90, high: 0.98, cite: [norman2015, zuo2019]}
       rna_fraction:   {low: 0.00, expected: 0.02, high: 0.10, cite: [norman2015]}
-      max_unknown_family: {high: 0.20, cite: [norman2015]}
+      max_unclassified: {high: 0.20, cite: [norman2015]}
       # disease signature: Caudovirales bacteriophage EXPANSION vs healthy (narrative)
 
   11:
@@ -119,7 +121,7 @@ sites:
       signature_taxa:
         - {family: Anelloviridae, role: present, cite: [boukadida2024]}
         - {family: Adenoviridae, role: present, cite: [monaco2016]}
-      max_unknown_family: {high: 0.20, cite: [boukadida2024]}   # 29% obscures diagnostic taxa
+      max_unclassified: {high: 0.20, cite: [boukadida2024]}   # 29% obscures diagnostic taxa
       # disease signature: eukaryotic-virus expansion under CD4 depletion (narrative)
 
   12:
@@ -127,7 +129,7 @@ sites:
     expected:
       phage_fraction: {low: 0.40, expected: 0.60, high: 0.80, cite: [willner2009, willner2010]}
       rna_fraction:   {low: 0.00, expected: 0.10, high: 0.25, cite: [willner2009]}
-      max_unknown_family: {high: 0.40, cite: [willner2009]}   # majority uncharacterized is REAL here
+      max_unclassified: {high: 0.40, cite: [willner2009]}   # majority uncharacterized is REAL here
 
   13:
     name: Human Respiratory RNA Virome
@@ -136,7 +138,7 @@ sites:
       rna_fraction:   {low: 0.70, expected: 0.90, high: 1.00, cite: [minor2023]}
       signature_taxa:
         - {family: Orthomyxoviridae, role: present, cite: [minor2023]}
-      max_unknown_family: {high: 0.20, cite: [minor2023]}
+      max_unclassified: {high: 0.20, cite: [minor2023]}
 
   14:
     name: Arbovirus Environmental (Mosquito Virome)
@@ -145,7 +147,7 @@ sites:
       rna_fraction:   {low: 0.90, expected: 1.00, high: 1.00, cite: [faizah2020, wang2021]}
       signature_taxa:
         - {family: Flaviviridae, role: dominant, cite: [faizah2020]}
-      max_unknown_family: {high: 0.10, cite: [wang2021]}
+      max_unclassified: {high: 0.10, cite: [wang2021]}
 
   15:
     name: Fecal RNA Virome
@@ -154,14 +156,14 @@ sites:
       rna_fraction:   {low: 0.80, expected: 0.95, high: 1.00, cite: [mogotsi2020]}
       signature_taxa:
         - {family: Caliciviridae, role: present, cite: [mogotsi2020, strubbia2019]}
-      max_unknown_family: {high: 0.15, cite: [mogotsi2020]}
+      max_unclassified: {high: 0.15, cite: [mogotsi2020]}
 
   16:
     name: Vaginal Virome (Healthy)
     expected:
       phage_fraction: {low: 0.75, expected: 0.92, high: 0.98, cite: [jakobsen2020, kaelin2022]}
       rna_fraction:   {low: 0.00, expected: 0.00, high: 0.05, cite: [jakobsen2020]}
-      max_unknown_family: {high: 0.25, cite: [jakobsen2020]}
+      max_unclassified: {high: 0.25, cite: [jakobsen2020]}
       # KNOWN LIMITATION: no vaginal Lactobacillus-phage genomes in RefSeq; the
       # observed Herelleviridae top family is the documented dairy-proxy artifact.
 
@@ -172,7 +174,7 @@ sites:
       rna_fraction:   {low: 0.00, expected: 0.05, high: 0.20, cite: [cebriamendoza2021]}
       signature_taxa:
         - {family: Anelloviridae, role: dominant, cite: [cebriamendoza2021, cebriamendoza2023]}
-      max_unknown_family: {high: 0.15, cite: [cebriamendoza2021]}
+      max_unclassified: {high: 0.15, cite: [cebriamendoza2021]}
 
   18:
     name: Ocular Surface Virome (Healthy)
@@ -181,7 +183,7 @@ sites:
       rna_fraction:   {low: 0.00, expected: 0.00, high: 0.10, cite: [doan2016]}
       signature_taxa:
         - {family: Anelloviridae, role: dominant, cite: [doan2016, siegal2021]}
-      max_unknown_family: {high: 0.20, cite: [doan2016]}
+      max_unclassified: {high: 0.20, cite: [doan2016]}
 
   19:
     name: Lower Respiratory (Lung) Virome (Healthy)
@@ -190,7 +192,7 @@ sites:
       rna_fraction:   {low: 0.00, expected: 0.05, high: 0.20, cite: [jankauskaite2018]}
       signature_taxa:
         - {family: Anelloviridae, role: dominant, cite: [young2015, abbas2017]}
-      max_unknown_family: {high: 0.20, cite: [abbas2017]}   # 33.6% too high; near-identical to CF (shared default)
+      max_unclassified: {high: 0.20, cite: [abbas2017]}   # 33.6% too high; near-identical to CF (shared default)
 
   20:
     name: Urinary Virome (Healthy)
@@ -200,4 +202,4 @@ sites:
       signature_taxa:
         - {family: Papillomaviridae, role: present, cite: [santiagorodriguez2015]}
         - {family: Polyomaviridae, role: present, cite: [garretto2018, maqsood2024]}
-      max_unknown_family: {high: 0.20, cite: [santiagorodriguez2015]}
+      max_unclassified: {high: 0.20, cite: [santiagorodriguez2015]}

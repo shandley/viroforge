@@ -200,6 +200,21 @@ def run_setup_db(args) -> int:
         # they see the final genome set, and are idempotent (safe to re-run).
         print("\n  Applying data corrections...")
 
+        # (0) taxonomy enrichment: fill missing realm..genus ranks from the cached
+        # NCBI lineage for genomes the ICTV name-match left wholly unclassified
+        # (mostly modern phages NCBI places to class/genus but ICTV assigns no
+        # family). Applies from a tracked cache TSV - no live network calls.
+        cache = project_root / "data/reference_profiles/ncbi_lineage_cache.tsv"
+        if cache.exists():
+            try:
+                _run_script(project_root, "scripts/enrich_taxonomy_from_ncbi.py",
+                            ["--apply", "--write", "--db", str(db_path)])
+            except RuntimeError as e:
+                print(f"  WARNING: taxonomy enrichment failed: {e}")
+        else:
+            print(f"  SKIP taxonomy enrichment: {cache} not found "
+                  "(run enrich_taxonomy_from_ncbi.py --fetch to build it).")
+
         # (a) genome_type: the stored nucleic-acid type silently defaults RNA
         # viruses to dsDNA. Relabel from the verified ICTV family property map.
         props = project_root / "data/reference_profiles/family_properties.tsv"
