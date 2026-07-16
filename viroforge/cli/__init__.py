@@ -467,6 +467,11 @@ For more information: https://github.com/hecatomb/viroforge
         '--mode', default='read-based', choices=['read-based'],
         help='Benchmark mode (v1: read-based)'
     )
+    taxonomy_parser.add_argument(
+        '--taxdump-dir',
+        help='NCBI taxdump directory (nodes.dmp, names.dmp) to enable per-rank '
+             '(genus/family) metrics. Without it, taxid-exact only.'
+    )
     taxonomy_parser.add_argument('--output', help='Write metrics JSON to this path')
     taxonomy_parser.add_argument('--markdown', help='Write a markdown summary to this path')
 

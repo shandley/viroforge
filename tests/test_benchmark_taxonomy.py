@@ -107,3 +107,75 @@ def test_unreliable_when_no_viral():
     r = benchmark_taxonomy({"foo_0_0/1": 100, "bar_0_0/1": None}, TAX_GT)
     assert r["reliable"] is False
     assert r["n_viral_reads"] == 0
+
+
+# ---- higher-rank (genus/family) metrics ------------------------------------
+
+def _write_taxdump(tmp_path):
+    # family 10,11 ; genus 20,21 (in fam10), 22 (in fam11) ; species 100,101 (gen20),
+    # 102 (gen21), 103 (gen22)
+    nodes = "\n".join([
+        "1\t|\t1\t|\tno rank\t|",
+        "10\t|\t1\t|\tfamily\t|",
+        "11\t|\t1\t|\tfamily\t|",
+        "20\t|\t10\t|\tgenus\t|",
+        "21\t|\t10\t|\tgenus\t|",
+        "22\t|\t11\t|\tgenus\t|",
+        "100\t|\t20\t|\tspecies\t|",
+        "101\t|\t20\t|\tspecies\t|",
+        "102\t|\t21\t|\tspecies\t|",
+        "103\t|\t22\t|\tspecies\t|",
+    ]) + "\n"
+    p = tmp_path / "nodes.dmp"
+    p.write_text(nodes)
+    return p
+
+
+def test_ncbi_tree_rank_resolution(tmp_path):
+    from viroforge.benchmarking.ncbi_tree import NcbiTree
+    tree = NcbiTree(_write_taxdump(tmp_path))
+    assert tree.rank_taxid(100, "species") == 100
+    assert tree.rank_taxid(100, "genus") == 20
+    assert tree.rank_taxid(100, "family") == 10
+    assert tree.rank_taxid(20, "family") == 10
+    assert tree.rank_taxid(20, "species") is None  # genus has no species ancestor
+
+
+def test_per_rank_metrics(tmp_path):
+    from viroforge.benchmarking.ncbi_tree import NcbiTree
+    tree = NcbiTree(_write_taxdump(tmp_path))
+    gt = {
+        "KA": {"ncbi_taxid": 100, "is_known": True},   # species 100, genus 20, family 10
+        "DA": {"ncbi_taxid": 103, "is_known": False},  # dark, excluded
+    }
+    a = {
+        "KA_0_0/1": 100,   # correct species/genus/family
+        "KA_1_0/1": 101,   # wrong species, same genus/family
+        "KA_2_0/1": 102,   # wrong species/genus, same family
+        "KA_3_0/1": 103,   # wrong at all ranks
+        "KA_4_0/1": 20,    # genus-level call: species too shallow, genus/family correct
+        "KA_5_0/1": None,  # unclassified everywhere
+        "DA_0_0/1": None,  # dark, must be excluded
+    }
+    r = benchmark_taxonomy(a, gt, ncbi_tree=tree)
+    pr = r["per_rank"]
+
+    assert (pr["species"]["correct"], pr["species"]["misclassified"],
+            pr["species"]["unclassified"], pr["species"]["n"]) == (1, 3, 2, 6)
+    assert pr["species"]["precision"] == pytest.approx(0.25)
+    assert pr["species"]["recall"] == pytest.approx(1 / 6)
+
+    assert (pr["genus"]["correct"], pr["genus"]["misclassified"],
+            pr["genus"]["unclassified"]) == (3, 2, 1)
+    assert pr["genus"]["precision"] == pytest.approx(0.6)
+    assert pr["genus"]["recall"] == pytest.approx(0.5)
+
+    assert (pr["family"]["correct"], pr["family"]["misclassified"],
+            pr["family"]["unclassified"]) == (4, 1, 1)
+    assert pr["family"]["precision"] == pytest.approx(0.8)
+    assert pr["family"]["recall"] == pytest.approx(4 / 6)
+
+
+def test_per_rank_absent_without_tree():
+    r = benchmark_taxonomy(_assignments(), TAX_GT)
+    assert r["per_rank"] is None

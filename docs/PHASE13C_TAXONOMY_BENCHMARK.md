@@ -30,7 +30,14 @@ viroforge benchmark taxonomy \
 # Generic TSV (read_id <TAB> taxid)
 viroforge benchmark taxonomy --pipeline-output calls.tsv \
   --ground-truth ... --format generic
+
+# With per-rank (genus/family) metrics: supply the NCBI taxdump
+viroforge benchmark taxonomy --pipeline-output results/kraken2.out \
+  --ground-truth ... --taxdump-dir /path/to/taxdump
 ```
+
+The taxdump is nodes.dmp + names.dmp from
+ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz (Kraken2 users already have it).
 
 ## What it measures
 
@@ -45,17 +52,26 @@ Reads are stratified into two groups, which is the crux of scoring viromes fairl
   on novel content) and how many were classified anyway. A high unclassified rate
   here is correct behavior, not a failure, so it is never folded into a penalty.
 
+Per-rank accuracy (species, genus, family) is reported when an NCBI taxdump is
+supplied via `--taxdump-dir`. Both the true taxid and the classifier's assigned
+taxid are resolved to their ancestor at each rank and compared, so a genus-level
+call is credited as correct at genus and family (but not species). This is
+computed over the known-virus stratum only, and a call too shallow to reach a
+rank (or an unclassified read) counts against recall at that rank. Recall
+therefore rises up the ranks (family easiest, species hardest), which is the
+expected shape.
+
 Plus an abundance profile comparison over NCBI taxids (Bray-Curtis dissimilarity,
 Pearson, Spearman, mean absolute error) between the classifier's and the true
 per-taxid read fractions.
 
-## Scope and semantics (v1)
+## Scope and semantics
 
-- Taxid-exact: a read is correct only if the assigned taxid equals the true
-  genome's species-level taxid. A higher-rank LCA assignment (e.g. Kraken2
-  assigning a genus taxid) counts as not-exact. Rank-level precision/recall
-  (genus, family) that credits correct-but-higher calls is a planned addition and
-  needs lineage resolution.
+- Taxid-exact (always): a read is exactly correct only if the assigned taxid
+  equals the true genome's species-level taxid.
+- Per-rank (with `--taxdump-dir`): genus/family precision/recall/F1 that credit
+  correct-but-higher-rank calls, resolved through the NCBI taxonomy tree.
+  Without the taxdump, only taxid-exact is reported.
 - Read-based only. Contig-based taxonomy is a later mode.
 - Formats: Kraken2 per-read output and a generic `read_id\ttaxid` TSV. Kraken2
   `--use-names` output (`Name (taxid N)`) is parsed. Centrifuge, MMseqs2, and

@@ -48,8 +48,17 @@ def _run_taxonomy(args) -> int:
               file=sys.stderr)
         return 2
 
+    tree = None
+    if args.taxdump_dir:
+        from ..benchmarking.ncbi_tree import NcbiTree
+        nodes = Path(args.taxdump_dir) / "nodes.dmp"
+        if not nodes.exists():
+            print(f"ERROR: nodes.dmp not found in {args.taxdump_dir}", file=sys.stderr)
+            return 2
+        tree = NcbiTree.from_dir(args.taxdump_dir)
+
     assignments = PARSERS[args.format](args.pipeline_output)
-    metrics = benchmark_taxonomy(assignments, tax_gt)
+    metrics = benchmark_taxonomy(assignments, tax_gt, ncbi_tree=tree)
     write_reports(metrics, json_path=args.output, md_path=args.markdown, kind="taxonomy")
     print(taxonomy_to_markdown(metrics))
     return 0 if metrics["reliable"] else 1

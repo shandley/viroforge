@@ -122,12 +122,64 @@ def _stratum_metrics(s: dict) -> dict:
     }
 
 
-def benchmark_taxonomy(assignments: dict[str, int | None], taxonomy_gt: dict) -> dict:
+RANKS = ("species", "genus", "family")
+
+
+def _per_rank_metrics(assignments, taxonomy_gt, tree, ranks) -> dict:
+    """Per-rank precision/recall/F1 over the known-virus stratum.
+
+    For each rank, a read counts only if its true genome has an NCBI taxid at that
+    rank. The assigned taxid is resolved to its ancestor at the rank; correct when
+    it equals the true rank taxid, misclassified when it differs, unclassified when
+    the classifier made no call or its call was too shallow to reach the rank. Dark
+    matter is excluded, so correctly-unclassified novel content is not penalized.
+    """
+    stats = {r: {"correct": 0, "misclassified": 0, "unclassified": 0} for r in ranks}
+    for rid, assigned in assignments.items():
+        gt = taxonomy_gt.get(parse_genome_id(rid))
+        if gt is None or not gt.get("is_known"):
+            continue
+        true_taxid = gt.get("ncbi_taxid")
+        for r in ranks:
+            true_r = tree.rank_taxid(true_taxid, r)
+            if true_r is None:
+                continue  # ground truth has no taxid at this rank; can't score
+            s = stats[r]
+            if assigned is None:
+                s["unclassified"] += 1
+                continue
+            asg_r = tree.rank_taxid(assigned, r)
+            if asg_r is None:
+                s["unclassified"] += 1  # call too shallow to reach this rank
+            elif asg_r == true_r:
+                s["correct"] += 1
+            else:
+                s["misclassified"] += 1
+    out = {}
+    for r, s in stats.items():
+        total = s["correct"] + s["misclassified"] + s["unclassified"]
+        classified = s["correct"] + s["misclassified"]
+        precision = s["correct"] / classified if classified else None
+        recall = s["correct"] / total if total else None
+        f1 = (2 * precision * recall / (precision + recall)
+              if precision and recall else None)
+        out[r] = {**s, "n": total, "precision": precision, "recall": recall, "f1": f1}
+    return out
+
+
+def benchmark_taxonomy(
+    assignments: dict[str, int | None],
+    taxonomy_gt: dict,
+    ncbi_tree=None,
+    ranks=RANKS,
+) -> dict:
     """Score per-read taxid assignments against the ground-truth taxonomy.
 
     Args:
         assignments: {read_id: assigned_taxid or None} from a classifier.
         taxonomy_gt: {genome_id: {ncbi_taxid, is_known, ...}} from the metadata.
+        ncbi_tree: optional NcbiTree; enables per-rank (genus/family) metrics.
+        ranks: taxonomic ranks to score when a tree is given.
     """
     known = {"correct": 0, "unclassified": 0, "misclassified": 0}
     dark = {"correct": 0, "unclassified": 0, "misclassified": 0}
@@ -171,6 +223,10 @@ def benchmark_taxonomy(assignments: dict[str, int | None], taxonomy_gt: dict) ->
                            if taxa else None),
     }
 
+    per_rank = None
+    if ncbi_tree is not None:
+        per_rank = _per_rank_metrics(assignments, taxonomy_gt, ncbi_tree, ranks)
+
     return {
         "reliable": reliable,
         "n_assignments": len(assignments),
@@ -178,5 +234,6 @@ def benchmark_taxonomy(assignments: dict[str, int | None], taxonomy_gt: dict) ->
         "n_non_viral_reads": non_viral,
         "known_viruses": _stratum_metrics(known),
         "dark_matter": _stratum_metrics(dark),
+        "per_rank": per_rank,
         "abundance_profile": abundance,
     }

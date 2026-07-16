@@ -37,7 +37,7 @@
 - Adapter read-through post-processor
 - 23 new tests, all passing
 
-**Latest Entry**: 20260716-004-IMPLEMENTATION (taxonomy benchmarking module)
+**Latest Entry**: 20260716-005-IMPLEMENTATION (higher-rank taxonomy metrics)
 
 ### Phase 8.2 Complete - RNA Virome Workflow
 
@@ -829,6 +829,18 @@ contiguity, and abundance accuracy, with an independent mock-contig oracle.
 taxonomy (ncbi_taxid + lineage) into the metadata, then `viroforge benchmark
 taxonomy` scores taxid-exact classification plus an abundance profile, stratified
 into known viruses and dark matter so unclassified novel content is not penalized.
+
+---
+
+### 2026-07-16 (5)
+
+**ID**: `20260716-005-IMPLEMENTATION-taxonomy-per-rank.md`
+**Type**: IMPLEMENTATION
+**Status**: Complete
+
+**Purpose**: Extend Module 4 with genus/family metrics. Add a minimal NCBI taxdump
+parser (`ncbi_tree.py`) and a `per_rank` block that credits correct-but-higher
+classifier calls via `--taxdump-dir`, over the known-virus stratum.
 
 ---
 

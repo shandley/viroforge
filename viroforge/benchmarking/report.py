@@ -168,6 +168,23 @@ def taxonomy_to_markdown(m: dict) -> str:
         f"- Classified anyway: {d['correct'] + d['misclassified']:,} "
         f"(of which exactly correct: {d['correct']:,})",
         "",
+    ]
+    pr = m.get("per_rank")
+    if pr:
+        lines += [
+            "## Per-rank accuracy (known viruses, via NCBI lineage)",
+            "",
+            "| rank | reads | precision | recall | F1 |",
+            "|---|---:|---:|---:|---:|",
+        ]
+        for rank in ("species", "genus", "family"):
+            if rank in pr:
+                s = pr[rank]
+                lines.append(
+                    f"| {rank} | {s['n']:,} | {_pct(s['precision'])} | "
+                    f"{_pct(s['recall'])} | {_pct(s['f1'])} |")
+        lines.append("")
+    lines += [
         "## Abundance profile (classifier vs true, over NCBI taxids)",
         "",
     ]
