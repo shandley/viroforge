@@ -448,6 +448,12 @@ class VaginalViromeCurator:
 
         cursor = self.conn.cursor()
 
+        # Delete any existing rows for this collection so re-runs (e.g. via
+        # setup-db) are idempotent instead of hitting a UNIQUE constraint.
+        collection_id = collection_meta['collection_id']
+        cursor.execute("DELETE FROM body_site_collections WHERE collection_id = ?", (collection_id,))
+        cursor.execute("DELETE FROM collection_genomes WHERE collection_id = ?", (collection_id,))
+
         # Insert collection metadata
         cursor.execute("""
             INSERT INTO body_site_collections (

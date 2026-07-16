@@ -195,6 +195,11 @@ def run_setup_db(args) -> int:
                 _run_script(project_root, script, ["--apply", "--database", str(db_path)])
             except RuntimeError as e:
                 print(f"  WARNING: {script} failed: {e}")
+
+        # Reconcile stored n_genomes with the actual number of associations.
+        # Some curation inserts collapse a few duplicate genome_ids, so the
+        # stored count can overcount; this makes the metadata field trustworthy.
+        _reconcile_collection_counts(db_path)
     else:
         print("\n[Step 5/5] Skipping collection curation")
 
@@ -206,6 +211,24 @@ def run_setup_db(args) -> int:
     print("=" * 60)
 
     return 0
+
+
+def _reconcile_collection_counts(db_path: Path) -> None:
+    """Set body_site_collections.n_genomes to the real association count."""
+    import sqlite3
+
+    with sqlite3.connect(db_path) as conn:
+        cur = conn.execute(
+            """
+            UPDATE body_site_collections
+            SET n_genomes = (
+                SELECT COUNT(*) FROM collection_genomes cg
+                WHERE cg.collection_id = body_site_collections.collection_id
+            )
+            """
+        )
+        conn.commit()
+        print(f"  Reconciled n_genomes for {cur.rowcount} collections.")
 
 
 def _run_script(project_root: Path, script: str, extra_args: list) -> None:
