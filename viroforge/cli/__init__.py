@@ -390,6 +390,42 @@ For more information: https://github.com/hecatomb/viroforge
         help='Write YAML ranges to file'
     )
 
+    # benchmark: validate analysis pipelines against ViroForge ground truth
+    benchmark_parser = subparsers.add_parser(
+        'benchmark',
+        help='Benchmark analysis pipelines against ground truth',
+        description='Validate a pipeline stage against ViroForge per-read ground truth'
+    )
+    benchmark_subparsers = benchmark_parser.add_subparsers(
+        dest='benchmark_command',
+        help='Benchmark module'
+    )
+    qc_parser = benchmark_subparsers.add_parser(
+        'qc',
+        help='QC benchmarking: contamination removal and viral retention',
+        description='Compare a QC tool\'s cleaned reads against the raw ViroForge '
+                    'reads to measure contamination removal and viral retention'
+    )
+    qc_parser.add_argument(
+        '--raw-reads', nargs='+', required=True,
+        help='Raw ViroForge R1 FASTQ(s) with source= labels (the ground truth)'
+    )
+    qc_parser.add_argument(
+        '--cleaned-reads', nargs='+', required=True,
+        help='QC tool output R1 FASTQ(s), the surviving reads (plain or .gz)'
+    )
+    qc_parser.add_argument(
+        '--output', help='Write metrics JSON to this path'
+    )
+    qc_parser.add_argument(
+        '--markdown', help='Write a markdown summary to this path'
+    )
+    qc_parser.add_argument(
+        '--keep-remove', nargs='+', metavar='SOURCE:keep|remove',
+        help='Override the keep/remove policy per source label '
+             '(e.g. erv_exogenous:remove)'
+    )
+
     # Parse arguments
     args = parser.parse_args()
 
@@ -424,6 +460,9 @@ For more information: https://github.com/hecatomb/viroforge
         elif args.command == 'setup-db':
             from .setup_db import run_setup_db
             return run_setup_db(args)
+        elif args.command == 'benchmark':
+            from .benchmark import run_benchmark
+            return run_benchmark(args)
         elif args.command == 'summary':
             from .summary import run_summary
             return run_summary(args)

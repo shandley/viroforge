@@ -37,7 +37,7 @@
 - Adapter read-through post-processor
 - 23 new tests, all passing
 
-**Latest Entry**: 20260716-001-BUGFIX (validation debt, setup-db fixes, canonical DB)
+**Latest Entry**: 20260716-002-IMPLEMENTATION (QC benchmarking module)
 
 ### Phase 8.2 Complete - RNA Virome Workflow
 
@@ -791,6 +791,19 @@ generation, test suite, setup-db reproducibility). Fix stale low-complexity
 tests, MDA duplicate metadata, vaginal-curation idempotency, and n_genomes
 reconcile. Adopt a fresh seeded rebuild as the canonical database and add a
 collection membership provenance manifest.
+
+---
+
+### 2026-07-16 (2)
+
+**ID**: `20260716-002-IMPLEMENTATION-qc-benchmark.md`
+**Type**: IMPLEMENTATION
+**Status**: Complete
+
+**Purpose**: Start Phase 13B with Module 1, QC benchmarking. Add
+`viroforge/benchmarking/` and `viroforge benchmark qc` to score contamination
+removal and viral retention against per-read ground truth, with an
+independently-counted test oracle.
 
 ---
 
