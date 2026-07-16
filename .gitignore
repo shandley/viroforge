@@ -155,3 +155,6 @@ slack_response_*.txt
 
 # Generated data directories
 data/gut_virome/
+
+# Static web-explorer export (generated; consumed by the external portal)
+data/web/
