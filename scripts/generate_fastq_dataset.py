@@ -896,6 +896,42 @@ class FASTQGenerator:
 
         return abundances
 
+    def _export_taxonomy(self, db_path: str, genome_ids: List[str]) -> Dict[str, Dict]:
+        """Look up ICTV lineage + NCBI taxid for the given viral genomes.
+
+        Returns {genome_id: {ncbi_taxid, realm, kingdom, phylum, class, order,
+        family, subfamily, genus, species, is_known}}. is_known is False when the
+        family is Unknown (no ICTV match), which the taxonomy benchmark uses to
+        stratify classifiable versus dark/novel content.
+        """
+        if not genome_ids:
+            return {}
+        out: Dict[str, Dict] = {}
+        conn = sqlite3.connect(db_path)
+        try:
+            cur = conn.cursor()
+            qmarks = ",".join("?" * len(genome_ids))
+            cur.execute(
+                f"""
+                SELECT genome_id, ncbi_taxid, realm, kingdom, phylum, class,
+                       order_name, family, subfamily, genus, species
+                FROM taxonomy WHERE genome_id IN ({qmarks})
+                """,
+                genome_ids,
+            )
+            for row in cur.fetchall():
+                gid, taxid, realm, kingdom, phylum, cls, order_name, family, subfamily, genus, species = row
+                out[gid] = {
+                    "ncbi_taxid": int(taxid) if taxid not in (None, "") else None,
+                    "realm": realm, "kingdom": kingdom, "phylum": phylum,
+                    "class": cls, "order": order_name, "family": family,
+                    "subfamily": subfamily, "genus": genus, "species": species,
+                    "is_known": family not in (None, "", "Unknown"),
+                }
+        finally:
+            conn.close()
+        return out
+
     def _categorize_coverage(self, coverage: float) -> str:
         """
         Categorize coverage into quality bins for benchmarking.
@@ -1123,7 +1159,8 @@ class FASTQGenerator:
         enrichment_stats: Optional[Dict] = None,
         amplification_stats: Optional[Dict] = None,
         contamination_profile: Optional[ContaminationProfile] = None,
-        enable_benchmarking: bool = True
+        enable_benchmarking: bool = True,
+        db_path: Optional[str] = None
     ):
         """
         Export complete ground truth metadata including all sequences (viral + contaminants).
@@ -1294,6 +1331,14 @@ class FASTQGenerator:
                 'per_genome': expected_coverage_list
             }
             logger.info(f"  Expected coverage: calculated for {len(expected_coverage_list)} genomes")
+
+            # 2b. Per-genome taxonomy for taxonomy benchmarking (Module 4).
+            # Export ncbi_taxid + full ICTV lineage so the taxonomy benchmark is
+            # self-contained (no 500 MB database needed at benchmark time).
+            if db_path:
+                viral_ids = [seq.id for i, seq in enumerate(sequences) if i < n_viral]
+                benchmarking['taxonomy'] = self._export_taxonomy(db_path, viral_ids)
+                logger.info(f"  Taxonomy: exported for {len(benchmarking['taxonomy'])} viral genomes")
 
             # 3. Notes on additional benchmarking metadata (for future phases)
             benchmarking['notes'] = {
@@ -1941,7 +1986,8 @@ Examples:
         enrichment_stats,
         amplification_stats,
         contamination_profile,
-        args.enable_benchmarking
+        args.enable_benchmarking,
+        db_path=args.database
     )
 
     if args.dry_run:

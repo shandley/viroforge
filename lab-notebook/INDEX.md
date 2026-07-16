@@ -37,7 +37,7 @@
 - Adapter read-through post-processor
 - 23 new tests, all passing
 
-**Latest Entry**: 20260716-003-IMPLEMENTATION (assembly benchmarking module)
+**Latest Entry**: 20260716-004-IMPLEMENTATION (taxonomy benchmarking module)
 
 ### Phase 8.2 Complete - RNA Virome Workflow
 
@@ -816,6 +816,19 @@ independently-counted test oracle.
 **Purpose**: Add Module 2, assembly benchmarking. `viroforge benchmark assembly`
 aligns contigs to the true genomes (mappy) and scores genome recovery, chimeras,
 contiguity, and abundance accuracy, with an independent mock-contig oracle.
+
+---
+
+### 2026-07-16 (4)
+
+**ID**: `20260716-004-IMPLEMENTATION-taxonomy-benchmark.md`
+**Type**: IMPLEMENTATION
+**Status**: Complete
+
+**Purpose**: Add Module 4, taxonomy benchmarking (read-based). Export per-genome
+taxonomy (ncbi_taxid + lineage) into the metadata, then `viroforge benchmark
+taxonomy` scores taxid-exact classification plus an abundance profile, stratified
+into known viruses and dark matter so unclassified novel content is not penalized.
 
 ---
 

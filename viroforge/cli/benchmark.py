@@ -11,7 +11,12 @@ from pathlib import Path
 import json
 
 from ..benchmarking import benchmark_qc, read_labels, read_names
-from ..benchmarking.report import assembly_to_markdown, to_markdown, write_reports
+from ..benchmarking.report import (
+    assembly_to_markdown,
+    taxonomy_to_markdown,
+    to_markdown,
+    write_reports,
+)
 
 
 def run_benchmark(args) -> int:
@@ -19,8 +24,35 @@ def run_benchmark(args) -> int:
         return _run_qc(args)
     if args.benchmark_command == "assembly":
         return _run_assembly(args)
-    print("Usage: viroforge benchmark {qc,assembly} ...", file=sys.stderr)
+    if args.benchmark_command == "taxonomy":
+        return _run_taxonomy(args)
+    print("Usage: viroforge benchmark {qc,assembly,taxonomy} ...", file=sys.stderr)
     return 2
+
+
+def _run_taxonomy(args) -> int:
+    from ..benchmarking.taxonomy import PARSERS, benchmark_taxonomy
+
+    for p in (args.pipeline_output, args.ground_truth):
+        if not Path(p).exists():
+            print(f"ERROR: file not found: {p}", file=sys.stderr)
+            return 2
+    if args.format not in PARSERS:
+        print(f"ERROR: --format must be one of {sorted(PARSERS)}", file=sys.stderr)
+        return 2
+    metadata = json.loads(Path(args.ground_truth).read_text())
+    tax_gt = metadata.get("benchmarking", {}).get("taxonomy")
+    if not tax_gt:
+        print("ERROR: metadata has no benchmarking.taxonomy block. Regenerate the "
+              "dataset with a current version to export per-genome taxonomy.",
+              file=sys.stderr)
+        return 2
+
+    assignments = PARSERS[args.format](args.pipeline_output)
+    metrics = benchmark_taxonomy(assignments, tax_gt)
+    write_reports(metrics, json_path=args.output, md_path=args.markdown, kind="taxonomy")
+    print(taxonomy_to_markdown(metrics))
+    return 0 if metrics["reliable"] else 1
 
 
 def _run_assembly(args) -> int:

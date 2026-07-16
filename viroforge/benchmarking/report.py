@@ -129,8 +129,60 @@ def assembly_to_markdown(m: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
+def _num(x, nd=3):
+    return "n/a" if x is None else f"{x:.{nd}f}"
+
+
+def taxonomy_to_markdown(m: dict) -> str:
+    lines = ["# Taxonomy Benchmark (read-based, taxid-exact)", ""]
+    if not m.get("reliable", True):
+        lines += [
+            "> WARNING: no read IDs mapped to known viral genomes. Check that the "
+            "classifier output uses the ViroForge read names and that the "
+            "ground-truth metadata matches this dataset.",
+            "",
+        ]
+    lines += [
+        f"Reads: {m['n_assignments']:,}   viral {m['n_viral_reads']:,}   "
+        f"non-viral {m['n_non_viral_reads']:,}",
+        "",
+        "## Known viruses (ICTV family assigned)",
+        "",
+    ]
+    k = m["known_viruses"]
+    lines += [
+        f"- Reads: {k['n']:,}",
+        f"- Sensitivity (correct / all): **{_pct(k['sensitivity'])}**",
+        f"- Precision (correct / classified): {_pct(k['precision'])}",
+        f"- Left unclassified: {_pct(k['unclassified_rate'])}   "
+        f"misclassified: {k['misclassified']:,}",
+        "",
+        "## Dark matter (family Unknown / novel)",
+        "",
+    ]
+    d = m["dark_matter"]
+    lines += [
+        f"- Reads: {d['n']:,}",
+        f"- Correctly left unclassified: **{_pct(d['unclassified_rate'])}** "
+        "(expected high; classifiers should not force a call on novel content)",
+        f"- Classified anyway: {d['correct'] + d['misclassified']:,} "
+        f"(of which exactly correct: {d['correct']:,})",
+        "",
+        "## Abundance profile (classifier vs true, over NCBI taxids)",
+        "",
+    ]
+    ab = m["abundance_profile"]
+    lines += [
+        f"- Taxa: {ab['n_taxa']:,}   Bray-Curtis dissimilarity: {_num(ab['bray_curtis'])}",
+        f"- Pearson: {_num(ab['pearson'])}   Spearman: {_num(ab['spearman'])}   "
+        f"mean abs error: {_num(ab['mean_abs_error'], 4)}",
+    ]
+    return "\n".join(lines) + "\n"
+
+
 def write_reports(m: dict, json_path=None, md_path=None, kind="qc") -> None:
-    render = assembly_to_markdown if kind == "assembly" else to_markdown
+    render = {"assembly": assembly_to_markdown,
+              "taxonomy": taxonomy_to_markdown}.get(kind, to_markdown)
     if json_path:
         Path(json_path).write_text(json.dumps(m, indent=2))
     if md_path:

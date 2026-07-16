@@ -445,6 +445,31 @@ For more information: https://github.com/hecatomb/viroforge
     assembly_parser.add_argument('--output', help='Write metrics JSON to this path')
     assembly_parser.add_argument('--markdown', help='Write a markdown summary to this path')
 
+    taxonomy_parser = benchmark_subparsers.add_parser(
+        'taxonomy',
+        help='Taxonomy benchmarking: read classification vs true taxonomy',
+        description='Compare a read classifier\'s per-read NCBI taxid assignments '
+                    'to the true taxonomy (taxid-exact, read-based)'
+    )
+    taxonomy_parser.add_argument(
+        '--pipeline-output', required=True,
+        help='Classifier output (Kraken2 per-read output, or a generic TSV)'
+    )
+    taxonomy_parser.add_argument(
+        '--ground-truth', required=True,
+        help='Dataset metadata JSON with the benchmarking.taxonomy block'
+    )
+    taxonomy_parser.add_argument(
+        '--format', default='kraken2', choices=['kraken2', 'generic'],
+        help='Classifier output format (default: kraken2)'
+    )
+    taxonomy_parser.add_argument(
+        '--mode', default='read-based', choices=['read-based'],
+        help='Benchmark mode (v1: read-based)'
+    )
+    taxonomy_parser.add_argument('--output', help='Write metrics JSON to this path')
+    taxonomy_parser.add_argument('--markdown', help='Write a markdown summary to this path')
+
     # Parse arguments
     args = parser.parse_args()
 
