@@ -1,0 +1,29 @@
+# ViroForge collection membership manifest (provenance record)
+# sha256 per collection is over its sorted genome_id list (membership only).
+# Regenerate with: python scripts/export_collection_manifest.py
+#
+# collections: 20   total_associations: 2025
+
+collection_id	n_genomes	sha256	collection_name
+1	134	f9a69fa0659b5f6bbea6a36878394cdef21c3f420ed9659f52ef9ed8951ce29b	Gut Virome - Adult Healthy (Western Diet)
+2	47	6114b3fc873330eaebb2a791e3576a7f2fa7cd52a15acaea91ad53e3724e45dc	Oral Virome - Saliva (Healthy)
+3	15	09d63e135665feb1d06c169f9982baceb6deb19edc0bc21355e0186cd51ddef9	Skin Virome - Sebaceous Sites (Healthy)
+4	43	eebc164c27568125e314570696042c03e4f39e104a14bf5cee4c4e01c2ba17f1	Respiratory Virome - Nasopharynx (Healthy)
+5	445	40c3d340ff3f82e08a9eea6bbdc369e25c2b51126fc120e2dcb693ac99ec0440	Marine Virome - Coastal Surface Water
+6	290	e78c4881cdf535d41f4c62ba88b3a56417dce6e5118ee69ee52df28b0f93234b	Soil Virome - Agricultural
+7	200	fd9bf26f803066664c4b4a22033863cba5362b8dc2882c50c7b42a29d6d6aea9	Freshwater Virome - Lake Surface Water
+8	22	00cf771c79cf96e97b976353d97a4d09d88dc886bb5782332fed4e00f77c0cf7	Mouse Gut Virome - Laboratory (C57BL/6)
+9	352	5136b4bcafa53c3acf9cde21f672be2e81a84eae3319e73659ef6646570e24aa	Wastewater Virome - Urban Treatment Plant
+10	90	255b4e40e330a56b30f3fad53b4a694e997606cb2714d1cb92ba1ff842d0de6c	IBD Gut Virome (Inflammatory Bowel Disease)
+11	55	1bda175c6c4608101abe4d6703b64ef8cd92125cdbfc277f61dc43a1954fd1de	HIV+ Gut Virome
+12	79	f5180f568ecbb0caa7f25edeb4cfd51358ce91e4f1ec387e0be85e1c320938ec	Cystic Fibrosis (CF) Respiratory Virome
+13	53	3ba8ca1e8fed8200740c743c530044234f8d17bc527d580bea048face04b60db	Human Respiratory RNA Virome
+14	39	f837411b94d2be8978b7316f05e22f9f74a2fd2ce942220ae4956f82ca95a6a9	Arbovirus Environmental (Mosquito Virome)
+15	46	803ff7c275c0a22da93aaefbb61af01ac4bdd7a89445ed6397335f7a050286ed	Fecal RNA Virome
+16	26	3dfd2f41e4668191b4797325e730b7edb0b7fdf2012a4008dcd0ead334f1fd61	Vaginal Virome (Healthy)
+17	21	358d7d602cd3c8c5e2502f6deb730d9badf459f91334cfab6fa7d978c6a1f9d8	Blood/Plasma Virome (Healthy)
+18	17	436ef7a7edd19f1dfb21fcc4048baf894a91679dcc1334eda1ebdd905e3d3544	Ocular Surface Virome (Healthy)
+19	31	e5f06d685e1211e4007966826a126769eee7ecd4d7388fcf06385759a2c68f76	Lower Respiratory (Lung) Virome (Healthy)
+20	20	8d1bef25bf1296a20ec7c03fa2f85fa99c9975564aafaf47a02e5f49f98f856f	Urinary Virome (Healthy)
+
+global	2025	7c4bdda085cf98b6eb31c891c9c1ad2739624dd99a58c52237dbece05b4e1f87	ALL

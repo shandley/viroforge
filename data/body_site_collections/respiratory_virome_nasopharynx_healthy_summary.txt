@@ -32,8 +32,8 @@ Abundance Distribution:
   Very rare tier (<0.01%): 16 genomes
 
 Statistics:
-  Max abundance: 20.2237%
-  Mean abundance: 2.4390%
-  Median abundance: 0.3696%
-  Min abundance: 0.002643%
-  Shannon diversity: 2.43
+  Max abundance: 19.9279%
+  Mean abundance: 2.3256%
+  Median abundance: 0.4653%
+  Min abundance: 0.002604%
+  Shannon diversity: 2.48
