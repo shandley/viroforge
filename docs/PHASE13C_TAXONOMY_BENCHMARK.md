@@ -94,9 +94,11 @@ per-taxid read fractions.
 - Read-based and contig-based modes. Contig-based reuses the assembly aligner to
   derive each contig's true taxonomy and adds a chimera-handling option
   (exclude / lca).
-- Formats: Kraken2 per-read output and a generic `read_id\ttaxid` TSV. Kraken2
-  `--use-names` output (`Name (taxid N)`) is parsed. Centrifuge, MMseqs2, and
-  DIAMOND are not yet supported.
+- Formats (`--format`): `kraken2` (per-read output, incl. `--use-names`),
+  `centrifuge` (classification TSV; multi-hit reads keep the first assignment),
+  `diamond` (outfmt 102: query, taxid, evalue), `mmseqs2` (taxonomy TSV: query,
+  taxid, rank, name), and `generic` (`read_id\ttaxid`). All apply to read-based
+  and contig-based modes.
 - Reads whose name does not map to a viral genome (contaminants) are counted
   separately and not scored. If no reads map to viral genomes the result is
   flagged unreliable.

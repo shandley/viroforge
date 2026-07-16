@@ -9,9 +9,12 @@ import pytest
 
 from viroforge.benchmarking.taxonomy import (
     benchmark_taxonomy,
+    parse_centrifuge,
+    parse_diamond,
     parse_generic,
     parse_genome_id,
     parse_kraken2,
+    parse_mmseqs2,
 )
 
 TAX_GT = {
@@ -71,6 +74,37 @@ def test_parse_generic(tmp_path):
     p = tmp_path / "gen.tsv"
     p.write_text("# read_id\ttaxid\nK0_0_0/1\t100\nK0_7_0/1\t0\n")
     a = parse_generic(p)
+    assert a["K0_0_0/1"] == 100
+    assert a["K0_7_0/1"] is None
+
+
+def test_parse_centrifuge(tmp_path):
+    p = tmp_path / "cent.tsv"
+    p.write_text(
+        "readID\tseqID\ttaxID\tscore\t2ndBestScore\thitLength\tqueryLength\tnumMatches\n"
+        "K0_0_0/1\tGCF_x\t100\t150\t0\t150\t150\t1\n"
+        "K0_7_0/1\tunclassified\t0\t0\t0\t0\t150\t1\n"
+        "K1_0_0/1\tGCF_y\t101\t120\t0\t120\t150\t2\n"   # multi-hit: first wins
+        "K1_0_0/1\tGCF_z\t202\t110\t0\t110\t150\t2\n"
+    )
+    a = parse_centrifuge(p)
+    assert a["K0_0_0/1"] == 100
+    assert a["K0_7_0/1"] is None
+    assert a["K1_0_0/1"] == 101
+
+
+def test_parse_diamond(tmp_path):
+    p = tmp_path / "dmnd.tsv"  # outfmt 102: query, taxid, evalue
+    p.write_text("K0_0_0/1\t100\t1e-30\nK0_7_0/1\t0\t*\n")
+    a = parse_diamond(p)
+    assert a["K0_0_0/1"] == 100
+    assert a["K0_7_0/1"] is None
+
+
+def test_parse_mmseqs2(tmp_path):
+    p = tmp_path / "mm.tsv"  # query, taxid, rank, name
+    p.write_text("K0_0_0/1\t100\tspecies\tSomevirus\nK0_7_0/1\t0\tno rank\tunclassified\n")
+    a = parse_mmseqs2(p)
     assert a["K0_0_0/1"] == 100
     assert a["K0_7_0/1"] is None
 

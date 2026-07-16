@@ -66,7 +66,64 @@ def parse_generic(path) -> dict[str, int | None]:
     return out
 
 
-PARSERS = {"kraken2": parse_kraken2, "generic": parse_generic}
+def parse_centrifuge(path) -> dict[str, int | None]:
+    """Centrifuge classification output -> {read_id: taxid or None}.
+
+    Columns: readID, seqID, taxID, score, ... (tab, with a header line). A read
+    classified to multiple taxa has one row per hit; the first reported
+    assignment is kept.
+    """
+    out: dict[str, int | None] = {}
+    with open(path) as fh:
+        for line in fh:
+            parts = line.rstrip("\n").split("\t")
+            if len(parts) < 3 or parts[0] == "readID":
+                continue
+            if parts[0] in out:
+                continue  # first assignment wins for multi-hit reads
+            out[parts[0]] = _to_taxid(parts[2])
+    return out
+
+
+def parse_diamond(path) -> dict[str, int | None]:
+    """DIAMOND taxonomic output (outfmt 102: query, taxid, evalue) -> {id: taxid}.
+
+    Run DIAMOND with `--outfmt 102` for LCA taxonomic classification; taxid 0 is
+    unclassified. The default BLAST-tabular outfmt reports protein subjects, not
+    taxids, and is not directly benchmarkable here.
+    """
+    out: dict[str, int | None] = {}
+    with open(path) as fh:
+        for line in fh:
+            parts = line.rstrip("\n").split("\t")
+            if len(parts) < 2:
+                continue
+            out[parts[0]] = _to_taxid(parts[1])
+    return out
+
+
+def parse_mmseqs2(path) -> dict[str, int | None]:
+    """MMseqs2 taxonomy TSV (query, taxid, rank, name, ...) -> {id: taxid}.
+
+    The output of `mmseqs createtsv` on a taxonomy result; taxid 0 is unclassified.
+    """
+    out: dict[str, int | None] = {}
+    with open(path) as fh:
+        for line in fh:
+            parts = line.rstrip("\n").split("\t")
+            if len(parts) < 2:
+                continue
+            out[parts[0]] = _to_taxid(parts[1])
+    return out
+
+
+PARSERS = {
+    "kraken2": parse_kraken2,
+    "centrifuge": parse_centrifuge,
+    "diamond": parse_diamond,
+    "mmseqs2": parse_mmseqs2,
+    "generic": parse_generic,
+}
 
 
 def _bray_curtis(a: dict, b: dict) -> float:
