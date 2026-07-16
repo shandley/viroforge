@@ -167,25 +167,25 @@ animal-virus (#41) and phage-host (#50) cleanups. Verify with
 `viroforge browse` or a query against `body_site_collections`.
 
 ### Body-site collections (1-8)
-1. Gut Virome - Adult Healthy (Western Diet) (133 genomes)
-2. Oral Virome - Saliva (Healthy) (46 genomes)
+1. Gut Virome - Adult Healthy (Western Diet) (134 genomes)
+2. Oral Virome - Saliva (Healthy) (47 genomes)
 3. Skin Virome - Sebaceous Sites (Healthy) (15 genomes)
-4. Respiratory Virome - Nasopharynx (Healthy) (40 genomes)
-5. Marine Virome - Coastal Surface Water (446 genomes)
+4. Respiratory Virome - Nasopharynx (Healthy) (43 genomes)
+5. Marine Virome - Coastal Surface Water (445 genomes)
 6. Soil Virome - Agricultural (290 genomes)
 7. Freshwater Virome - Lake Surface Water (200 genomes)
-8. Mouse Gut Virome - Laboratory (C57BL/6) (21 genomes)
+8. Mouse Gut Virome - Laboratory (C57BL/6) (22 genomes)
 
 ### Disease and environmental collections (9-12)
-9. Wastewater Virome - Urban Treatment Plant (351 genomes)
-10. IBD Gut Virome (Inflammatory Bowel Disease) (89 genomes)
+9. Wastewater Virome - Urban Treatment Plant (352 genomes)
+10. IBD Gut Virome (Inflammatory Bowel Disease) (90 genomes)
 11. HIV+ Gut Virome (55 genomes) - includes human herpesviruses
-12. Cystic Fibrosis (CF) Respiratory Virome (78 genomes)
+12. Cystic Fibrosis (CF) Respiratory Virome (79 genomes)
 
 ### RNA virome collections (13-15)
 13. Human Respiratory RNA Virome (53 genomes)
 14. Arbovirus Environmental (Mosquito Virome) (39 genomes)
-15. Fecal RNA Virome (47 genomes) - includes rotavirus/norovirus
+15. Fecal RNA Virome (46 genomes) - includes rotavirus/norovirus
 
 ### Additional host niches (16-20)
 16. Vaginal Virome (Healthy) (26 genomes) - proxy Lactobacillus phages (see notes)
