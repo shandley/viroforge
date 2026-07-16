@@ -100,11 +100,13 @@ data/ictv/
 # Generated benchmark datasets (large FASTQ files)
 data/benchmark_datasets/
 
+# Session scratch / validation output
+validation/
+
 # SQLite databases with genome data (too large for git)
 *.db
-# Database backups (e.g. viral_genomes.db.bak-pre-renumber-...)
-*.db.bak*
-*.db.bak-*
+# Database backups (any naming: .db.bak-*, .db.preRebuild2.bak, etc.)
+*.bak
 
 # Gzipped genome files
 *.fna.gz
