@@ -2,14 +2,31 @@
 ViroForge: Synthetic virome data generator
 """
 
+import re
+from pathlib import Path
+
 from setuptools import setup, find_packages
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
+
+def _read_version() -> str:
+    """Single source of truth: read __version__ from viroforge/__init__.py.
+
+    Parsed via regex rather than imported, so building the package does not
+    require importing viroforge (and its runtime dependencies).
+    """
+    init = Path(__file__).parent / "viroforge" / "__init__.py"
+    match = re.search(r'^__version__\s*=\s*["\']([^"\']+)["\']', init.read_text(encoding="utf-8"), re.M)
+    if not match:
+        raise RuntimeError("Unable to find __version__ in viroforge/__init__.py")
+    return match.group(1)
+
+
 setup(
     name="viroforge",
-    version="0.14.0",
+    version=_read_version(),
     author="Scott Handley Lab",
     author_email="scott.handley@wustl.edu",
     description="A comprehensive mock metavirome data generator for benchmarking and validation",

@@ -57,8 +57,8 @@ keywords:
   - pipeline validation
   - bioinformatics
 license: MIT
-version: 0.4.0
-date-released: '2025-11-08'
+version: 0.14.0
+date-released: '2026-07-16'
 identifiers:
   - type: url
     value: 'https://github.com/shandley/viroforge'
@@ -166,8 +166,8 @@ preferred-citation:
       orcid: 'https://orcid.org/0000-0001-9464-9708'
     - name: ViroForge Contributors
       website: 'https://github.com/shandley/viroforge/graphs/contributors'
-  version: 0.4.0
-  date-released: '2025-11-08'
+  version: 0.14.0
+  date-released: '2026-07-16'
   repository-code: 'https://github.com/shandley/viroforge'
   license: MIT
   url: 'https://github.com/shandley/viroforge'
