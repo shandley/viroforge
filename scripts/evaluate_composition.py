@@ -128,6 +128,8 @@ def observe_collection(rows: list[dict], props: dict[str, dict]) -> dict:
         "top_families": [
             {"family": f, "abundance": round(a, 4), "count": fam_n[f]} for f, a in top_fam[:12]
         ],
+        # full family->abundance so signature PRESENCE is not limited to the top 12
+        "family_abundance": {f: round(a, 4) for f, a in fam_ab.items()},
         "top_classes": [{"class": c, "abundance": round(a, 4)} for c, a in top_cls[:8]],
     }
 
@@ -193,8 +195,8 @@ def evaluate_site(obs: dict, expect: dict, strictness: float) -> dict:
                          "cite": expect["rna_fraction"].get("cite", [])})
 
     # signature taxa presence / dominance
-    present = {f["family"]: f for f in obs["top_families"]}
-    all_fams_ab = {f["family"]: f["abundance"] for f in obs["top_families"]}
+    # presence from the FULL family map; rank from the top list (dominance only)
+    all_fams_ab = obs.get("family_abundance") or {f["family"]: f["abundance"] for f in obs["top_families"]}
     for sig in expect.get("signature_taxa", []):
         fam = sig["family"]
         ab = all_fams_ab.get(fam, 0.0)

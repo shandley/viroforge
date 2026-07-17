@@ -130,6 +130,21 @@ def test_signature_dominant_requires_rank_one():
     assert res2["site_verdict"] == "major"
 
 
+def test_signature_present_detected_beyond_top12():
+    """A low-abundance signature family (below the top-12) must still count as
+    present - regression for the setup-db rebuild finding where HIV+ Adenoviridae
+    was flagged missing only because it ranked outside the top 12."""
+    rows = [_row(f"Fam{i}", f"phage {i}", 0.07, "Caudoviricetes") for i in range(13)]
+    rows.append(_row("Adenoviridae", "Human adenovirus", 0.01, "Tectiliviricetes"))  # tiny, rank >12
+    obs = ec.observe_collection(rows, PROPS)
+    assert all(f["family"] != "Adenoviridae" for f in obs["top_families"])  # not in top 12
+    assert obs["family_abundance"]["Adenoviridae"] == pytest.approx(0.01)   # but in full map
+    res = ec.evaluate_site(obs, {"signature_taxa": [{"family": "Adenoviridae", "role": "present"}]}, 1.0)
+    sig = [f for f in res["findings"] if f["metric"].startswith("signature:")][0]
+    assert sig["status"] == "present"
+    assert res["site_verdict"] == "ok"
+
+
 def test_phage_fraction_below_band_flags_biology():
     # eukaryote-heavy community; expect high phage -> below band
     rows = [_row("Papillomaviridae", "HPV", 0.9, "Papovaviricetes"),
