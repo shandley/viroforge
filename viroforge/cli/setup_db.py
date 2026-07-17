@@ -238,6 +238,18 @@ def run_setup_db(args) -> int:
         except RuntimeError as e:
             print(f"  WARNING: collection composition correction failed: {e}")
 
+        # (c2) per-collection contamination baselines: sample-type default host/
+        # rRNA/reagent fractions (blood host-heavy, marine host-free, ...) that
+        # `--contamination-level` scales. Literature-informed; adds columns if the
+        # schema predates them. Idempotent.
+        contam_tsv = project_root / "data/reference_profiles/contamination_defaults.tsv"
+        if contam_tsv.exists():
+            try:
+                _run_script(project_root, "scripts/populate_contamination_defaults.py",
+                            ["--apply", "--db", str(db_path), "--defaults", str(contam_tsv)])
+            except RuntimeError as e:
+                print(f"  WARNING: contamination-defaults population failed: {e}")
+
         # (c) abundances: cleanup + corrections change per-genome weights, so some
         # collections no longer sum to 1.0. Rescale each collection back to 1.0.
         try:

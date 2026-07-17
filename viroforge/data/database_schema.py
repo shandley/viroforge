@@ -205,6 +205,18 @@ CREATE TABLE IF NOT EXISTS body_site_collections (
     curation_date TEXT,
     literature_references TEXT,
 
+    -- Collection-specific contamination baselines (percent of the library, 0-100).
+    -- These are sample-type defaults (e.g. blood/plasma is host-DNA heavy, marine
+    -- near host-free). NULL columns fall back to the global preset in
+    -- create_contamination_profile(); when set, --contamination-level acts as a
+    -- MULTIPLIER on them. Values are literature-informed; see
+    -- data/reference_profiles/contamination_defaults.tsv for sources.
+    default_host_pct REAL,
+    default_rrna_pct REAL,
+    default_reagent_pct REAL,
+    default_phix_pct REAL,
+    host_organism TEXT,
+
     -- Version
     version INTEGER DEFAULT 1
 );

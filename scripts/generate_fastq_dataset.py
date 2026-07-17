@@ -384,6 +384,7 @@ class FASTQGenerator:
         read_type: str = "short",
         use_real_references: bool = True,
         erv_kwargs: Optional[Dict] = None,
+        collection_defaults: Optional[Dict] = None,
     ) -> Tuple[List[SeqRecord], List[float], Dict, Optional[ContaminationProfile]]:
         """
         Prepare genome sequences with VLP enrichment and contamination.
@@ -534,6 +535,7 @@ class FASTQGenerator:
                     contamination_level,
                     random_seed=self.random_seed,
                     use_real_references=use_real_references,
+                    collection_defaults=collection_defaults,
                     **(erv_kwargs or {}),
                 )
 
@@ -655,6 +657,7 @@ class FASTQGenerator:
                 contamination_level,
                 random_seed=self.random_seed,
                 use_real_references=use_real_references,
+                collection_defaults=collection_defaults,
                 **(erv_kwargs or {}),
             )
 
@@ -1909,6 +1912,11 @@ Examples:
         if args.erv_exogenous_viruses:
             erv_kwargs['erv_exogenous_viruses'] = args.erv_exogenous_viruses
 
+    # Use the collection's sample-type contamination baseline when it has one
+    # (blood host-heavy, marine host-free, ...); contamination-level then scales it.
+    # Falls back to the global preset when the collection predates the defaults.
+    collection_defaults = collection_meta if collection_meta.get('default_host_pct') is not None else None
+
     sequences, abundances, enrichment_stats, contamination_profile = generator.prepare_genomes(
         genomes,
         vlp_protocol=vlp_protocol,
@@ -1917,6 +1925,7 @@ Examples:
         read_type=read_type,
         use_real_references=use_real,
         erv_kwargs=erv_kwargs or None,
+        collection_defaults=collection_defaults,
     )
 
     # Apply amplification bias

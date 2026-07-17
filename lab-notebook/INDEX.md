@@ -8,7 +8,7 @@
 
 ## Quick Stats
 
-**Total Entries**: 25
+**Total Entries**: 26
 **Phase 1**: Complete (100%)
 **Phase 2**: Complete (100%)
 **Phase 3**: Complete (100%)
@@ -37,7 +37,7 @@
 - Adapter read-through post-processor
 - 23 new tests, all passing
 
-**Latest Entry**: 20260716-010-TAXONOMY (NCBI rank enrichment; data-quality flags cleared)
+**Latest Entry**: 20260717-001-FEATURE (collection-specific contamination profiles)
 
 ### Phase 8.2 Complete - RNA Virome Workflow
 
@@ -879,6 +879,21 @@ shared `align.py` both the assembly and taxonomy modules call.
 vs verified literature (tunable cited reference profile + strictness dial;
 50-ref bibliography via /verify-references). Fixed the genome_type=dsDNA mislabel
 and folded that fix + abundance renormalization into `viroforge setup-db`.
+
+---
+
+### 20260717-001-FEATURE
+
+**ID**: `20260717-001-FEATURE-contamination-profiles.md`
+**Type**: FEATURE
+**Status**: Complete
+
+**Purpose**: Rebuild PR #39 Part 1 cleanly on main - per-collection contamination
+baselines (blood host-heavy, marine host-free, ...) with `--contamination-level`
+as a multiplier. Schema columns + create_contamination_profile(collection_defaults)
++ cited defaults TSV (Salter 2014, ViromeQC 2019) + populate script folded into
+setup-db + generate wiring + 8 tests. Excludes PR #39's FASTA-in-git / unverified
+accessions (Part 2, #37).
 
 ---
 

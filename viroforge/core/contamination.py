@@ -996,25 +996,50 @@ def add_erv_exogenous(
     return profile
 
 
+# Multipliers applied to per-collection contamination baselines when
+# collection_defaults is supplied. With defaults, the level scales the sample-type
+# baseline instead of selecting a fixed global fraction. 'realistic' == the
+# collection's literature value; the others scale it up/down.
+LEVEL_MULTIPLIERS = {
+    'clean': 0.25,
+    'realistic': 1.0,
+    'heavy': 2.5,
+    'failed': 4.0,
+}
+
+# Sane ceilings so a high multiplier cannot push a fraction past what is plausible.
+_MAX_HOST_PCT = 95.0
+_MAX_RRNA_PCT = 95.0
+_MAX_REAGENT_PCT = 50.0
+
+
 def create_contamination_profile(
     profile_type: str = "realistic",
     random_seed: Optional[int] = None,
     use_real_references: bool = True,
+    collection_defaults: Optional[Dict] = None,
     **kwargs
 ) -> ContaminationProfile:
     """
     Create a pre-defined contamination profile.
 
     Args:
-        profile_type: Type of profile to create:
-            - 'clean': Minimal contamination (VLP worked well)
-            - 'realistic': Moderate contamination (typical virome)
-            - 'heavy': High contamination (VLP enrichment failed)
-            - 'failed': Very high contamination (complete failure)
+        profile_type: Type of profile to create. Without ``collection_defaults``
+            this selects a fixed global fraction; with it, it is a MULTIPLIER on
+            the collection's sample-type baseline:
+            - 'clean': well-enriched VLP prep (0.25x baseline)
+            - 'realistic': typical virome (1.0x = the collection baseline)
+            - 'heavy': poor VLP enrichment (2.5x baseline)
+            - 'failed': failed prep (4.0x baseline)
         random_seed: Random seed for reproducibility
         use_real_references: If True, use bundled real reference sequences
             for contamination (rRNA, host DNA, PhiX). If False, generate
             synthetic sequences with correct GC content only.
+        collection_defaults: Optional per-collection contamination baseline, e.g.
+            ``{'default_host_pct': 40.0, 'default_rrna_pct': 0.5, 'host_organism':
+            'human', ...}`` (the body_site_collections row). Any NULL field falls
+            back to the global preset value. When None, behaviour is unchanged
+            (fixed global fractions) - backwards compatible.
         **kwargs: Override default parameters for contamination levels
 
     Returns:
@@ -1083,21 +1108,44 @@ def create_contamination_profile(
 
     config = profile_configs[profile_type]
 
-    # Allow kwargs to override defaults
-    host_dna_pct = kwargs.get('host_dna_pct', config['host_dna_pct'])
-    rrna_pct = kwargs.get('rrna_pct', config['rrna_pct'])
-    reagent_pct = kwargs.get('reagent_pct', config['reagent_pct'])
-    phix_pct = kwargs.get('phix_pct', config['phix_pct'])
     erv_endogenous_pct = kwargs.get('erv_endogenous_pct', config['erv_endogenous_pct'])
     erv_exogenous_pct = kwargs.get('erv_exogenous_pct', config['erv_exogenous_pct'])
 
+    if collection_defaults:
+        # Per-collection sample-type baseline; the level is a multiplier on it.
+        mult = LEVEL_MULTIPLIERS.get(profile_type, 1.0)
+        cd = collection_defaults
+
+        def _base(col_key: str, preset_key: str) -> float:
+            v = cd.get(col_key)
+            return float(v) if v is not None else float(config[preset_key])
+
+        host_dna_pct = kwargs.get('host_dna_pct',
+                                  min(_base('default_host_pct', 'host_dna_pct') * mult, _MAX_HOST_PCT))
+        rrna_pct = kwargs.get('rrna_pct',
+                              min(_base('default_rrna_pct', 'rrna_pct') * mult, _MAX_RRNA_PCT))
+        reagent_pct = kwargs.get('reagent_pct',
+                                 min(_base('default_reagent_pct', 'reagent_pct') * mult, _MAX_REAGENT_PCT))
+        # PhiX is a sequencing spike-in, not sample-type contamination -> not scaled.
+        phix_pct = kwargs.get('phix_pct', _base('default_phix_pct', 'phix_pct'))
+        host_organism = kwargs.get('host_organism', cd.get('host_organism') or 'human')
+        profile_name = f"{cd.get('collection_name', 'collection')}_{profile_type}"
+    else:
+        # Fixed global fractions (original behaviour).
+        host_dna_pct = kwargs.get('host_dna_pct', config['host_dna_pct'])
+        rrna_pct = kwargs.get('rrna_pct', config['rrna_pct'])
+        reagent_pct = kwargs.get('reagent_pct', config['reagent_pct'])
+        phix_pct = kwargs.get('phix_pct', config['phix_pct'])
+        host_organism = kwargs.get('host_organism', 'human')
+        profile_name = config['name']
+
     # Create profile
-    profile = ContaminationProfile(name=config['name'])
+    profile = ContaminationProfile(name=profile_name)
 
     # Add contaminants
     add_host_contamination(
         profile,
-        host_organism=kwargs.get('host_organism', 'human'),
+        host_organism=host_organism,
         abundance_pct=host_dna_pct,
         random_seed=random_seed,
         use_real_references=use_real_references,

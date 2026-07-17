@@ -1,0 +1,43 @@
+# ViroForge per-collection contamination baselines
+# ==================================================
+# Sample-type default contamination fractions (percent of the library) at the
+# 'realistic' level. `viroforge generate --contamination-level` scales these:
+# clean 0.25x / realistic 1.0x / heavy 2.5x / failed 4.0x (see
+# viroforge/core/contamination.py LEVEL_MULTIPLIERS). Populated into
+# body_site_collections by scripts/populate_contamination_defaults.py (folded
+# into setup-db). NULL/absent -> global preset fallback.
+#
+# These are literature-INFORMED modeling defaults, not per-site empirical
+# measurements (the virome literature does not report site-specific VLP-prep host
+# fractions). They are set by three well-established drivers:
+#   - Host-cell-rich mucosal/tissue samples carry high human DNA (respiratory,
+#     skin, vaginal, blood cfDNA); environmental samples are near host-free.
+#   - Low-microbial-biomass samples (blood, ocular, urinary, lung) are dominated
+#     by reagent/"kitome" contamination (Salter et al. 2014, BMC Biol, PMID 25387460).
+#   - Viromes carry quantifiable host + rRNA contamination that QC must detect
+#     (Zolfo et al. 2019, ViromeQC, Nat Biotechnol, PMID 31748692). RNA-workflow
+#     collections carry a higher ribosomal-RNA baseline (pre-depletion).
+# PhiX is a sequencing spike-in (~0.1%), constant and not scaled by level.
+#
+# Columns: collection_id, host_organism, host_pct, rrna_pct, reagent_pct, phix_pct, rationale
+collection_id	host_organism	host_pct	rrna_pct	reagent_pct	phix_pct	rationale
+1	human	5.0	3.0	0.5	0.1	fecal VLP prep, moderate human DNA
+2	human	10.0	4.0	0.5	0.1	saliva, buccal epithelial cells
+3	human	15.0	3.0	1.0	0.1	skin is human-cell rich, lower microbial biomass
+4	human	20.0	4.0	0.5	0.1	nasopharyngeal airway epithelial cells
+5	none	0.05	5.0	0.5	0.1	marine environmental, host-free, bacterial rRNA
+6	none	0.05	4.0	0.5	0.1	soil environmental, host-free
+7	none	0.05	5.0	0.5	0.1	freshwater environmental, host-free
+8	mouse	3.0	3.0	0.5	0.1	murine fecal prep, moderate mouse DNA
+9	human	1.0	8.0	0.5	0.1	wastewater; low human input, high bacterial rRNA
+10	human	5.0	3.0	0.5	0.1	IBD gut, fecal prep like healthy gut
+11	human	5.0	3.0	0.5	0.1	HIV+ gut, fecal prep like healthy gut
+12	human	25.0	5.0	0.5	0.1	CF sputum, very host-rich (neutrophil DNA)
+13	human	15.0	10.0	0.5	0.1	respiratory RNA workflow, high ribosomal-RNA baseline
+14	none	0.05	8.0	0.5	0.1	mosquito arbovirus, no human host; RNA rRNA baseline
+15	human	5.0	12.0	0.5	0.1	fecal RNA workflow, high ribosomal-RNA baseline
+16	human	20.0	3.0	0.5	0.1	vaginal, epithelial cells
+17	human	40.0	0.5	1.0	0.1	plasma cfDNA-dominant; low biomass, low bacterial rRNA
+18	human	15.0	2.0	2.0	0.1	ocular surface paucibacterial, kitome-dominated
+19	human	25.0	4.0	1.0	0.1	lung BAL, host-rich low-biomass airway
+20	human	10.0	3.0	1.0	0.1	urinary, low-biomass, some kitome
