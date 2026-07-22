@@ -293,7 +293,7 @@ class TestMDAAmplification:
         mda = MDAAmplification()
 
         assert mda.amplification_time == 4.0
-        assert mda.gc_bias_strength == 3.0
+        assert mda.gc_bias_strength == 1.5
         assert mda.stochasticity == 0.3
         assert mda.chimera_rate == 0.15
 
@@ -434,7 +434,7 @@ class TestPreDefinedProtocols:
 
         assert isinstance(amp, MDAAmplification)
         assert amp.amplification_time == 4.0
-        assert amp.gc_bias_strength == 3.0
+        assert amp.gc_bias_strength == 1.5
 
     def test_mda_overnight_protocol(self):
         """Test mda_overnight protocol."""
