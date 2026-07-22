@@ -95,11 +95,15 @@ class SubsetSelector:
             query += " AND g.length <= ?"
             params.append(filters['length_max'])
 
-        query += " ORDER BY RANDOM() LIMIT ?"
-        params.append(count)
-
         cursor = conn.execute(query, params)
-        results = [dict(row) for row in cursor.fetchall()]
+        all_rows = [dict(row) for row in cursor.fetchall()]
+
+        # Use seeded Python random for reproducibility
+        # (SQLite RANDOM() ignores Python's random seed)
+        if len(all_rows) > count:
+            results = random.sample(all_rows, count)
+        else:
+            results = all_rows
 
         conn.close()
         return results
@@ -147,11 +151,12 @@ class SubsetSelector:
                 FROM genomes g
                 JOIN taxonomy t ON g.genome_id = t.genome_id
                 WHERE t.family = ?
-                ORDER BY RANDOM()
-                LIMIT ?
-            """, (family, family_count))
+            """, (family,))
 
-            selected.extend([dict(row) for row in cursor.fetchall()])
+            family_rows = [dict(row) for row in cursor.fetchall()]
+            if len(family_rows) > family_count:
+                family_rows = random.sample(family_rows, family_count)
+            selected.extend(family_rows)
 
             if len(selected) >= count:
                 break
@@ -197,11 +202,12 @@ class SubsetSelector:
                 FROM genomes g
                 JOIN taxonomy t ON g.genome_id = t.genome_id
                 WHERE t.family = ?
-                ORDER BY RANDOM()
-                LIMIT ?
-            """, (family, per_family))
+            """, (family,))
 
-            selected.extend([dict(row) for row in cursor.fetchall()])
+            family_rows = [dict(row) for row in cursor.fetchall()]
+            if len(family_rows) > per_family:
+                family_rows = random.sample(family_rows, per_family)
+            selected.extend(family_rows)
 
         conn.close()
         return selected
@@ -241,11 +247,12 @@ class SubsetSelector:
                 FROM genomes g
                 LEFT JOIN taxonomy t ON g.genome_id = t.genome_id
                 WHERE g.length >= ? AND g.length < ?
-                ORDER BY RANDOM()
-                LIMIT ?
-            """, (min_len, max_len, bin_count))
+            """, (min_len, max_len))
 
-            selected.extend([dict(row) for row in cursor.fetchall()])
+            bin_rows = [dict(row) for row in cursor.fetchall()]
+            if len(bin_rows) > bin_count:
+                bin_rows = random.sample(bin_rows, bin_count)
+            selected.extend(bin_rows)
 
         conn.close()
         random.shuffle(selected)
@@ -288,11 +295,12 @@ class SubsetSelector:
                 FROM genomes g
                 LEFT JOIN taxonomy t ON g.genome_id = t.genome_id
                 WHERE g.genome_type = ?
-                ORDER BY RANDOM()
-                LIMIT ?
-            """, (gtype, type_count))
+            """, (gtype,))
 
-            selected.extend([dict(row) for row in cursor.fetchall()])
+            type_rows = [dict(row) for row in cursor.fetchall()]
+            if len(type_rows) > type_count:
+                type_rows = random.sample(type_rows, type_count)
+            selected.extend(type_rows)
 
         conn.close()
         random.shuffle(selected)
