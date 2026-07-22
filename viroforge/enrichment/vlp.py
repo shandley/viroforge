@@ -142,9 +142,9 @@ class FiltrationCurve:
         pore_size_nm = pore_size_um * 1000
 
         # Sigmoid centered at pore size
-        # Small virions (<pore size) → low retention
-        # Large virions (>pore size) → high retention
-        retention = 1 / (1 + np.exp(-steepness * (virion_diameter_nm - pore_size_nm)))
+        # Small virions (<pore size) pass through filter → high recovery
+        # Large virions (>pore size) blocked by filter → low recovery
+        retention = 1 / (1 + np.exp(steepness * (virion_diameter_nm - pore_size_nm)))
 
         return retention
 
@@ -154,10 +154,10 @@ class FiltrationCurve:
         Step function retention (ideal filter)
 
         Returns:
-            1.0 if diameter > pore size, else 0.0
+            1.0 if diameter < pore size (passes through), else 0.0 (blocked)
         """
         pore_size_nm = pore_size_um * 1000
-        return 1.0 if virion_diameter_nm > pore_size_nm else 0.0
+        return 0.0 if virion_diameter_nm > pore_size_nm else 1.0
 
     @staticmethod
     def linear(virion_diameter_nm: float, pore_size_um: float, transition_width_nm: float = 100) -> float:
@@ -175,13 +175,13 @@ class FiltrationCurve:
         pore_size_nm = pore_size_um * 1000
 
         if virion_diameter_nm < pore_size_nm - transition_width_nm/2:
-            return 0.0
+            return 1.0  # Well below pore size → passes through easily
         elif virion_diameter_nm > pore_size_nm + transition_width_nm/2:
-            return 1.0
+            return 0.0  # Well above pore size → blocked by filter
         else:
             # Linear interpolation in transition region
             position = (virion_diameter_nm - (pore_size_nm - transition_width_nm/2)) / transition_width_nm
-            return position
+            return 1.0 - position
 
 
 @dataclass
