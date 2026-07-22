@@ -29,6 +29,7 @@ Usage:
 """
 
 import logging
+import math
 import random
 from pathlib import Path
 from typing import Optional
@@ -152,14 +153,14 @@ def _compute_mda_hotspot_weights(
                 dist = abs(norm_pos - hp)
                 # Wrap-around for circular genomes
                 dist = min(dist, 1.0 - dist)
-                hotspot_weight += intensity * 2.718 ** (-(dist ** 2) / (2 * (hotspot_width ** 2)))
+                hotspot_weight += intensity * math.exp(-(dist ** 2) / (2 * (hotspot_width ** 2)))
 
             # Add baseline weight (even cold regions get some amplification)
             hotspot_weight = max(0.1, hotspot_weight)
 
             # GC bias (phi29 optimal at 40%)
             gc = _compute_gc(str(records[list_idx].seq))
-            gc_weight = 2.718 ** (-((gc - 0.40) ** 2) / (2 * 0.10 ** 2))
+            gc_weight = math.exp(-((gc - 0.40) ** 2) / (2 * 0.10 ** 2))
 
             # Stochastic noise
             stochastic = rng.lognormvariate(0, 0.5)
@@ -201,7 +202,7 @@ def _compute_pcr_bias_weights(
         gc = _compute_gc(seq)
 
         # GC bias: peak efficiency at ~50% GC, drops at extremes
-        gc_weight = 2.718 ** (-((gc - 0.50) ** 2) / (2 * 0.15 ** 2))
+        gc_weight = math.exp(-((gc - 0.50) ** 2) / (2 * 0.15 ** 2))
 
         # Length bias: shorter fragments amplify better
         len_weight = max(0.3, 1.0 - (read_len - 100) / 500)
