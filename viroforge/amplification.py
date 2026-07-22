@@ -337,7 +337,9 @@ class MDAAmplification(AmplificationMethod):
 
     Attributes:
         amplification_time_hours: MDA reaction time (2-16 hours typical)
-        gc_bias_strength: Intensity of GC bias (typically 2-5x stronger than PCR)
+        gc_bias_strength: Intensity of GC bias (typically 1-2x stronger than PCR).
+            Published phi29 bias is ~2-10x between favorable and unfavorable
+            GC (Pinard et al. 2006, PMID 17032440).
         stochasticity: Random variation (CV, typically 0.2-0.5)
         chimera_rate: Fraction of chimeric reads (0-0.3)
         random_seed: Random seed for reproducibility
@@ -346,14 +348,14 @@ class MDAAmplification(AmplificationMethod):
         >>> from viroforge.amplification import MDAAmplification
         >>>
         >>> composition = create_mock_virome('gut', 'clean')
-        >>> mda = MDAAmplification(amplification_time_hours=4, gc_bias_strength=3.0)
-        >>> mda.apply(composition)  # Extreme GC bias and stochasticity
+        >>> mda = MDAAmplification(amplification_time_hours=4, gc_bias_strength=1.5)
+        >>> mda.apply(composition)  # Moderate GC bias and high stochasticity
     """
 
     def __init__(
         self,
         amplification_time_hours: float = 4.0,
-        gc_bias_strength: float = 3.0,
+        gc_bias_strength: float = 1.5,
         stochasticity: float = 0.3,
         chimera_rate: float = 0.15,
         random_seed: Optional[int] = None
@@ -363,7 +365,7 @@ class MDAAmplification(AmplificationMethod):
 
         Args:
             amplification_time_hours: Reaction time (2-16 hours)
-            gc_bias_strength: Intensity of GC bias (2-5, stronger than RdAB)
+            gc_bias_strength: Intensity of GC bias (1-3, stronger than RdAB)
             stochasticity: Random variation (CV, 0-1)
             chimera_rate: Fraction of chimeric products (0-0.3)
             random_seed: Random seed for reproducibility
@@ -785,7 +787,7 @@ def mda_standard() -> MDAAmplification:
     """
     return MDAAmplification(
         amplification_time_hours=4.0,
-        gc_bias_strength=3.0,
+        gc_bias_strength=1.5,
         stochasticity=0.3
     )
 
@@ -794,10 +796,11 @@ def mda_overnight() -> MDAAmplification:
     """
     Overnight MDA with 16 hour amplification.
 
-    Very extreme bias, maximum amplification for lowest biomass samples.
+    Stronger bias than standard, maximum amplification for lowest
+    biomass samples.
 
     Returns:
-        MDAAmplification with 16h, very strong bias
+        MDAAmplification with 16h, stronger bias
 
     Example:
         >>> from viroforge.amplification import mda_overnight
@@ -806,7 +809,7 @@ def mda_overnight() -> MDAAmplification:
     """
     return MDAAmplification(
         amplification_time_hours=16.0,
-        gc_bias_strength=3.5,
+        gc_bias_strength=2.0,
         stochasticity=0.4
     )
 

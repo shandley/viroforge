@@ -157,9 +157,10 @@ def _compute_mda_hotspot_weights(
             # Add baseline weight (even cold regions get some amplification)
             hotspot_weight = max(0.1, hotspot_weight)
 
-            # GC bias (phi29 optimal at 40%)
+            # GC bias (phi29 optimal at 40%, sigma=0.18 for ~2-5x bias
+            # at 60% GC, matching published MDA data: Pinard et al. 2006)
             gc = _compute_gc(str(records[list_idx].seq))
-            gc_weight = 2.718 ** (-((gc - 0.40) ** 2) / (2 * 0.10 ** 2))
+            gc_weight = 2.718 ** (-((gc - 0.40) ** 2) / (2 * 0.18 ** 2))
 
             # Stochastic noise
             stochastic = rng.lognormvariate(0, 0.5)
