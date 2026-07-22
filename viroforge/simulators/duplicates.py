@@ -33,6 +33,8 @@ import random
 from pathlib import Path
 from typing import Optional
 
+import numpy as np
+
 from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
@@ -340,20 +342,14 @@ def add_pcr_duplicates(
     # Select template indices (weighted by GC/length bias or uniform)
     if gc_length_bias and total_reads > 0:
         weights = _compute_pcr_bias_weights(r1_records, rng, amplification_method)
-        # Weighted sampling without replacement
-        indices = list(range(total_reads))
-        selected = []
-        remaining_weights = weights[:]
-        remaining_indices = indices[:]
-        for _ in range(min(n_templates, total_reads)):
-            chosen = rng.choices(remaining_indices, weights=remaining_weights, k=1)[0]
-            selected.append(chosen)
-            idx = remaining_indices.index(chosen)
-            remaining_indices.pop(idx)
-            remaining_weights.pop(idx)
-            if not remaining_indices:
-                break
-        template_indices = set(selected)
+        # Weighted sampling without replacement using numpy
+        # (O(n) vs previous O(n*k) loop with list.index scans)
+        n_select = min(n_templates, total_reads)
+        w = np.array(weights, dtype=np.float64)
+        w /= w.sum()
+        nprng = np.random.default_rng(random_seed)
+        selected = nprng.choice(total_reads, size=n_select, replace=False, p=w)
+        template_indices = set(selected.tolist())
     else:
         template_indices = set(
             rng.sample(range(total_reads), min(n_templates, total_reads))
