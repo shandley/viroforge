@@ -575,6 +575,7 @@ class FASTQGenerator:
             read_type,
             use_real_references=use_real_references,
             erv_kwargs=erv_kwargs,
+            collection_defaults=collection_defaults,
         )
 
         return sequences, abundances, stats, contam_profile
@@ -589,6 +590,7 @@ class FASTQGenerator:
         read_type: str = "short",
         use_real_references: bool = True,
         erv_kwargs: Optional[Dict] = None,
+        collection_defaults: Optional[Dict] = None,
     ) -> Tuple[List[SeqRecord], List[float], Dict, ContaminationProfile]:
         """
         Apply VLP enrichment protocol with size-based enrichment and contamination reduction.
