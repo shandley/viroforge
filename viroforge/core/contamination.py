@@ -26,7 +26,6 @@ import random
 import logging
 
 import numpy as np
-import pandas as pd
 from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
@@ -319,7 +318,7 @@ class ContaminationProfile:
 
         return type_abundances
 
-    def get_contamination_table(self) -> pd.DataFrame:
+    def get_contamination_table(self):
         """
         Get contamination table as pandas DataFrame.
 
@@ -338,6 +337,7 @@ class ContaminationProfile:
                 'gc_content': contaminant.gc_content
             })
 
+        import pandas as pd
         return pd.DataFrame(data)
 
     def get_summary_stats(self) -> Dict:
