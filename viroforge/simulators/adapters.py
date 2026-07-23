@@ -32,6 +32,8 @@ from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 
+from . import load_paired_fastq
+
 logger = logging.getLogger(__name__)
 
 # Standard Illumina adapter sequences that appear in read-through.
@@ -188,14 +190,7 @@ def add_adapter_readthrough(
     )
 
     # Read all records
-    r1_records = list(SeqIO.parse(r1_path, "fastq"))
-    r2_records = list(SeqIO.parse(r2_path, "fastq"))
-
-    if len(r1_records) != len(r2_records):
-        raise ValueError(
-            f"R1 and R2 have different read counts: "
-            f"{len(r1_records)} vs {len(r2_records)}"
-        )
+    r1_records, r2_records = load_paired_fastq(r1_path, r2_path)
 
     total_reads = len(r1_records)
     n_to_modify = int(total_reads * adapter_rate)
@@ -366,14 +361,7 @@ def add_insert_size_adapters(
         output_r1 = output_r1 or r1_path.parent / f"{r1_path.stem}_adapters{r1_path.suffix}"
         output_r2 = output_r2 or r2_path.parent / f"{r2_path.stem}_adapters{r2_path.suffix}"
 
-    r1_records = list(SeqIO.parse(r1_path, "fastq"))
-    r2_records = list(SeqIO.parse(r2_path, "fastq"))
-
-    if len(r1_records) != len(r2_records):
-        raise ValueError(
-            f"R1 and R2 have different read counts: "
-            f"{len(r1_records)} vs {len(r2_records)}"
-        )
+    r1_records, r2_records = load_paired_fastq(r1_path, r2_path)
 
     total_reads = len(r1_records)
     read_length = len(r1_records[0].seq) if r1_records else 150
