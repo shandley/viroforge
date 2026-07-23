@@ -450,10 +450,11 @@ def add_host_contamination(
 
     # Use local RNG instead of global state for thread safety
     if random_seed is not None:
-        rng = np.random.default_rng(random_seed)
-        random.seed(random_seed)  # Still needed for random.choice()
+        nprng = np.random.default_rng(random_seed)
+        rng = random.Random(random_seed)
     else:
-        rng = np.random.default_rng()
+        nprng = np.random.default_rng()
+        rng = random.Random()
 
     # Map organism to genome info
     host_info = {
@@ -505,13 +506,13 @@ def add_host_contamination(
         for i in range(n_fragments):
             if use_fragments:
                 # Pre-cut fragments: sample with replacement
-                record = random.choice(records)
+                record = rng.choice(records)
                 fragment_seq = record.seq
             else:
                 # Full genome: randomly select chromosome and position
-                record = random.choice(records)
+                record = rng.choice(records)
                 if len(record.seq) > fragment_length:
-                    start = random.randint(0, len(record.seq) - fragment_length)
+                    start = rng.randint(0, len(record.seq) - fragment_length)
                     fragment_seq = record.seq[start:start + fragment_length]
                 else:
                     fragment_seq = record.seq
@@ -588,10 +589,11 @@ def add_rrna_contamination(
 
     # Use local RNG instead of global state for thread safety
     if random_seed is not None:
-        rng = np.random.default_rng(random_seed)
-        random.seed(random_seed)  # Still needed for random.choice()
+        nprng = np.random.default_rng(random_seed)
+        rng = random.Random(random_seed)
     else:
-        rng = np.random.default_rng()
+        nprng = np.random.default_rng()
+        rng = random.Random()
 
     logger.info(f"Adding {abundance_pct}% rRNA contamination")
 
@@ -609,10 +611,10 @@ def add_rrna_contamination(
         records = list(SeqIO.parse(resolved_path, 'fasta'))
 
         if len(records) >= n_sequences:
-            sampled_records = random.sample(records, n_sequences)
+            sampled_records = rng.sample(records, n_sequences)
         else:
             # Sample with replacement when bundled set is smaller than requested
-            sampled_records = random.choices(records, k=n_sequences)
+            sampled_records = rng.choices(records, k=n_sequences)
 
         for i, record in enumerate(sampled_records):
             contaminant = ContaminantGenome(
@@ -643,11 +645,11 @@ def add_rrna_contamination(
         for domain in domains:
             for i in range(sequences_per_domain):
                 # Select random rRNA type
-                rrna_type = random.choice(list(rrna_types.keys()))
+                rrna_type = rng.choice(list(rrna_types.keys()))
                 length = rrna_types[rrna_type]
 
                 # rRNA typically has higher GC content
-                gc_content = rng.normal(55.0, 5.0)
+                gc_content = nprng.normal(55.0, 5.0)
                 gc_content = np.clip(gc_content, 40.0, 70.0)
 
                 seq = _generate_sequence_with_gc(length, gc_content)
@@ -697,10 +699,11 @@ def add_reagent_contamination(
     """
     # Use local RNG instead of global state for thread safety
     if random_seed is not None:
-        rng = np.random.default_rng(random_seed)
-        random.seed(random_seed)  # Still needed for random.choice()
+        nprng = np.random.default_rng(random_seed)
+        rng = random.Random(random_seed)
     else:
-        rng = np.random.default_rng()
+        nprng = np.random.default_rng()
+        rng = random.Random()
 
     # Common reagent contaminants from Salter et al. 2014
     if species is None:
@@ -722,7 +725,7 @@ def add_reagent_contamination(
         logger.info(f"Sampling reagent bacteria from {reagent_database_path}")
         records = list(SeqIO.parse(reagent_database_path, 'fasta'))
 
-        sampled_records = random.sample(records, min(n_genomes, len(records)))
+        sampled_records = rng.sample(records, min(n_genomes, len(records)))
 
         for i, record in enumerate(sampled_records):
             contaminant = ContaminantGenome(
@@ -740,14 +743,14 @@ def add_reagent_contamination(
         # Create synthetic reagent bacterial genomes
         logger.info("No database path provided, creating synthetic reagent bacteria")
 
-        selected_species = random.sample(species, min(n_genomes, len(species)))
+        selected_species = rng.sample(species, min(n_genomes, len(species)))
 
         for i, sp in enumerate(selected_species):
             # Typical bacterial genome: 3-6 Mbp
-            genome_length = int(rng.uniform(3e6, 6e6))
+            genome_length = int(nprng.uniform(3e6, 6e6))
 
             # Bacterial genomes typically 40-60% GC
-            gc_content = rng.uniform(40.0, 60.0)
+            gc_content = nprng.uniform(40.0, 60.0)
 
             seq = _generate_sequence_with_gc(genome_length, gc_content)
 
@@ -852,7 +855,9 @@ def add_erv_endogenous(
     from viroforge.data.references.resolver import _resolve
 
     if random_seed is not None:
-        random.seed(random_seed)
+        rng = random.Random(random_seed)
+    else:
+        rng = random.Random()
 
     logger.info(f"Adding {abundance_pct}% endogenous retroviral (ERV) contamination")
 
@@ -870,9 +875,9 @@ def add_erv_endogenous(
         records = list(SeqIO.parse(resolved_path, "fasta"))
 
         if len(records) >= n_sequences:
-            sampled = random.sample(records, n_sequences)
+            sampled = rng.sample(records, n_sequences)
         else:
-            sampled = random.choices(records, k=n_sequences)
+            sampled = rng.choices(records, k=n_sequences)
 
         for i, record in enumerate(sampled):
             # Parse family from record ID if available (e.g., HERV-K, HERV-W)
@@ -926,7 +931,9 @@ def add_erv_exogenous(
     import sqlite3
 
     if random_seed is not None:
-        random.seed(random_seed)
+        rng = random.Random(random_seed)
+    else:
+        rng = random.Random()
 
     logger.info(f"Adding {abundance_pct}% exogenous retroviral contamination")
 
@@ -974,9 +981,9 @@ def add_erv_exogenous(
 
     # Sample from available retroviruses
     if len(rows) >= n_sequences:
-        selected = random.sample(rows, n_sequences)
+        selected = rng.sample(rows, n_sequences)
     else:
-        selected = random.choices(rows, k=n_sequences)
+        selected = rng.choices(rows, k=n_sequences)
 
     for i, (genome_id, genome_name, sequence, genus) in enumerate(selected):
         # Extract a short virus name for the tag
@@ -1051,10 +1058,11 @@ def create_contamination_profile(
     """
     # Use local RNG instead of global state for thread safety
     if random_seed is not None:
-        rng = np.random.default_rng(random_seed)
-        random.seed(random_seed)  # Still needed for random.choice()
+        nprng = np.random.default_rng(random_seed)
+        rng = random.Random(random_seed)
     else:
-        rng = np.random.default_rng()
+        nprng = np.random.default_rng()
+        rng = random.Random()
 
     # Pre-defined contamination profiles based on ViromeQC paper
     profile_configs = {
@@ -1249,10 +1257,11 @@ def add_host_rna_contamination(
     """
     # Use local RNG instead of global state for thread safety
     if random_seed is not None:
-        rng = np.random.default_rng(random_seed)
-        random.seed(random_seed)
+        nprng = np.random.default_rng(random_seed)
+        rng = random.Random(random_seed)
     else:
-        rng = np.random.default_rng()
+        nprng = np.random.default_rng()
+        rng = random.Random()
 
     # Map organism to RNA info
     host_info = {
@@ -1309,7 +1318,7 @@ def add_host_rna_contamination(
             rrna_records = host_rrna if host_rrna else all_rrna
 
     if rrna_records:
-        sampled = random.choices(rrna_records, k=n_rrna)
+        sampled = rng.choices(rrna_records, k=n_rrna)
         for i, record in enumerate(sampled):
             contaminant = ContaminantGenome(
                 genome_id=f"host_rna_rrna_{i:04d}",
@@ -1355,7 +1364,7 @@ def add_host_rna_contamination(
             host_records = list(SeqIO.parse(fragments_path, 'fasta'))
 
     if host_records:
-        sampled = random.choices(host_records, k=n_transcripts)
+        sampled = rng.choices(host_records, k=n_transcripts)
         for i, record in enumerate(sampled):
             contaminant = ContaminantGenome(
                 genome_id=f"host_rna_mrna_{i:04d}",
@@ -1370,8 +1379,8 @@ def add_host_rna_contamination(
     else:
         logger.info("No host reference available, creating synthetic mRNA transcripts")
         for i in range(n_transcripts):
-            length = int(rng.uniform(500, 5000))
-            gc_content = rng.normal(organism_info['gc_content'], 5.0)
+            length = int(nprng.uniform(500, 5000))
+            gc_content = nprng.normal(organism_info['gc_content'], 5.0)
             gc_content = np.clip(gc_content, 30.0, 60.0)
             seq = _generate_sequence_with_gc(length, gc_content)
             contaminant = ContaminantGenome(
@@ -1427,10 +1436,11 @@ def add_bacterial_rna_contamination(
     """
     # Use local RNG instead of global state for thread safety
     if random_seed is not None:
-        rng = np.random.default_rng(random_seed)
-        random.seed(random_seed)
+        nprng = np.random.default_rng(random_seed)
+        rng = random.Random(random_seed)
     else:
-        rng = np.random.default_rng()
+        nprng = np.random.default_rng()
+        rng = random.Random()
 
     logger.info(f"Adding {abundance_pct}% bacterial RNA contamination ({microbiome_type})")
 
@@ -1474,7 +1484,7 @@ def add_bacterial_rna_contamination(
             ]
 
     if bact_rrna_records:
-        sampled = random.choices(bact_rrna_records, k=n_rrna)
+        sampled = rng.choices(bact_rrna_records, k=n_rrna)
         for i, record in enumerate(sampled):
             contaminant = ContaminantGenome(
                 genome_id=f"bacterial_rna_rrna_{i:04d}",
@@ -1488,10 +1498,10 @@ def add_bacterial_rna_contamination(
             profile.add_contaminant(contaminant)
     else:
         for i in range(n_rrna):
-            genus = random.choice(taxa)
-            rrna_type = random.choice(['16S', '23S'])
+            genus = rng.choice(taxa)
+            rrna_type = rng.choice(['16S', '23S'])
             length = 1500 if rrna_type == '16S' else 2900
-            gc_content = rng.normal(55.0, 5.0)
+            gc_content = nprng.normal(55.0, 5.0)
             gc_content = np.clip(gc_content, 45.0, 65.0)
             seq = _generate_sequence_with_gc(length, gc_content)
             contaminant = ContaminantGenome(
@@ -1509,11 +1519,11 @@ def add_bacterial_rna_contamination(
     abundance_per_mrna = (mrna_abundance / 100.0) / n_transcripts
 
     for i in range(n_transcripts):
-        genus = random.choice(taxa)
+        genus = rng.choice(taxa)
 
         # Bacterial mRNA: 300-3000 bp
-        length = int(rng.uniform(300, 3000))
-        gc_content = rng.uniform(40.0, 60.0)
+        length = int(nprng.uniform(300, 3000))
+        gc_content = nprng.uniform(40.0, 60.0)
 
         seq = _generate_sequence_with_gc(length, gc_content)
 
@@ -1569,10 +1579,11 @@ def create_rna_contamination_profile(
     """
     # Use local RNG
     if random_seed is not None:
-        rng = np.random.default_rng(random_seed)
-        random.seed(random_seed)
+        nprng = np.random.default_rng(random_seed)
+        rng = random.Random(random_seed)
     else:
-        rng = np.random.default_rng()
+        nprng = np.random.default_rng()
+        rng = random.Random()
 
     # RNA contamination profiles (assuming Ribo-Zero applied)
     rna_profile_configs = {
@@ -1701,17 +1712,24 @@ def create_rna_contamination_profile(
     return profile
 
 
-def _generate_sequence_with_gc(length: int, gc_content: float) -> str:
+def _generate_sequence_with_gc(
+    length: int, gc_content: float, rng: Optional[random.Random] = None
+) -> str:
     """
     Generate a random DNA sequence with specified GC content.
 
     Args:
         length: Length of sequence to generate
         gc_content: Desired GC content (0-100)
+        rng: Optional random.Random instance for reproducibility.
+            If None, a new instance is created.
 
     Returns:
         Random DNA sequence string
     """
+    if rng is None:
+        rng = random.Random()
+
     gc_fraction = gc_content / 100.0
 
     # Calculate number of G/C and A/T bases
@@ -1726,7 +1744,7 @@ def _generate_sequence_with_gc(length: int, gc_content: float) -> str:
 
     # Create sequence and shuffle
     seq_list = ['G'] * n_g + ['C'] * n_c + ['A'] * n_a + ['T'] * n_t
-    random.shuffle(seq_list)
+    rng.shuffle(seq_list)
 
     return ''.join(seq_list)
 
