@@ -52,17 +52,47 @@ def parse_kraken2(path) -> dict[str, int | None]:
     return out
 
 
-def parse_generic(path) -> dict[str, int | None]:
-    """Generic TSV -> {read_id: taxid or None}. Columns: read_id, taxid[, ...]."""
+def _detect_delimiter(path) -> str:
+    """Detect whether a file uses tab, comma, or whitespace as delimiter."""
+    with open(path) as fh:
+        for line in fh:
+            if line.startswith("#"):
+                continue
+            line = line.rstrip("\n")
+            if not line:
+                continue
+            if "\t" in line:
+                return "\t"
+            if "," in line:
+                return ","
+            return None  # split on any whitespace
+    return "\t"
+
+
+def parse_generic(path, read_id_col: int = 1, taxid_col: int = 2) -> dict[str, int | None]:
+    """Parse a delimited classification file -> {read_id: taxid or None}.
+
+    Supports tab-separated, comma-separated, and space-separated files
+    (auto-detected). Skips lines starting with '#'.
+
+    Args:
+        path: Path to classification file.
+        read_id_col: 1-based column number for read IDs (default: 1).
+        taxid_col: 1-based column number for taxids (default: 2).
+    """
+    ri = read_id_col - 1  # convert to 0-based
+    ti = taxid_col - 1
+    min_cols = max(ri, ti) + 1
+    delimiter = _detect_delimiter(path)
     out: dict[str, int | None] = {}
     with open(path) as fh:
         for line in fh:
             if line.startswith("#"):
                 continue
-            parts = line.rstrip("\n").split("\t")
-            if len(parts) < 2:
+            parts = line.rstrip("\n").split(delimiter)
+            if len(parts) < min_cols:
                 continue
-            out[parts[0]] = _to_taxid(parts[1])
+            out[parts[ri]] = _to_taxid(parts[ti])
     return out
 
 
@@ -117,12 +147,61 @@ def parse_mmseqs2(path) -> dict[str, int | None]:
     return out
 
 
+def detect_format(path) -> str:
+    """Auto-detect classification output format by inspecting the first lines.
+
+    Returns one of: kraken2, centrifuge, diamond, mmseqs2, generic.
+    """
+    with open(path) as fh:
+        lines = []
+        for line in fh:
+            if line.startswith("#"):
+                continue
+            lines.append(line.rstrip("\n"))
+            if len(lines) >= 5:
+                break
+
+    if not lines:
+        return "generic"
+
+    # Centrifuge: header line starts with "readID"
+    if lines[0].startswith("readID\t"):
+        return "centrifuge"
+
+    first = lines[0].split("\t")
+
+    # Kraken2/Kaiju: first column is C or U (classified/unclassified),
+    # with at least 3 columns (C/U, read_id, taxid). Kraken2 has 5+,
+    # Kaiju default has 3, Kaiju verbose has 7 — all share columns 1-3.
+    if len(first) >= 3 and first[0] in ("C", "U"):
+        return "kraken2"
+
+    # MMseqs2: 4+ columns, column 3 is a taxonomic rank name
+    rank_names = {"no rank", "species", "genus", "family", "order", "class",
+                  "phylum", "kingdom", "superkingdom", "clade"}
+    if len(first) >= 4 and first[2].strip().lower() in rank_names:
+        return "mmseqs2"
+
+    # DIAMOND outfmt 102: 3 columns (query, taxid, evalue)
+    if len(first) == 3:
+        try:
+            int(first[1])
+            float(first[2])
+            return "diamond"
+        except ValueError:
+            pass
+
+    # Default: 2+ columns with a taxid in column 2
+    return "generic"
+
+
 PARSERS = {
     "kraken2": parse_kraken2,
     "centrifuge": parse_centrifuge,
     "diamond": parse_diamond,
     "mmseqs2": parse_mmseqs2,
     "generic": parse_generic,
+    "auto": None,  # sentinel; resolved by detect_format()
 }
 
 
