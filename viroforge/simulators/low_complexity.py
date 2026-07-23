@@ -35,6 +35,8 @@ from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 
+from . import load_paired_fastq
+
 logger = logging.getLogger(__name__)
 
 # Artifact type definitions with relative frequencies based on
@@ -295,14 +297,7 @@ def add_low_complexity_reads(
         f"Injecting {rate:.1%} low-complexity artifact reads into {r1_path.name}"
     )
 
-    r1_records = list(SeqIO.parse(r1_path, "fastq"))
-    r2_records = list(SeqIO.parse(r2_path, "fastq"))
-
-    if len(r1_records) != len(r2_records):
-        raise ValueError(
-            f"R1 and R2 have different read counts: "
-            f"{len(r1_records)} vs {len(r2_records)}"
-        )
+    r1_records, r2_records = load_paired_fastq(r1_path, r2_path)
 
     total_reads = len(r1_records)
     n_to_modify = int(total_reads * rate)
