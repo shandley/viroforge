@@ -461,10 +461,11 @@ For more information: https://github.com/hecatomb/viroforge
         help='Dataset metadata JSON with the benchmarking.taxonomy block'
     )
     taxonomy_parser.add_argument(
-        '--format', default='kraken2',
-        choices=['kraken2', 'centrifuge', 'diamond', 'mmseqs2', 'generic'],
-        help='Classifier output format (default: kraken2). diamond expects '
-             'outfmt 102 (query, taxid, evalue)'
+        '--format', default='auto',
+        choices=['auto', 'kraken2', 'centrifuge', 'diamond', 'mmseqs2', 'generic'],
+        help='Classifier output format (default: auto). Auto-detect inspects '
+             'the file to determine the format. diamond expects outfmt 102 '
+             '(query, taxid, evalue)'
     )
     taxonomy_parser.add_argument(
         '--mode', default='read-based', choices=['read-based', 'contig-based'],

@@ -35,6 +35,7 @@ def _run_taxonomy(args) -> int:
         PARSERS,
         benchmark_taxonomy,
         benchmark_taxonomy_contigs,
+        detect_format,
     )
 
     if not Path(args.ground_truth).exists():
@@ -43,6 +44,16 @@ def _run_taxonomy(args) -> int:
     if args.format not in PARSERS:
         print(f"ERROR: --format must be one of {sorted(PARSERS)}", file=sys.stderr)
         return 2
+
+    # Auto-detect format if requested
+    if args.format == "auto":
+        detect_path = args.contig_taxonomy if args.mode == "contig-based" else args.pipeline_output
+        if detect_path and Path(detect_path).exists():
+            args.format = detect_format(detect_path)
+            print(f"Auto-detected format: {args.format}", file=sys.stderr)
+        else:
+            print("ERROR: --format auto requires a valid input file to inspect", file=sys.stderr)
+            return 2
     tax_gt = json.loads(Path(args.ground_truth).read_text()).get("benchmarking", {}).get("taxonomy")
     if not tax_gt:
         print("ERROR: metadata has no benchmarking.taxonomy block. Regenerate the "
