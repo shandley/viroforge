@@ -464,8 +464,19 @@ For more information: https://github.com/hecatomb/viroforge
         '--format', default='auto',
         choices=['auto', 'kraken2', 'centrifuge', 'diamond', 'mmseqs2', 'generic'],
         help='Classifier output format (default: auto). Auto-detect inspects '
-             'the file to determine the format. diamond expects outfmt 102 '
-             '(query, taxid, evalue)'
+             'the file to determine the format. Use "generic" with '
+             '--read-id-column and --taxid-column for unsupported tools. '
+             'diamond expects outfmt 102 (query, taxid, evalue)'
+    )
+    taxonomy_parser.add_argument(
+        '--read-id-column', type=int, default=1,
+        help='Column number (1-based) containing read/contig IDs in generic '
+             'format (default: 1)'
+    )
+    taxonomy_parser.add_argument(
+        '--taxid-column', type=int, default=2,
+        help='Column number (1-based) containing taxids in generic format '
+             '(default: 2)'
     )
     taxonomy_parser.add_argument(
         '--mode', default='read-based', choices=['read-based', 'contig-based'],

@@ -36,6 +36,7 @@ def _run_taxonomy(args) -> int:
         benchmark_taxonomy,
         benchmark_taxonomy_contigs,
         detect_format,
+        parse_generic,
     )
 
     if not Path(args.ground_truth).exists():
@@ -49,7 +50,19 @@ def _run_taxonomy(args) -> int:
     if args.format == "auto":
         detect_path = args.contig_taxonomy if args.mode == "contig-based" else args.pipeline_output
         if detect_path and Path(detect_path).exists():
-            args.format = detect_format(detect_path)
+            detected = detect_format(detect_path)
+            if detected == "generic":
+                # Unknown format — require user to specify columns
+                print("ERROR: could not recognize the classification output format.\n\n"
+                      "Your file must contain per-read classifications with numeric\n"
+                      "NCBI taxids (not species names or abundance profiles).\n\n"
+                      "Please re-run with --format generic and specify which columns\n"
+                      "contain read IDs and taxids. For example:\n\n"
+                      "  viroforge benchmark taxonomy --format generic \\\n"
+                      "      --read-id-column 1 --taxid-column 3 ...\n",
+                      file=sys.stderr)
+                return 2
+            args.format = detected
             print(f"Auto-detected format: {args.format}", file=sys.stderr)
         else:
             print("ERROR: --format auto requires a valid input file to inspect", file=sys.stderr)
@@ -83,7 +96,10 @@ def _run_taxonomy(args) -> int:
         if args.chimera_handling == "lca" and tree is None:
             print("ERROR: --chimera-handling lca requires --taxdump-dir", file=sys.stderr)
             return 2
-        assignments = PARSERS[args.format](args.contig_taxonomy)
+        if args.format == "generic":
+            assignments = parse_generic(args.contig_taxonomy, args.read_id_column, args.taxid_column)
+        else:
+            assignments = PARSERS[args.format](args.contig_taxonomy)
         metrics = benchmark_taxonomy_contigs(
             assignments, args.contigs, args.genomes, tax_gt,
             ncbi_tree=tree, chimera_handling=args.chimera_handling)
@@ -92,7 +108,10 @@ def _run_taxonomy(args) -> int:
         if not args.pipeline_output or not Path(args.pipeline_output).exists():
             print("ERROR: read-based mode needs --pipeline-output", file=sys.stderr)
             return 2
-        assignments = PARSERS[args.format](args.pipeline_output)
+        if args.format == "generic":
+            assignments = parse_generic(args.pipeline_output, args.read_id_column, args.taxid_column)
+        else:
+            assignments = PARSERS[args.format](args.pipeline_output)
         metrics = benchmark_taxonomy(assignments, tax_gt, ncbi_tree=tree)
         kind = "taxonomy"
 
