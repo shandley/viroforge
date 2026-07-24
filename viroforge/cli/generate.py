@@ -9,7 +9,6 @@ Date: 2025-11-10
 """
 
 import sys
-import subprocess
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -183,7 +182,11 @@ def show_parameters(params: Dict):
 
 def execute_generation(params: Dict, verbose: bool = False):
     """
-    Execute dataset generation with progress reporting.
+    Execute dataset generation by calling run_generation() directly.
+
+    Converts the params dict into an argparse-style namespace and calls
+    the generation engine in-process (no subprocess). Falls back to
+    subprocess if the import fails.
 
     Parameters
     ----------
@@ -197,224 +200,113 @@ def execute_generation(params: Dict, verbose: bool = False):
     int
         Exit code (0 = success, 1 = failure)
     """
-    # Find generate_fastq_dataset.py script
-    script_dir = Path(__file__).parent.parent.parent / "scripts"
-    script_path = script_dir / "generate_fastq_dataset.py"
+    import argparse
+    import logging
 
-    if not script_path.exists():
-        console.print(f"[red]Error: Could not find {script_path}[/red]")
-        return 1
-
-    # Build command
-    cmd = build_command(script_path, params)
+    # Build an argparse-compatible namespace from the params dict
+    args = _params_to_namespace(params)
 
     if verbose:
-        console.print(f"[dim]Command: {' '.join(str(c) for c in cmd)}[/dim]")
+        logging.basicConfig(level=logging.DEBUG)
+        console.print(f"[dim]Parameters: {params}[/dim]")
         console.print()
 
-    # Execute with progress monitoring
     console.print("[bold green]Starting generation...[/bold green]")
     console.print()
 
-    with Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-        BarColumn(),
-        TaskProgressColumn(),
-        TimeElapsedColumn(),
-        console=console,
-        transient=False
-    ) as progress:
+    try:
+        # Import and call run_generation directly (no subprocess)
+        script_dir = Path(__file__).parent.parent.parent / "scripts"
+        if str(script_dir) not in sys.path:
+            sys.path.insert(0, str(script_dir))
 
-        # Add main task
-        task = progress.add_task("[cyan]Generating dataset...", total=None)
+        from generate_fastq_dataset import run_generation
 
-        try:
-            # Run the command
-            process = subprocess.Popen(
-                cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                bufsize=1,
-                universal_newlines=True
-            )
+        result = run_generation(args)
 
-            # Monitor output
-            for line in process.stdout:
-                line = line.rstrip()
-
-                if verbose and line:
-                    console.print(f"[dim]{line}[/dim]")
-
-                # Update progress based on log messages
-                if "Loading collection" in line:
-                    progress.update(task, description="[cyan]Loading collection...")
-                elif "VLP enrichment" in line:
-                    progress.update(task, description="[cyan]Applying VLP enrichment...")
-                elif "contamination" in line:
-                    progress.update(task, description="[cyan]Adding contamination...")
-                elif "Writing FASTA" in line:
-                    progress.update(task, description="[cyan]Writing FASTA files...")
-                elif "Generating" in line or "simulating" in line.lower():
-                    progress.update(task, description="[cyan]Generating FASTQ reads...")
-                elif "Writing metadata" in line:
-                    progress.update(task, description="[cyan]Writing metadata...")
-                elif "Complete" in line or "✓" in line:
-                    progress.update(task, description="[green]✓ Generation complete")
-
-            # Wait for completion
-            return_code = process.wait()
-
-            if return_code == 0:
-                progress.update(task, description="[green]✓ Generation complete", completed=True)
-                console.print()
-                console.print("[bold green]✓ Dataset generated successfully![/bold green]")
-                console.print()
-                console.print(f"Output: {params.get('output', 'data/')}")
-                console.print()
-                return 0
-            else:
-                progress.update(task, description="[red]✗ Generation failed", completed=True)
-                console.print()
-                console.print("[bold red]✗ Generation failed[/bold red]")
-                return 1
-
-        except KeyboardInterrupt:
+        if result is None or result == 0:
             console.print()
-            console.print("[yellow]Generation cancelled by user[/yellow]")
-            return 130
-        except Exception as e:
+            console.print("[bold green]✓ Dataset generated successfully![/bold green]")
             console.print()
-            console.print(f"[red]Error: {e}[/red]")
+            console.print(f"Output: {params.get('output', 'data/')}")
+            console.print()
+            return 0
+        else:
+            console.print()
+            console.print("[bold red]✗ Generation failed[/bold red]")
             return 1
 
+    except KeyboardInterrupt:
+        console.print()
+        console.print("[yellow]Generation cancelled by user[/yellow]")
+        return 130
+    except Exception as e:
+        console.print()
+        console.print(f"[red]Error: {e}[/red]")
+        if verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
 
-def build_command(script_path: Path, params: Dict) -> List[str]:
-    """
-    Build command-line arguments from parameters.
 
-    Parameters
-    ----------
-    script_path : Path
-        Path to generate_fastq_dataset.py
-    params : Dict
-        Generation parameters
+def _params_to_namespace(params: Dict):
+    """Convert a params dict to an argparse.Namespace matching the script's args."""
+    import argparse
 
-    Returns
-    -------
-    List[str]
-        Command and arguments
-    """
-    cmd = ['python3', str(script_path)]
+    # Default values matching the script's argparse defaults
+    defaults = {
+        'database': 'viroforge/data/viral_genomes.db',
+        'list_collections': False,
+        'collection_id': None,
+        'output': None,
+        'platform': 'novaseq',
+        'coverage': 10,
+        'n_reads': None,
+        'depth': None,
+        'read_length': None,
+        'insert_size': None,
+        'vlp_protocol': 'tangential_flow',
+        'pore_size': None,
+        'contamination_level': 'realistic',
+        'amplification': 'linker',
+        'molecule_type': 'dna',
+        'rna_depletion': None,
+        'seed': 42,
+        'verbose': False,
+        'dry_run': False,
+        'no_vlp': False,
+        'adapter_rate': 0.03,
+        'adapter_type': 'truseq',
+        'mean_insert_size': None,
+        'insert_size_sd': None,
+        'chimera_rate': None,
+        'low_complexity_rate': 0.005,
+        'entropy_range': None,
+        'duplicate_rate': 0.10,
+        'duplicate_max_copies': 5,
+        'duplicate_error_rate': 0.001,
+        'erv_endogenous_rate': 0.0,
+        'erv_exogenous_rate': 0.0,
+        'erv_exogenous_viruses': None,
+        'herv_fasta': None,
+        'dark_matter_fraction': 0.30,
+        'dark_matter_count': None,
+        'mda_chimera_rate': 0.15,
+        'pacbio_passes': None,
+        'pacbio_read_length': None,
+        'ont_chemistry': None,
+        'ont_read_length': None,
+    }
 
-    # Required parameters
-    if 'collection_id' in params:
-        cmd.extend(['--collection-id', str(params['collection_id'])])
+    # Apply params on top of defaults
+    for key, value in params.items():
+        if key in defaults:
+            defaults[key] = value
 
-    if 'output' in params:
-        cmd.extend(['--output', str(params['output'])])
-
-    # Platform
-    if 'platform' in params:
-        cmd.extend(['--platform', params['platform']])
-
-    # Coverage/depth
-    platform = params.get('platform', 'novaseq')
-    if platform in ['novaseq', 'miseq', 'hiseq']:
-        if 'coverage' in params:
-            cmd.extend(['--coverage', str(params['coverage'])])
-    else:  # Long-read platforms
-        # For long reads, --depth is the argument name.
-        # Accept either --coverage or --depth from the user.
-        depth_val = params.get('depth') or params.get('coverage')
-        if depth_val:
-            cmd.extend(['--depth', str(depth_val)])
-
-    # Read parameters
-    if 'read_length' in params:
-        cmd.extend(['--read-length', str(params['read_length'])])
-
-    if 'insert_size' in params:
-        cmd.extend(['--insert-size', str(params['insert_size'])])
-
-    # VLP and contamination
+    # Handle special mappings
     if params.get('no_vlp'):
-        cmd.append('--no-vlp')
-    elif 'vlp_protocol' in params:
-        cmd.extend(['--vlp-protocol', params['vlp_protocol']])
+        defaults['vlp_protocol'] = 'none'
 
-    if 'pore_size' in params:
-        cmd.extend(['--pore-size', str(params['pore_size'])])
+    return argparse.Namespace(**defaults)
 
-    if 'contamination_level' in params:
-        cmd.extend(['--contamination-level', params['contamination_level']])
 
-    # Amplification
-    if 'amplification' in params:
-        cmd.extend(['--amplification', params['amplification']])
-
-    # Molecule type
-    if 'molecule_type' in params:
-        cmd.extend(['--molecule-type', params['molecule_type']])
-
-    # RNA-specific
-    if 'rna_depletion' in params:
-        cmd.extend(['--rna-depletion', params['rna_depletion']])
-
-    # Long-read specific
-    if 'pacbio_passes' in params:
-        cmd.extend(['--pacbio-passes', str(params['pacbio_passes'])])
-
-    if 'pacbio_read_length' in params:
-        cmd.extend(['--pacbio-read-length', str(params['pacbio_read_length'])])
-
-    if 'ont_chemistry' in params:
-        cmd.extend(['--ont-chemistry', params['ont_chemistry']])
-
-    if 'ont_read_length' in params:
-        cmd.extend(['--ont-read-length', str(params['ont_read_length'])])
-
-    # Artifact injection
-    if 'adapter_rate' in params:
-        cmd.extend(['--adapter-rate', str(params['adapter_rate'])])
-
-    if 'adapter_type' in params:
-        cmd.extend(['--adapter-type', params['adapter_type']])
-
-    if 'mean_insert_size' in params:
-        cmd.extend(['--mean-insert-size', str(params['mean_insert_size'])])
-
-    if 'insert_size_sd' in params:
-        cmd.extend(['--insert-size-sd', str(params['insert_size_sd'])])
-
-    if 'chimera_rate' in params:
-        cmd.extend(['--chimera-rate', str(params['chimera_rate'])])
-
-    if 'low_complexity_rate' in params:
-        cmd.extend(['--low-complexity-rate', str(params['low_complexity_rate'])])
-
-    if 'duplicate_rate' in params:
-        cmd.extend(['--duplicate-rate', str(params['duplicate_rate'])])
-
-    if 'duplicate_max_copies' in params:
-        cmd.extend(['--duplicate-max-copies', str(params['duplicate_max_copies'])])
-
-    if 'duplicate_error_rate' in params:
-        cmd.extend(['--duplicate-error-rate', str(params['duplicate_error_rate'])])
-
-    # ERV injection
-    if 'erv_endogenous_rate' in params:
-        cmd.extend(['--erv-endogenous-rate', str(params['erv_endogenous_rate'])])
-
-    if 'erv_exogenous_rate' in params:
-        cmd.extend(['--erv-exogenous-rate', str(params['erv_exogenous_rate'])])
-
-    if 'dark_matter_fraction' in params:
-        cmd.extend(['--dark-matter-fraction', str(params['dark_matter_fraction'])])
-
-    # Random seed
-    if 'seed' in params:
-        cmd.extend(['--seed', str(params['seed'])])
-
-    return cmd

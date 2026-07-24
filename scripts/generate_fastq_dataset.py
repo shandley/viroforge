@@ -471,7 +471,23 @@ Examples:
     )
 
     args = parser.parse_args()
+    return run_generation(args)
 
+
+def run_generation(args):
+    """Run dataset generation from a parsed argparse namespace.
+
+    This function contains the orchestration logic: collection loading,
+    dark matter injection, VLP enrichment, amplification, read simulation,
+    and metadata export. It can be called directly by the CLI without
+    going through subprocess.
+
+    Args:
+        args: argparse.Namespace with generation parameters.
+
+    Returns:
+        int: 0 on success, 1 on failure.
+    """
     # Load collections
     loader = CollectionLoader(args.database)
 
@@ -1342,4 +1358,4 @@ Examples:
 
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main() or 0)
