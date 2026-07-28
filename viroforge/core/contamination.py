@@ -536,7 +536,8 @@ def add_host_contamination(
             # Generate random sequence with appropriate GC content
             fragment_seq = _generate_sequence_with_gc(
                 fragment_length,
-                organism_info['gc_content']
+                organism_info['gc_content'],
+                rng=rng
             )
 
             contaminant = ContaminantGenome(
@@ -652,7 +653,7 @@ def add_rrna_contamination(
                 gc_content = nprng.normal(55.0, 5.0)
                 gc_content = np.clip(gc_content, 40.0, 70.0)
 
-                seq = _generate_sequence_with_gc(length, gc_content)
+                seq = _generate_sequence_with_gc(length, gc_content, rng=rng)
 
                 contaminant = ContaminantGenome(
                     genome_id=f"rrna_{domain}_{rrna_type}_{i:04d}",
@@ -752,7 +753,7 @@ def add_reagent_contamination(
             # Bacterial genomes typically 40-60% GC
             gc_content = nprng.uniform(40.0, 60.0)
 
-            seq = _generate_sequence_with_gc(genome_length, gc_content)
+            seq = _generate_sequence_with_gc(genome_length, gc_content, rng=rng)
 
             contaminant = ContaminantGenome(
                 genome_id=f"reagent_{sp.replace(' ', '_')}_{i:04d}",
@@ -773,6 +774,7 @@ def add_phix_control(
     abundance_pct: float = 0.1,
     phix_sequence_path: Optional[Path] = None,
     use_real_references: bool = True,
+    random_seed: Optional[int] = None,
 ) -> ContaminationProfile:
     """
     Add PhiX174 control spike-in to a profile.
@@ -785,6 +787,8 @@ def add_phix_control(
         phix_sequence_path: Optional path to PhiX174 genome (NC_001422.1)
         use_real_references: If True, try bundled real references before
             falling back to synthetic sequences
+        random_seed: Seed for the synthetic-sequence fallback. Only used when
+            no real PhiX reference can be resolved.
 
     Returns:
         Updated ContaminationProfile
@@ -809,7 +813,9 @@ def add_phix_control(
     else:
         # Fallback to synthetic PhiX174 (NC_001422.1) - 5,386 bp, 44.8% GC
         logger.info("No PhiX reference available, creating synthetic PhiX sequence")
-        phix_seq = _generate_sequence_with_gc(5386, 44.8)
+        phix_seq = _generate_sequence_with_gc(
+            5386, 44.8, rng=random.Random(random_seed)
+        )
 
     contaminant = ContaminantGenome(
         genome_id="NC_001422.1_PhiX174",
@@ -1176,6 +1182,7 @@ def create_contamination_profile(
         profile,
         abundance_pct=phix_pct,
         use_real_references=use_real_references,
+        random_seed=random_seed,
     )
 
     # Add ERV contamination if requested
@@ -1337,7 +1344,7 @@ def add_host_rna_contamination(
         for gene in organism_info['rrna_genes']:
             for i in range(n_rrna // len(organism_info['rrna_genes'])):
                 length = rrna_lengths.get(gene, 2000)
-                seq = _generate_sequence_with_gc(length, 55.0)
+                seq = _generate_sequence_with_gc(length, 55.0, rng=rng)
                 contaminant = ContaminantGenome(
                     genome_id=f"host_rna_rrna_{gene}_{i:04d}",
                     sequence=seq,
@@ -1382,7 +1389,7 @@ def add_host_rna_contamination(
             length = int(nprng.uniform(500, 5000))
             gc_content = nprng.normal(organism_info['gc_content'], 5.0)
             gc_content = np.clip(gc_content, 30.0, 60.0)
-            seq = _generate_sequence_with_gc(length, gc_content)
+            seq = _generate_sequence_with_gc(length, gc_content, rng=rng)
             contaminant = ContaminantGenome(
                 genome_id=f"host_rna_mrna_{i:04d}",
                 sequence=seq,
@@ -1503,7 +1510,7 @@ def add_bacterial_rna_contamination(
             length = 1500 if rrna_type == '16S' else 2900
             gc_content = nprng.normal(55.0, 5.0)
             gc_content = np.clip(gc_content, 45.0, 65.0)
-            seq = _generate_sequence_with_gc(length, gc_content)
+            seq = _generate_sequence_with_gc(length, gc_content, rng=rng)
             contaminant = ContaminantGenome(
                 genome_id=f"bacterial_rna_rrna_{genus}_{rrna_type}_{i:04d}",
                 sequence=seq,
@@ -1525,7 +1532,7 @@ def add_bacterial_rna_contamination(
         length = int(nprng.uniform(300, 3000))
         gc_content = nprng.uniform(40.0, 60.0)
 
-        seq = _generate_sequence_with_gc(length, gc_content)
+        seq = _generate_sequence_with_gc(length, gc_content, rng=rng)
 
         contaminant = ContaminantGenome(
             genome_id=f"bacterial_rna_mrna_{genus}_{i:04d}",
@@ -1682,6 +1689,7 @@ def create_rna_contamination_profile(
         profile,
         abundance_pct=phix_pct,
         use_real_references=use_real_references,
+        random_seed=random_seed,
     )
 
     # Add ERV contamination if requested

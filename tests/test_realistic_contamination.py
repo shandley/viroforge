@@ -15,6 +15,7 @@ from viroforge.core.contamination import (
     add_host_contamination,
     add_rrna_contamination,
     add_phix_control,
+    add_reagent_contamination,
     create_contamination_profile,
 )
 from viroforge.data.references.resolver import (
@@ -1255,3 +1256,59 @@ class TestBiasedDuplicates:
         )
 
         assert stats["copies_generated"] > 0
+
+
+# ---------------------------------------------------------------------------
+# Synthetic-sequence reproducibility
+# ---------------------------------------------------------------------------
+
+class TestSyntheticSequenceReproducibility:
+    """Synthetic contaminant sequences must be reproducible from the seed.
+
+    These paths run on ordinary generations: add_reagent_contamination is
+    always called without a database path, so its bacterial genomes are
+    synthesised, and add_phix_control synthesises PhiX whenever no reference
+    resolves. _generate_sequence_with_gc shuffles its base list, so it needs
+    the caller's seeded RNG. When contamination.py moved off the global
+    random.seed(), the parameter existed but no call site passed it, and these
+    sequences silently became unseeded.
+    """
+
+    def _reagent_seqs(self, seed):
+        profile = ContaminationProfile(name="repro")
+        add_reagent_contamination(
+            profile, abundance_pct=1.0, n_genomes=2, random_seed=seed
+        )
+        return [str(c.sequence) for c in profile.contaminants]
+
+    def test_reagent_sequences_reproducible(self):
+        assert self._reagent_seqs(42) == self._reagent_seqs(42)
+
+    def test_reagent_sequences_vary_with_seed(self):
+        assert self._reagent_seqs(42) != self._reagent_seqs(7)
+
+    def _synthetic_phix(self, seed):
+        profile = ContaminationProfile(name="repro")
+        add_phix_control(
+            profile,
+            abundance_pct=1.0,
+            use_real_references=False,
+            random_seed=seed,
+        )
+        return str(profile.contaminants[0].sequence)
+
+    def test_synthetic_phix_reproducible(self):
+        assert self._synthetic_phix(42) == self._synthetic_phix(42)
+
+    def test_synthetic_phix_varies_with_seed(self):
+        assert self._synthetic_phix(42) != self._synthetic_phix(7)
+
+    def test_full_profile_reproducible_without_real_references(self):
+        """End to end: two identically seeded profiles must be identical."""
+        def build(seed):
+            p = create_contamination_profile(
+                "realistic", random_seed=seed, use_real_references=False
+            )
+            return [(c.genome_id, str(c.sequence)) for c in p.contaminants]
+
+        assert build(42) == build(42)
