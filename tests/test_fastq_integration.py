@@ -349,7 +349,18 @@ class TestVLPEnrichmentStats:
             assert 'reduction_pct' in reduction_by_type[ctype]
 
     def test_size_bias_correlation(self, generation_script, temp_output):
-        """Test that size bias correlation is strong (>0.9)"""
+        """Size bias must be strong and must deplete the larger viruses.
+
+        Filtration through a 0.2 um membrane collects the VLP fraction in the
+        filtrate, so recovery falls as virion diameter rises. Losing large
+        viruses is the well-documented cost of VLP prep: giant viruses and
+        jumbo phages are removed along with the cells.
+
+        This assertion previously required correlation > 0.9 with the comment
+        "larger viruses enriched", which encoded the inverted retention curves
+        corrected in PR #61. The test could not catch the sign at the time
+        because it was failing on an unrelated NameError.
+        """
         metadata = self._generate_and_load_metadata(
             generation_script, temp_output, 'tangential_flow', 'realistic'
         )
@@ -359,8 +370,11 @@ class TestVLPEnrichmentStats:
 
         correlation = size_bias['size_enrichment_correlation']
 
-        # Should have strong positive correlation (larger viruses enriched)
-        assert correlation > 0.9, f"Size bias correlation too weak: {correlation}"
+        # Strong negative correlation: larger virions are depleted
+        assert correlation < -0.8, (
+            f"Expected strong size depletion, got correlation {correlation}. "
+            "A positive value means the filtration curves have re-inverted."
+        )
 
     def test_host_dna_highly_reduced(self, generation_script, temp_output):
         """Test that host DNA is highly reduced by nuclease (>85%)"""

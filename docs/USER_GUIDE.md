@@ -357,7 +357,7 @@ custom_vlp.apply(composition)
 - `'none'`: No filtration (bulk metagenome)
 
 **Filtration Cutoff**
-- `0.1 μm`: Removes bacteria, keeps large viruses only
+- `0.1 μm`: Tight cutoff, keeps small viruses only (loses giant viruses)
 - `0.2 μm`: Standard virome cutoff, keeps most viruses
 - `0.45 μm`: Loose cutoff, keeps bacteria-sized particles
 - Smaller = higher purity, lower yield
