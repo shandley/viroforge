@@ -303,3 +303,57 @@ def test_contig_lca_mode_scores_chimera(contig_dataset, tmp_path):
     assert (k["correct"], k["misclassified"]) == (1, 2)  # cA ok; cB, cChim wrong at exact
     # but at family the chimera is credited (cA and cChim share family 10)
     assert r["per_rank"]["family"]["correct"] == 2
+
+
+# ---------------------------------------------------------------------------
+# Format registry
+# ---------------------------------------------------------------------------
+
+def test_parsers_values_are_all_callable():
+    """Callers do PARSERS[fmt](path), so a non-callable entry is a TypeError
+    waiting to happen. 'auto' names a detection step, not a parser, and must
+    be resolved via detect_format() before the dict is indexed."""
+    from viroforge.benchmarking.taxonomy import PARSERS
+
+    assert "auto" not in PARSERS
+    for name, parser in PARSERS.items():
+        assert callable(parser), f"PARSERS[{name!r}] is not callable"
+
+
+def test_format_choices_covers_auto_and_every_parser():
+    from viroforge.benchmarking.taxonomy import FORMAT_CHOICES, PARSERS
+
+    assert "auto" in FORMAT_CHOICES
+    assert set(PARSERS) < set(FORMAT_CHOICES)
+    assert len(FORMAT_CHOICES) == len(PARSERS) + 1
+
+
+def test_cli_format_choices_match_the_registry():
+    """cli/__init__.py spells the choices out as a literal rather than importing
+    FORMAT_CHOICES, because importing viroforge.benchmarking costs ~150 ms of
+    CLI startup. That buys speed at the cost of drift, so check the literal."""
+    import ast
+    from pathlib import Path
+
+    from viroforge.benchmarking.taxonomy import FORMAT_CHOICES
+
+    source = Path(__file__).parent.parent / "viroforge" / "cli" / "__init__.py"
+    tree = ast.parse(source.read_text())
+
+    literals = [
+        {el.value for el in kw.value.elts}
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Call)
+        for kw in node.keywords
+        if kw.arg == "choices"
+        and isinstance(kw.value, ast.List)
+        and all(isinstance(el, ast.Constant) for el in kw.value.elts)
+        and "auto" in {el.value for el in kw.value.elts}
+    ]
+
+    assert literals, "no --format choices literal containing 'auto' found"
+    for choices in literals:
+        assert choices == set(FORMAT_CHOICES), (
+            f"CLI choices {sorted(choices)} drifted from "
+            f"FORMAT_CHOICES {sorted(FORMAT_CHOICES)}"
+        )

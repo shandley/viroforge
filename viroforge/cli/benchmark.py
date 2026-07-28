@@ -37,13 +37,14 @@ def _run_taxonomy(args) -> int:
         benchmark_taxonomy_contigs,
         detect_format,
         parse_generic,
+        FORMAT_CHOICES,
     )
 
     if not Path(args.ground_truth).exists():
         print(f"ERROR: file not found: {args.ground_truth}", file=sys.stderr)
         return 2
-    if args.format not in PARSERS:
-        print(f"ERROR: --format must be one of {sorted(PARSERS)}", file=sys.stderr)
+    if args.format not in FORMAT_CHOICES:
+        print(f"ERROR: --format must be one of {sorted(FORMAT_CHOICES)}", file=sys.stderr)
         return 2
 
     # Auto-detect format if requested
@@ -52,12 +53,14 @@ def _run_taxonomy(args) -> int:
         if detect_path and Path(detect_path).exists():
             detected = detect_format(detect_path)
             if detected == "generic":
-                # Unknown format — require user to specify columns
+                # Not a recognised tool layout, so make the user name the columns
+                # rather than guessing which ones hold read IDs and taxids.
                 print("ERROR: could not recognize the classification output format.\n\n"
                       "Your file must contain per-read classifications with numeric\n"
                       "NCBI taxids (not species names or abundance profiles).\n\n"
-                      "Please re-run with --format generic and specify which columns\n"
-                      "contain read IDs and taxids. For example:\n\n"
+                      "Please re-run with --format generic and say which columns\n"
+                      "hold the read IDs and taxids (1-based). For a file whose\n"
+                      "first column is the read ID and third is the taxid:\n\n"
                       "  viroforge benchmark taxonomy --format generic \\\n"
                       "      --read-id-column 1 --taxid-column 3 ...\n",
                       file=sys.stderr)

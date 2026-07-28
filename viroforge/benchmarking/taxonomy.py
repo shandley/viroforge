@@ -195,14 +195,19 @@ def detect_format(path) -> str:
     return "generic"
 
 
+# Every value here must be callable: callers do PARSERS[fmt](path). "auto" is
+# deliberately absent, since it names a detection step rather than a parser;
+# resolve it with detect_format() before indexing this dict.
 PARSERS = {
     "kraken2": parse_kraken2,
     "centrifuge": parse_centrifuge,
     "diamond": parse_diamond,
     "mmseqs2": parse_mmseqs2,
     "generic": parse_generic,
-    "auto": None,  # sentinel; resolved by detect_format()
 }
+
+# Values accepted by --format, including the detection sentinel.
+FORMAT_CHOICES = ("auto",) + tuple(PARSERS)
 
 
 def _bray_curtis(a: dict, b: dict) -> float:
