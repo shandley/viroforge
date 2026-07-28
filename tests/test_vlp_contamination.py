@@ -13,6 +13,7 @@ from viroforge.core.contamination import (
     ContaminantType
 )
 from viroforge.enrichment.vlp import (
+    FiltrationCurve,
     VLPEnrichment,
     VLPProtocol
 )
@@ -374,6 +375,54 @@ class TestLiteratureValidation:
 
         # Literature-based expectation: 5-20x reduction
         assert 5.0 < fold_change < 25.0, f"Fold change outside literature range: {fold_change:.1f}x"
+
+
+class TestFiltrationCurveDirection:
+    """Pin the size direction of the filtration retention curves.
+
+    ViroForge models dead-end filtration: the protocols use 0.1-0.45 um
+    filters with a coarser prefilter, so virions pass into the filtrate and
+    cells are blocked on the membrane. Recovery must therefore DECREASE with
+    virion diameter. The curves shipped inverted until this was corrected, and
+    nothing covered them, so the sign silently flipped the size bias between
+    viruses. See Thurber et al. 2009, Nat Protoc (PMID 19300441).
+    """
+
+    PORE_UM = 0.2  # 200 nm, the tangential-flow and syringe pore size
+
+    def test_sigmoid_favours_small_virions(self):
+        small = FiltrationCurve.sigmoid(30, self.PORE_UM, 0.008)    # e.g. circovirus
+        typical = FiltrationCurve.sigmoid(90, self.PORE_UM, 0.008)  # typical phage
+        large = FiltrationCurve.sigmoid(150, self.PORE_UM, 0.008)   # large tailed phage
+
+        assert small > typical > large, (
+            f"recovery must fall with diameter, got 30nm={small:.3f} "
+            f"90nm={typical:.3f} 150nm={large:.3f}"
+        )
+        assert 0.0 < large and small < 1.0
+
+    def test_sigmoid_crosses_half_at_pore_size(self):
+        assert FiltrationCurve.sigmoid(200, self.PORE_UM, 0.008) == pytest.approx(0.5)
+
+    def test_step_passes_below_pore_blocks_above(self):
+        assert FiltrationCurve.step(30, self.PORE_UM) == 1.0
+        assert FiltrationCurve.step(500, self.PORE_UM) == 0.0
+
+    def test_linear_favours_small_virions(self):
+        below = FiltrationCurve.linear(100, self.PORE_UM, transition_width_nm=100)
+        above = FiltrationCurve.linear(300, self.PORE_UM, transition_width_nm=100)
+        midpoint = FiltrationCurve.linear(200, self.PORE_UM, transition_width_nm=100)
+
+        assert below == 1.0
+        assert above == 0.0
+        assert midpoint == pytest.approx(0.5)
+
+    def test_all_curves_agree_on_direction(self):
+        """A 30 nm virion must never be recovered less than a 500 nm particle."""
+        for name in ('sigmoid', 'step', 'linear'):
+            curve = getattr(FiltrationCurve, name)
+            assert curve(30, self.PORE_UM) >= curve(500, self.PORE_UM), \
+                f"{name}() recovers large particles at least as well as small ones"
 
 
 if __name__ == '__main__':

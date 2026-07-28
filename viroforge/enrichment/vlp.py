@@ -118,12 +118,25 @@ class VirionSizeEstimator:
 
 class FiltrationCurve:
     """
-    Model size-based retention during filtration
+    Model size-based recovery during filtration
 
-    Different filtration methods have different retention characteristics:
+    These curves model dead-end filtration, where the sample is pushed through
+    a 0.1-0.45 um membrane and the VLP fraction is collected in the FILTRATE.
+    Virions smaller than the pore pass through and are recovered; cells and
+    debris larger than the pore are blocked and discarded. Recovery therefore
+    DECREASES with virion diameter. Thurber et al. 2009, Nat Protoc
+    (PMID 19300441).
+
+    Different filtration methods have different transition characteristics:
     - Sigmoid: Gradual transition at pore size (most filters)
     - Step: Sharp cutoff (ideal filter, doesn't exist)
     - Linear: Gradual transition (some depth filters)
+
+    Note that the pore-less branches of VLPEnrichment.apply_enrichment (column
+    binding and ultracentrifugation) run the opposite direction, favouring
+    larger particles. Those are different physical processes, so the
+    disagreement may be correct, but it has not been reviewed against the
+    literature the way these curves have.
     """
 
     @staticmethod
