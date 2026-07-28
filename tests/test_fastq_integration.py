@@ -141,15 +141,23 @@ class TestFASTQGeneration:
     def test_contamination_levels(self, generation_script, temp_output):
         """Test different contamination levels"""
         levels = ['clean', 'realistic', 'heavy']
-        # After VLP enrichment with tangential flow (~85-95% reduction):
-        # - Clean (0.7% initial) → ~0.05-0.15% final
-        # - Realistic (7.4% initial) → ~0.4-1.5% final
-        # - Heavy (27% initial) → ~1.5-5% final
+        # Since the collection-specific contamination profiles landed,
+        # --contamination-level is a MULTIPLIER on the collection's own baseline
+        # (clean 0.25x, realistic 1.0x, heavy 2.5x) rather than a fixed global
+        # fraction. Collection 8 (mouse gut) has a baseline of 3.0% host +
+        # 3.0% rRNA + 0.5% reagent + 0.1% PhiX, so heavy is ~16% pre-VLP, not
+        # the ~27% the old fixed presets used.
+        #
+        # Bands are centred on measured values for collection 8 at seed 42
+        # (clean 0.0016, realistic 0.0048, heavy 0.0110) with room for
+        # stochastic variation. They are tied to that collection's row in
+        # data/reference_profiles/contamination_defaults.tsv; edit both together.
         expected_ranges = {
-            'clean': (0.0005, 0.0020),      # 0.05-0.2% after VLP
-            'realistic': (0.004, 0.020),    # 0.4-2% after VLP
-            'heavy': (0.015, 0.050)         # 1.5-5% after VLP
+            'clean': (0.0008, 0.0030),      # 0.08-0.3% after VLP
+            'realistic': (0.0025, 0.0085),  # 0.25-0.85% after VLP
+            'heavy': (0.0060, 0.0190)       # 0.6-1.9% after VLP
         }
+        observed = {}
 
         for level in levels:
             level_output = temp_output / level
@@ -173,10 +181,15 @@ class TestFASTQGeneration:
                 metadata = json.load(f)
 
             contam_fraction = metadata['enrichment_stats']['contamination_fraction']
+            observed[level] = contam_fraction
             min_expected, max_expected = expected_ranges[level]
 
             assert min_expected <= contam_fraction <= max_expected, \
                 f"Contamination {contam_fraction} outside expected range {expected_ranges[level]} for level {level}"
+
+        # The multiplier ordering must hold regardless of the absolute bands.
+        assert observed['clean'] < observed['realistic'] < observed['heavy'], \
+            f"Contamination levels not monotonic: {observed}"
 
     def test_dry_run_mode(self, generation_script, temp_output):
         """Test dry-run mode (no FASTQ generation)"""
