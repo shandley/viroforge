@@ -9,7 +9,6 @@ Date: 2025-11-10
 """
 
 import sys
-from pathlib import Path
 from typing import Dict, List, Optional
 
 try:
@@ -216,11 +215,7 @@ def execute_generation(params: Dict, verbose: bool = False):
 
     try:
         # Import and call run_generation directly (no subprocess)
-        script_dir = Path(__file__).parent.parent.parent / "scripts"
-        if str(script_dir) not in sys.path:
-            sys.path.insert(0, str(script_dir))
-
-        from generate_fastq_dataset import run_generation
+        from viroforge.generator import run_generation
 
         result = run_generation(args)
 
