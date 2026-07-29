@@ -8,6 +8,54 @@ ViroForge generates data. A change that alters generator output for a fixed seed
 is treated as breaking even when the API is untouched, and is called out under
 "Reproducibility" below.
 
+## [0.16.0] - 2026-07-29
+
+### Reproducibility
+
+**MDA-amplified datasets change.** Runs using `--amplification mda` or
+`mda-long`, and PCR duplicate injection under MDA, produce different output than
+0.15.0 for the same seed. Other amplification methods are unaffected.
+
+### Fixed
+
+- **MDA GC bias peaked at the wrong GC content.** The φ29 model centred its
+  efficiency curve at 40% GC, so it penalised genomes at 45-60% GC by up to 6x.
+  Parras-Moltó et al. 2018, Microbiome 6:119 (PMID 29954453) measured the
+  opposite in saliva DNA viromes: MDA *over*-amplifies contigs at 45-60% GC and
+  under-represents both extremes. The optimum moves to 50% GC in
+  `viroforge/amplification.py` and in the MDA branch of
+  `viroforge/simulators/duplicates.py`. RdAB and Linker already used 50%.
+
+  A 60% GC genome went from a 6.05x penalty to 1.57x; a 30% GC genome now takes
+  the 6.05x penalty it previously escaped. Low-GC-dominated collections (gut,
+  median 36% GC) shift more than mid-GC ones.
+
+### Added
+
+- `scripts/benchmark_amplification_bias.py` calibrates the MDA GC model against
+  the same paper, which reports 6.2-7.6% of contigs exceeding 10x or 0.1x fold
+  change under MDA. It reports, for real collections, the fraction of genomes
+  past that threshold, the fold-bias across the published over-amplified band,
+  and the shift in contaminant efficiency. Defaults are read from the shipped
+  model rather than restated, so the script cannot drift from what it measures.
+
+### Notes
+
+`gc_bias_strength` stays at 3.0. The benchmark does not support lowering it: at
+3.0 the model puts 3.3% of genomes past 10x against a published 4.5-7.6%, while
+1.5 puts none there at all, producing less bias than measured. The parameter
+that was wrong was the peak position, not the strength.
+
+### Known issues
+
+- MDA and RdAB now produce nearly identical GC efficiency curves at their
+  defaults (within 2% at 30% and 70% GC). `MDAAmplification` is documented as
+  having 2-5x stronger bias than PCR, and most of that difference previously
+  came from the mis-centred optimum rather than from `gc_bias_strength`.
+  Whether φ29 should fall off more sharply than RdAB needs its own measurement;
+  `test_mda_and_rdab_curves_are_currently_similar` pins the current state so the
+  question is not lost.
+
 ## [0.15.0] - 2026-07-28
 
 ### Reproducibility
