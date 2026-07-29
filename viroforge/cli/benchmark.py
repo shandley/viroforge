@@ -32,12 +32,12 @@ def run_benchmark(args) -> int:
 
 def _run_taxonomy(args) -> int:
     from ..benchmarking.taxonomy import (
+        FORMAT_CHOICES,
         PARSERS,
         benchmark_taxonomy,
         benchmark_taxonomy_contigs,
         detect_format,
         parse_generic,
-        FORMAT_CHOICES,
     )
 
     if not Path(args.ground_truth).exists():
