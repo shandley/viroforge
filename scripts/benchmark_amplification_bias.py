@@ -5,9 +5,10 @@ ViroForge models phi29/MDA GC bias as a Gaussian on genome GC content:
 
     efficiency = exp(-15 * gc_bias_strength * (gc - optimal_gc)^2)   [floor 0.001]
 
-Two things need justification: where the peak sits (``optimal_gc``, currently
-0.40) and how sharply efficiency falls away from it (``gc_bias_strength``,
-currently 3.0).
+Two things need justification: where the peak sits (``optimal_gc``) and how
+sharply efficiency falls away from it (``gc_bias_strength``). Both are read from
+the shipped model rather than restated here, so this script measures the code
+rather than a copy of it.
 
 Calibration target
 ------------------
@@ -17,7 +18,8 @@ amplified and unamplified saliva DNA viromes. Two findings are usable here:
 1. Shape and peak. "MDA induces systematic bias against DNA molecules with
    extremely low and high GC content, and in turn, over-amplification of contigs
    with average %GC in the range of 45-60%." A symmetric peak is the right form,
-   but it sits near 52%, not 40%. They also report under-representation above
+   so the peak belongs near the middle of that band. They also report
+   under-representation above
    60% GC and, for one protocol, below 40%.
 
 2. Magnitude. Relative to the unamplified virome, MDA produced 6.2% (MDA_T1) and
@@ -43,14 +45,20 @@ Usage
 from __future__ import annotations
 
 import argparse
+import logging
 import sqlite3
 from pathlib import Path
 
 import numpy as np
 
+# The model logs on every instantiation and the grids build hundreds of them.
+logging.getLogger("viroforge.amplification").setLevel(logging.WARNING)
+
 # Published target: proportion of contigs beyond 10x / 0.1x under MDA.
 PUBLISHED_BIASED_FRACTION = (0.045, 0.076)
 PUBLISHED_OPTIMAL_GC = (0.45, 0.60)
+
+SHIPPED_OPTIMAL = 0.50  # replaced at runtime by current_optimal_gc()
 
 DB = Path(__file__).parent.parent / "viroforge" / "data" / "viral_genomes.db"
 
@@ -63,13 +71,36 @@ CONTAMINANT_GC = {
 }
 
 
-def efficiency(gc: np.ndarray, strength: float, optimal: float = 0.40) -> np.ndarray:
-    """The model in viroforge/amplification.py MDAAmplification."""
+def current_optimal_gc() -> float:
+    """Recover the optimum the shipped model actually uses.
+
+    Read from the real implementation rather than restated here, so this script
+    cannot drift from the code it is meant to be measuring.
+    """
+    from viroforge.amplification import MDAAmplification
+
+    probe = MDAAmplification(gc_bias_strength=1.0)
+    grid = np.linspace(0.0, 1.0, 10001)
+    return float(grid[np.argmax([probe.calculate_gc_efficiency(g) for g in grid])])
+
+
+def efficiency(gc: np.ndarray, strength: float, optimal: float | None = None) -> np.ndarray:
+    """The model in viroforge/amplification.py MDAAmplification.
+
+    With ``optimal=None`` this defers to the shipped implementation. An explicit
+    value re-centres the same curve, which is how the tuning grids below explore
+    alternatives without mutating the module.
+    """
+    if optimal is None:
+        from viroforge.amplification import MDAAmplification
+
+        amp = MDAAmplification(gc_bias_strength=strength)
+        return np.array([amp.calculate_gc_efficiency(float(g)) for g in np.atleast_1d(gc)])
     return np.maximum(0.001, np.exp(-15.0 * strength * (gc - optimal) ** 2))
 
 
 def fold_changes(gc: np.ndarray, abundance: np.ndarray, strength: float,
-                 optimal: float) -> np.ndarray:
+                 optimal: float | None = None) -> np.ndarray:
     """Post-amplification / pre-amplification relative abundance, renormalised."""
     eff = efficiency(gc, strength, optimal)
     biased = abundance * eff
@@ -95,7 +126,7 @@ def load(cid: int) -> tuple[str, np.ndarray, np.ndarray]:
     return name, gc, ab
 
 
-def biased_fraction(gc, ab, strength, optimal) -> float:
+def biased_fraction(gc, ab, strength, optimal=None) -> float:
     fc = fold_changes(gc, ab, strength, optimal)
     return float(np.mean((fc > 10) | (fc < 0.1)))
 
@@ -112,10 +143,12 @@ def main() -> int:
     args = ap.parse_args()
 
     lo, hi = PUBLISHED_BIASED_FRACTION
+    global SHIPPED_OPTIMAL
+    SHIPPED_OPTIMAL = current_optimal_gc()
     data = [load(c) for c in args.collections]
 
     print("=" * 78)
-    print("PART 1  Theoretical fold-bias vs the 40% GC optimum")
+    print(f"PART 1  Theoretical fold-bias vs the shipped {SHIPPED_OPTIMAL*100:.0f}% GC optimum")
     print("=" * 78)
     hdr = "  GC%  " + "".join(f"  s={s:<6}" for s in args.strengths)
     print(hdr)
@@ -132,7 +165,7 @@ def main() -> int:
     for (name, gc, ab), cid in zip(data, args.collections):
         cells = ""
         for s in args.strengths:
-            f = biased_fraction(gc, ab, s, 0.40)
+            f = biased_fraction(gc, ab, s)
             mark = "*" if lo <= f <= hi else " "
             cells += f"  {f*100:>5.1f}%{mark}"
         print(f"  c{cid:<3}{name[:30]:<31}{cells}")
@@ -143,16 +176,16 @@ def main() -> int:
 
     print()
     print("=" * 78)
-    print("PART 3  Peak position: code uses 40%, paper reports 45-60%")
+    print(f"PART 3  Peak position: code uses {SHIPPED_OPTIMAL*100:.0f}%, paper reports 45-60%")
     print("=" * 78)
     print("  The paper reports MDA OVER-amplifies 45-60% GC. Any penalty above 1x")
     print("  in that band is the wrong direction, whatever the strength.\n")
     print(f"  {'optimal':>8} {'s':>5}   " + "".join(f"{int(g*100)}%GC   " for g in (0.45, 0.50, 0.55, 0.60)))
-    for opt in (0.40, 0.52):
+    for opt in (0.40, SHIPPED_OPTIMAL):
         for s in (1.5, 3.0):
             cells = "".join(f"{1/efficiency(np.array([g]), s, opt)[0]:>6.2f}x "
                             for g in (0.45, 0.50, 0.55, 0.60))
-            flag = "  <- current" if opt == 0.40 and s == 3.0 else ""
+            flag = "  <- shipped" if abs(opt - SHIPPED_OPTIMAL) < 1e-6 and s == 3.0 else ""
             print(f"  {opt:>8.2f} {s:>5}   {cells}{flag}")
 
     print("\n  Biased fraction over a (optimal_gc, strength) grid, mean/worst across")
@@ -175,8 +208,8 @@ def main() -> int:
     name, gc, ab = data[0]
     print(f"\n  Contaminant efficiency relative to the median viral genome ({np.median(gc)*100:.0f}% GC), c{args.collections[0]}:")
     for s in args.strengths:
-        med = efficiency(np.array([np.median(gc)]), s, 0.40)[0]
-        cells = "  ".join(f"{k.split()[0]}={efficiency(np.array([v]), s, 0.40)[0]/med:>5.2f}x"
+        med = efficiency(np.array([np.median(gc)]), s)[0]
+        cells = "  ".join(f"{k.split()[0]}={efficiency(np.array([v]), s)[0]/med:>5.2f}x"
                           for k, v in CONTAMINANT_GC.items())
         print(f"    s={s:<5} {cells}")
 
@@ -184,7 +217,7 @@ def main() -> int:
     print("=" * 78)
     print("VERDICT")
     print("=" * 78)
-    fracs = {s: np.mean([biased_fraction(gc, ab, s, 0.40) for _, gc, ab in data])
+    fracs = {s: np.mean([biased_fraction(gc, ab, s) for _, gc, ab in data])
              for s in args.strengths}
     ok = [s for s, f in fracs.items() if f <= hi]
     print(f"  Mean biased fraction across {len(data)} collections:")

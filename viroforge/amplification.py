@@ -401,12 +401,12 @@ class MDAAmplification(AmplificationMethod):
         """
         Calculate extreme GC-dependent efficiency for MDA.
 
-        φ29 polymerase has much stronger GC bias than Taq polymerase:
-        - Struggles with high GC content (>60%)
-        - Optimal range: 30-50% GC
-        - Can show 10-1000x differences
+        φ29 polymerase under-amplifies both GC extremes and favours the middle
+        of the range. Measured in saliva DNA viromes by Parras-Moltó et al.
+        2018, Microbiome 6:119 (PMID 29954453): MDA over-amplified contigs at
+        45-60% GC and under-represented reads above 60% and below 40%.
 
-        Uses steep exponential decay for high GC:
+        Uses exponential decay away from the optimum:
         efficiency = exp(-k * (gc - optimal)^2)
 
         Args:
@@ -418,8 +418,11 @@ class MDAAmplification(AmplificationMethod):
         if self.gc_bias_strength == 0:
             return 1.0
 
-        # Optimal GC for φ29 is lower than Taq (~40%)
-        optimal_gc = 0.40
+        # Centre of the 45-60% band Parras-Moltó et al. found over-amplified.
+        # This was 0.40 until scripts/benchmark_amplification_bias.py showed
+        # that penalised the band the literature reports as enriched: a 60% GC
+        # genome took a 6x penalty where it should have been slightly favoured.
+        optimal_gc = 0.50
 
         # Calculate squared deviation
         gc_deviation_sq = (gc_content - optimal_gc) ** 2

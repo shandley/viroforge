@@ -297,18 +297,60 @@ class TestMDAAmplification:
         assert mda.stochasticity == 0.3
         assert mda.chimera_rate == 0.15
 
-    def test_mda_extreme_gc_bias(self):
-        """Test that MDA has stronger GC bias than RdAB."""
+    def test_mda_penalises_both_gc_extremes(self):
+        """MDA efficiency peaks mid-range and falls away symmetrically.
+
+        Parras-Moltó et al. 2018 (PMID 29954453) measured over-amplification of
+        45-60% GC contigs in MDA saliva viromes and under-representation of both
+        extremes, so the peak sits at 50% GC.
+
+        This previously asserted efficiency < 0.1 at 70% GC, which held only
+        because the curve was mis-centred at 40% and 70% was therefore 30 points
+        off-peak rather than 20.
+        """
+        mda = MDAAmplification(gc_bias_strength=3.0)
+
+        peak = mda.calculate_gc_efficiency(0.50)
+        assert peak == pytest.approx(1.0)
+
+        # Symmetric: equal deviations are penalised equally
+        assert mda.calculate_gc_efficiency(0.30) == pytest.approx(
+            mda.calculate_gc_efficiency(0.70))
+
+        # Monotone falloff, and the extremes are substantially penalised
+        effs = [mda.calculate_gc_efficiency(g) for g in (0.50, 0.55, 0.60, 0.70)]
+        assert effs == sorted(effs, reverse=True)
+        assert mda.calculate_gc_efficiency(0.70) < 0.25
+
+        # The published over-amplified band must not be heavily penalised
+        for gc in (0.45, 0.50, 0.55, 0.60):
+            assert mda.calculate_gc_efficiency(gc) > 0.6, (
+                f"{gc:.0%} GC sits in the band the literature reports as "
+                "over-amplified; it should not be strongly suppressed"
+            )
+
+    def test_mda_and_rdab_curves_are_currently_similar(self):
+        """Documents an open calibration question, so it is not lost.
+
+        MDAAmplification is documented as having stronger GC bias than RdAB.
+        With both curves now peaked at 50% GC, the defaults (MDA strength 3.0,
+        RdAB 1.0) produce almost the same efficiency: the previous difference
+        came mostly from the mis-centred MDA optimum, not from strength.
+
+        Whether phi29 should in fact fall off more sharply than RdAB needs its
+        own measurement. This test pins the current state rather than asserting
+        an ordering the evidence does not yet support.
+        """
         mda = MDAAmplification(gc_bias_strength=3.0)
         rdab = RdABAmplification(gc_bias_strength=1.0)
 
-        # High GC genome (70%)
-        mda_eff = mda.calculate_gc_efficiency(0.70)
-        rdab_eff = rdab.calculate_gc_efficiency(0.70)
-
-        # MDA should have much lower efficiency for high GC
-        assert mda_eff < rdab_eff
-        assert mda_eff < 0.1  # Very low efficiency
+        for gc in (0.30, 0.70):
+            ratio = mda.calculate_gc_efficiency(gc) / rdab.calculate_gc_efficiency(gc)
+            assert 0.9 < ratio < 1.1, (
+                f"MDA/RdAB efficiency ratio at {gc:.0%} GC is {ratio:.2f}; if this "
+                "was changed deliberately, update this test and the docstring "
+                "claim that MDA bias is 2-5x stronger than PCR"
+            )
 
     def test_mda_stochastic_variation(self):
         """Test that MDA adds stochastic variation."""

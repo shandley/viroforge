@@ -162,9 +162,12 @@ def _compute_mda_hotspot_weights(
             # Add baseline weight (even cold regions get some amplification)
             hotspot_weight = max(0.1, hotspot_weight)
 
-            # GC bias (phi29 optimal at 40%)
+            # GC bias. phi29 favours the middle of the range and under-amplifies
+            # both extremes; Parras-Moltó et al. 2018 (PMID 29954453) measured
+            # over-amplification at 45-60% GC in saliva viromes. Centred at 0.40
+            # until that was checked, which penalised the enriched band.
             gc = _compute_gc(str(records[list_idx].seq))
-            gc_weight = math.exp(-((gc - 0.40) ** 2) / (2 * 0.10 ** 2))
+            gc_weight = math.exp(-((gc - 0.50) ** 2) / (2 * 0.10 ** 2))
 
             # Stochastic noise
             stochastic = rng.lognormvariate(0, 0.5)
