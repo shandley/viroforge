@@ -784,50 +784,54 @@ def add_reagent_contamination(
 # accessions are recorded here or anywhere else in the package. The real
 # sequences come from scripts/curate_bacterial_background.py, which resolves
 # RefSeq representative genomes by taxon name at build time.
+#
+# gc_content values are MEASURED from bacterial_fragments.fasta, not
+# estimated, so the synthetic fallback matches the real reference set. Rerun
+# scripts/curate_bacterial_background.py and remeasure if the taxa change.
 BACTERIAL_COMMUNITY_PROFILES: Dict[str, Dict] = {
     'gut': {
-        'gc_content': 45.0,
+        'gc_content': 48.6,
         'genera': ['Akkermansia', 'Bacteroides', 'Bifidobacterium',
                    'Blautia', 'Escherichia', 'Faecalibacterium',
                    'Phocaeicola', 'Roseburia'],
     },
     'oral': {
-        'gc_content': 45.0,
+        'gc_content': 41.9,
         'genera': ['Fusobacterium', 'Haemophilus', 'Neisseria', 'Rothia',
                    'Streptococcus', 'Veillonella'],
     },
     'skin': {
-        'gc_content': 55.0,
+        'gc_content': 49.3,
         'genera': ['Corynebacterium', 'Cutibacterium', 'Staphylococcus'],
     },
     'respiratory': {
-        'gc_content': 45.0,
+        'gc_content': 43.5,
         'genera': ['Haemophilus', 'Moraxella', 'Pseudomonas',
                    'Staphylococcus', 'Streptococcus'],
     },
     'vaginal': {
-        'gc_content': 40.0,
+        'gc_content': 37.7,
         'genera': ['Gardnerella', 'Lactobacillus', 'Prevotella'],
     },
     'urinary': {
-        'gc_content': 45.0,
+        'gc_content': 36.9,
         'genera': ['Escherichia', 'Lactobacillus', 'Streptococcus'],
     },
     'marine': {
-        'gc_content': 40.0,
+        'gc_content': 44.6,
         'genera': ['Alteromonas', 'Prochlorococcus', 'Synechococcus'],
     },
     'soil': {
-        'gc_content': 62.0,
+        'gc_content': 66.0,
         'genera': ['Bradyrhizobium', 'Mycobacterium', 'Pseudomonas',
                    'Streptomyces'],
     },
     'freshwater': {
-        'gc_content': 45.0,
+        'gc_content': 40.4,
         'genera': ['Flavobacterium', 'Polynucleobacter'],
     },
     'wastewater': {
-        'gc_content': 55.0,
+        'gc_content': 44.4,
         'genera': ['Acinetobacter', 'Nitrosomonas', 'Pseudomonas'],
     },
 }

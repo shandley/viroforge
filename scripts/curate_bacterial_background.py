@@ -108,7 +108,11 @@ COMMUNITY_TAXA: dict[str, list[str]] = {
     ],
     "marine": [
         "Prochlorococcus marinus",
-        "Synechococcus sp. WH 8102",
+        # S. elongatus rather than a marine strain such as WH 8102: the
+        # strain-qualified names do not resolve through an [Organism] search.
+        # The genus and its GC profile are what matter for generating
+        # background sequence, so the ecological mismatch is acceptable here.
+        "Synechococcus elongatus",
         "Alteromonas macleodii",
     ],
     "soil": [

@@ -54,15 +54,33 @@ point; a requested 70% would have landed at 41%.
   once contamination could be large: at 70% bacterial, a 0.30 dark-matter
   fraction is 9% of reads.
 
+- **The reference set now ships bundled**:
+  `viroforge/data/references/bacterial_fragments.fasta`, 120 fragments of 10 kb
+  across all 10 communities, 1.2 MB, 0.017% ambiguous bases. All 40 taxa resolved
+  against RefSeq. `--bacterial-fraction` works out of the box; the synthetic
+  fallback remains for anyone replacing the set via
+  `VIROFORGE_BACTERIAL_FRAGMENTS`.
+
+  The recommended bulk stool recipe is `--no-vlp --contamination-level heavy
+  --bacterial-fraction 0.75`, measured at 75.0% bacterial, 3.6% viral, 11.8%
+  rRNA, 9.5% host. Bacterial fraction alone does not push viral into the 1-5%
+  band; host and rRNA have to occupy the remainder, which the heavy level
+  provides.
+
+### Changed
+
+- `BACTERIAL_COMMUNITY_PROFILES` GC values are now **measured** from the bundled
+  reference rather than estimated, so the synthetic fallback matches the real
+  set. Several were well off: wastewater 55 to 44.4, urinary 45 to 36.9, gut 45
+  to 48.6. A test remeasures the reference and fails if the two drift apart.
+
 ### Known issues
 
-- The bundled reference set is not shipped yet, so `--bacterial-fraction` falls
-  back to synthetic sequences with community-appropriate GC unless you run the
-  curation script or set `VIROFORGE_BACTERIAL_FRAGMENTS`.
 - Per-collection bacterial baselines (a `default_bacterial_pct` column) are not
   implemented, so the fraction must be given explicitly per run.
-- At `--bacterial-fraction 0.70` the viral fraction lands at 8% against a target
-  of 1-5%. Around 0.80 gets closer.
+- Marine uses *Synechococcus elongatus* rather than a marine strain such as
+  WH 8102, because strain-qualified names do not resolve through an `[Organism]`
+  search. The genus and GC profile are representative; the ecology is not exact.
 
 ## [0.16.0] - 2026-07-29
 

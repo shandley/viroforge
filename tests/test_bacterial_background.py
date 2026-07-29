@@ -308,3 +308,64 @@ class TestNestedAbundanceSemantics:
     def test_zero_viral_abundance_is_an_error(self):
         with pytest.raises(ValueError, match="Viral abundances"):
             self._combine([0.0, 0.0], self._bg_profile(50.0))
+
+
+class TestBundledReferenceAndFallback:
+    """Since bacterial_fragments.fasta is bundled, the real path is the default
+    and the synthetic path only runs when a reference cannot be resolved. Both
+    need coverage, or the fallback rots unnoticed."""
+
+    def test_bundled_reference_is_used_by_default(self):
+        p = _profile(community_type="soil", n_fragments=15)
+        assert not any(c.source == "synthetic" for c in p.contaminants)
+
+    def test_bundled_reference_is_discoverable(self):
+        from viroforge.data.references.resolver import get_bacterial_fragments_path
+
+        path = get_bacterial_fragments_path()
+        assert path is not None and path.exists()
+
+    def test_synthetic_fallback_still_works(self):
+        p = ContaminationProfile(name="t")
+        add_bacterial_background(p, abundance_pct=50.0, n_fragments=10,
+                                 fragment_length=500, random_seed=42,
+                                 use_real_references=False)
+        assert len(p.contaminants) == 10
+        assert all(c.source == "synthetic" for c in p.contaminants)
+        assert sum(c.abundance for c in p.contaminants) == pytest.approx(0.50)
+
+    def test_modelled_gc_matches_the_bundled_reference(self):
+        """gc_content shapes the synthetic fallback, so it must track the real
+        set. Otherwise a run without the reference would misrepresent the
+        community relative to a run with it."""
+        import collections
+        import re
+
+        from Bio import SeqIO
+
+        from viroforge.data.references.resolver import get_bacterial_fragments_path
+
+        by = collections.defaultdict(list)
+        for rec in SeqIO.parse(get_bacterial_fragments_path(), "fasta"):
+            community = re.search(r"\[(\w+)\]", rec.description).group(1)
+            seq = str(rec.seq).upper()
+            by[community].append((seq.count("G") + seq.count("C")) / len(seq) * 100)
+
+        for community, values in by.items():
+            actual = sum(values) / len(values)
+            modelled = BACTERIAL_COMMUNITY_PROFILES[community]["gc_content"]
+            assert actual == pytest.approx(modelled, abs=1.0), (
+                f"{community}: reference is {actual:.1f}% GC but the model says "
+                f"{modelled:.1f}%. Remeasure after changing the taxa."
+            )
+
+    def test_every_community_has_reference_fragments(self):
+        import re
+
+        from Bio import SeqIO
+
+        from viroforge.data.references.resolver import get_bacterial_fragments_path
+
+        present = {re.search(r"\[(\w+)\]", r.description).group(1)
+                   for r in SeqIO.parse(get_bacterial_fragments_path(), "fasta")}
+        assert present == set(BACTERIAL_COMMUNITY_PROFILES)

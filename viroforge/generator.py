@@ -1496,9 +1496,14 @@ Examples:
         help='Fraction of reads from the sample\'s own microbiome (0.0-1.0, '
              'default: 0.0 = off). Real bulk stool is 60-80%% bacterial and '
              'only 1-5%% viral; without this a --no-vlp run stays viral-'
-             'dominated no matter how high --contamination-level goes. Try '
-             '0.70 with --no-vlp for a realistic bulk metagenome. Distinct '
-             'from reagent bacteria, which model the much smaller kitome.'
+             'dominated no matter how high --contamination-level goes. '
+             'For a realistic bulk stool metagenome use "--no-vlp '
+             '--contamination-level heavy --bacterial-fraction 0.75", measured '
+             'at 75%% bacterial / 3.6%% viral / 11.8%% rRNA / 9.5%% host. '
+             'Bacterial fraction alone is not enough to push viral down to '
+             '1-5%%: host and rRNA have to take up the rest, which is what the '
+             'heavy level does. Distinct from reagent bacteria, which model the '
+             'much smaller kitome.'
     )
     bg_group.add_argument(
         '--bacterial-community',
