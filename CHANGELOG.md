@@ -8,6 +8,62 @@ ViroForge generates data. A change that alters generator output for a fixed seed
 is treated as breaking even when the API is untouched, and is called out under
 "Reproducibility" below.
 
+## [0.17.0] - 2026-07-29
+
+### Added
+
+- **Bacterial background**, so `--no-vlp` produces a realistic bulk metagenome.
+  `--bacterial-fraction` adds the sample's own microbiome and
+  `--bacterial-community` selects which one (ten profiles; soil is GC-rich,
+  marine is not). Off by default. Measured on the IBD gut collection with
+  `--bacterial-fraction 0.70`, same seed:
+
+  |            | `--no-vlp` | `--vlp tangential` | real bulk stool |
+  |---|---|---|---|
+  | bacterial  | 68.9% | 1.2%  | 60-80% |
+  | viral      | 8.0%  | 96.9% | 1-5%   |
+  | host       | 9.8%  | 0.2%  | 10-30% |
+  | rRNA       | 10.4% | 1.2%  | 5-15%  |
+
+  The same run was 81.6% viral and 1.7% bacterial in 0.16.0. VLP enrichment now
+  removes 98.2% of the background, so it finally models what VLP prep is for.
+  Closes the core of issue #37.
+
+  Bacterial background is a separate contaminant type from reagent bacteria, and
+  is not scaled by `--contamination-level`. That dial models how well the prep
+  went; this models how much microbiome the sample held.
+
+- `scripts/curate_bacterial_background.py` builds the reference set from RefSeq
+  at build time, resolving genomes by taxon **name** so no accession is stored in
+  the repository, and fetching only 10 kb slices so whole genomes are never
+  downloaded. 9 gut taxa produce 18 fragments at 180 KB.
+
+### Reproducibility
+
+**Contamination fractions are now delivered as requested, which shifts existing
+output slightly.** Previously the viral and contaminant blocks were concatenated
+and the total normalised, so a requested fraction `c` arrived as `c/(1+c)`: a
+requested 8.6% landed at 7.9%. The viral community is now scaled to fill
+`1 - contamination` instead. Existing datasets shift by well under a percentage
+point; a requested 70% would have landed at 41%.
+
+### Changed
+
+- `--dark-matter-fraction` is documented as a fraction **of the viral portion**,
+  not of all reads. This was always true of the implementation but only mattered
+  once contamination could be large: at 70% bacterial, a 0.30 dark-matter
+  fraction is 9% of reads.
+
+### Known issues
+
+- The bundled reference set is not shipped yet, so `--bacterial-fraction` falls
+  back to synthetic sequences with community-appropriate GC unless you run the
+  curation script or set `VIROFORGE_BACTERIAL_FRAGMENTS`.
+- Per-collection bacterial baselines (a `default_bacterial_pct` column) are not
+  implemented, so the fraction must be given explicitly per run.
+- At `--bacterial-fraction 0.70` the viral fraction lands at 8% against a target
+  of 1-5%. Around 0.80 gets closer.
+
 ## [0.16.0] - 2026-07-29
 
 ### Reproducibility
