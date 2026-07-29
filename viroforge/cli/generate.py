@@ -13,15 +13,6 @@ from typing import Dict, List, Optional
 
 try:
     from rich.console import Console
-    from rich.progress import (
-        Progress,
-        SpinnerColumn,
-        TextColumn,
-        BarColumn,
-        TaskProgressColumn,
-        TimeRemainingColumn,
-        TimeElapsedColumn
-    )
     from rich.panel import Panel
     from rich.table import Table
 except ImportError:
@@ -183,9 +174,10 @@ def execute_generation(params: Dict, verbose: bool = False):
     """
     Execute dataset generation by calling run_generation() directly.
 
-    Converts the params dict into an argparse-style namespace and calls
-    the generation engine in-process (no subprocess). Falls back to
-    subprocess if the import fails.
+    Converts the params dict into an argparse-style namespace and calls the
+    generation engine in-process. Generation runs without a progress bar: the
+    engine logs its own progress, and the previous bar was driven by parsing
+    the output of a subprocess that no longer exists.
 
     Parameters
     ----------
