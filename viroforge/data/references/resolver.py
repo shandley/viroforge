@@ -94,6 +94,25 @@ def get_host_fragments_path(user_path: Optional[Path] = None) -> Optional[Path]:
     )
 
 
+def get_bacterial_fragments_path(user_path: Optional[Path] = None) -> Optional[Path]:
+    """Locate bacterial background fragments for bulk-metagenome modeling.
+
+    These represent the sample's own microbiome, which dominates a bulk
+    metagenome, as distinct from the small reagent-kitome carryover.
+
+    Built by ``scripts/curate_bacterial_background.py``, which resolves RefSeq
+    representative genomes by taxon name at build time and cuts fragments from
+    them. No accessions are stored in the repository and whole genomes are never
+    committed, following the pattern of ``host_fragments.fasta``.
+    """
+    return _resolve(
+        user_path,
+        "VIROFORGE_BACTERIAL_FRAGMENTS",
+        "bacterial_fragments.fasta",
+        "bacterial background fragments",
+    )
+
+
 def get_host_genome_path(user_path: Optional[Path] = None) -> Optional[Path]:
     """Locate full host genome (user-supplied only, not bundled).
 

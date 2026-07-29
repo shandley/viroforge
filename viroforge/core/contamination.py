@@ -35,10 +35,20 @@ logger = logging.getLogger(__name__)
 
 
 class ContaminantType(Enum):
-    """Enumeration of contamination types."""
+    """Enumeration of contamination types.
+
+    BACTERIAL_BACKGROUND and REAGENT_BACTERIA are deliberately separate. Reagent
+    bacteria model the kitome, a small carryover from extraction kits whose
+    per-collection baselines are anchored to Salter et al. 2014. Bacterial
+    background models the sample's own microbiome, which dominates a bulk
+    metagenome at 60-80% of reads. Scaling the kitome to that level would
+    misrepresent a cited figure, and keeping them distinct also keeps them
+    separable in per-read labels for QC benchmarking.
+    """
     HOST_DNA = "host_dna"
     RRNA = "rrna"
     REAGENT_BACTERIA = "reagent_bacteria"
+    BACTERIAL_BACKGROUND = "bacterial_background"
     PHIX = "phix"
     ERV_ENDOGENOUS = "erv_endogenous"
     ERV_EXOGENOUS = "erv_exogenous"
@@ -765,6 +775,188 @@ def add_reagent_contamination(
                 description=f"Reagent contamination: {sp}"
             )
             profile.add_contaminant(contaminant)
+
+    return profile
+
+
+# Representative GC content and dominant genera per community type, used to
+# label fragments and to shape the synthetic fallback. Genus names only; no
+# accessions are recorded here or anywhere else in the package. The real
+# sequences come from scripts/curate_bacterial_background.py, which resolves
+# RefSeq representative genomes by taxon name at build time.
+BACTERIAL_COMMUNITY_PROFILES: Dict[str, Dict] = {
+    'gut': {
+        'gc_content': 45.0,
+        'genera': ['Bacteroides', 'Faecalibacterium', 'Prevotella',
+                   'Escherichia', 'Bifidobacterium', 'Ruminococcus'],
+    },
+    'oral': {
+        'gc_content': 45.0,
+        'genera': ['Streptococcus', 'Neisseria', 'Veillonella',
+                   'Haemophilus', 'Rothia', 'Fusobacterium'],
+    },
+    'skin': {
+        'gc_content': 55.0,
+        'genera': ['Cutibacterium', 'Staphylococcus', 'Corynebacterium'],
+    },
+    'respiratory': {
+        'gc_content': 45.0,
+        'genera': ['Streptococcus', 'Haemophilus', 'Moraxella',
+                   'Pseudomonas', 'Staphylococcus'],
+    },
+    'vaginal': {
+        'gc_content': 40.0,
+        'genera': ['Lactobacillus', 'Gardnerella', 'Atopobium', 'Prevotella'],
+    },
+    'urinary': {
+        'gc_content': 45.0,
+        'genera': ['Escherichia', 'Lactobacillus', 'Streptococcus'],
+    },
+    'marine': {
+        'gc_content': 40.0,
+        'genera': ['Prochlorococcus', 'Synechococcus', 'Pelagibacter',
+                   'Alteromonas'],
+    },
+    'soil': {
+        'gc_content': 62.0,
+        'genera': ['Bradyrhizobium', 'Streptomyces', 'Mycobacterium',
+                   'Pseudomonas'],
+    },
+    'freshwater': {
+        'gc_content': 45.0,
+        'genera': ['Polynucleobacter', 'Limnohabitans', 'Flavobacterium'],
+    },
+    'wastewater': {
+        'gc_content': 55.0,
+        'genera': ['Nitrosomonas', 'Acinetobacter', 'Pseudomonas',
+                   'Escherichia'],
+    },
+}
+
+
+def add_bacterial_background(
+    profile: ContaminationProfile,
+    abundance_pct: float = 0.0,
+    community_type: str = 'gut',
+    fragments_path: Optional[Path] = None,
+    n_fragments: int = 200,
+    fragment_length: int = 10000,
+    use_real_references: bool = True,
+    random_seed: Optional[int] = None,
+) -> ContaminationProfile:
+    """
+    Add the sample's own bacterial microbiome as background.
+
+    This is what makes a bulk metagenome (``--no-vlp``) realistic. Real bulk
+    stool is roughly 60-80% bacterial, 10-30% host and only 1-5% viral, whereas
+    a virome-only community leaves the viral fraction dominant no matter how far
+    the other contamination knobs are turned up.
+
+    Distinct from :func:`add_reagent_contamination`, which models the much
+    smaller reagent kitome. See :class:`ContaminantType` for why the two are
+    kept apart.
+
+    Args:
+        profile: ContaminationProfile to add background to.
+        abundance_pct: Percentage of total abundance (0-100). Defaults to 0.0,
+            so callers must opt in and existing behaviour is unchanged.
+        community_type: Key into BACTERIAL_COMMUNITY_PROFILES, selecting the
+            dominant genera and GC content for the body site or environment.
+        fragments_path: Explicit path to bacterial fragments FASTA. Falls back
+            to the resolver, then to synthetic sequences.
+        n_fragments: Number of fragments to draw.
+        fragment_length: Length of each fragment when generating synthetic
+            sequences, and the cut length for oversized real records.
+        use_real_references: If True, try the resolver before synthesising.
+        random_seed: Seed for reproducible fragment selection.
+
+    Returns:
+        Updated ContaminationProfile.
+
+    Example:
+        >>> profile = ContaminationProfile()
+        >>> add_bacterial_background(profile, abundance_pct=70.0,
+        ...                          community_type='gut')
+    """
+    from viroforge.data.references.resolver import get_bacterial_fragments_path
+
+    rng = random.Random(random_seed)
+
+    if abundance_pct <= 0:
+        logger.debug("Bacterial background disabled (abundance_pct=0)")
+        return profile
+
+    if n_fragments <= 0:
+        raise ValueError(f"n_fragments must be positive, got {n_fragments}")
+
+    community = BACTERIAL_COMMUNITY_PROFILES.get(
+        community_type, BACTERIAL_COMMUNITY_PROFILES['gut'])
+
+    logger.info(
+        f"Adding {abundance_pct}% bacterial background ({community_type})"
+    )
+
+    abundance_per_fragment = (abundance_pct / 100.0) / n_fragments
+
+    resolved_path = fragments_path
+    if resolved_path is None and use_real_references:
+        resolved_path = get_bacterial_fragments_path()
+
+    if resolved_path is not None and Path(resolved_path).exists():
+        logger.info(f"Sampling bacterial background from {resolved_path}")
+        records = list(SeqIO.parse(resolved_path, 'fasta'))
+
+        # Prefer fragments matching this community, fall back to the whole set
+        # so a gut-only reference still works for other sites.
+        matching = [
+            r for r in records
+            if any(g.lower() in r.description.lower() for g in community['genera'])
+        ]
+        pool = matching if matching else records
+        if not matching:
+            logger.info(
+                f"No {community_type} fragments in the reference set; "
+                "sampling across all available taxa"
+            )
+
+        for i in range(n_fragments):
+            record = rng.choice(pool)
+            seq = record.seq
+            if len(seq) > fragment_length:
+                start = rng.randint(0, len(seq) - fragment_length)
+                seq = seq[start:start + fragment_length]
+
+            profile.add_contaminant(ContaminantGenome(
+                genome_id=f"bacterial_bg_{community_type}_{i:04d}",
+                sequence=seq,
+                contaminant_type=ContaminantType.BACTERIAL_BACKGROUND,
+                organism=record.description or record.id,
+                source=f"bacterial_background_{record.id}",
+                abundance=abundance_per_fragment,
+                description=f"Bacterial background fragment from {record.id}",
+            ))
+    else:
+        logger.info(
+            "No bacterial reference available, creating synthetic bacterial "
+            "background. Build the real set with "
+            "scripts/curate_bacterial_background.py"
+        )
+        for i in range(n_fragments):
+            genus = rng.choice(community['genera'])
+            # Real genomes vary around the community mean rather than sitting on it
+            gc = min(75.0, max(25.0, rng.gauss(community['gc_content'], 5.0)))
+            seq = _generate_sequence_with_gc(fragment_length, gc, rng=rng)
+
+            profile.add_contaminant(ContaminantGenome(
+                genome_id=f"bacterial_bg_{community_type}_{i:04d}",
+                sequence=seq,
+                contaminant_type=ContaminantType.BACTERIAL_BACKGROUND,
+                organism=f"{genus} sp.",
+                source="synthetic",
+                abundance=abundance_per_fragment,
+                gc_content=gc,
+                description=f"Synthetic bacterial background ({genus})",
+            ))
 
     return profile
 

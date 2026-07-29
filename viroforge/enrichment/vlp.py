@@ -692,8 +692,17 @@ class VLPEnrichment:
                 else:
                     removal = 0.15 * self.protocol.contamination_reduction
 
-            elif ctype == ContaminantType.REAGENT_BACTERIA:
-                # Bacterial cells - primarily removed by filtration
+            elif ctype in (ContaminantType.REAGENT_BACTERIA,
+                           ContaminantType.BACTERIAL_BACKGROUND):
+                # Bacterial cells - primarily removed by filtration.
+                # Kitome carryover and the sample's own microbiome are the same
+                # physical object here, whole cells of 1-5 um, so they filter
+                # identically; only their abundance differs. Without this branch
+                # BACTERIAL_BACKGROUND would fall through to the generic
+                # "OTHER or unknown" case below and take a 50-99% removal rather
+                # than the ~98% a 0.2 um filter achieves, which would understate
+                # what VLP enrichment does. Removing the bacterial background is
+                # the main thing VLP prep is for.
                 if self.protocol.filtration_method in ['tangential_flow', 'syringe', 'centrifugal']:
                     # Bacteria are 1-5 μm, much larger than pore size
                     # Should be nearly 100% removed by 0.2 μm filter

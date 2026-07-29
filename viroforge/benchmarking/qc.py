@@ -31,6 +31,11 @@ DEFAULT_KEEP_REMOVE: dict[str, str] = {
     "rrna": "remove",
     "phix": "remove",
     "reagent_bacteria": "remove",  # the spec calls this "bacterial"
+    # The sample's own microbiome. "remove" is correct for VIROME QC, where the
+    # goal is isolating viral signal. A bulk-metagenome pipeline would score it
+    # as signal instead; pass keep_remove={"bacterial_background": "keep"} for
+    # that case rather than relying on this default.
+    "bacterial_background": "remove",
     "artifact_low_complexity": "remove",
     "erv_endogenous": "remove",    # endogenous retrovirus: host-derived
 }
