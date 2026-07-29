@@ -87,6 +87,11 @@ produced it rather than regenerating.
 - Duplicate template selection went from O(n*k) to O(n) by replacing a
   `list.index()` scan per draw with a single vectorised call. The effect grows
   with read count and is large at the hundreds-of-thousands scale.
+- `pandas` is imported lazily in `viroforge/core/contamination.py`, since only
+  `get_contamination_table()` uses it. Worth roughly 90-110 ms per CLI
+  invocation on an M-series Mac. That is the marginal cost of pandas on top of
+  the numpy and Biopython imports the module already needs, not the ~120 ms
+  pandas costs on its own.
 
 ### Known issues
 
