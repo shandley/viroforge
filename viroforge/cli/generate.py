@@ -245,63 +245,30 @@ def execute_generation(params: Dict, verbose: bool = False):
 
 
 def _params_to_namespace(params: Dict):
-    """Convert a params dict to an argparse.Namespace matching the script's args."""
-    import argparse
+    """Convert a params dict to the Namespace run_generation() expects.
 
-    # Default values matching the script's argparse defaults
-    defaults = {
-        'database': 'viroforge/data/viral_genomes.db',
-        'list_collections': False,
-        'collection_id': None,
-        'output': None,
-        'platform': 'novaseq',
-        'coverage': 10,
-        'n_reads': None,
-        'depth': None,
-        'read_length': None,
-        'insert_size': None,
-        'vlp_protocol': 'tangential_flow',
-        'pore_size': None,
-        'contamination_level': 'realistic',
-        'amplification': 'linker',
-        'molecule_type': 'dna',
-        'rna_depletion': None,
-        'seed': 42,
-        'verbose': False,
-        'dry_run': False,
-        'no_vlp': False,
-        'adapter_rate': 0.03,
-        'adapter_type': 'truseq',
-        'mean_insert_size': None,
-        'insert_size_sd': None,
-        'chimera_rate': None,
-        'low_complexity_rate': 0.005,
-        'entropy_range': None,
-        'duplicate_rate': 0.10,
-        'duplicate_max_copies': 5,
-        'duplicate_error_rate': 0.001,
-        'erv_endogenous_rate': 0.0,
-        'erv_exogenous_rate': 0.0,
-        'erv_exogenous_viruses': None,
-        'herv_fasta': None,
-        'dark_matter_fraction': 0.30,
-        'dark_matter_count': None,
-        'mda_chimera_rate': 0.15,
-        'pacbio_passes': None,
-        'pacbio_read_length': None,
-        'ont_chemistry': None,
-        'ont_read_length': None,
-    }
+    Defaults come from the real parser via parse_args([]), not a second copy
+    of them. An earlier version restated all 41 defaults here; it had drifted
+    to 6 missing attributes and 11 wrong values, so `viroforge generate`
+    raised AttributeError before reaching the generator.
+    """
+    from viroforge.generator import build_parser
 
-    # Apply params on top of defaults
+    args = build_parser().parse_args([])
+
+    unknown = sorted(k for k in params if not hasattr(args, k))
+    if unknown:
+        raise ValueError(
+            f"unknown generation parameter(s): {', '.join(unknown)}. "
+            "Add the argument to build_parser() in viroforge/generator.py."
+        )
+
     for key, value in params.items():
-        if key in defaults:
-            defaults[key] = value
+        setattr(args, key, value)
 
-    # Handle special mappings
-    if params.get('no_vlp'):
-        defaults['vlp_protocol'] = 'none'
+    if params.get("no_vlp"):
+        args.vlp_protocol = "none"
 
-    return argparse.Namespace(**defaults)
+    return args
 
 
