@@ -1,117 +1,99 @@
 # ViroForge - Development Context
 
-**Last Updated**: 2026-07-16
-**Current Version**: v0.14.0 (benchmarking framework)
-**Status**: Canonical DB adopted; data quality evaluated; benchmarking framework Modules 1/2/4 built
+**Last Updated**: 2026-07-29
+**Current Version**: v0.16.0
+**Status**: Main green at 371 tests; PR backlog cleared; CHANGELOG started at 0.15.0
 
 ---
 
-## Session Handoff (2026-07-16)
+## Session Handoff (2026-07-28 / 07-29)
 
-origin/main is at `6edef85`. Working tree clean except the pre-existing untracked
-`data/web/` + `scripts/export_web_data.py` (a prior static web export) and the
-gitignored `validation/` scratch dir.
+origin/main at `ef877c7`, working tree clean, CI green. Earlier handoffs
+(2026-07-14, 07-16, 07-17) are in git history and in the memory files under
+`~/.claude/projects/-Users-shandley-Code-software-viroforge/memory/`.
+
+### Main was broken, and is not any more
+
+`677dab7` shipped a `NameError: collection_defaults` in `_apply_vlp_enrichment`,
+so every run combining `--vlp-protocol` with contamination crashed. Eleven
+integration tests were failing. PR #66 fixed it. The suite went 341 -> 371
+passing over the two days.
+
+### PR backlog cleared
+
+Ten of Leran10's PRs merged: #61, #62, #63, #64, #66, #67, #68, #69, #70, #71.
+Two were closed: #39 (superseded, see below) and #65 (bad citation, see below).
+Several needed fixing forward on main rather than in the PR:
+
+- **#67** was a reproducibility regression, not just an incomplete fix. It added
+  an `rng` parameter to `_generate_sequence_with_gc` that no call site passed,
+  so synthetic sequences became unseeded where the old global `random.seed()`
+  had made them deterministic. It fires on every default run, since
+  `add_reagent_contamination` is always called with no database path.
+- **#71** reintroduced the `collection_defaults` NameError in the extracted
+  `generator.py`, and its `_params_to_namespace` restated all 41 parser defaults,
+  having already drifted to 6 missing attributes and 11 wrong values.
+  `viroforge generate` raised AttributeError. The parser now lives in
+  `viroforge/generator.py` as `build_parser()` and the CLI takes defaults from
+  `parse_args([])`, so drift is impossible. The script is down to 100 lines.
+- **#61** inverted the VLP filtration curves so small virions are recovered,
+  which is correct for dead-end filtration. Nothing covered `FiltrationCurve`,
+  so the direction had never been tested.
+
+### Two modelling corrections
+
+- **VLP size bias runs the other way now.** Recovery falls with virion diameter;
+  losing giant viruses and jumbo phages to a 0.22 um membrane is the documented
+  cost of VLP prep. The size/enrichment correlation moved from about +0.97 to
+  -0.86, so size-stratified results from before 0.15.0 are inverted.
+- **MDA GC bias peaked at the wrong GC content.** The curve was centred at 40%
+  GC and penalised 45-60% GC genomes up to 6x, where Parras-Molto et al. 2018
+  (PMID 29954453) measured MDA *over*-amplifying that band. Optimum moved to
+  50%. `scripts/benchmark_amplification_bias.py` calibrates this against the
+  paper's measured 6.2-7.6% of contigs past 10x fold change.
+
+### Releases
+
+0.15.0 and 0.16.0, both output-changing. `CHANGELOG.md` now exists and starts at
+0.15.0. For a generator whose value is reproducible ground truth, any change to
+output for a fixed seed is treated as breaking and recorded there. No git tags
+and nothing published to PyPI, so versions are repo state only.
+
+### Retired
+
+The lab-notebook workflow is gone: `.git/hooks/pre-commit` archived to
+`pre-commit.disabled`, and the four unregistered `.claude/hooks/` scripts
+deleted. The global `~/.githooks/pre-commit` (gitleaks) still runs and still
+chains to any repo-local hook.
+
+### Watch out for
+
+Leran10's citations have not been reliable. Every PMID she has cited (2 of 2)
+resolved to an unrelated paper, and in #65 the number attributed to the paper
+was invented as well. `/verify-references` catches the first problem, not the
+second. Check that the cited paper actually contains the number being used.
+
+### Still open
+
+- **PR #51** host_associations, deferred.
+- **Issue #37** bacterial/fungal background. PR #39 was closed rather than
+  rebased: its Part 1 was superseded by `677dab7`, and the branch carried 4.4M
+  lines of FASTA in git, unrelated `duplicates.py` hunks that now conflict, and
+  at least one wrong accession. Build the FASTA on demand and verify accessions.
+- **Issue #30** web visual form builder, not started.
+- MDA and RdAB now produce nearly identical GC curves at their defaults. The
+  docstring claim that MDA bias is 2-5x stronger than PCR no longer holds and
+  needs its own measurement.
+- `--contamination-level failed` is defined in `LEVEL_MULTIPLIERS` and
+  documented, but both CLI parsers accept only clean/realistic/heavy, so it
+  cannot be selected.
 
 ### Environment
 
-A full `.venv` (CPython 3.12) now exists with `viroforge[web]` + InSilicoSeq 2.0.1
-+ mappy (the `benchmark` extra). Real generation, the test suite, and the
-benchmarks all run in it. PBSIM3 is not built and `pbccs` is Linux-x86-64 only, so
-long-read generation is not exercisable on this macOS-arm64 machine.
-
-### Canonical database
-
-Adopted a fresh seeded `setup-db` rebuild as the canonical DB (the prior DB
-predated the seeding fix and was not regenerable). It is reproducible via
-`setup-db`; provenance is pinned by `data/collection_membership.tsv` +
-`scripts/export_collection_manifest.py` (the 500 MB DB is gitignored). Also fixed:
-vaginal-curation idempotency and an `n_genomes` reconcile step.
-
-### Data quality evaluation
-
-Ran a full pre-QC technical evaluation (`docs/DATA_QUALITY_EVALUATION.md`,
-`scripts/evaluate_dataset.py`). Verdict: per-read `source=` labels and artifact
-tags are accurate, traceable, and reproducible. Fixes from it: the default 0.30
-dark-matter fraction is now actually delivered (was 0.11-0.48; amplification
-reweighting); the three Illumina platforms are documented as interchangeable in
-ISS basic mode (identical 125 bp reads); MDA duplicate metadata records real values.
-
-### Benchmarking framework (Phase 13B/C) - `viroforge/benchmarking/`
-
-Three modules built, each with `viroforge benchmark <module>`, JSON + markdown
-reports, and an independent-oracle test suite (26 tests):
-- **Module 1 QC** (`benchmark qc`): contamination removal + viral retention vs
-  per-read labels; match-rate gate; dedup scored separately.
-- **Module 2 Assembly** (`benchmark assembly`): genome recovery/completeness,
-  chimeras, N50/L50, observed-vs-expected completeness, abundance accuracy. Uses
-  minimap2 via mappy (shared `benchmarking/align.py`).
-- **Module 4 Taxonomy** (`benchmark taxonomy`): read- and contig-based;
-  taxid-exact + genus/family (via NCBI taxdump); abundance profile;
-  known/dark-matter stratification; Kraken2/Centrifuge/DIAMOND/MMseqs2/generic
-  parsers. Metadata now exports `benchmarking.taxonomy` (ncbi_taxid + lineage).
-
-Deferred: Module 5 (completeness across coverage), HTML reports + visualizations,
-length-weighted contig taxonomy metrics.
-
-### Still open (unchanged)
-
-- PR #39 (collection-specific contamination, blocked - bad accessions), PR #51
-  (host_associations, deferred). Issues #37, #38 (tied to #39), #30 (web form builder).
-
----
-
-## Session Handoff (2026-07-14)
-
-Reviewed Leran10's 30 issues and 27 PRs (she is a developer on the team, using
-Claude Code). Full per-PR triage and the verified facts are in the memory file
-`session_handoff.md`.
-
-### Landed on main (pushed, origin up to 3482003)
-
-- Three local fixes committed: #34 (RNA metadata rebuild), #35 (hybrid version
-  and SPAdes flag), #36 (validator sequences alias).
-- Code from PR #29 extracted (commit 13eced4): PacBio HiFi BAM merge (#17, #33),
-  Nanopore ERRHMM names (#15), per-genome depth (#19, #31), setup-db command
-  (#2, #3), browse checks (#7, #13), batch time estimate (#26), report/compare
-  metadata (#24), web fixes (#28). Applied on top of main so #34/#35/#36 are
-  preserved; the TSV accession swaps, the curate-script renumbering, and two
-  regressed scripts were deliberately excluded.
-- PR #23 pbccs Linux x86-64 note (commit c525e33, #22).
-- Merged scientific PRs: #48 (vaginal docs), #47 (VLP pore size), #58 (poly-G
-  low-complexity), #53 (rare-genome floor).
-- Closed 14 PRs and 19 issues. Rework feedback posted on PRs #41, #50, #51, #55,
-  #56.
-
-### Second session (2026-07-14): PR backlog resolved
-
-Scott decided to adopt the 1-20 renumbering and move to realistic default
-output with a version bump. Worked through the open PRs one at a time:
-
-- **Merged/landed** (credited to Leran10): #56 (Okabe-Ito palette, `fdd5682`),
-  #6 (renumber to 1-20 + migration, `1e3af14`), #41 (remove animal/plant
-  viruses, `9eae691`), #50 (replace non-site phages, `68439a5`), and the
-  v0.13.0 realistic-defaults cluster `74e33b4` (#43 dark matter, #45 artifact
-  defaults, #55 host filter folded in).
-- **Deferred with feedback (still open)**: #51 (host_associations - consumer-less
-  infra, needs a real body_site column) and #39 (collection-specific
-  contamination - commits ~4.4M lines of FASTA into git and hardcodes unverified
-  bacterial accessions; needs the FASTA out of git and /verify-references).
-- **Issues**: closed #5, #40, #42, #44, #49, #54 (resolved by the merges).
-  Still open: #37, #38 (both tied to blocked #39), #30 (web form builder).
-
-### Verified facts
-
-- The live database has **20 collections at contiguous IDs 1-20** (renumbered
-  from 9-28). There are no separate "VLP comparison" collections; VLP is applied
-  via `--vlp-protocol`. The animal-virus and phage-host cleanups run as a
-  post-curation step in `viroforge setup-db`.
-- Test interpreter is `.venv_test/bin/python` (the older `.venv` path is gone).
-  `.venv_test` lacks rich and flask, so CLI and web runtime imports fail there.
-  It has numpy + viroforge, enough for dry-run generation.
-
-### Open PRs
-
-39, 51 (both intentionally deferred with feedback).
+A full `.venv` (CPython 3.12) with `viroforge[web]` + InSilicoSeq 2.0.1 + mappy.
+Run tests with `.venv/bin/python -m pytest`, and `export PATH="$PWD/.venv/bin:$PATH"`
+so `iss` resolves. The full suite takes about 5 minutes. PBSIM3 is not built and
+`pbccs` is Linux-x86-64 only, so long-read generation cannot run on this machine.
 
 ---
 
@@ -134,6 +116,10 @@ ViroForge is a comprehensive mock metavirome data generator for benchmarking vir
 
 ## Current Status
 
+Phases 1 through 13 (metadata, QC, assembly and taxonomy benchmarking) are
+delivered. What follows is the feature history; see the handoff above for where
+things stand today and `CHANGELOG.md` for what changed in each release.
+
 **Phase 13A: Benchmarking Metadata - COMPLETE**
 
 Metadata enhancements (2025-11-11):
@@ -141,7 +127,6 @@ Metadata enhancements (2025-11-11):
 - Contamination manifest export (all contaminant sources tracked)
 - Expected coverage calculation per genome (Lander-Waterman formula)
 - Coverage categorization (complete/high/partial/fragmented/missing)
-- CLI version updated to 0.11.0
 - HTML report format implemented
 - HTML comparison format implemented
 
@@ -555,82 +540,33 @@ sqlite3 viroforge/data/viral_genomes.db \
 - Files: `viroforge/cli/report.py:355-432`, `viroforge/cli/compare.py:294-337`
 
 ---
+## Benchmarking Framework (Phase 13)
 
-## Next Phase: Benchmarking Framework (Phase 13)
+Modules 1, 2 and 4 are built and shipped in `viroforge/benchmarking/`, each with
+a `viroforge benchmark <module>` subcommand, JSON and markdown reports, and an
+independent-oracle test suite.
 
-**Status**: Phase 13A Complete | All CLI Features Working | Ready for Phase 13B
-**Timeline**: 6-8 weeks for MVP (2 weeks elapsed)
-**Priority**: VERY HIGH
+- **Module 1 QC** (`benchmark qc`): contamination removal and viral retention
+  scored against per-read `source=` labels, with a read-name match-rate gate.
+  Duplicates are scored separately. See `docs/PHASE13B_QC_BENCHMARK.md`.
+- **Module 2 Assembly** (`benchmark assembly`): genome recovery, completeness
+  and identity, chimeras, N50/L50, observed-vs-expected completeness, abundance
+  accuracy. minimap2 via mappy, shared in `benchmarking/align.py` (the
+  `benchmark` extra). See `docs/PHASE13B_ASSEMBLY_BENCHMARK.md`.
+- **Module 4 Taxonomy** (`benchmark taxonomy`): read- and contig-based,
+  taxid-exact plus genus/family via an NCBI taxdump, abundance profile,
+  known/dark-matter stratification. Kraken2, Kaiju, Centrifuge, DIAMOND, MMseqs2
+  and generic formats, auto-detected by default. See
+  `docs/PHASE13C_TAXONOMY_BENCHMARK.md`.
 
-### Phase 13A Complete (v0.11.0)
+Ground truth comes from metadata `benchmarking.{expected_coverage,taxonomy,
+contamination_manifest}`, the per-read `source=` labels, and the source genome
+FASTA.
 
-**Delivered**:
-- Metadata version 1.1 with benchmarking support
-- Contamination manifest export
-- Expected coverage calculation per genome
-- CLI version updated to 0.11.0
-- HTML report format (implemented and tested)
-- HTML comparison format (implemented and tested)
+**Not built**: Module 5 (completeness across coverage), HTML reports and
+visualizations, length-weighted contig taxonomy metrics, and Modules 3 and 6-9
+(binning, annotation, host prediction, novel discovery, end-to-end). See
+`ROADMAP.md` and `docs/PHASE13_BENCHMARKING_FRAMEWORK.md`.
 
-See `docs/PHASE13A_IMPLEMENTATION_SUMMARY.md` for details.
-
-### Overview
-
-Transform ViroForge from a data generator to a **complete validation platform** by adding comprehensive benchmarking tools.
-
-**Phase 13A Achievement**: ViroForge now exports enhanced ground truth metadata that benchmarking tools (Phase 13B-D) will use to validate pipeline performance.
-
-**Solution**: Modular benchmarking framework matching virome analysis workflow:
-- Module 1: QC Benchmarking (contamination removal validation)
-- Module 2: Assembly Benchmarking (genome recovery, completeness)
-- Module 3: Binning Benchmarking (vMAG reconstruction)
-- Module 4: Taxonomy Benchmarking (read + contig classification)
-- Module 5: Completeness Analysis (genome recovery across coverage)
-- Module 6: Annotation Benchmarking (gene calling + function)
-- Module 7: Host Prediction Benchmarking
-- Module 8: Novel Discovery Benchmarking
-- Module 9: End-to-End Pipeline Benchmarking
-
-### Architecture
-
-```
-viroforge/
-├── benchmarking/              # NEW (optional: pip install viroforge[benchmark])
-│   ├── parsers/              # Kraken2, Centrifuge, DIAMOND, etc.
-│   ├── metrics/              # Precision, recall, F1, completeness, etc.
-│   ├── visualizations/       # Plots for HTML reports
-│   └── reports/              # HTML + JSON report generation
-```
-
-### CLI Commands (Planned)
-
-```bash
-viroforge benchmark qc          # Test contamination removal
-viroforge benchmark assembly    # Test assembly quality
-viroforge benchmark taxonomy    # Test classification accuracy
-viroforge benchmark pipeline    # Comprehensive end-to-end report
-```
-
-### ViroForge Enhancements Needed
-
-**Metadata Enhancements** (v0.11.0):
-1. Add `contamination_manifest` - Track all contaminant sources
-2. Add `expected_coverage` - Per-genome expected coverage/completeness
-3. Add `read_manifest` - Which genome each read came from (optional)
-4. Add `gene_annotations` - Export RefSeq CDS annotations (future)
-
-### Why This Matters
-
-- **For Pipeline Developers**: Rigorous validation before publication
-- **For Bioinformaticians**: Choose best tool for their data type
-- **For ViroForge**: Completes "generate → benchmark → publish" workflow
-- **For the Field**: Standardized virome pipeline benchmarking (CAMI-equivalent for viromes)
-
-### Implementation Phases
-
-**Phase 13A** (Weeks 1-2): Foundation + metadata enhancements
-**Phase 13B** (Weeks 3-5): QC + Assembly benchmarking
-**Phase 13C** (Weeks 6-8): Taxonomy + Completeness benchmarking
-**Phase 13D** (Future): Advanced modules (binning, annotation, host, discovery)
-
-See `ROADMAP.md` for complete Phase 13 specifications.
+**Why it matters**: the field has no CAMI-equivalent benchmark for viromes.
+Completing generate -> benchmark -> publish is what ViroForge is for.

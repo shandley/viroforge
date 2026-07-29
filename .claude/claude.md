@@ -18,7 +18,7 @@
 
 ---
 
-## Current Status (v0.14.0 - Benchmarking Framework)
+## Current Status (v0.16.0)
 
 ### Phases Completed
 
@@ -56,14 +56,15 @@
 
 **5 sequencing platforms**: NovaSeq, MiSeq, HiSeq, PacBio HiFi, Oxford Nanopore
 
-**Complete CLI** with 7 commands: browse, generate, batch, report, compare, presets, web
+**Complete CLI**: browse, generate, batch, report, compare, presets, web, setup-db,
+summary, benchmark
 
 ### Benchmarking Framework (Phase 13) - Modules 1/2/4 built
 
 **Status**: Phase 13A metadata complete; Modules 1 (QC), 2 (Assembly), 4 (Taxonomy)
 implemented in `viroforge/benchmarking/` with the `viroforge benchmark` command.
 
-Implemented (JSON + markdown reports, independent-oracle tests, 26 tests total):
+Implemented (JSON + markdown reports, independent-oracle tests):
 - **Module 1 QC** (`benchmark qc`): contamination removal + viral retention
   against per-read `source=` labels; read-name match-rate gate; dedup scored
   separately. See `docs/PHASE13B_QC_BENCHMARK.md`.
@@ -275,12 +276,34 @@ python scripts/generate_fastq_dataset.py \
 
 ## Development Guidelines
 
+### Releases and reproducibility
+
+ViroForge's value is reproducible ground truth, so any change that alters
+generator output for a fixed seed is treated as breaking even when the API is
+untouched. Bump the minor version and record it under "Reproducibility" in
+`CHANGELOG.md`. `viroforge/__init__.py` holds `__version__`; `setup.py` reads it
+and `CITATION.cff` must be updated to match. There are no git tags and nothing
+is published to PyPI, so versions are repo state only.
+
+The lab-notebook workflow is retired. There is no longer a pre-commit hook
+requiring an entry, and the `.claude/hooks/` scripts have been removed.
+
 ### Citations
-**CRITICAL**: Always verify citations with web search
-- Include DOI and PMID when possible
-- Use proper journal names (not abbreviations)
-- Check publication years
-- See `docs/CITATION_CORRECTIONS.md` for past errors
+**CRITICAL**: Run `/verify-references` before committing anything containing a
+PMID, DOI or accession. Never write an identifier from memory.
+
+Two separate failures to guard against, because the first check does not catch
+the second:
+1. The identifier resolves to a different paper. Both PMIDs submitted in PRs
+   during 2026-07 were wrong (one was TreeDyn cited as a phi29 study, one was
+   Fast UniFrac cited as a VLP protocol paper).
+2. The identifier is right but the paper does not contain the number attributed
+   to it. PR #65 justified a parameter change with "~2-10x bias" that appears
+   nowhere in the cited work, whose actual conclusion pointed the other way.
+
+So verify the accession, then confirm the paper really says what you are citing
+it for. Include DOI and PMID, use full journal names, check publication years.
+See `docs/CITATION_CORRECTIONS.md` for past errors.
 
 ### Code Quality
 - Follow existing patterns in curation scripts
@@ -349,22 +372,28 @@ LIMIT 10"
 
 ---
 
-## Next Steps (from ROADMAP.md)
+## Next Steps
 
-**Immediate (Phase 8.2)**:
-- Implement RNA workflow components (RT, rRNA depletion)
-- Add `--molecule-type {dna,rna}` flag
-- Test RNA collections (21-23)
+**Open on GitHub**:
+- Issue #37: bacterial/fungal background, so `--no-vlp` bulk metagenomes are
+  realistic. Today they come out ~79% viral where a real bulk stool metagenome
+  is 1-5%. Build the reference FASTA on demand through `resolver.py` and verify
+  every accession; PR #39 stalled on 4.4M lines of FASTA committed to git.
+- Issue #30: replace the batch YAML text box with a visual form builder.
+- PR #51: `host_associations` table, deferred pending a real `body_site` column.
 
-**Short-term (Phase 9)**:
-- 5 additional host-associated collections
-- Blood/plasma, ocular, lung, urinary viromes
-- Clinical research applications
+**Known modelling gaps**:
+- MDA and RdAB produce nearly identical GC efficiency curves at their defaults.
+  The docstring claim that MDA bias is 2-5x stronger than PCR no longer holds
+  and needs its own measurement.
+- The pore-less and column branches of VLP enrichment favour larger particles,
+  opposite to the filtration curves. Pelleting and column capture are not
+  sieving so this may be right, but it has not been checked against literature.
+- `--contamination-level failed` exists in `LEVEL_MULTIPLIERS` but neither CLI
+  parser accepts it.
 
-**Medium-term (Phase 10-11)**:
-- Long-read sequencing support (PacBio, Nanopore)
-- Temporal dynamics modeling
-- Longitudinal study generation
+**Benchmarking framework**: Module 5 (completeness across coverage), HTML reports
+and visualizations, then Modules 3 and 6-9. See `ROADMAP.md`.
 
 ---
 
@@ -372,13 +401,16 @@ LIMIT 10"
 
 **Project**: ViroForge
 **Repository**: shandley/viroforge
-**Current Version**: 0.14.0
-**Last Major Update**: 2026-07-16 (benchmarking framework: Modules 1/2/4)
+**Current Version**: 0.16.0
+**Last Major Update**: 2026-07-29 (MDA GC-bias optimum corrected)
 
 **Development Team**: ViroForge Development Team
 **Assistant**: Claude Code (Anthropic)
 
 **Major Milestones**:
+- 2026-07-29: MDA GC-bias optimum moved 40% -> 50% GC; v0.16.0
+- 2026-07-28: PR backlog cleared (10 merged); VLP filtration direction corrected;
+  CHANGELOG started; v0.15.0
 - 2026-07-16: Benchmarking framework (QC, assembly, taxonomy); v0.14.0
 - 2026-07-14: Collections renumbered to 1-20; v0.13.0 realistic default output
 - 2025-11-09: Taxonomy bug discovered and fixed (Phase 7-8)
