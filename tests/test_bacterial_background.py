@@ -222,3 +222,89 @@ class TestCurationScriptAgreesWithModule:
         for community, names in self._script_taxa().items():
             for name in names:
                 assert len(name.split()) >= 2, f"{community}: {name!r}"
+
+
+class TestNestedAbundanceSemantics:
+    """Contamination fractions are fractions of the FINAL read set.
+
+    The viral community is scaled to fill 1 - contamination. Before bacterial
+    background existed both blocks were concatenated and the total normalised,
+    so a requested fraction c arrived as c/(1+c): the more contamination asked
+    for, the further short the result fell. Small fractions hid it (8.6%
+    arrived as 7.9%); 70% would have arrived as 41%.
+    """
+
+    @staticmethod
+    def _combine(viral_weights, profile):
+        import numpy as np
+        from Bio.Seq import Seq
+        from Bio.SeqRecord import SeqRecord
+
+        from viroforge.generator import FASTQGenerator
+
+        gen = FASTQGenerator.__new__(FASTQGenerator)  # pure method, no setup
+        viral = [SeqRecord(Seq("ACGT" * 50), id=f"v{i}")
+                 for i in range(len(viral_weights))]
+        _, ab = gen._combine_viral_and_contamination(
+            viral, np.array(viral_weights, dtype=float), profile)
+        ab = np.asarray(ab)
+        n = len(viral)
+        return ab[:n], ab[n:]
+
+    def _bg_profile(self, pct):
+        p = ContaminationProfile(name="t")
+        add_bacterial_background(p, abundance_pct=pct, n_fragments=10,
+                                 fragment_length=400, random_seed=1)
+        return p
+
+    def test_requested_fraction_is_delivered(self):
+        for pct in (5.0, 25.0, 70.0, 90.0):
+            _, contam = self._combine([0.5, 0.3, 0.2], self._bg_profile(pct))
+            assert contam.sum() == pytest.approx(pct / 100.0), pct
+
+    def test_old_behaviour_would_have_undershot(self):
+        """Guards the specific arithmetic that was wrong."""
+        _, contam = self._combine([0.5, 0.3, 0.2], self._bg_profile(70.0))
+        naive = 0.70 / 1.70  # concatenate-then-normalise
+        assert contam.sum() == pytest.approx(0.70)
+        assert abs(contam.sum() - naive) > 0.25
+
+    def test_total_is_one(self):
+        viral, contam = self._combine([0.5, 0.3, 0.2], self._bg_profile(70.0))
+        assert viral.sum() + contam.sum() == pytest.approx(1.0)
+
+    def test_viral_structure_is_preserved(self):
+        """Scaling must not distort relative abundance within the community."""
+        weights = [0.5, 0.3, 0.15, 0.05]
+        viral, _ = self._combine(weights, self._bg_profile(70.0))
+        expected = [w / sum(weights) for w in weights]
+        actual = list(viral / viral.sum())
+        assert actual == pytest.approx(expected)
+
+    def test_viral_fills_the_remainder(self):
+        viral, _ = self._combine([1.0, 1.0], self._bg_profile(70.0))
+        assert viral.sum() == pytest.approx(0.30)
+
+    def test_no_contamination_leaves_viral_at_one(self):
+        viral, contam = self._combine([0.6, 0.4], ContaminationProfile(name="t"))
+        assert contam.size == 0
+        assert viral.sum() == pytest.approx(1.0)
+
+    def test_input_scale_does_not_matter(self):
+        """VLP-reduced viral abundances must give the same answer."""
+        a, _ = self._combine([0.5, 0.3, 0.2], self._bg_profile(70.0))
+        b, _ = self._combine([5.0, 3.0, 2.0], self._bg_profile(70.0))
+        c, _ = self._combine([0.05, 0.03, 0.02], self._bg_profile(70.0))
+        assert list(b) == pytest.approx(list(a))
+        assert list(c) == pytest.approx(list(a))
+
+    def test_over_requested_contamination_is_clamped(self):
+        """A profile summing past 1 must not erase the viral community."""
+        viral, contam = self._combine([0.5, 0.5], self._bg_profile(140.0))
+        assert contam.sum() < 1.0
+        assert viral.sum() > 0
+        assert viral.sum() + contam.sum() == pytest.approx(1.0)
+
+    def test_zero_viral_abundance_is_an_error(self):
+        with pytest.raises(ValueError, match="Viral abundances"):
+            self._combine([0.0, 0.0], self._bg_profile(50.0))

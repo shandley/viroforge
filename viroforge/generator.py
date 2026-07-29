@@ -26,6 +26,7 @@ from Bio.SeqRecord import SeqRecord
 
 from viroforge.enrichment.vlp import VLPEnrichment, VLPProtocol
 from viroforge.core.contamination import (
+    BACTERIAL_COMMUNITY_PROFILES,
     create_contamination_profile,
     create_rna_contamination_profile,
     ContaminationProfile,
@@ -51,6 +52,11 @@ from viroforge.workflows.rna_virome import (
 from viroforge.core.collection import CollectionLoader, label_fastq_headers
 
 logger = logging.getLogger(__name__)
+
+# Contamination is nested inside the read set: the viral community is scaled to
+# fill 1 - contamination. This ceiling keeps a viral community present even if a
+# caller asks for fractions summing past 1.
+_MAX_CONTAMINATION_FRACTION = 0.99
 
 
 class FASTQGenerator:
@@ -419,41 +425,76 @@ class FASTQGenerator:
         """
         Combine viral genomes and contamination into single set of sequences.
 
+        Contamination abundances are treated as fractions of the FINAL read set,
+        and the viral block is scaled to fill whatever is left. Concretely, a
+        profile asking for 70% bacterial background plus 8% other contamination
+        yields exactly that, with the viral community occupying the remaining
+        22%.
+
+        This nesting matters once contamination can be large. Previously both
+        blocks were concatenated and the total normalised, so a requested 70%
+        landed at 0.70/1.70 = 41%: the more contamination asked for, the further
+        short the result fell. With the small fractions used before bacterial
+        background existed the error was minor (a requested 8.6% arrived as
+        7.9%), which is why it went unnoticed.
+
+        The consequence worth knowing: flags that shape the viral community,
+        ``--dark-matter-fraction`` above all, are fractions OF THE VIRAL
+        PORTION, not of total reads. At 70% bacterial, a 0.30 dark-matter
+        fraction is 30% of the remaining 30%, so 9% of reads.
+
         Args:
             viral_sequences: Viral genome SeqRecords
-            viral_abundances: Viral relative abundances (sum may be < 1.0)
+            viral_abundances: Viral relative abundances (any positive scale;
+                renormalised internally, so VLP-reduced input is fine)
             contam_profile: Contamination profile with contaminants
 
         Returns:
             Tuple of (combined_sequences, combined_abundances)
         """
-        sequences = list(viral_sequences)
-        abundances = list(viral_abundances)
+        viral_abundances = np.asarray(viral_abundances, dtype=float)
+        contam_abundances = np.array(
+            [c.abundance for c in contam_profile.contaminants], dtype=float)
 
-        # Add contaminants
+        viral_sum = viral_abundances.sum()
+        if viral_sum <= 0 or not np.isfinite(viral_sum):
+            raise ValueError(
+                "Viral abundances sum to zero or are invalid. This indicates a "
+                "problem with community loading or VLP enrichment."
+            )
+
+        contam_fraction = float(contam_abundances.sum()) if contam_abundances.size else 0.0
+        if not np.isfinite(contam_fraction) or contam_fraction < 0:
+            raise ValueError(
+                f"Contamination fractions are invalid (sum={contam_fraction})"
+            )
+
+        # Leave the viral community somewhere to live. A profile summing to >=1
+        # would erase it entirely, which is never what the caller meant.
+        if contam_fraction >= _MAX_CONTAMINATION_FRACTION:
+            logger.warning(
+                f"Contamination fractions sum to {contam_fraction:.3f}, at or "
+                f"above the {_MAX_CONTAMINATION_FRACTION:.2f} ceiling. Scaling "
+                "them down so a viral community remains; lower the requested "
+                "fractions to silence this."
+            )
+            contam_abundances = contam_abundances * (
+                _MAX_CONTAMINATION_FRACTION / contam_fraction)
+            contam_fraction = _MAX_CONTAMINATION_FRACTION
+
+        # Viral fills the remainder, preserving relative abundances within it
+        viral_scaled = viral_abundances * (1.0 - contam_fraction) / viral_sum
+
+        sequences = list(viral_sequences)
         for contaminant in contam_profile.contaminants:
-            record = SeqRecord(
+            sequences.append(SeqRecord(
                 contaminant.sequence,
                 id=contaminant.genome_id,
                 description=f"{contaminant.organism} | {contaminant.contaminant_type.value}"
-            )
-            sequences.append(record)
-            abundances.append(contaminant.abundance)
+            ))
 
-        # Normalize to sum to 1.0
-        abundances = np.array(abundances)
-        total_abundance = abundances.sum()
+        abundances = np.concatenate([viral_scaled, contam_abundances])
 
-        # Validate total abundance
-        if total_abundance == 0 or not np.isfinite(total_abundance):
-            raise ValueError(
-                "Total abundance is zero or invalid. This indicates a problem with "
-                "VLP enrichment or contamination profile generation."
-            )
-
-        abundances = abundances / total_abundance
-
-        # Validate final abundances
         if not np.allclose(abundances.sum(), 1.0, atol=1e-6):
             logger.warning(
                 f"Abundances do not sum to 1.0 (sum={abundances.sum():.8f}). "
@@ -1446,16 +1487,41 @@ Examples:
     )
 
     # Dark matter (unclassified viral sequences)
+    bg_group = parser.add_argument_group(
+        'bacterial background (bulk metagenome)')
+    bg_group.add_argument(
+        '--bacterial-fraction',
+        type=float,
+        default=0.0,
+        help='Fraction of reads from the sample\'s own microbiome (0.0-1.0, '
+             'default: 0.0 = off). Real bulk stool is 60-80%% bacterial and '
+             'only 1-5%% viral; without this a --no-vlp run stays viral-'
+             'dominated no matter how high --contamination-level goes. Try '
+             '0.70 with --no-vlp for a realistic bulk metagenome. Distinct '
+             'from reagent bacteria, which model the much smaller kitome.'
+    )
+    bg_group.add_argument(
+        '--bacterial-community',
+        default=None,
+        choices=sorted(BACTERIAL_COMMUNITY_PROFILES),
+        help='Which microbiome to draw background from (default: gut). Sets '
+             'the dominant genera and GC content; soil is GC-rich, marine is '
+             'not.'
+    )
+
     dm_group = parser.add_argument_group('viral dark matter')
     dm_group.add_argument(
         '--dark-matter-fraction',
         type=float,
         default=0.30,
-        help='Fraction of reads from unclassified viral genomes (0.0-1.0, '
-             'default: 0.30). Adds real but taxonomically unclassified '
-             'sequences from RefSeq to simulate the 60-90%% of reads in '
-             'real viromes that do not match known references. '
-             'Set to 0.0 to disable.'
+        help='Fraction of the VIRAL portion of reads made up of unclassified '
+             'viral genomes (0.0-1.0, default: 0.30). Adds real but '
+             'taxonomically unclassified sequences from RefSeq to simulate the '
+             '60-90%% of reads in real viromes that do not match known '
+             'references. Set to 0.0 to disable. Note this is a fraction of '
+             'the viral portion, not of all reads: with --bacterial-fraction '
+             '0.70 the viral portion is 30%% of reads, so 0.30 dark matter is '
+             '9%% of the total.'
     )
     dm_group.add_argument(
         '--dark-matter-count',
@@ -1643,6 +1709,20 @@ def run_generation(args):
         erv_kwargs['db_path'] = Path(args.database)
         if args.erv_exogenous_viruses:
             erv_kwargs['erv_exogenous_viruses'] = args.erv_exogenous_viruses
+
+    # Bacterial background rides the same kwargs channel to
+    # create_contamination_profile(). It turns a virome into a bulk metagenome,
+    # so it is off unless asked for.
+    bacterial_fraction = getattr(args, 'bacterial_fraction', 0.0) or 0.0
+    if bacterial_fraction > 0:
+        erv_kwargs['bacterial_pct'] = bacterial_fraction * 100
+        community = getattr(args, 'bacterial_community', None)
+        if community:
+            erv_kwargs['bacterial_community'] = community
+        logger.info(
+            f"Bacterial background: {bacterial_fraction:.1%} of reads"
+            + (f" ({community} community)" if community else "")
+        )
 
     # Use the collection's sample-type contamination baseline when it has one
     # (blood host-heavy, marine host-free, ...); contamination-level then scales it.

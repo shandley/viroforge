@@ -1239,6 +1239,12 @@ def create_contamination_profile(
         use_real_references: If True, use bundled real reference sequences
             for contamination (rRNA, host DNA, PhiX). If False, generate
             synthetic sequences with correct GC content only.
+        **kwargs: Per-source overrides. ``bacterial_pct`` (default 0.0) adds the
+            sample's own microbiome, turning a virome into a bulk metagenome;
+            ``bacterial_community`` (default 'gut') selects the taxa and GC
+            profile. Unlike the other fractions, bacterial background is NOT
+            scaled by the contamination-level multiplier, which models prep
+            quality rather than sample composition.
         collection_defaults: Optional per-collection contamination baseline, e.g.
             ``{'default_host_pct': 40.0, 'default_rrna_pct': 0.5, 'host_organism':
             'human', ...}`` (the body_site_collections row). Any NULL field falls
@@ -1367,6 +1373,19 @@ def create_contamination_profile(
         profile,
         abundance_pct=reagent_pct,
         random_seed=random_seed
+    )
+
+    # The sample's own microbiome. Off unless asked for, since it is what turns
+    # a virome into a bulk metagenome rather than something every run wants.
+    # Not scaled by the contamination-level multiplier: that dial models how
+    # well the VLP prep went, whereas this is how much microbiome was in the
+    # sample to begin with. They are independent.
+    add_bacterial_background(
+        profile,
+        abundance_pct=kwargs.get('bacterial_pct', 0.0),
+        community_type=kwargs.get('bacterial_community', 'gut'),
+        random_seed=random_seed,
+        use_real_references=use_real_references,
     )
 
     add_phix_control(
