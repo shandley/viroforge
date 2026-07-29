@@ -787,26 +787,27 @@ def add_reagent_contamination(
 BACTERIAL_COMMUNITY_PROFILES: Dict[str, Dict] = {
     'gut': {
         'gc_content': 45.0,
-        'genera': ['Bacteroides', 'Faecalibacterium', 'Prevotella',
-                   'Escherichia', 'Bifidobacterium', 'Ruminococcus'],
+        'genera': ['Akkermansia', 'Bacteroides', 'Bifidobacterium',
+                   'Blautia', 'Escherichia', 'Faecalibacterium',
+                   'Phocaeicola', 'Roseburia'],
     },
     'oral': {
         'gc_content': 45.0,
-        'genera': ['Streptococcus', 'Neisseria', 'Veillonella',
-                   'Haemophilus', 'Rothia', 'Fusobacterium'],
+        'genera': ['Fusobacterium', 'Haemophilus', 'Neisseria', 'Rothia',
+                   'Streptococcus', 'Veillonella'],
     },
     'skin': {
         'gc_content': 55.0,
-        'genera': ['Cutibacterium', 'Staphylococcus', 'Corynebacterium'],
+        'genera': ['Corynebacterium', 'Cutibacterium', 'Staphylococcus'],
     },
     'respiratory': {
         'gc_content': 45.0,
-        'genera': ['Streptococcus', 'Haemophilus', 'Moraxella',
-                   'Pseudomonas', 'Staphylococcus'],
+        'genera': ['Haemophilus', 'Moraxella', 'Pseudomonas',
+                   'Staphylococcus', 'Streptococcus'],
     },
     'vaginal': {
         'gc_content': 40.0,
-        'genera': ['Lactobacillus', 'Gardnerella', 'Atopobium', 'Prevotella'],
+        'genera': ['Gardnerella', 'Lactobacillus', 'Prevotella'],
     },
     'urinary': {
         'gc_content': 45.0,
@@ -814,22 +815,20 @@ BACTERIAL_COMMUNITY_PROFILES: Dict[str, Dict] = {
     },
     'marine': {
         'gc_content': 40.0,
-        'genera': ['Prochlorococcus', 'Synechococcus', 'Pelagibacter',
-                   'Alteromonas'],
+        'genera': ['Alteromonas', 'Prochlorococcus', 'Synechococcus'],
     },
     'soil': {
         'gc_content': 62.0,
-        'genera': ['Bradyrhizobium', 'Streptomyces', 'Mycobacterium',
-                   'Pseudomonas'],
+        'genera': ['Bradyrhizobium', 'Mycobacterium', 'Pseudomonas',
+                   'Streptomyces'],
     },
     'freshwater': {
         'gc_content': 45.0,
-        'genera': ['Polynucleobacter', 'Limnohabitans', 'Flavobacterium'],
+        'genera': ['Flavobacterium', 'Polynucleobacter'],
     },
     'wastewater': {
         'gc_content': 55.0,
-        'genera': ['Nitrosomonas', 'Acinetobacter', 'Pseudomonas',
-                   'Escherichia'],
+        'genera': ['Acinetobacter', 'Nitrosomonas', 'Pseudomonas'],
     },
 }
 

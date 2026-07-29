@@ -179,3 +179,46 @@ class TestQCPolicy:
     def test_distinct_policy_entry_from_reagent(self):
         assert "reagent_bacteria" in DEFAULT_KEEP_REMOVE
         assert "bacterial_background" in DEFAULT_KEEP_REMOVE
+
+
+class TestCurationScriptAgreesWithModule:
+    """The reference set and the runtime model must name the same genera.
+
+    add_bacterial_background() matches fragments to a community by genus
+    substring against the FASTA description. If the curation script fetches
+    genera the module does not list, those fragments never match their own
+    community and silently fall back to sampling across all taxa. If the module
+    lists genera the script never fetches, that community has no real reference.
+    Neither failure is visible at runtime, so it is pinned here.
+    """
+
+    @staticmethod
+    def _script_taxa():
+        import importlib.util
+        from pathlib import Path
+
+        path = Path(__file__).parent.parent / "scripts" / "curate_bacterial_background.py"
+        spec = importlib.util.spec_from_file_location("cbb", path)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return mod.COMMUNITY_TAXA
+
+    def test_same_communities(self):
+        assert set(self._script_taxa()) == set(BACTERIAL_COMMUNITY_PROFILES)
+
+    def test_genera_match_exactly(self):
+        taxa = self._script_taxa()
+        for community, names in taxa.items():
+            fetched = {n.split()[0] for n in names}
+            modelled = set(BACTERIAL_COMMUNITY_PROFILES[community]["genera"])
+            assert fetched == modelled, (
+                f"{community}: curation fetches {sorted(fetched - modelled)} "
+                f"that the model does not list, and the model lists "
+                f"{sorted(modelled - fetched)} with no reference sequence"
+            )
+
+    def test_every_taxon_is_binomial(self):
+        """Genus-only entries would match too broadly on substring."""
+        for community, names in self._script_taxa().items():
+            for name in names:
+                assert len(name.split()) >= 2, f"{community}: {name!r}"
