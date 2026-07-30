@@ -62,6 +62,22 @@ def generate_with_preset(args):
         console.print()
         return 1
 
+    # Some presets are configuration templates for a standalone script rather
+    # than for this command. Say so plainly instead of failing later on
+    # parameters build_parser() has never heard of.
+    requires_script = (preset.get('metadata') or {}).get('requires_script')
+    if requires_script:
+        console.print(
+            f"[yellow]Preset '{preset['name']}' is not runnable through "
+            f"`viroforge generate`.[/yellow]")
+        console.print(f"It configures [bold]{requires_script}[/bold]; run that "
+                      "script directly with these parameters:")
+        console.print()
+        for k, v in preset['parameters'].items():
+            console.print(f"  --{k.replace('_', '-')} {v}")
+        console.print()
+        return 1
+
     # Show preset info
     console.print()
     console.print(f"[bold cyan]Using preset: {preset['name']}[/bold cyan]")

@@ -1,0 +1,31 @@
+name: gut-vlp
+description: Human gut VLP-enriched virome, viral-dominated (NovaSeq, 30x)
+category: sample_type
+
+parameters:
+  collection_id: 1
+  platform: novaseq
+  coverage: 30
+  read_length: 150
+  insert_size: 350
+  vlp_protocol: tangential_flow
+  contamination_level: realistic
+  amplification: none
+
+metadata:
+  recommended_for:
+    - Virome pipeline benchmarking on well-enriched input
+    - VLP vs bulk comparison (pair with gut-bulk)
+    - Taxonomic classifier evaluation
+  composition: >
+    Measured at 96.7% viral-origin, 1.8% bacterial, with the rest host, rRNA
+    and PhiX. The bacterial residual is what survives VLP filtration of the
+    collection's 70% pre-VLP microbiome baseline, so it is derived rather than
+    dialled in.
+  estimated_time: "5-10 minutes"
+  estimated_size: "4-5 GB"
+  tags:
+    - gut
+    - vlp
+    - viral-dominated
+    - sample-type

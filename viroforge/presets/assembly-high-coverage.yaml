@@ -3,7 +3,7 @@ description: High coverage short reads for assembly benchmarking (NovaSeq, 100x)
 category: assembly_benchmarking
 
 parameters:
-  collection_id: 9
+  collection_id: 1
   platform: novaseq
   coverage: 100
   read_length: 150

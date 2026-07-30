@@ -3,7 +3,7 @@ description: Human gut virome without VLP enrichment (bulk metagenome, NovaSeq, 
 category: virome_type
 
 parameters:
-  collection_id: 9
+  collection_id: 1
   platform: novaseq
   coverage: 50
   read_length: 150

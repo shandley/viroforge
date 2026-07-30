@@ -1,0 +1,34 @@
+name: stool-clinical
+description: Clinical stool sample, host-dominated with heavy bacterial background
+category: sample_type
+
+parameters:
+  collection_id: 1
+  platform: novaseq
+  coverage: 30
+  read_length: 150
+  insert_size: 350
+  no_vlp: true
+  contamination_level: heavy
+  host_fraction: 0.40
+  bacterial_fraction: 0.35
+  amplification: none
+
+metadata:
+  recommended_for:
+    - Host-removal tool benchmarking
+    - Clinical metagenomics pipelines
+    - Low-viral-signal detection limits
+  composition: >
+    Targets the host-rich profile in issue #37: roughly 40% host, 35%
+    bacterial, with viral a minor component. host_fraction is absolute and
+    bypasses the contamination-level multiplier, which cannot reach 40% from
+    the gut collection's 5% baseline.
+  estimated_time: "5-10 minutes"
+  estimated_size: "4-5 GB"
+  tags:
+    - gut
+    - clinical
+    - host-rich
+    - bulk
+    - sample-type

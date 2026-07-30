@@ -3,7 +3,7 @@ description: Quick test dataset for long reads (low depth for fast testing)
 category: testing
 
 parameters:
-  collection_id: 9
+  collection_id: 1
   platform: pacbio-hifi
   depth: 5
   pacbio_passes: 10

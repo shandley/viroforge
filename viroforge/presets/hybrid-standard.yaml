@@ -3,7 +3,7 @@ description: Standard hybrid dataset (NovaSeq 30x + PacBio HiFi 15x)
 category: assembly_benchmarking
 
 parameters:
-  collection_id: 9
+  collection_id: 1
   short_platform: novaseq
   long_platform: pacbio-hifi
   coverage: 30
@@ -22,4 +22,6 @@ metadata:
     - hybrid
     - assembly
     - benchmarking
-  note: "Requires generate_hybrid_dataset.py script"
+  # Not runnable through `viroforge generate`: hybrid needs paired short and
+  # long runs, which only the standalone script drives.
+  requires_script: scripts/generate_hybrid_dataset.py

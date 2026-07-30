@@ -3,7 +3,7 @@ description: Marine virome with VLP enrichment (MiSeq, 30x coverage)
 category: virome_type
 
 parameters:
-  collection_id: 13
+  collection_id: 5
   platform: miseq
   coverage: 30
   read_length: 250

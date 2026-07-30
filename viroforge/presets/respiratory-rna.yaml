@@ -3,7 +3,7 @@ description: Respiratory RNA virome (NovaSeq, 40x coverage, Ribo-Zero depletion)
 category: virome_type
 
 parameters:
-  collection_id: 21
+  collection_id: 13
   platform: novaseq
   coverage: 40
   read_length: 150

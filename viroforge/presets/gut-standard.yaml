@@ -3,7 +3,7 @@ description: Standard human gut virome with VLP enrichment (NovaSeq, 30x coverag
 category: virome_type
 
 parameters:
-  collection_id: 9
+  collection_id: 1
   platform: novaseq
   coverage: 30
   read_length: 150

@@ -3,7 +3,7 @@ description: Quick test dataset for short reads (low coverage for fast testing)
 category: testing
 
 parameters:
-  collection_id: 9
+  collection_id: 1
   platform: miseq
   coverage: 5
   read_length: 150

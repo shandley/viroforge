@@ -1507,6 +1507,16 @@ Examples:
              'much smaller kitome.'
     )
     bg_group.add_argument(
+        '--host-fraction',
+        type=float,
+        default=None,
+        help='Absolute fraction of reads from host DNA (0.0-1.0), overriding '
+             'the collection baseline and ignoring --contamination-level. '
+             'Without it, host scales with the level as before. Needed for '
+             'host-dominated sample types such as clinical stool or biopsy, '
+             'which the level multiplier cannot reach from a low baseline.'
+    )
+    bg_group.add_argument(
         '--bacterial-community',
         default=None,
         choices=sorted(BACTERIAL_COMMUNITY_PROFILES),
@@ -1732,6 +1742,12 @@ def run_generation(args):
 
     community = (getattr(args, 'bacterial_community', None)
                  or collection_meta.get('bacterial_community'))
+
+    host_fraction = getattr(args, 'host_fraction', None)
+    if host_fraction is not None:
+        # Absolute, so it bypasses the contamination-level multiplier entirely.
+        erv_kwargs['host_dna_pct'] = host_fraction * 100
+        logger.info(f"Host DNA pinned to {host_fraction:.1%} (overrides level)")
 
     if bacterial_fraction > 0:
         erv_kwargs['bacterial_pct'] = bacterial_fraction * 100
