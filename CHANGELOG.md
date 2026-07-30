@@ -8,6 +8,54 @@ ViroForge generates data. A change that alters generator output for a fixed seed
 is treated as breaking even when the API is untouched, and is called out under
 "Reproducibility" below.
 
+## [0.18.0] - 2026-07-30
+
+### Reproducibility
+
+**Bacterial background now applies by default, so every collection's output
+changes.** Each collection carries a `default_bacterial_pct` baseline and it is
+used unless `--bacterial-fraction` says otherwise. Pass `--bacterial-fraction 0`
+to restore 0.17.0 behaviour.
+
+### Added
+
+- **Per-collection bacterial baselines.** `default_bacterial_pct` and
+  `bacterial_community` columns on `body_site_collections`, populated from
+  `data/reference_profiles/contamination_defaults.tsv` by the existing
+  `populate_contamination_defaults.py` (already folded into `setup-db`, so
+  rebuilds carry them).
+
+  The baseline is the sample's microbiome **before** any VLP step, so it tracks
+  microbial biomass per site rather than prep quality: soil 80%, wastewater and
+  marine 75%, gut 70%, vaginal 60%, down to lung 20%, ocular 10% and blood 1%.
+  Anchored to Sender et al. 2016, PLoS Biol (PMID 27541692) and the Human
+  Microbiome Project Consortium 2012, Nature (PMID 22699609), both verified.
+
+  One number serves both workflows because VLP does the physical work. Measured
+  on collection 1 with no flags at all:
+
+  |  | default (VLP) | `--no-vlp` |
+  |---|---|---|
+  | bacterial | 1.8% | 74.3% |
+  | viral-origin | 96.7% | 15.8% |
+
+  A default VLP run keeps a realistic few-percent bacterial residual, which real
+  VLP preps do carry; `--no-vlp` keeps the full bulk-metagenome background.
+
+  RNA collections (13, 14, 15) are set to 0.0: bacterial background is wired
+  into the DNA contamination path only, and an RNA library's bacterial signal is
+  ribosomal, already covered by `rrna_pct`.
+
+### Changed
+
+- `--bacterial-fraction` now defaults to `None` rather than `0.0`, so an
+  explicit `0` can switch the feature off. With a `0.0` default there was no way
+  to distinguish "not given" from "off", and a nonzero baseline could not be
+  disabled.
+- `populate_contamination_defaults.py` builds its UPDATE statement from its
+  `COLUMNS` map instead of a hand-written column list. The old list silently
+  left both new columns NULL on the first run.
+
 ## [0.17.0] - 2026-07-29
 
 ### Added
