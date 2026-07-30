@@ -8,6 +8,54 @@ ViroForge generates data. A change that alters generator output for a fixed seed
 is treated as breaking even when the API is untouched, and is called out under
 "Reproducibility" below.
 
+## [0.20.0] - 2026-07-30
+
+### Reproducibility
+
+**Every dataset using `linker` or `rdab` amplification changes, substantially.**
+`_apply_linker_bias` and `_apply_rdab_bias` raised GC efficiency to the power of
+the cycle count (20 and 40). That function returns a total relative efficiency,
+not a per-cycle one, so the bias compounded absurdly: a 36% GC genome was
+suppressed **134x** against a 50% GC one, and a 29% GC one by **61,000x**. 36%
+is the median GC of the gut collection, so this distorted the relative abundance
+of every default-amplification dataset. `linker` is the default. MDA was already
+correct and is unaffected.
+
+Nothing measured is remotely that strong. Parras-Moltó et al. 2018 report 6-7%
+of contigs past 10x for MDA, the harshest method available.
+
+### Added
+
+- **Fungal and archaeal background**, completing issue #37. `--fungal-fraction`
+  and `--archaeal-fraction` with per-collection baselines, plus bundled
+  reference sets (15 fragments, 150 KB each, all 10 taxa resolved).
+
+  Measured on collection 1, `--no-vlp --contamination-level heavy`, no flags:
+
+  | source | % |
+  |---|---|
+  | bacterial | 71.8 |
+  | host | 12.7 |
+  | rRNA | 7.8 |
+  | viral | 4.1 |
+  | fungal | 1.5 |
+  | archaeal | 1.1 |
+
+  Fungal plus archaeal at 2.5% against a real bulk-stool 1-5%.
+
+  The three domains are separate contaminant types, not one bucket: a classifier
+  can handle one and miss another, and merging them would hide that in a QC
+  benchmark.
+
+### Fixed
+
+- Background fragment count now scales with abundance. A fixed 200 gave a 2%
+  domain 0.0001 per fragment, which rounds to zero reads at any realistic depth,
+  so the mycobiome and archaeome never appeared in output at all.
+- The curation script no longer selects organelle genomes. The *Trichoderma
+  reesei* search returned its 42 kb mitochondrion as the top hit, which has
+  atypical base composition and would supply only four fragments.
+
 ## [0.19.0] - 2026-07-30
 
 ### Fixed
