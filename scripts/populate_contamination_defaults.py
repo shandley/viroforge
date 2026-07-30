@@ -22,6 +22,8 @@ COLUMNS = {
     "default_phix_pct": "REAL",
     # The sample's own microbiome, not scaled by --contamination-level.
     "default_bacterial_pct": "REAL",
+    "default_fungal_pct": "REAL",
+    "default_archaeal_pct": "REAL",
     "bacterial_community": "TEXT",
     "host_organism": "TEXT",
 }
@@ -39,6 +41,8 @@ def load_defaults(tsv: Path) -> list[dict]:
                 "default_reagent_pct": float(r["reagent_pct"]),
                 "default_phix_pct": float(r["phix_pct"]),
                 "default_bacterial_pct": float(r["bacterial_pct"]),
+                "default_fungal_pct": float(r["fungal_pct"]),
+                "default_archaeal_pct": float(r["archaeal_pct"]),
                 "bacterial_community": r["bacterial_community"].strip(),
                 "host_organism": r["host_organism"].strip(),
             })

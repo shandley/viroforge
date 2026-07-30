@@ -44,11 +44,19 @@ class ContaminantType(Enum):
     metagenome at 60-80% of reads. Scaling the kitome to that level would
     misrepresent a cited figure, and keeping them distinct also keeps them
     separable in per-read labels for QC benchmarking.
+
+    FUNGAL_BACKGROUND and ARCHAEAL_BACKGROUND are the mycobiome and archaeome,
+    each a few percent of a bulk metagenome. They are separate from each other
+    and from bacteria because they are separate domains: a classifier or host-
+    removal tool can easily handle one and miss another, and collapsing them
+    would hide exactly that in a QC benchmark.
     """
     HOST_DNA = "host_dna"
     RRNA = "rrna"
     REAGENT_BACTERIA = "reagent_bacteria"
     BACTERIAL_BACKGROUND = "bacterial_background"
+    FUNGAL_BACKGROUND = "fungal_background"
+    ARCHAEAL_BACKGROUND = "archaeal_background"
     PHIX = "phix"
     ERV_ENDOGENOUS = "erv_endogenous"
     ERV_EXOGENOUS = "erv_exogenous"
@@ -837,39 +845,98 @@ BACTERIAL_COMMUNITY_PROFILES: Dict[str, Dict] = {
 }
 
 
-def add_bacterial_background(
+# Mycobiome. A few percent of a bulk metagenome, but the dominant genera are
+# strongly site-specific: Malassezia essentially defines the skin mycobiome,
+# while Candida and Saccharomyces dominate the gut. Sites with no meaningful
+# fungal component are absent here and fall back to the gut profile if asked.
+# gc_content is measured from fungal_fragments.fasta once built.
+FUNGAL_COMMUNITY_PROFILES: Dict[str, Dict] = {
+    'gut': {'gc_content': 36.7, 'genera': ['Candida', 'Saccharomyces']},
+    'oral': {'gc_content': 36.7, 'genera': ['Candida']},
+    'skin': {'gc_content': 50.0, 'genera': ['Malassezia']},
+    'respiratory': {'gc_content': 43.7, 'genera': ['Aspergillus', 'Candida']},
+    'vaginal': {'gc_content': 36.7, 'genera': ['Candida']},
+    'soil': {'gc_content': 49.1, 'genera': ['Aspergillus', 'Fusarium']},
+    'wastewater': {'gc_content': 43.7, 'genera': ['Candida', 'Aspergillus']},
+}
+
+# Archaeome. Methanogens dominate the gut and wastewater; ammonia-oxidising
+# Thaumarchaeota dominate soil and open ocean. Most body sites carry no
+# appreciable archaeal population, which is why the baselines are mostly zero
+# rather than these profiles being exhaustive.
+ARCHAEAL_COMMUNITY_PROFILES: Dict[str, Dict] = {
+    'gut': {'gc_content': 29.1, 'genera': ['Methanobrevibacter', 'Methanosphaera']},
+    'oral': {'gc_content': 30.8, 'genera': ['Methanobrevibacter']},
+    'soil': {'gc_content': 52.2, 'genera': ['Nitrososphaera']},
+    'marine': {'gc_content': 34.0, 'genera': ['Nitrosopumilus']},
+    'wastewater': {'gc_content': 35.3, 'genera': ['Methanosarcina', 'Methanobrevibacter']},
+}
+
+# Everything needed to generate one domain of microbial background. Keeps the
+# three domains from being three near-identical copies of the same 120 lines.
+MICROBIAL_BACKGROUNDS: Dict[str, Dict] = {
+    'bacterial': {
+        'type': ContaminantType.BACTERIAL_BACKGROUND,
+        'profiles': BACTERIAL_COMMUNITY_PROFILES,
+        'resolver': 'get_bacterial_fragments_path',
+        'label': 'bacterial background',
+    },
+    'fungal': {
+        'type': ContaminantType.FUNGAL_BACKGROUND,
+        'profiles': FUNGAL_COMMUNITY_PROFILES,
+        'resolver': 'get_fungal_fragments_path',
+        'label': 'fungal background',
+    },
+    'archaeal': {
+        'type': ContaminantType.ARCHAEAL_BACKGROUND,
+        'profiles': ARCHAEAL_COMMUNITY_PROFILES,
+        'resolver': 'get_archaeal_fragments_path',
+        'label': 'archaeal background',
+    },
+}
+
+
+def add_microbial_background(
     profile: ContaminationProfile,
+    kind: str = 'bacterial',
     abundance_pct: float = 0.0,
     community_type: str = 'gut',
     fragments_path: Optional[Path] = None,
-    n_fragments: int = 200,
+    n_fragments: Optional[int] = None,
     fragment_length: int = 10000,
     use_real_references: bool = True,
     random_seed: Optional[int] = None,
 ) -> ContaminationProfile:
     """
-    Add the sample's own bacterial microbiome as background.
+    Add one domain of the sample's own microbiome as background.
 
     This is what makes a bulk metagenome (``--no-vlp``) realistic. Real bulk
-    stool is roughly 60-80% bacterial, 10-30% host and only 1-5% viral, whereas
-    a virome-only community leaves the viral fraction dominant no matter how far
-    the other contamination knobs are turned up.
+    stool is roughly 60-80% bacterial, 10-30% host, 1-5% fungal and archaeal,
+    and only 1-5% viral, whereas a virome-only community leaves the viral
+    fraction dominant no matter how far the other contamination knobs are
+    turned up.
 
     Distinct from :func:`add_reagent_contamination`, which models the much
-    smaller reagent kitome. See :class:`ContaminantType` for why the two are
+    smaller reagent kitome. See :class:`ContaminantType` for why the domains are
     kept apart.
 
     Args:
         profile: ContaminationProfile to add background to.
+        kind: One of MICROBIAL_BACKGROUNDS: 'bacterial', 'fungal', 'archaeal'.
         abundance_pct: Percentage of total abundance (0-100). Defaults to 0.0,
             so callers must opt in and existing behaviour is unchanged.
-        community_type: Key into BACTERIAL_COMMUNITY_PROFILES, selecting the
-            dominant genera and GC content for the body site or environment.
-        fragments_path: Explicit path to bacterial fragments FASTA. Falls back
-            to the resolver, then to synthetic sequences.
-        n_fragments: Number of fragments to draw.
-        fragment_length: Length of each fragment when generating synthetic
-            sequences, and the cut length for oversized real records.
+        community_type: Body site or environment, selecting dominant genera and
+            GC content. Falls back to the domain's 'gut' profile if the site has
+            no entry, which is common for fungi and archaea.
+        fragments_path: Explicit path to a fragments FASTA. Falls back to the
+            resolver, then to synthetic sequences.
+        n_fragments: Number of fragments to draw. Defaults to scaling with
+            abundance_pct so each fragment keeps a similar share. A fixed count
+            silently loses small domains: 200 fragments at 2% total abundance
+            gives each 0.0001, which rounds to zero reads at any realistic depth,
+            so the mycobiome and archaeome vanished from the output entirely.
+        fragment_length: Length of synthetic fragments, and the cut length for
+            oversized real records.
         use_real_references: If True, try the resolver before synthesising.
         random_seed: Seed for reproducible fragment selection.
 
@@ -878,35 +945,43 @@ def add_bacterial_background(
 
     Example:
         >>> profile = ContaminationProfile()
-        >>> add_bacterial_background(profile, abundance_pct=70.0,
-        ...                          community_type='gut')
+        >>> add_microbial_background(profile, 'fungal', abundance_pct=3.0)
     """
-    from viroforge.data.references.resolver import get_bacterial_fragments_path
+    import viroforge.data.references.resolver as _resolver
+
+    if kind not in MICROBIAL_BACKGROUNDS:
+        raise ValueError(
+            f"unknown background kind {kind!r}; expected one of "
+            f"{sorted(MICROBIAL_BACKGROUNDS)}"
+        )
+    spec = MICROBIAL_BACKGROUNDS[kind]
 
     rng = random.Random(random_seed)
 
     if abundance_pct <= 0:
-        logger.debug("Bacterial background disabled (abundance_pct=0)")
+        logger.debug(f"{spec['label']} disabled (abundance_pct=0)")
         return profile
 
+    if n_fragments is None:
+        # ~4 fragments per percent, bounded, so per-fragment abundance stays in
+        # the same range whether the domain is 70% or 1% of the library.
+        n_fragments = max(5, min(200, round(abundance_pct * 4)))
     if n_fragments <= 0:
         raise ValueError(f"n_fragments must be positive, got {n_fragments}")
 
-    community = BACTERIAL_COMMUNITY_PROFILES.get(
-        community_type, BACTERIAL_COMMUNITY_PROFILES['gut'])
+    profiles = spec['profiles']
+    community = profiles.get(community_type) or profiles['gut']
 
-    logger.info(
-        f"Adding {abundance_pct}% bacterial background ({community_type})"
-    )
+    logger.info(f"Adding {abundance_pct}% {spec['label']} ({community_type})")
 
     abundance_per_fragment = (abundance_pct / 100.0) / n_fragments
 
     resolved_path = fragments_path
     if resolved_path is None and use_real_references:
-        resolved_path = get_bacterial_fragments_path()
+        resolved_path = getattr(_resolver, spec['resolver'])()
 
     if resolved_path is not None and Path(resolved_path).exists():
-        logger.info(f"Sampling bacterial background from {resolved_path}")
+        logger.info(f"Sampling {spec['label']} from {resolved_path}")
         records = list(SeqIO.parse(resolved_path, 'fasta'))
 
         # Prefer fragments matching this community, fall back to the whole set
@@ -918,7 +993,7 @@ def add_bacterial_background(
         pool = matching if matching else records
         if not matching:
             logger.info(
-                f"No {community_type} fragments in the reference set; "
+                f"No {community_type} fragments in the {spec['label']} reference; "
                 "sampling across all available taxa"
             )
 
@@ -930,18 +1005,18 @@ def add_bacterial_background(
                 seq = seq[start:start + fragment_length]
 
             profile.add_contaminant(ContaminantGenome(
-                genome_id=f"bacterial_bg_{community_type}_{i:04d}",
+                genome_id=f"{kind}_bg_{community_type}_{i:04d}",
                 sequence=seq,
-                contaminant_type=ContaminantType.BACTERIAL_BACKGROUND,
+                contaminant_type=spec['type'],
                 organism=record.description or record.id,
-                source=f"bacterial_background_{record.id}",
+                source=f"{kind}_background_{record.id}",
                 abundance=abundance_per_fragment,
-                description=f"Bacterial background fragment from {record.id}",
+                description=f"{spec['label'].title()} fragment from {record.id}",
             ))
     else:
         logger.info(
-            "No bacterial reference available, creating synthetic bacterial "
-            "background. Build the real set with "
+            f"No {spec['label']} reference available, creating synthetic "
+            f"sequences. Build the real set with "
             "scripts/curate_bacterial_background.py"
         )
         for i in range(n_fragments):
@@ -951,17 +1026,38 @@ def add_bacterial_background(
             seq = _generate_sequence_with_gc(fragment_length, gc, rng=rng)
 
             profile.add_contaminant(ContaminantGenome(
-                genome_id=f"bacterial_bg_{community_type}_{i:04d}",
+                genome_id=f"{kind}_bg_{community_type}_{i:04d}",
                 sequence=seq,
-                contaminant_type=ContaminantType.BACTERIAL_BACKGROUND,
+                contaminant_type=spec['type'],
                 organism=f"{genus} sp.",
                 source="synthetic",
                 abundance=abundance_per_fragment,
                 gc_content=gc,
-                description=f"Synthetic bacterial background ({genus})",
+                description=f"Synthetic {spec['label']} ({genus})",
             ))
 
     return profile
+
+
+def add_bacterial_background(profile, abundance_pct=0.0, community_type='gut',
+                             **kwargs) -> ContaminationProfile:
+    """The sample's own bacterial microbiome. See add_microbial_background()."""
+    return add_microbial_background(
+        profile, 'bacterial', abundance_pct, community_type, **kwargs)
+
+
+def add_fungal_background(profile, abundance_pct=0.0, community_type='gut',
+                          **kwargs) -> ContaminationProfile:
+    """The sample's own mycobiome. See add_microbial_background()."""
+    return add_microbial_background(
+        profile, 'fungal', abundance_pct, community_type, **kwargs)
+
+
+def add_archaeal_background(profile, abundance_pct=0.0, community_type='gut',
+                            **kwargs) -> ContaminationProfile:
+    """The sample's own archaeome. See add_microbial_background()."""
+    return add_microbial_background(
+        profile, 'archaeal', abundance_pct, community_type, **kwargs)
 
 
 def add_phix_control(
@@ -1384,13 +1480,18 @@ def create_contamination_profile(
     # Not scaled by the contamination-level multiplier: that dial models how
     # well the VLP prep went, whereas this is how much microbiome was in the
     # sample to begin with. They are independent.
-    add_bacterial_background(
-        profile,
-        abundance_pct=kwargs.get('bacterial_pct', 0.0),
-        community_type=kwargs.get('bacterial_community', 'gut'),
-        random_seed=random_seed,
-        use_real_references=use_real_references,
-    )
+    community = kwargs.get('bacterial_community', 'gut')
+    for kind, key in (('bacterial', 'bacterial_pct'),
+                      ('fungal', 'fungal_pct'),
+                      ('archaeal', 'archaeal_pct')):
+        add_microbial_background(
+            profile,
+            kind,
+            abundance_pct=kwargs.get(key, 0.0),
+            community_type=community,
+            random_seed=random_seed,
+            use_real_references=use_real_references,
+        )
 
     add_phix_control(
         profile,

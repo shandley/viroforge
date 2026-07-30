@@ -29,30 +29,37 @@
 # workflows because VLP removes ~98% of it: a default VLP run keeps a realistic
 # residual, and --no-vlp keeps the full bulk-metagenome background.
 #
-# RNA-workflow collections (13, 14, 15) are set to 0.0: bacterial background is
-# wired into the DNA contamination path only, and an RNA library's bacterial
+# RNA-workflow collections (13, 14, 15) are set to 0.0: microbial background is
+# wired into the DNA contamination path only, and an RNA library's microbial
 # signal is ribosomal, already covered by rrna_pct.
 #
+# fungal_pct and archaeal_pct follow the same rule as bacterial_pct but are a
+# few percent at most, which is what the mycobiome and archaeome amount to in a
+# bulk metagenome. Zero means the domain has no appreciable population at that
+# site rather than that it was not estimated: archaea are essentially absent
+# from skin, vaginal, blood and ocular samples, while methanogens are a real
+# component of gut and wastewater and ammonia-oxidisers of soil and open ocean.
+#
 # Columns: collection_id, host_organism, host_pct, rrna_pct, reagent_pct, phix_pct,
-#          bacterial_pct, bacterial_community, rationale
-collection_id	host_organism	host_pct	rrna_pct	reagent_pct	phix_pct	bacterial_pct	bacterial_community	rationale
-1	human	5.0	3.0	0.5	0.1	70.0	gut	fecal VLP prep, moderate human DNA; gut ~1e11 cells/g
-2	human	10.0	4.0	0.5	0.1	65.0	oral	saliva, buccal epithelial cells; saliva bacteria-dominated
-3	human	15.0	3.0	1.0	0.1	25.0	skin	skin is human-cell rich, lower microbial biomass; low microbial biomass, host-rich
-4	human	20.0	4.0	0.5	0.1	25.0	respiratory	nasopharyngeal airway epithelial cells; low-biomass airway
-5	none	0.05	5.0	0.5	0.1	75.0	marine	marine environmental, host-free, bacterial rRNA; bacterioplankton dominant
-6	none	0.05	4.0	0.5	0.1	80.0	soil	soil environmental, host-free; highest bacterial biomass
-7	none	0.05	5.0	0.5	0.1	70.0	freshwater	freshwater environmental, host-free; bacterioplankton dominant
-8	mouse	3.0	3.0	0.5	0.1	70.0	gut	murine fecal prep, moderate mouse DNA; murine gut like human gut
-9	human	1.0	8.0	0.5	0.1	75.0	wastewater	wastewater; low human input, high bacterial rRNA; activated sludge, bacteria-dominated
-10	human	5.0	3.0	0.5	0.1	70.0	gut	IBD gut, fecal prep like healthy gut; IBD gut, fecal
-11	human	5.0	3.0	0.5	0.1	70.0	gut	HIV+ gut, fecal prep like healthy gut; HIV+ gut, fecal
-12	human	25.0	5.0	0.5	0.1	55.0	respiratory	CF sputum, very host-rich (neutrophil DNA); chronic infection raises bacterial load
-13	human	15.0	10.0	0.5	0.1	0.0	respiratory	respiratory RNA workflow, high ribosomal-RNA baseline; RNA workflow, DNA background not modelled
-14	none	0.05	8.0	0.5	0.1	0.0	gut	mosquito arbovirus, no human host; RNA rRNA baseline; RNA workflow, DNA background not modelled
-15	human	5.0	12.0	0.5	0.1	0.0	gut	fecal RNA workflow, high ribosomal-RNA baseline; RNA workflow, DNA background not modelled
-16	human	20.0	3.0	0.5	0.1	60.0	vaginal	vaginal, epithelial cells; Lactobacillus-dominated
-17	human	40.0	0.5	1.0	0.1	1.0	gut	plasma cfDNA-dominant; low biomass, low bacterial rRNA; plasma near-sterile
-18	human	15.0	2.0	2.0	0.1	10.0	skin	ocular surface paucibacterial, kitome-dominated; ocular surface paucibacterial
-19	human	25.0	4.0	1.0	0.1	20.0	respiratory	lung BAL, host-rich low-biomass airway; lung low-biomass
-20	human	10.0	3.0	1.0	0.1	30.0	urinary	urinary, low-biomass, some kitome; urinary low-moderate biomass
+#          bacterial_pct, bacterial_community, fungal_pct, archaeal_pct, rationale
+collection_id	host_organism	host_pct	rrna_pct	reagent_pct	phix_pct	bacterial_pct	bacterial_community	fungal_pct	archaeal_pct	rationale
+1	human	5.0	3.0	0.5	0.1	70.0	gut	2.0	2.0	fecal VLP prep, moderate human DNA; gut ~1e11 cells/g
+2	human	10.0	4.0	0.5	0.1	65.0	oral	1.0	0.5	saliva, buccal epithelial cells; saliva bacteria-dominated
+3	human	15.0	3.0	1.0	0.1	25.0	skin	3.0	0.0	skin is human-cell rich, lower microbial biomass; low microbial biomass, host-rich
+4	human	20.0	4.0	0.5	0.1	25.0	respiratory	0.5	0.0	nasopharyngeal airway epithelial cells; low-biomass airway
+5	none	0.05	5.0	0.5	0.1	75.0	marine	0.5	2.0	marine environmental, host-free, bacterial rRNA; bacterioplankton dominant
+6	none	0.05	4.0	0.5	0.1	80.0	soil	5.0	2.0	soil environmental, host-free; highest bacterial biomass
+7	none	0.05	5.0	0.5	0.1	70.0	freshwater	0.5	0.5	freshwater environmental, host-free; bacterioplankton dominant
+8	mouse	3.0	3.0	0.5	0.1	70.0	gut	2.0	2.0	murine fecal prep, moderate mouse DNA; murine gut like human gut
+9	human	1.0	8.0	0.5	0.1	75.0	wastewater	2.0	3.0	wastewater; low human input, high bacterial rRNA; activated sludge, bacteria-dominated
+10	human	5.0	3.0	0.5	0.1	70.0	gut	2.0	1.0	IBD gut, fecal prep like healthy gut; IBD gut, fecal
+11	human	5.0	3.0	0.5	0.1	70.0	gut	3.0	2.0	HIV+ gut, fecal prep like healthy gut; HIV+ gut, fecal
+12	human	25.0	5.0	0.5	0.1	55.0	respiratory	2.0	0.0	CF sputum, very host-rich (neutrophil DNA); chronic infection raises bacterial load
+13	human	15.0	10.0	0.5	0.1	0.0	respiratory	0.0	0.0	respiratory RNA workflow, high ribosomal-RNA baseline; RNA workflow, DNA background not modelled
+14	none	0.05	8.0	0.5	0.1	0.0	gut	0.0	0.0	mosquito arbovirus, no human host; RNA rRNA baseline; RNA workflow, DNA background not modelled
+15	human	5.0	12.0	0.5	0.1	0.0	gut	0.0	0.0	fecal RNA workflow, high ribosomal-RNA baseline; RNA workflow, DNA background not modelled
+16	human	20.0	3.0	0.5	0.1	60.0	vaginal	3.0	0.0	vaginal, epithelial cells; Lactobacillus-dominated
+17	human	40.0	0.5	1.0	0.1	1.0	gut	0.1	0.0	plasma cfDNA-dominant; low biomass, low bacterial rRNA; plasma near-sterile
+18	human	15.0	2.0	2.0	0.1	10.0	skin	0.5	0.0	ocular surface paucibacterial, kitome-dominated; ocular surface paucibacterial
+19	human	25.0	4.0	1.0	0.1	20.0	respiratory	1.0	0.0	lung BAL, host-rich low-biomass airway; lung low-biomass
+20	human	10.0	3.0	1.0	0.1	30.0	urinary	0.5	0.0	urinary, low-biomass, some kitome; urinary low-moderate biomass

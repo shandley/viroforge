@@ -41,7 +41,7 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
 OUTPUT_DIR = Path(__file__).parent.parent / "viroforge" / "data" / "references"
-OUTPUT_NAME = "bacterial_fragments.fasta"
+OUTPUT_NAME = "bacterial_fragments.fasta"  # overridden per domain
 
 # NCBI asks for no more than 3 requests/second without an API key.
 REQUEST_DELAY_S = 0.4
@@ -52,6 +52,16 @@ FRAGMENT_LENGTH = 10000
 # rejected and retried elsewhere in the genome.
 MAX_N_FRACTION = 0.01
 MAX_FRAGMENT_ATTEMPTS = 4
+
+# Organelle and extrachromosomal records are not representative genomic
+# background: they have their own base composition and gene content, and are
+# tiny. The Trichoderma reesei search returned its 42 kb MITOCHONDRION as the
+# top hit, which would have supplied only four non-overlapping fragments of
+# atypical sequence.
+EXCLUDED_TITLE_TERMS = (
+    "mitochondrion", "mitochondrial", "chloroplast", "plastid",
+    "apicoplast", "plasmid",
+)
 
 # Representative taxa per community. NAMES ONLY, deliberately: these are
 # resolved against RefSeq at build time so no accession is ever committed. The
@@ -133,6 +143,38 @@ COMMUNITY_TAXA: dict[str, list[str]] = {
 }
 
 
+# Mycobiome taxa. Fungal genomes are 12-40 Mbp and usually deposited as many
+# per-chromosome records, which is fine: only 10 kb slices are fetched either way.
+FUNGAL_TAXA: dict[str, list[str]] = {
+    "gut": ["Candida albicans", "Saccharomyces cerevisiae"],
+    "oral": ["Candida albicans"],
+    "skin": ["Malassezia restricta"],
+    "respiratory": ["Aspergillus fumigatus", "Candida albicans"],
+    "vaginal": ["Candida albicans"],
+    # Trichoderma reesei is deposited only as scaffolds plus a
+    # mitochondrion, so Fusarium stands in as the second soil fungus.
+    "soil": ["Aspergillus fumigatus", "Fusarium graminearum"],
+    "wastewater": ["Candida albicans", "Aspergillus fumigatus"],
+}
+
+# Archaeome taxa. Methanogens in gut and wastewater; ammonia-oxidising
+# Thaumarchaeota in soil and open ocean. Most body sites carry no appreciable
+# archaeal population and are absent here rather than guessed at.
+ARCHAEAL_TAXA: dict[str, list[str]] = {
+    "gut": ["Methanobrevibacter smithii", "Methanosphaera stadtmanae"],
+    "oral": ["Methanobrevibacter smithii"],
+    "soil": ["Nitrososphaera viennensis"],
+    "marine": ["Nitrosopumilus piranensis"],
+    "wastewater": ["Methanosarcina barkeri", "Methanobrevibacter smithii"],
+}
+
+DOMAINS: dict[str, dict] = {
+    "bacterial": {"taxa": COMMUNITY_TAXA, "output": "bacterial_fragments.fasta"},
+    "fungal": {"taxa": FUNGAL_TAXA, "output": "fungal_fragments.fasta"},
+    "archaeal": {"taxa": ARCHAEAL_TAXA, "output": "archaeal_fragments.fasta"},
+}
+
+
 def resolve_refseq_genome(taxon: str) -> tuple[str, int] | None:
     """Find a RefSeq genomic sequence for a taxon name.
 
@@ -175,9 +217,13 @@ def resolve_refseq_genome(taxon: str) -> tuple[str, int] | None:
         logger.warning(f"  esummary failed for {taxon}: {e}")
         return None
 
-    # Longest record wins: most likely the main chromosome rather than a plasmid.
+    # Longest non-organelle record wins: most likely the main chromosome.
     best = None
     for s in summaries:
+        title = (s.get("Title") or "").lower()
+        if any(term in title for term in EXCLUDED_TITLE_TERMS):
+            logger.info(f"  skipping {s.get('AccessionVersion')}: {title[:60]}")
+            continue
         length = int(s.get("Length", 0))
         acc = s.get("AccessionVersion") or s.get("Caption")
         if acc and length > FRAGMENT_LENGTH and (best is None or length > best[1]):
@@ -280,24 +326,34 @@ def main() -> int:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     ap.add_argument("--output-dir", type=Path, default=OUTPUT_DIR)
-    ap.add_argument("--communities", nargs="+", default=sorted(COMMUNITY_TAXA),
-                    choices=sorted(COMMUNITY_TAXA),
-                    help="communities to build (default: all)")
+    ap.add_argument("--domain", default="bacterial", choices=sorted(DOMAINS),
+                    help="which background to build (default: bacterial)")
+    ap.add_argument("--communities", nargs="+", default=None,
+                    help="communities to build (default: all for this domain)")
     ap.add_argument("--fragments-per-taxon", type=int, default=3,
                     help="10 kb fragments per genome (default: 3)")
     ap.add_argument("--dry-run", action="store_true",
                     help="resolve taxa to accessions and stop, without fetching")
     args = ap.parse_args()
 
+    domain = DOMAINS[args.domain]
+    taxa_map = domain["taxa"]
+    if args.communities is None:
+        args.communities = sorted(taxa_map)
+    unknown = [c for c in args.communities if c not in taxa_map]
+    if unknown:
+        ap.error(f"{args.domain} has no taxa for {unknown}; "
+                 f"available: {sorted(taxa_map)}")
+
     # De-duplicate taxa shared between communities (E. coli is in gut and
     # urinary) while remembering every community each one serves.
     taxon_communities: dict[str, list[str]] = {}
     for community in args.communities:
-        for taxon in COMMUNITY_TAXA[community]:
+        for taxon in taxa_map[community]:
             taxon_communities.setdefault(taxon, []).append(community)
 
     logger.info(
-        f"Resolving {len(taxon_communities)} taxa across "
+        f"Resolving {len(taxon_communities)} {args.domain} taxa across "
         f"{len(args.communities)} communities against RefSeq"
     )
 
@@ -337,7 +393,7 @@ def main() -> int:
         return 1
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    out = args.output_dir / OUTPUT_NAME
+    out = args.output_dir / domain["output"]
 
     from Bio import SeqIO
     SeqIO.write(all_records, out, "fasta")

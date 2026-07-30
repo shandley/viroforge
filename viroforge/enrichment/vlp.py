@@ -693,8 +693,14 @@ class VLPEnrichment:
                     removal = 0.15 * self.protocol.contamination_reduction
 
             elif ctype in (ContaminantType.REAGENT_BACTERIA,
-                           ContaminantType.BACTERIAL_BACKGROUND):
-                # Bacterial cells - primarily removed by filtration.
+                           ContaminantType.BACTERIAL_BACKGROUND,
+                           ContaminantType.FUNGAL_BACKGROUND,
+                           ContaminantType.ARCHAEAL_BACKGROUND):
+                # Whole cells - primarily removed by filtration. Fungal cells
+                # are 3-10 um and archaea 0.5-2 um, so both are blocked by a
+                # 0.2 um membrane at least as completely as bacteria; treating
+                # them identically understates fungal removal slightly rather
+                # than overstating it.
                 # Kitome carryover and the sample's own microbiome are the same
                 # physical object here, whole cells of 1-5 um, so they filter
                 # identically; only their abundance differs. Without this branch

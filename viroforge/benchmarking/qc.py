@@ -36,6 +36,10 @@ DEFAULT_KEEP_REMOVE: dict[str, str] = {
     # as signal instead; pass keep_remove={"bacterial_background": "keep"} for
     # that case rather than relying on this default.
     "bacterial_background": "remove",
+    # Mycobiome and archaeome. Same reasoning as bacterial background: signal
+    # for a bulk-metagenome benchmark, contamination for a virome one.
+    "fungal_background": "remove",
+    "archaeal_background": "remove",
     "artifact_low_complexity": "remove",
     "erv_endogenous": "remove",    # endogenous retrovirus: host-derived
 }

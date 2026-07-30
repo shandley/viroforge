@@ -492,3 +492,104 @@ class TestContaminationLevelDoesNotScaleBacterial:
         clean = self._bacterial_total("clean")[ContaminantType.HOST_DNA]
         heavy = self._bacterial_total("heavy")[ContaminantType.HOST_DNA]
         assert heavy > clean * 5, (clean, heavy)
+
+
+class TestFungalAndArchaealBackground:
+    """Mycobiome and archaeome, the other two domains of issue #37 Phase 2."""
+
+    def test_domains_are_distinct_types(self):
+        vals = {ContaminantType.BACTERIAL_BACKGROUND.value,
+                ContaminantType.FUNGAL_BACKGROUND.value,
+                ContaminantType.ARCHAEAL_BACKGROUND.value}
+        assert len(vals) == 3
+
+    @pytest.mark.parametrize("kind", ["bacterial", "fungal", "archaeal"])
+    def test_each_domain_generates(self, kind):
+        from viroforge.core.contamination import add_microbial_background
+
+        p = ContaminationProfile(name="t")
+        add_microbial_background(p, kind, abundance_pct=5.0,
+                                 fragment_length=500, random_seed=42)
+        assert p.contaminants
+        assert sum(c.abundance for c in p.contaminants) == pytest.approx(0.05)
+
+    def test_unknown_kind_rejected(self):
+        from viroforge.core.contamination import add_microbial_background
+
+        with pytest.raises(ValueError, match="unknown background kind"):
+            add_microbial_background(ContaminationProfile(name="t"), "protozoal",
+                                     abundance_pct=1.0)
+
+    def test_fragment_count_scales_with_abundance(self):
+        """A fixed 200 fragments gave a 2% domain 0.0001 each, which rounds to
+        zero reads at any realistic depth and deleted it from the output."""
+        from viroforge.core.contamination import add_microbial_background
+
+        per_fragment = {}
+        for pct in (70.0, 2.0):
+            p = ContaminationProfile(name="t")
+            add_microbial_background(p, "fungal", abundance_pct=pct,
+                                     fragment_length=500, random_seed=1)
+            per_fragment[pct] = p.contaminants[0].abundance
+
+        # within an order of magnitude of each other, not 35x apart
+        ratio = per_fragment[70.0] / per_fragment[2.0]
+        assert 0.2 < ratio < 5, per_fragment
+
+    def test_all_domains_removed_by_vlp(self):
+        """Fungal cells are 3-10 um and archaea 0.5-2 um, so a 0.2 um membrane
+        blocks both at least as well as bacteria."""
+        from viroforge.core.contamination import add_microbial_background
+
+        for kind in ("bacterial", "fungal", "archaeal"):
+            p = ContaminationProfile(name="t")
+            add_microbial_background(p, kind, abundance_pct=50.0,
+                                     fragment_length=500, random_seed=1)
+            before = p.get_total_abundance()
+            vlp = VLPEnrichment(protocol=VLPProtocol.tangential_flow_standard(),
+                                random_seed=7)
+            after, _ = vlp.apply_contamination_reduction(p)
+            removal = 1.0 - after.get_total_abundance() / before
+            assert removal > 0.95, f"{kind}: only {removal:.1%} removed"
+
+    @pytest.mark.parametrize("kind", ["fungal", "archaeal"])
+    def test_qc_policy_entry(self, kind):
+        assert DEFAULT_KEEP_REMOVE[f"{kind}_background"] == "remove"
+
+
+class TestAmplificationDoesNotCompoundOverCycles:
+    """calculate_*_efficiency returns a TOTAL relative efficiency, not a
+    per-cycle one.
+
+    _apply_linker_bias and _apply_rdab_bias raised it to the power of cycles
+    (20 and 40), so a 36% GC genome was suppressed 134-fold against a 50% GC
+    one and a 29% GC one by 61,000-fold. 36% is the median GC of the gut
+    collection, and the archaeal domain vanished entirely. Nothing measured
+    comes close: Parras-Molto et al. 2018 report 6-7% of contigs past 10x for
+    MDA, the harshest method.
+    """
+
+    @staticmethod
+    def _fold_range(method):
+        import numpy as np
+
+        from viroforge.generator import FASTQGenerator
+
+        gen = FASTQGenerator.__new__(FASTQGenerator)
+        genomes = [{"genome_id": f"g{i}", "length": 10000,
+                    "gc_content": gc, "abundance": 0.1}
+                   for i, gc in enumerate((0.29, 0.36, 0.45, 0.50, 0.60, 0.70))]
+        from viroforge.amplification import LinkerAmplification, RdABAmplification
+        amp = {"linker": LinkerAmplification, "rdab": RdABAmplification}[method]()
+        fn = {"linker": gen._apply_linker_bias, "rdab": gen._apply_rdab_bias}[method]
+        out = np.asarray(fn([dict(g) for g in genomes], amp))
+        out = out / out.sum()
+        return float(out.max() / out.min())
+
+    @pytest.mark.parametrize("method", ["linker", "rdab"])
+    def test_bias_stays_within_measured_magnitudes(self, method):
+        spread = self._fold_range(method)
+        assert spread < 100, (
+            f"{method} spreads abundance {spread:.0f}x across 29-70% GC; "
+            "efficiency is being compounded over cycles again"
+        )

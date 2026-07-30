@@ -610,9 +610,15 @@ class FASTQGenerator:
             length_eff = amp_method.calculate_length_efficiency(genome['length'])
             gc_eff = amp_method.calculate_gc_efficiency(genome['gc_content'])
 
-            # Combined efficiency per cycle, raised to number of cycles
-            cycle_efficiency = length_eff * gc_eff
-            amplification_factor = cycle_efficiency ** amp_method.cycles
+            # NOT raised to the power of cycles. calculate_*_efficiency returns
+            # a TOTAL relative efficiency, normalised to 1.0 at the optimum, not
+            # a per-cycle one: MDAAmplification's own docstring describes it as
+            # the 10-1000x end-to-end difference, and _apply_mda_bias uses it
+            # directly. Exponentiating it over 40 cycles produced bias of
+            # ~10^4-fold, far beyond anything measured (Parras-Molto et al. 2018
+            # report 6-7% of contigs past 10x for MDA, the harshest method), and
+            # it silently deleted any low-GC organism from the library.
+            amplification_factor = length_eff * gc_eff
 
             abundances[i] *= amplification_factor
 
@@ -645,8 +651,11 @@ class FASTQGenerator:
             # Use the amplification method's GC efficiency calculation
             gc_eff = amp_method.calculate_gc_efficiency(genome['gc_content'])
 
-            # Amplification factor scales with cycles (no length bias for linker)
-            amplification_factor = gc_eff ** amp_method.cycles
+            # Total relative efficiency, not per-cycle; see _apply_rdab_bias.
+            # Raised to 20 cycles this suppressed a 36% GC genome 134-fold
+            # against a 50% GC one, and a 29% GC one by 61,000-fold. 36% is the
+            # median GC of the gut collection.
+            amplification_factor = gc_eff
 
             abundances[i] *= amplification_factor
 
@@ -1507,6 +1516,24 @@ Examples:
              'much smaller kitome.'
     )
     bg_group.add_argument(
+        '--fungal-fraction',
+        type=float,
+        default=None,
+        help='Fraction of reads from the sample\'s mycobiome (0.0-1.0). '
+             'Defaults to the collection baseline (a few percent at most; '
+             'soil 5%%, skin and vaginal 3%%, gut 2%%). Pass 0 to disable.'
+    )
+    bg_group.add_argument(
+        '--archaeal-fraction',
+        type=float,
+        default=None,
+        help='Fraction of reads from the sample\'s archaeome (0.0-1.0). '
+             'Defaults to the collection baseline. Zero for most body sites: '
+             'methanogens are a real gut and wastewater component and '
+             'ammonia-oxidisers a soil and open-ocean one, but skin, vaginal, '
+             'blood and ocular samples carry no appreciable archaea.'
+    )
+    bg_group.add_argument(
         '--host-fraction',
         type=float,
         default=None,
@@ -1757,6 +1784,19 @@ def run_generation(args):
             f"Bacterial background: {bacterial_fraction:.1%} pre-VLP "
             f"({community or 'gut'} community, from {source})"
         )
+
+    # Mycobiome and archaeome, same resolution rule as bacterial.
+    for flag, kwarg, label, column in (
+        ('fungal_fraction', 'fungal_pct', 'Fungal', 'default_fungal_pct'),
+        ('archaeal_fraction', 'archaeal_pct', 'Archaeal', 'default_archaeal_pct'),
+    ):
+        frac = getattr(args, flag, None)
+        if frac is None:
+            baseline = collection_meta.get(column)
+            frac = (baseline / 100.0) if baseline else 0.0
+        if frac > 0:
+            erv_kwargs[kwarg] = frac * 100
+            logger.info(f"{label} background: {frac:.2%} pre-VLP")
 
     # Use the collection's sample-type contamination baseline when it has one
     # (blood host-heavy, marine host-free, ...); contamination-level then scales it.

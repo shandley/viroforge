@@ -113,6 +113,28 @@ def get_bacterial_fragments_path(user_path: Optional[Path] = None) -> Optional[P
     )
 
 
+def get_fungal_fragments_path(user_path: Optional[Path] = None) -> Optional[Path]:
+    """Locate fungal (mycobiome) background fragments. See
+    get_bacterial_fragments_path() for how the set is built."""
+    return _resolve(
+        user_path,
+        "VIROFORGE_FUNGAL_FRAGMENTS",
+        "fungal_fragments.fasta",
+        "fungal background fragments",
+    )
+
+
+def get_archaeal_fragments_path(user_path: Optional[Path] = None) -> Optional[Path]:
+    """Locate archaeal (archaeome) background fragments. See
+    get_bacterial_fragments_path() for how the set is built."""
+    return _resolve(
+        user_path,
+        "VIROFORGE_ARCHAEAL_FRAGMENTS",
+        "archaeal_fragments.fasta",
+        "archaeal background fragments",
+    )
+
+
 def get_host_genome_path(user_path: Optional[Path] = None) -> Optional[Path]:
     """Locate full host genome (user-supplied only, not bundled).
 
