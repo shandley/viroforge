@@ -1492,9 +1492,10 @@ Examples:
     bg_group.add_argument(
         '--bacterial-fraction',
         type=float,
-        default=0.0,
-        help='Fraction of reads from the sample\'s own microbiome (0.0-1.0, '
-             'default: 0.0 = off). Real bulk stool is 60-80%% bacterial and '
+        default=None,
+        help='Fraction of reads from the sample\'s own microbiome (0.0-1.0). '
+             'Defaults to the collection\'s own baseline (gut 70%%, soil 80%%, '
+             'blood 1%%); pass 0 to switch it off entirely. Real bulk stool is 60-80%% bacterial and '
              'only 1-5%% viral; without this a --no-vlp run stays viral-'
              'dominated no matter how high --contamination-level goes. '
              'For a realistic bulk stool metagenome use "--no-vlp '
@@ -1718,15 +1719,27 @@ def run_generation(args):
     # Bacterial background rides the same kwargs channel to
     # create_contamination_profile(). It turns a virome into a bulk metagenome,
     # so it is off unless asked for.
-    bacterial_fraction = getattr(args, 'bacterial_fraction', 0.0) or 0.0
+    # An explicit --bacterial-fraction wins; otherwise the collection's own
+    # baseline applies. The baseline is the sample's microbiome BEFORE any VLP
+    # step, so one number serves both workflows: VLP removes ~98% of it, leaving
+    # a realistic residual, while --no-vlp keeps the full bulk background.
+    bacterial_fraction = getattr(args, 'bacterial_fraction', None)
+    source = 'flag'
+    if bacterial_fraction is None:
+        baseline = collection_meta.get('default_bacterial_pct')
+        bacterial_fraction = (baseline / 100.0) if baseline else 0.0
+        source = 'collection baseline'
+
+    community = (getattr(args, 'bacterial_community', None)
+                 or collection_meta.get('bacterial_community'))
+
     if bacterial_fraction > 0:
         erv_kwargs['bacterial_pct'] = bacterial_fraction * 100
-        community = getattr(args, 'bacterial_community', None)
         if community:
             erv_kwargs['bacterial_community'] = community
         logger.info(
-            f"Bacterial background: {bacterial_fraction:.1%} of reads"
-            + (f" ({community} community)" if community else "")
+            f"Bacterial background: {bacterial_fraction:.1%} pre-VLP "
+            f"({community or 'gut'} community, from {source})"
         )
 
     # Use the collection's sample-type contamination baseline when it has one

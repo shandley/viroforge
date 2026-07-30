@@ -169,6 +169,13 @@ class TestFASTQGeneration:
                 '--n-reads', '100',
                 '--vlp-protocol', 'tangential_flow',
                 '--contamination-level', level,
+                # Bacterial background is deliberately NOT scaled by
+                # --contamination-level (that dial models prep quality; the
+                # baseline models what was in the sample). Its ~1.4% post-VLP
+                # residual would swamp the scaling this test measures, so it is
+                # switched off here. TestContaminationLevelDoesNotScaleBacterial
+                # covers the non-scaling claim itself.
+                '--bacterial-fraction', '0',
                 '--seed', '42'
             ]
 

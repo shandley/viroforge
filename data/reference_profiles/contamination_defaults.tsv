@@ -19,25 +19,40 @@
 #     collections carry a higher ribosomal-RNA baseline (pre-depletion).
 # PhiX is a sequencing spike-in (~0.1%), constant and not scaled by level.
 #
-# Columns: collection_id, host_organism, host_pct, rrna_pct, reagent_pct, phix_pct, rationale
-collection_id	host_organism	host_pct	rrna_pct	reagent_pct	phix_pct	rationale
-1	human	5.0	3.0	0.5	0.1	fecal VLP prep, moderate human DNA
-2	human	10.0	4.0	0.5	0.1	saliva, buccal epithelial cells
-3	human	15.0	3.0	1.0	0.1	skin is human-cell rich, lower microbial biomass
-4	human	20.0	4.0	0.5	0.1	nasopharyngeal airway epithelial cells
-5	none	0.05	5.0	0.5	0.1	marine environmental, host-free, bacterial rRNA
-6	none	0.05	4.0	0.5	0.1	soil environmental, host-free
-7	none	0.05	5.0	0.5	0.1	freshwater environmental, host-free
-8	mouse	3.0	3.0	0.5	0.1	murine fecal prep, moderate mouse DNA
-9	human	1.0	8.0	0.5	0.1	wastewater; low human input, high bacterial rRNA
-10	human	5.0	3.0	0.5	0.1	IBD gut, fecal prep like healthy gut
-11	human	5.0	3.0	0.5	0.1	HIV+ gut, fecal prep like healthy gut
-12	human	25.0	5.0	0.5	0.1	CF sputum, very host-rich (neutrophil DNA)
-13	human	15.0	10.0	0.5	0.1	respiratory RNA workflow, high ribosomal-RNA baseline
-14	none	0.05	8.0	0.5	0.1	mosquito arbovirus, no human host; RNA rRNA baseline
-15	human	5.0	12.0	0.5	0.1	fecal RNA workflow, high ribosomal-RNA baseline
-16	human	20.0	3.0	0.5	0.1	vaginal, epithelial cells
-17	human	40.0	0.5	1.0	0.1	plasma cfDNA-dominant; low biomass, low bacterial rRNA
-18	human	15.0	2.0	2.0	0.1	ocular surface paucibacterial, kitome-dominated
-19	human	25.0	4.0	1.0	0.1	lung BAL, host-rich low-biomass airway
-20	human	10.0	3.0	1.0	0.1	urinary, low-biomass, some kitome
+# bacterial_pct is the sample's OWN microbiome before any VLP step, so it tracks
+# microbial biomass per site rather than prep quality: gut, soil and wastewater
+# are bacteria-dominated, while blood, ocular and lung are paucibacterial and
+# host-dominated (Sender et al. 2016, PLoS Biol, PMID 27541692; Human Microbiome
+# Project Consortium 2012, Nature, PMID 22699609 - both verified). Unlike the
+# other columns it is NOT scaled by --contamination-level, which models how well
+# the prep went rather than what was in the sample. One baseline serves both
+# workflows because VLP removes ~98% of it: a default VLP run keeps a realistic
+# residual, and --no-vlp keeps the full bulk-metagenome background.
+#
+# RNA-workflow collections (13, 14, 15) are set to 0.0: bacterial background is
+# wired into the DNA contamination path only, and an RNA library's bacterial
+# signal is ribosomal, already covered by rrna_pct.
+#
+# Columns: collection_id, host_organism, host_pct, rrna_pct, reagent_pct, phix_pct,
+#          bacterial_pct, bacterial_community, rationale
+collection_id	host_organism	host_pct	rrna_pct	reagent_pct	phix_pct	bacterial_pct	bacterial_community	rationale
+1	human	5.0	3.0	0.5	0.1	70.0	gut	fecal VLP prep, moderate human DNA; gut ~1e11 cells/g
+2	human	10.0	4.0	0.5	0.1	65.0	oral	saliva, buccal epithelial cells; saliva bacteria-dominated
+3	human	15.0	3.0	1.0	0.1	25.0	skin	skin is human-cell rich, lower microbial biomass; low microbial biomass, host-rich
+4	human	20.0	4.0	0.5	0.1	25.0	respiratory	nasopharyngeal airway epithelial cells; low-biomass airway
+5	none	0.05	5.0	0.5	0.1	75.0	marine	marine environmental, host-free, bacterial rRNA; bacterioplankton dominant
+6	none	0.05	4.0	0.5	0.1	80.0	soil	soil environmental, host-free; highest bacterial biomass
+7	none	0.05	5.0	0.5	0.1	70.0	freshwater	freshwater environmental, host-free; bacterioplankton dominant
+8	mouse	3.0	3.0	0.5	0.1	70.0	gut	murine fecal prep, moderate mouse DNA; murine gut like human gut
+9	human	1.0	8.0	0.5	0.1	75.0	wastewater	wastewater; low human input, high bacterial rRNA; activated sludge, bacteria-dominated
+10	human	5.0	3.0	0.5	0.1	70.0	gut	IBD gut, fecal prep like healthy gut; IBD gut, fecal
+11	human	5.0	3.0	0.5	0.1	70.0	gut	HIV+ gut, fecal prep like healthy gut; HIV+ gut, fecal
+12	human	25.0	5.0	0.5	0.1	55.0	respiratory	CF sputum, very host-rich (neutrophil DNA); chronic infection raises bacterial load
+13	human	15.0	10.0	0.5	0.1	0.0	respiratory	respiratory RNA workflow, high ribosomal-RNA baseline; RNA workflow, DNA background not modelled
+14	none	0.05	8.0	0.5	0.1	0.0	gut	mosquito arbovirus, no human host; RNA rRNA baseline; RNA workflow, DNA background not modelled
+15	human	5.0	12.0	0.5	0.1	0.0	gut	fecal RNA workflow, high ribosomal-RNA baseline; RNA workflow, DNA background not modelled
+16	human	20.0	3.0	0.5	0.1	60.0	vaginal	vaginal, epithelial cells; Lactobacillus-dominated
+17	human	40.0	0.5	1.0	0.1	1.0	gut	plasma cfDNA-dominant; low biomass, low bacterial rRNA; plasma near-sterile
+18	human	15.0	2.0	2.0	0.1	10.0	skin	ocular surface paucibacterial, kitome-dominated; ocular surface paucibacterial
+19	human	25.0	4.0	1.0	0.1	20.0	respiratory	lung BAL, host-rich low-biomass airway; lung low-biomass
+20	human	10.0	3.0	1.0	0.1	30.0	urinary	urinary, low-biomass, some kitome; urinary low-moderate biomass

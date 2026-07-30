@@ -369,3 +369,126 @@ class TestBundledReferenceAndFallback:
         present = {re.search(r"\[(\w+)\]", r.description).group(1)
                    for r in SeqIO.parse(get_bacterial_fragments_path(), "fasta")}
         assert present == set(BACTERIAL_COMMUNITY_PROFILES)
+
+
+class TestPerCollectionBaselines:
+    """Each collection carries its own pre-VLP microbiome level.
+
+    The baseline is what was in the SAMPLE, before any VLP step, so one number
+    serves both workflows: VLP removes ~98% of it and leaves a realistic
+    residual, while --no-vlp keeps the full bulk-metagenome background. It is
+    therefore not scaled by --contamination-level, which models prep quality.
+    """
+
+    DB = "viroforge/data/viral_genomes.db"
+
+    @staticmethod
+    def _resolve(flag, meta):
+        """Mirror of the resolution in run_generation()."""
+        if flag is None:
+            base = meta.get("default_bacterial_pct")
+            return (base / 100.0) if base else 0.0, "collection baseline"
+        return flag, "flag"
+
+    def _meta(self, cid):
+        from viroforge.core.collection import CollectionLoader
+
+        meta, _ = CollectionLoader(self.DB).load_collection(cid)
+        return meta
+
+    def test_columns_reach_the_generator(self):
+        meta = self._meta(1)
+        assert meta.get("default_bacterial_pct") is not None
+        assert meta.get("bacterial_community") is not None
+
+    def test_baseline_used_when_flag_absent(self):
+        frac, src = self._resolve(None, self._meta(1))
+        assert src == "collection baseline"
+        assert frac == pytest.approx(0.70)
+
+    def test_explicit_flag_overrides_baseline(self):
+        frac, src = self._resolve(0.25, self._meta(1))
+        assert (frac, src) == (0.25, "flag")
+
+    def test_explicit_zero_switches_it_off(self):
+        """0.0 must be distinguishable from 'not given', or there is no way to
+        disable a nonzero baseline."""
+        frac, src = self._resolve(0.0, self._meta(1))
+        assert frac == 0.0 and src == "flag"
+
+    def test_parser_default_is_none_not_zero(self):
+        from viroforge.generator import build_parser
+
+        assert build_parser().parse_args([]).bacterial_fraction is None
+        assert build_parser().parse_args(
+            ["--bacterial-fraction", "0"]).bacterial_fraction == 0.0
+
+    def test_biomass_ordering_across_sites(self):
+        """Soil and gut are bacteria-dominated; blood is near-sterile."""
+        pct = {cid: self._meta(cid).get("default_bacterial_pct")
+               for cid in (1, 5, 6, 17, 18)}
+        assert pct[6] > pct[5] > pct[1] > pct[18] > pct[17], pct
+        assert pct[17] <= 5.0, "blood should be near-sterile"
+
+    def test_every_collection_has_a_baseline(self):
+        import sqlite3
+
+        con = sqlite3.connect(self.DB)
+        rows = con.execute(
+            "SELECT collection_id, default_bacterial_pct, bacterial_community "
+            "FROM body_site_collections ORDER BY collection_id").fetchall()
+        con.close()
+        assert len(rows) == 20
+        for cid, pct, community in rows:
+            assert pct is not None, f"collection {cid} has no bacterial baseline"
+            assert community in BACTERIAL_COMMUNITY_PROFILES, (cid, community)
+
+    def test_rna_collections_are_zero(self):
+        """Bacterial background is wired into the DNA path only; an RNA
+        library's bacterial signal is ribosomal and covered by rrna_pct."""
+        for cid in (13, 14, 15):
+            assert self._meta(cid).get("default_bacterial_pct") == 0.0
+
+
+class TestContaminationLevelDoesNotScaleBacterial:
+    """--contamination-level must leave bacterial background alone.
+
+    The level models how well the VLP prep went; the bacterial baseline models
+    how much microbiome was in the sample. They are independent, so a 'heavy'
+    prep does not conjure extra bacteria into the tube. Host, rRNA and reagent
+    all scale; this one must not.
+    """
+
+    @staticmethod
+    def _bacterial_total(level):
+        from viroforge.core.contamination import create_contamination_profile
+
+        profile = create_contamination_profile(
+            level,
+            random_seed=42,
+            use_real_references=False,
+            collection_defaults={
+                "default_host_pct": 5.0,
+                "default_rrna_pct": 3.0,
+                "default_reagent_pct": 0.5,
+                "default_phix_pct": 0.1,
+                "host_organism": "human",
+            },
+            bacterial_pct=70.0,
+        )
+        by_type = {}
+        for c in profile.contaminants:
+            by_type[c.contaminant_type] = by_type.get(c.contaminant_type, 0.0) + c.abundance
+        return by_type
+
+    def test_bacterial_is_identical_across_levels(self):
+        clean = self._bacterial_total("clean")[ContaminantType.BACTERIAL_BACKGROUND]
+        heavy = self._bacterial_total("heavy")[ContaminantType.BACTERIAL_BACKGROUND]
+        assert clean == pytest.approx(0.70)
+        assert heavy == pytest.approx(0.70)
+
+    def test_host_still_scales_with_level(self):
+        """Guards against 'fixing' this by exempting everything."""
+        clean = self._bacterial_total("clean")[ContaminantType.HOST_DNA]
+        heavy = self._bacterial_total("heavy")[ContaminantType.HOST_DNA]
+        assert heavy > clean * 5, (clean, heavy)

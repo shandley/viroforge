@@ -20,6 +20,9 @@ COLUMNS = {
     "default_rrna_pct": "REAL",
     "default_reagent_pct": "REAL",
     "default_phix_pct": "REAL",
+    # The sample's own microbiome, not scaled by --contamination-level.
+    "default_bacterial_pct": "REAL",
+    "bacterial_community": "TEXT",
     "host_organism": "TEXT",
 }
 
@@ -35,6 +38,8 @@ def load_defaults(tsv: Path) -> list[dict]:
                 "default_rrna_pct": float(r["rrna_pct"]),
                 "default_reagent_pct": float(r["reagent_pct"]),
                 "default_phix_pct": float(r["phix_pct"]),
+                "default_bacterial_pct": float(r["bacterial_pct"]),
+                "bacterial_community": r["bacterial_community"].strip(),
                 "host_organism": r["host_organism"].strip(),
             })
     return rows
@@ -77,14 +82,18 @@ def main() -> None:
         added = ensure_columns(conn)
         if added:
             print(f"added columns: {added}")
+        # Built from COLUMNS rather than spelled out, so adding a column in one
+        # place cannot leave it silently NULL here.
+        assignments = ", ".join(f"{c}=?" for c in COLUMNS)
+        sql = f"UPDATE body_site_collections SET {assignments} WHERE collection_id=?"
         for d in rows:
-            conn.execute(
-                """UPDATE body_site_collections SET
-                     default_host_pct=?, default_rrna_pct=?, default_reagent_pct=?,
-                     default_phix_pct=?, host_organism=? WHERE collection_id=?""",
-                (d["default_host_pct"], d["default_rrna_pct"], d["default_reagent_pct"],
-                 d["default_phix_pct"], d["host_organism"], d["collection_id"]),
-            )
+            missing = [c for c in COLUMNS if c not in d]
+            if missing:
+                raise KeyError(
+                    f"collection {d['collection_id']}: TSV supplied no value for "
+                    f"{missing}. Add it to load_defaults()."
+                )
+            conn.execute(sql, tuple(d[c] for c in COLUMNS) + (d["collection_id"],))
         conn.commit()
         print(f"applied contamination defaults to {len(rows)} collections.")
     finally:

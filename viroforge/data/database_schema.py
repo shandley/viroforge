@@ -215,6 +215,8 @@ CREATE TABLE IF NOT EXISTS body_site_collections (
     default_rrna_pct REAL,
     default_reagent_pct REAL,
     default_phix_pct REAL,
+    default_bacterial_pct REAL,
+    bacterial_community TEXT,
     host_organism TEXT,
 
     -- Version
