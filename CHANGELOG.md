@@ -8,6 +8,51 @@ ViroForge generates data. A change that alters generator output for a fixed seed
 is treated as breaking even when the API is untouched, and is called out under
 "Reproducibility" below.
 
+## [0.19.0] - 2026-07-30
+
+### Fixed
+
+- **Every bundled preset pointed at the wrong collection.** The 9-28 to 1-20
+  renumbering in PR #6 never updated them, so `--preset gut-standard` and
+  `--preset gut-bulk` generated a **wastewater** virome, `marine-standard`
+  generated respiratory RNA, and `respiratory-rna` pointed at collection 21,
+  which does not exist. All eight are corrected (`new = old - 8`).
+
+  The wastewater case is the dangerous one: collection 9 exists, so generation
+  succeeded and silently produced the wrong dataset. Anyone who benchmarked
+  against a gut preset since 2026-07-14 was benchmarking against wastewater.
+
+- **`hybrid-standard` could never run through `viroforge generate`.** It sets
+  `short_platform` and `long_platform`, which belong to
+  `scripts/generate_hybrid_dataset.py`. Presets can now declare
+  `metadata.requires_script`, and the CLI prints what to run instead of failing
+  on unrecognised parameters.
+
+### Added
+
+- **Sample-type presets** completing issue #37: `gut-vlp` (viral-dominated,
+  96.7% viral-origin) and `stool-clinical` (host-dominated), alongside the
+  corrected `gut-bulk`. `gut-bulk` and `gut-vlp` share a collection so the pair
+  isolates the effect of enrichment.
+
+  Measured against the compositions proposed in the issue:
+
+  | preset | host | bacterial | viral |
+  |---|---|---|---|
+  | `gut-bulk` | 16.4% | 67.5% | 7.9% |
+  | `stool-clinical` | 40.0% | 36.5% | 16.0% |
+  | `gut-vlp` | 0.0% | 1.8% | 96.7% |
+
+- `--host-fraction` pins host DNA absolutely, bypassing the
+  `--contamination-level` multiplier. Needed for host-dominated sample types:
+  40% host is unreachable from the gut collection's 5% baseline even at the
+  highest level. Mirrors `--bacterial-fraction`.
+
+- `tests/test_presets.py` checks every preset loads, resolves to a real
+  collection, points at a collection matching its own name, and converts to a
+  valid generator namespace. The stale IDs survived two years because nothing
+  loaded a preset and checked where it pointed.
+
 ## [0.18.0] - 2026-07-30
 
 ### Reproducibility
