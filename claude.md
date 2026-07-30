@@ -1,99 +1,64 @@
 # ViroForge - Development Context
 
-**Last Updated**: 2026-07-29
-**Current Version**: v0.16.0
-**Status**: Main green at 371 tests; PR backlog cleared; CHANGELOG started at 0.15.0
+**Last Updated**: 2026-07-30
+**Current Version**: v0.20.0
+**Status**: Issue #37 closed; microbial background complete; 480 tests green
 
 ---
 
-## Session Handoff (2026-07-28 / 07-29)
+## Session Handoff (2026-07-30)
 
-origin/main at `ef877c7`, working tree clean, CI green. Earlier handoffs
-(2026-07-14, 07-16, 07-17) are in git history and in the memory files under
-`~/.claude/projects/-Users-shandley-Code-software-viroforge/memory/`.
+origin/main at `0a936e0`, **v0.20.0**, clean, CI green. Full suite **480 passed,
+11 skipped** (~8 min; background it, it exceeds a 300s foreground timeout).
+Earlier handoffs are in git history and the memory files.
 
-### Main was broken, and is not any more
+### Issue #37 closed: microbial background
 
-`677dab7` shipped a `NameError: collection_defaults` in `_apply_vlp_enrichment`,
-so every run combining `--vlp-protocol` with contamination crashed. Eleven
-integration tests were failing. PR #66 fixed it. The suite went 341 -> 371
-passing over the two days.
+Bacterial, fungal and archaeal background landed across 0.17.0-0.20.0, with
+per-collection baselines, bundled RefSeq reference sets, and the
+gut-bulk / gut-vlp / stool-clinical presets. A `--no-vlp` gut run now measures
+71.8% bacterial / 4.1% viral / 2.5% fungal+archaeal against a real-bulk-stool
+60-80 / 1-5 / 1-5. It was 81.6% viral in 0.16.0. VLP removes ~98% of the
+background, so enrichment finally models what VLP prep is for.
 
-### PR backlog cleared
+Reference sets are built by `scripts/curate_bacterial_background.py --domain
+{bacterial,fungal,archaeal}`, which resolves RefSeq by taxon NAME at build time
+and fetches only 10 kb slices. No accessions are stored in the repository.
 
-Ten of Leran10's PRs merged: #61, #62, #63, #64, #66, #67, #68, #69, #70, #71.
-Two were closed: #39 (superseded, see below) and #65 (bad citation, see below).
-Several needed fixing forward on main rather than in the PR:
+### Two changes invalidate datasets generated before 0.20.0
 
-- **#67** was a reproducibility regression, not just an incomplete fix. It added
-  an `rng` parameter to `_generate_sequence_with_gc` that no call site passed,
-  so synthetic sequences became unseeded where the old global `random.seed()`
-  had made them deterministic. It fires on every default run, since
-  `add_reagent_contamination` is always called with no database path.
-- **#71** reintroduced the `collection_defaults` NameError in the extracted
-  `generator.py`, and its `_params_to_namespace` restated all 41 parser defaults,
-  having already drifted to 6 missing attributes and 11 wrong values.
-  `viroforge generate` raised AttributeError. The parser now lives in
-  `viroforge/generator.py` as `build_parser()` and the CLI takes defaults from
-  `parse_args([])`, so drift is impossible. The script is down to 100 lines.
-- **#61** inverted the VLP filtration curves so small virions are recovered,
-  which is correct for dead-end filtration. Nothing covered `FiltrationCurve`,
-  so the direction had never been tested.
+1. **Amplification was compounding GC bias over cycles.** `_apply_linker_bias`
+   and `_apply_rdab_bias` raised `calculate_gc_efficiency()` to the power of the
+   cycle count, but it returns a TOTAL relative efficiency. A 36% GC genome was
+   suppressed 134x against a 50% GC one, a 29% GC one by 61,000x. 36% is the gut
+   collection's median GC and `linker` is the default, so this distorted nearly
+   every dataset. MDA was already correct.
+2. **Every preset pointed at the wrong collection** since the 9-28 to 1-20
+   renumbering. `--preset gut-standard` was generating wastewater.
 
-### Two modelling corrections
+Anything benchmarked before 0.20.0 needs regenerating.
 
-- **VLP size bias runs the other way now.** Recovery falls with virion diameter;
-  losing giant viruses and jumbo phages to a 0.22 um membrane is the documented
-  cost of VLP prep. The size/enrichment correlation moved from about +0.97 to
-  -0.86, so size-stratified results from before 0.15.0 are inverted.
-- **MDA GC bias peaked at the wrong GC content.** The curve was centred at 40%
-  GC and penalised 45-60% GC genomes up to 6x, where Parras-Molto et al. 2018
-  (PMID 29954453) measured MDA *over*-amplifying that band. Optimum moved to
-  50%. `scripts/benchmark_amplification_bias.py` calibrates this against the
-  paper's measured 6.2-7.6% of contigs past 10x fold change.
+### Backlog
 
-### Releases
+**PR #51** (host_associations, deferred pending a real `body_site` column) and
+**issue #30** (web visual form builder, not started). Nothing else open.
 
-0.15.0 and 0.16.0, both output-changing. `CHANGELOG.md` now exists and starts at
-0.15.0. For a generator whose value is reproducible ground truth, any change to
-output for a fixed seed is treated as breaking and recorded there. No git tags
-and nothing published to PyPI, so versions are repo state only.
+### Open questions, recorded not resolved
 
-### Retired
+- The pore-less and column branches of `apply_enrichment` favour LARGE particles,
+  opposite to the filtration curves. May be correct (pelleting and column capture
+  are not sieving) but never checked against literature.
+- MDA and RdAB now give nearly identical GC curves at their defaults, so the
+  docstring claim that MDA bias is 2-5x stronger than PCR no longer holds.
+- `--contamination-level failed` exists in `LEVEL_MULTIPLIERS` but neither CLI
+  parser accepts it.
 
-The lab-notebook workflow is gone: `.git/hooks/pre-commit` archived to
-`pre-commit.disabled`, and the four unregistered `.claude/hooks/` scripts
-deleted. The global `~/.githooks/pre-commit` (gitleaks) still runs and still
-chains to any repo-local hook.
+### The recurring failure mode
 
-### Watch out for
-
-Leran10's citations have not been reliable. Every PMID she has cited (2 of 2)
-resolved to an unrelated paper, and in #65 the number attributed to the paper
-was invented as well. `/verify-references` catches the first problem, not the
-second. Check that the cited paper actually contains the number being used.
-
-### Still open
-
-- **PR #51** host_associations, deferred.
-- **Issue #37** bacterial/fungal background. PR #39 was closed rather than
-  rebased: its Part 1 was superseded by `677dab7`, and the branch carried 4.4M
-  lines of FASTA in git, unrelated `duplicates.py` hunks that now conflict, and
-  at least one wrong accession. Build the FASTA on demand and verify accessions.
-- **Issue #30** web visual form builder, not started.
-- MDA and RdAB now produce nearly identical GC curves at their defaults. The
-  docstring claim that MDA bias is 2-5x stronger than PCR no longer holds and
-  needs its own measurement.
-- `--contamination-level failed` is defined in `LEVEL_MULTIPLIERS` and
-  documented, but both CLI parsers accept only clean/realistic/heavy, so it
-  cannot be selected.
-
-### Environment
-
-A full `.venv` (CPython 3.12) with `viroforge[web]` + InSilicoSeq 2.0.1 + mappy.
-Run tests with `.venv/bin/python -m pytest`, and `export PATH="$PWD/.venv/bin:$PATH"`
-so `iss` resolves. The full suite takes about 5 minutes. PBSIM3 is not built and
-`pbccs` is Linux-x86-64 only, so long-read generation cannot run on this machine.
+Four bugs in these sessions shared one shape: a value restated in two places, or
+a constant that should scale. The CLI defaults table, the populate script's
+UPDATE column list, the preset collection IDs, and a fixed `n_fragments`. Where
+possible these now derive from one source with a test pinning the derivation.
 
 ---
 

@@ -18,7 +18,7 @@
 
 ---
 
-## Current Status (v0.16.0)
+## Current Status (v0.20.0)
 
 ### Phases Completed
 
@@ -401,13 +401,16 @@ and visualizations, then Modules 3 and 6-9. See `ROADMAP.md`.
 
 **Project**: ViroForge
 **Repository**: shandley/viroforge
-**Current Version**: 0.16.0
-**Last Major Update**: 2026-07-29 (MDA GC-bias optimum corrected)
+**Current Version**: 0.20.0
+**Last Major Update**: 2026-07-30 (microbial background; issue #37 closed)
 
 **Development Team**: ViroForge Development Team
 **Assistant**: Claude Code (Anthropic)
 
 **Major Milestones**:
+- 2026-07-30: Bacterial/fungal/archaeal background, issue #37 closed; amplification
+  GC bias was compounding over cycles (fixed); every preset pointed at the wrong
+  collection (fixed); v0.17.0-v0.20.0
 - 2026-07-29: MDA GC-bias optimum moved 40% -> 50% GC; v0.16.0
 - 2026-07-28: PR backlog cleared (10 merged); VLP filtration direction corrected;
   CHANGELOG started; v0.15.0
