@@ -2378,7 +2378,7 @@ def run_generation(args):
 
             dup_manifest = generator.metadata_dir / f"{collection_name}_duplicate_manifest.tsv"
             # MDA (phi29) produces a different duplicate profile than PCR
-            # (power-law copies, stronger GC bias); map the amplification method.
+            # (power-law copies, higher stochasticity); map the amplification method.
             dup_amp_method = "mda" if args.amplification in ("mda", "mda-long") else "pcr"
             dup_stats = add_pcr_duplicates(
                 r1_path=r1_path,
