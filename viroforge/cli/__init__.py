@@ -115,8 +115,9 @@ For more information: https://github.com/hecatomb/viroforge
     )
     generate_parser.add_argument(
         '--contamination-level',
-        choices=['clean', 'realistic', 'heavy'],
-        help='Contamination level (default: realistic)'
+        choices=['clean', 'realistic', 'heavy', 'failed'],
+        help='Contamination level (default: realistic). '
+             'failed models a failed VLP prep (4x baseline contamination)'
     )
     generate_parser.add_argument(
         '--vlp-protocol',
