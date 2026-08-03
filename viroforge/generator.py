@@ -1287,9 +1287,10 @@ Examples:
 
     parser.add_argument(
         '--contamination-level',
-        choices=['clean', 'realistic', 'heavy'],
+        choices=['clean', 'realistic', 'heavy', 'failed'],
         default='realistic',
-        help='Contamination level (default: realistic)'
+        help='Contamination level (default: realistic). '
+             'failed models a failed VLP prep (4x baseline contamination)'
     )
 
     parser.add_argument(
