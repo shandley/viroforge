@@ -319,25 +319,30 @@ class MDAAmplification(AmplificationMethod):
     MDA (Multiple Displacement Amplification) using φ29 polymerase.
 
     MDA is used for whole-genome amplification of low-biomass samples,
-    including environmental viromes. It introduces extreme biases compared
-    to PCR-based methods.
+    including environmental viromes.
 
     Biases:
-    - **Extreme GC bias**: 10-1000x difference across GC range
-      (much stronger than PCR, φ29 struggles with high GC)
+    - **GC bias**: Over-amplifies 45-60% GC, under-represents extremes.
+      Similar in magnitude to PCR-based methods (Pinard et al. 2006,
+      PMID 16928277; Parras-Moltó et al. 2018, PMID 29954453).
     - **High stochasticity**: Random, uneven amplification
       (some templates dominate by chance)
     - **Chimera formation**: Template switching creates artifacts (5-30%)
+    - **Small circular genome preference**: ssDNA/small circular genomes
+      are over-amplified due to rolling-circle mechanism
 
     Literature:
-    - Lasken & Stockwell (2007) Nat Rev Microbiol 5:755-763
-    - Yilmaz et al. (2010) PLoS ONE 5:e15533
+    - Pinard et al. (2006) BMC Genomics 7:216 (PMID 16928277):
+      MDA GC shift ~3% vs PCR ~5-6% on a 66% GC genome
+    - Parras-Moltó et al. (2018) Microbiome 6:119 (PMID 29954453):
+      6-8% of contigs show >10x fold change; both MDA and SISPA
+      share similar systematic GC bias patterns
     - Typical amplification time: 2-16 hours
-    - GC bias stronger than any PCR method
 
     Attributes:
         amplification_time_hours: MDA reaction time (2-16 hours typical)
-        gc_bias_strength: Intensity of GC bias (typically 2-5x stronger than PCR)
+        gc_bias_strength: Intensity of GC bias (similar to RdAB at
+            current defaults; see test_mda_and_rdab_curves_are_currently_similar)
         stochasticity: Random variation (CV, typically 0.2-0.5)
         chimera_rate: Fraction of chimeric reads (0-0.3)
         random_seed: Random seed for reproducibility
@@ -347,7 +352,7 @@ class MDAAmplification(AmplificationMethod):
         >>>
         >>> composition = create_mock_virome('gut', 'clean')
         >>> mda = MDAAmplification(amplification_time_hours=4, gc_bias_strength=3.0)
-        >>> mda.apply(composition)  # Extreme GC bias and stochasticity
+        >>> mda.apply(composition)  # GC bias + high stochasticity
     """
 
     def __init__(
@@ -363,7 +368,7 @@ class MDAAmplification(AmplificationMethod):
 
         Args:
             amplification_time_hours: Reaction time (2-16 hours)
-            gc_bias_strength: Intensity of GC bias (2-5, stronger than RdAB)
+            gc_bias_strength: Intensity of GC bias (similar to RdAB at defaults)
             stochasticity: Random variation (CV, 0-1)
             chimera_rate: Fraction of chimeric products (0-0.3)
             random_seed: Random seed for reproducibility
@@ -557,7 +562,7 @@ class LinkerAmplification(AmplificationMethod):
 
     Literature:
     - Marine et al. (2014) PeerJ 2:e868
-    - Linker-based methods show 2-5x less bias than RdAB
+    - Linker-based methods show less bias than RdAB (lower gc_bias_strength)
 
     Attributes:
         cycles: PCR cycles (10-25 typical)
