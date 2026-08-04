@@ -982,11 +982,17 @@ class FASTQGenerator:
             desc_parts = seq.description.split('|')
             seq_name = desc_parts[0].strip() if desc_parts else seq.id
 
+            # Compute GC content from the actual sequence
+            seq_str = str(seq.seq).upper()
+            gc_count = seq_str.count('G') + seq_str.count('C')
+            gc_content = gc_count / len(seq_str) if len(seq_str) > 0 else 0.0
+
             seq_info = {
                 'genome_id': seq.id,
                 'genome_name': seq_name,
                 'sequence_type': seq_type,
                 'length': len(seq.seq),
+                'gc_content': round(gc_content, 4),
                 'relative_abundance': abundance
             }
 
@@ -2502,3 +2508,13 @@ def run_generation(args):
     - Metadata: {generator.metadata_dir}
 """
     logger.info(output_msg)
+
+    # Generate HTML report with diagnostic plots
+    try:
+        from viroforge.report import generate_report
+        import glob as _glob_report
+        metadata_files = _glob_report.glob(str(generator.metadata_dir / "*_metadata.json"))
+        for mf in metadata_files:
+            generate_report(Path(mf), Path(args.output))
+    except Exception as e:
+        logger.warning(f"Could not generate HTML report: {e}")
