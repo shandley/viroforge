@@ -1608,12 +1608,13 @@ def run_generation(args):
 
     # Validate required arguments
     if not args.collection_id:
-        raise ValueError("--collection-id required (use --list-collections to see options)")
+        raise ValueError("--collection-id required (use --list-collections to see options, "
+                         "or 'viroforge create-collection' to add custom genomes)")
 
     if not args.output:
         raise ValueError("--output required")
 
-    # Load collection
+    # Load collection from database
     collection_meta, genomes = loader.load_collection(args.collection_id)
 
     # Add viral dark matter (unclassified genomes)

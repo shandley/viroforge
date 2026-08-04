@@ -363,6 +363,59 @@ For more information: https://github.com/hecatomb/viroforge
     )
 
     # ========================================================================
+    # CREATE-COLLECTION command
+    # ========================================================================
+    create_coll_parser = subparsers.add_parser(
+        'create-collection',
+        help='Create a custom collection from a FASTA file',
+        description='Register a custom set of viral genomes as a new collection '
+                    'in the database. The collection can then be used with '
+                    'viroforge generate --collection-id <ID>'
+    )
+    create_coll_parser.add_argument(
+        '--genomes', required=True,
+        help='Path to FASTA file containing viral genome sequences'
+    )
+    create_coll_parser.add_argument(
+        '--name', required=True,
+        help='Name for the collection (e.g., "Penguin Gut Virome")'
+    )
+    create_coll_parser.add_argument(
+        '--description', default='',
+        help='Description of the collection'
+    )
+    create_coll_parser.add_argument(
+        '--host', default='unknown',
+        help='Host organism (e.g., human, mouse, penguin). '
+             'Used for contamination profile defaults'
+    )
+    create_coll_parser.add_argument(
+        '--body-site', default='unknown',
+        help='Body site (e.g., gut, skin, respiratory). '
+             'Used for contamination profile defaults'
+    )
+    create_coll_parser.add_argument(
+        '--abundances',
+        help='Optional TSV file with columns: genome_id, abundance. '
+             'If not provided, a log-normal distribution is generated'
+    )
+    create_coll_parser.add_argument(
+        '--host-genome',
+        help='Optional FASTA file of the host genome for accurate host DNA '
+             'contamination. If not provided, human reference is used. '
+             'Example: --host-genome penguin_genome.fasta'
+    )
+    create_coll_parser.add_argument(
+        '--database',
+        default='viroforge/data/viral_genomes.db',
+        help='Path to ViroForge database'
+    )
+    create_coll_parser.add_argument(
+        '--seed', type=int, default=42,
+        help='Random seed for abundance generation (default: 42)'
+    )
+
+    # ========================================================================
     # SUMMARY command
     # ========================================================================
     summary_parser = subparsers.add_parser(
@@ -544,6 +597,9 @@ For more information: https://github.com/hecatomb/viroforge
         elif args.command == 'summary':
             from .summary import run_summary
             return run_summary(args)
+        elif args.command == 'create-collection':
+            from .create_collection import run_create_collection
+            return run_create_collection(args)
         else:
             parser.print_help()
             return 1
