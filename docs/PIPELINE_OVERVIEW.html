@@ -1,0 +1,4045 @@
+<!doctype html><html><head><!-- frame-runtime --><script>window.__FRAME_PREAMBLE={"capabilities":{"assets":"assets.hcOK0ALv.js","comments":"comments.BKZ3qutA.js","db":"db.CeV_J5G-.js","downloads":"downloads.BXsoAvg9.js","mcp":"mcp.CYSdpjo0.js","permissions":"permissions.DdITF2Mk.js","sample":"sample.DpdXn9di.js","self":"self.BN4be5De.js","user":"user.Cr_h1ETf.js"},"transforms":"_transforms.VaITkagF.js","comments":"_comments.CNSvmFji.js","translate":"_translate.BOzFH2D9.js"}</script><script>(function(){"use strict";var ne=["light","dark","system"];function oe(e){if(e===null||typeof e!="object")return!1;const t=e.__frame_init;return t!==null&&typeof t=="object"}function W(e){return e!==null&&typeof e=="object"&&e.__frame_size_poke===!0}function se(e){if(e===null||typeof e!="object")return!1;const t=e.__frame_theme;if(t===null||typeof t!="object")return!1;const n=t.theme;return typeof n=="string"&&ne.includes(n)}function ie(e){try{typeof reportError=="function"?reportError(e):setTimeout(()=>{throw e},0)}catch{}}var Y=Object.freeze(Object.assign(Object.create(null),{user:Object.freeze(Object.assign(Object.create(null),{id:null,isOwner:!1,canEdit:!1,name:null,avatarUrl:null,email:null}))})),ae={sample:"sample"};function x(){const e=new Uint8Array(20);try{crypto.getRandomValues(e)}catch{for(let n=0;n<e.length;n++)e[n]=Math.floor(Math.random()*256)}let t="";for(const n of e)t+=(n%36).toString(36);return t}function ce(e,t){const n=r=>{const o={path:r},i=r.split("/");return{id:i[i.length-1],path:r,get:()=>t("get",[o]),set:g=>t("set",[o,g]),update:g=>t("update",[o,g]),delete:()=>t("delete",[o]),acquire:g=>t("acquire",[o,g]),onSnapshot:(g,y)=>t("subscribe",[o,g,y]),collection:g=>a(r+"/"+String(g))}},u=r=>({where:(o,i,g)=>u({...r,where:[...r.where??[],{f:String(o),op:String(i),v:g}]}),orderBy:(o,i)=>u({...r,orderBy:{f:String(o),dir:i===void 0?"asc":String(i)}}),limit:o=>u({...r,limit:Number(o)}),get:()=>t("query",[r]),onSnapshot:(o,i)=>t("subscribe",[r,o,i])}),a=r=>({...u({collection:r}),path:r,doc:o=>n(r+"/"+(o===void 0?x():String(o))),add:o=>{const i=n(r+"/"+x());return Promise.resolve(i.set(o)).then(()=>i)}});e.doc=r=>n(String(r)),e.collection=r=>a(String(r))}function J(e){if(window===top||e.type==="auxclick"&&e.button!==1)return;const t=e.composedPath?e.composedPath():[e.target];let n=null;for(let o=0;o<t.length;o++){const i=t[o];if(i&&i.matches&&i.matches("a[href],area[href]")){n=i;break}}if(!n&&e.target&&e.target.closest&&(n=e.target.closest("a[href],area[href]")),!n)return;const u=n.getAttribute("href");if(!u)return;let a,r;try{a=new URL(u,document.baseURI),r=new URL(document.baseURI).origin}catch{return}if((a.protocol==="http:"||a.protocol==="https:")&&a.origin!==r){e.preventDefault();const o=(n.getAttribute("target")??document.querySelector("base[target]")?.getAttribute("target")??"").toLowerCase(),i=e.type==="auxclick"||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey||!["","_self","_top","_parent"].includes(o);parent.postMessage({__frame_nav:!0,url:a.href,newTab:i},"*")}}var G={};function I(e){if(window===top)return;const t=Date.now();t-(G[e]||0)<500||(G[e]=t,parent.postMessage({__frame_engaged:!0,kind:e},"*"))}var le=2e3,V=["wheel","touchstart","touchmove","keydown","pointerdown"],X=0;function ue(e){e.isTrusted&&(X=Date.now())}function fe(){addEventListener("click",J,!0),addEventListener("auxclick",J,!0)}function de(){for(let e=0;e<V.length;e++)addEventListener(V[e],ue,{capture:!0,passive:!0});addEventListener("scroll",e=>{e.isTrusted&&Date.now()-X<le&&I("scroll")},{capture:!0,passive:!0}),addEventListener("pointermove",e=>{e.isTrusted&&I("pointer")},{capture:!0,passive:!0}),addEventListener("click",e=>{e.isTrusted&&I("click")},{capture:!0,passive:!0})}var q="__frame_scroll",me=150,pe=310,ge=160,he=3e4;function ve(){let e=0,t=!1,n=!1,u=!1,a=0,r=null;const o=d=>{try{sessionStorage.setItem(q,JSON.stringify({y:d}))}catch{}},i=()=>{if(clearTimeout(e),r===null)return;const d=r;r=null,o(d)},g=()=>{if(t){t=!1;return}n=!0,r=scrollY,clearTimeout(e),e=setTimeout(i,me)};try{addEventListener("scroll",g,{passive:!0}),addEventListener("pagehide",i)}catch{}const y=()=>{let d;try{d=sessionStorage.getItem(q)}catch{return null}if(d===null)return null;let l;try{l=JSON.parse(d)}catch{l=null}const p=l?.y;if(!(typeof p=="number"&&Number.isFinite(p)&&p>=0)){try{sessionStorage.removeItem(q)}catch{}return null}return p};let c=!1;const f=d=>{try{const l=scrollY;scrollTo({top:d,left:0,behavior:"instant"}),a=d,u=!0,clearTimeout(e),r=null,o(d);const p=scrollY;p!==l&&(t=!0),p!==d&&!c&&(c=!0,addEventListener("load",()=>{try{if(scrollY===p){const v=y();f(v!==null?v:a)}}catch{}},{once:!0}))}catch{}},m=()=>{try{return!!location.hash}catch{return!0}};let h=!1;const _=()=>{try{if(h||innerWidth>pe||innerHeight>ge)return;h=!0;const d=Date.now(),l=()=>{try{removeEventListener("resize",l)}catch{}if(Date.now()-d>he||n||m())return;const p=y();f(p!==null?p:a)};addEventListener("resize",l)}catch{}};let w=!1,S=!1;return{restore(){if(w||(w=!0,m()))return;const d=y();d!==null&&(f(d),_())},promoted(){if(S||(S=!0,m()))return;const d=y();d!==null?(f(d),_()):u&&f(a)}}}function _e(e,t,n){const u=[...t.values()].filter(a=>a.targets.some(r=>r.startsWith(e+".")));return{wrap(a,r){const o=`${e}.${a}`,i=u.filter(g=>g.targets.includes(o));return i.length===0?(...g)=>{try{return r(...g)}catch(y){return Promise.reject(y)}}:(...g)=>{let y=g;for(const f of i){const m=f.module.parameters;if(m)try{y=m(y)}catch{return Promise.reject({code:"transform_error",id:f.id,scope:e,message:"parameters transform failed"})}}let c;try{c=r(...y)}catch(f){c=Promise.reject(f)}return c.then(f=>{for(let m=i.length-1;m>=0;m--){const h=i[m],_=h.module.returns;if(_)try{f=_(f)}catch{return n({id:h.id,scope:e,leg:"returns"}),f}}return f},f=>{for(let m=i.length-1;m>=0;m--){const h=i[m],_=h.module.throws;if(_)try{f=_(f)}catch{return n({id:h.id,scope:e,leg:"throws"}),Promise.reject(f)}}return Promise.reject(f)})}}}}function ye(e,t,n,u=()=>{}){const a=new Set(e.changes??[]),r=new Map;for(const o of a){const i=t[o];i&&r.set(o,i)}return{contract:e.contract,changes:a,flags:new Set(e.flags??[]),capabilities:e.capabilities??{},capBudgets:e.capBudgets??{},transforms:r,shellOrigin:n.shellOrigin,mount:n.mount,pipe:o=>_e(o,r,u)}}var Ae="modulepreload",Re=function(e){return"/"+e},je={},be=function(t,n,u){let a=Promise.resolve();function r(o){const i=new Event("vite:preloadError",{cancelable:!0});if(i.payload=o,window.dispatchEvent(i),!i.defaultPrevented)throw o}return a.then(o=>{for(const i of o||[])i.status==="rejected"&&r(i.reason);return t().catch(r)})};(function(){const e=Object.defineProperty,t=globalThis,n=["RTCPeerConnection","webkitRTCPeerConnection","RTCDataChannel","RTCIceCandidate","RTCSessionDescription","RTCRtpSender","RTCRtpReceiver"];let u=0;for(let a=0;a<n.length;a++){const r=n[a];try{e(t,r,{value:void 0,writable:!1,configurable:!1})}catch{try{delete t[r]}catch{}try{e(t,r,{value:void 0,writable:!1,configurable:!0})}catch{}}typeof t[r]=="function"&&u++}if(u&&window!==top)try{parent.postMessage({__frame_rtc_lockdown_failed:u},"*")}catch{}})();var Ee=1e4,we=Object.freeze([...window.__FRAME_PREAMBLE?.origins??["https://claude.ai","https://preview.claude.ai"]]);function Q(e){for(const t of we)if(t.endsWith(":*"))try{const n=new URL(e);if(`${n.protocol}//${n.hostname}:*`===t)return!0}catch{}else if(e===t)return!0;return!1}var k=Object.freeze({...window.__FRAME_PREAMBLE?.capabilities}),D=window.__FRAME_PREAMBLE?.transforms,z=window.__FRAME_PREAMBLE?.comments,B=window.__FRAME_PREAMBLE?.translate,C=/^[\w.-]+\.js$/,Se=/^[a-z][a-z0-9_-]{0,63}$/,Z=null,M=null;function $(e,t,n){try{Object.defineProperty(e,t,{value:n,writable:!1,configurable:!1,enumerable:!0})}catch{try{Object.defineProperty(e,t,{value:n,writable:!1,configurable:!0,enumerable:!0})}catch{}}}var F=!1;function ee(e){const t=document.documentElement;e==="light"||e==="dark"?(t.dataset.theme=e,t.style.colorScheme=e,F=!0):F&&(delete t.dataset.theme,t.style.colorScheme="",F=!1)}var te=256,P=Object.assign(Object.create(null),{mcp:Object.assign(Object.create(null),{watchTool:{handlerArg:3}}),db:Object.assign(Object.create(null),{subscribe:{handlerArg:1,errArg:2}})}),L=new Map;function re(e,t){const n=L.get(e);if(!n)return;const u=Object.assign(Object.create(null),t);Object.assign(n.impl,u),n.impl.__settled=()=>Promise.reject({code:"capability_removed",message:`${e}: method not in this runtime`});const a=n.queue;n.queue=[];for(const r of a){const o=u[r.method];if(o)if(P[e]?.[r.method])try{r.resolve(o(...r.args))}catch{T(r,P[e][r.method],{code:"transform_error",message:`${e}.${r.method} rejected its arguments`})}else o(...r.args).then(r.resolve,r.reject);else{const i={code:"capability_removed",message:`${e}.${r.method} is not in this runtime`},g=P[e]?.[r.method];if(g){T(r,g,i);continue}r.reject(i)}}}function Oe(e,t){const n=L.get(e);if(!n)return;n.impl.__settled=()=>Promise.reject(t);const u=n.queue;n.queue=[];for(const a of u){const r=P[e]?.[a.method];if(r){T(a,r,t);continue}a.reject(t)}}function N(e,t){const n=Y[e];if(!n){Oe(e,t);return}re(e,Object.fromEntries(Object.entries(n).map(([u,a])=>[u,()=>Promise.resolve(a)])))}function T(e,t,n){if(e.syncState?.dead)return;const u=t.errArg===void 0?void 0:e.args[t.errArg],a=t.errArg===void 0?e.args[t.handlerArg]:u;typeof a=="function"&&queueMicrotask(()=>{if(!e.syncState?.dead)try{a(t.errArg===void 0?{type:"error",error:n}:n)}catch(r){ie(r)}})}var H=Object.getOwnPropertyDescriptor(window,"claude");if(window!==top&&!(H&&H.writable===!1)){fe(),de();let e=null;try{e=ve()}catch{}const t=H?.value??{};$(window,"claude",t);const n=c=>{const f={impl:Object.create(null),queue:[]};L.set(c,f);const m=f.impl,h=d=>({code:"queue_overflow",message:`${c}.${d}: pre-init call queue is full`}),_=(d,l)=>{if(f.queue.length>=te){const p=Y[c];return p&&d in p?Promise.resolve(p[d]):Promise.reject(h(d))}return new Promise((p,v)=>{f.queue.push({method:d,args:l,resolve:p,reject:v})})},w=ae[c],S=new Proxy(w===void 0?m:(()=>{}),{apply:(d,l,p)=>{const v=w,E=m[v]??m.__settled;return E?E(...p):_(v,p)},get:(d,l)=>{if(typeof l!="string"||l==="then"||l==="toJSON"||l==="valueOf")return;if(l==="toString")return Object.prototype.toString;if(w!==void 0&&(l==="call"||l==="apply"||l==="bind"))return Function.prototype[l];const p=P[c]?.[l];return p?(...v)=>{if(typeof v[p.handlerArg]!="function")throw new TypeError(`${c}.${l} requires a handler function`);const E=m[l];if(E)return E(...v);if(m.__settled){const b={dead:!1},U={args:[...v],syncState:b};return m.__settled().catch(s=>T(U,p,s)),()=>{b.dead=!0}}if(f.queue.length>=te){const b={dead:!1};return T({args:[...v],syncState:b},p,h(l)),()=>{b.dead=!0}}let A=null;const R={dead:!1};return f.queue.push({method:l,args:v,resolve:b=>{A=typeof b=="function"?b:null,R.dead&&A?.()},reject:()=>{},syncState:R}),()=>{R.dead=!0,A?.()}}:(...v)=>{const E=m[l]??m.__settled;return E?E(...v):_(l,v)}},set:()=>!1});c==="db"&&ce(m,(d,l)=>S[d](...l)),$(t,c,S)};for(const c of Object.keys(k)){if(t[c]!==void 0){$(t,c,t[c]);continue}n(c)}let u=null,a=null,r=0;const o=c=>{c.source!==parent||!Q(c.origin)||oe(c.data)&&(u=c.data.__frame_init,M=c.origin,removeEventListener("message",o),clearTimeout(r),a?.())};addEventListener("message",o),parent.postMessage({__frame_connect:!0},"*");const i=new Promise(c=>{a=c,r=setTimeout(()=>{removeEventListener("message",o),c()},Ee)}),g=document.readyState==="loading"?new Promise(c=>document.addEventListener("DOMContentLoaded",()=>c(),{once:!0})):Promise.resolve();g.then(()=>{try{e?.restore()}catch{}});const y=c=>{if(!(c.source!==parent||!Q(c.origin))&&W(c.data)){removeEventListener("message",y);try{e?.promoted()}catch{}}};addEventListener("message",y),i.then(async()=>{if(!u||!M){for(const s of L.keys())N(s,{code:"not_granted",message:"frame initialization did not arrive - capability unavailable"});return}ee(u.theme);const c=M;let f=!1,m=!1;addEventListener("message",s=>{if(s.source!==parent||s.origin!==c)return;se(s.data)&&ee(s.data.__frame_theme.theme);const O=s.data?.__fc_mode;O&&typeof O=="object"&&!f&&z&&C.test(z)&&(f=!0,h(z).then(K=>K.install?.(c,O.on===!0)).catch(()=>{}));const j=s.data?.__ft_cmd;j&&typeof j=="object"&&!m&&B&&C.test(B)&&(m=!0,h(B).then(K=>K.install?.(c,j)).catch(()=>{}))});const h=s=>be(()=>import("/_runtime/"+s),void 0),_=Object.keys(u.capabilities??{});for(const s of _)Object.hasOwn(k,s)||Se.test(s)&&t[s]===void 0&&(n(s),N(s,{code:"capability_disabled",message:"capability not in this runtime generation"}));const w=_.filter(s=>Object.hasOwn(k,s)).map(s=>[s,k[s]]).filter(s=>typeof s[1]=="string"&&C.test(s[1])),[S,...d]=await Promise.allSettled([D&&C.test(D)?h(D):Promise.resolve({}),...w.map(([,s])=>h(s))]),l=M;Z=ye(u,S.status==="fulfilled"&&S.value?.TRANSFORMS||{},{shellOrigin:l,mount:re},s=>parent.postMessage({__frame_cap_telemetry:s},l));const p=s=>parent.postMessage({__frame_cap_telemetry:{kind:"cap-load-error",cap:s}},l),v=Z;d.forEach((s,O)=>{const j=w[O][0];if(s.status!=="fulfilled"){p(j);return}try{s.value?.install?.(v)}catch{p(j)}});for(const[s,O]of L)if(!(O.queue.length===0&&Object.keys(O.impl).length>0)){if(_.includes(s)){N(s,{code:"capability_disabled",message:"capability not available in this session"});continue}N(s,{code:"not_granted",message:"capability not available in this session"})}await g,parent.postMessage({__frame_ready:!0},M);let E=-1,A=0;const R=()=>{A=0;const s=Math.max(document.documentElement.scrollHeight,document.body?document.body.scrollHeight:0);s!==E&&(E=s,parent.postMessage({__frame_size:!0,h:s},l))},b=()=>{A||(A=setTimeout(R,200))},U=new ResizeObserver(b);U.observe(document.documentElement),document.body&&U.observe(document.body),document.addEventListener("load",b,!0),document.fonts?.ready.then(b,()=>{}),addEventListener("beforeprint",()=>{E=-1,R()}),b(),addEventListener("message",s=>{if(!(s.source!==parent||s.origin!==l)&&W(s.data)){try{e?.promoted()}catch{}E=-1,b()}})})}})();</script><!-- /frame-runtime --><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}</style></head><body>
+<title>ViroForge Pipeline Overview</title>
+<style>
+@font-face {
+  font-family: 'JBMono';
+  src: url('data:font/woff2;base64,') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+}
+
+:root, :root[data-theme="dark"], :root[data-theme="light"] {
+  --ink: #1a1d23;
+  --surface: #ffffff;
+  --muted: #777a80;
+  --accent: #2d7d9a;
+  --accent-warm: #c4643a;
+  --field: #f0eeea;
+  --node-bg: #ffffff;
+  --node-border: #d0cfc9;
+  --node-active-bg: #eaf5f8;
+  --node-active-border: #2d7d9a;
+  --connector: #c5c4bf;
+  --panel-bg: #ffffff;
+  --panel-border: #e0dfda;
+  --code-bg: #f5f4f0;
+  --tag-bg: #eeedea;
+  --tag-text: #444750;
+  --canvas-bg: #ffffff;
+  --particle-viral: #2d7d9a;
+  --particle-bacteria: #c4643a;
+  --particle-host: #9a7b2d;
+  --particle-rrna: #7b2d9a;
+  --particle-phix: #5a9a2d;
+  --text-primary: #1a1d23;
+  --text-secondary: #3a3d44;
+  --text-tertiary: #666970;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+  background: var(--surface);
+  color: var(--text-primary);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+.mono {
+  font-family: "JetBrains Mono", "SF Mono", "Fira Code", "Cascadia Code", monospace;
+}
+
+header {
+  padding: 24px 32px 20px;
+  border-bottom: 1px solid var(--panel-border);
+  background: var(--panel-bg);
+}
+header h1 {
+  font-family: "JetBrains Mono", "SF Mono", "Fira Code", monospace;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--accent);
+}
+header p {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  margin-top: 4px;
+}
+
+.app {
+  display: flex;
+  height: calc(100vh - 73px);
+  overflow: hidden;
+}
+
+/* Pipeline column */
+.pipeline {
+  width: 280px;
+  min-width: 280px;
+  border-right: 1px solid var(--panel-border);
+  background: var(--panel-bg);
+  overflow-y: auto;
+  padding: 20px 16px;
+}
+
+.pipeline-label {
+  font-family: "JetBrains Mono", "SF Mono", "Fira Code", monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-tertiary);
+  margin-bottom: 16px;
+  padding-left: 4px;
+}
+
+.step-node {
+  position: relative;
+  padding: 10px 12px;
+  margin-bottom: 4px;
+  border: 1.5px solid var(--node-border);
+  border-radius: 6px;
+  background: var(--node-bg);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+.step-node:hover {
+  border-color: var(--accent);
+}
+.step-node.active {
+  background: var(--node-active-bg);
+  border-color: var(--node-active-border);
+}
+.step-node .step-num {
+  font-family: "JetBrains Mono", "SF Mono", "Fira Code", monospace;
+  font-size: 10px;
+  color: var(--text-tertiary);
+  letter-spacing: 0.05em;
+}
+.step-node.active .step-num { color: var(--accent); }
+.step-node .step-name {
+  font-size: 13px;
+  font-weight: 550;
+  margin-top: 2px;
+  color: var(--text-primary);
+}
+.step-node .step-desc {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+.connector {
+  width: 2px;
+  height: 12px;
+  background: var(--connector);
+  margin: 0 auto;
+  position: relative;
+}
+.connector::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0; height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid var(--connector);
+}
+
+/* Detail panel */
+.detail {
+  flex: 1;
+  overflow-y: auto;
+  padding: 28px 36px;
+}
+
+.detail-header {
+  margin-bottom: 24px;
+}
+.detail-header h2 {
+  font-family: "JetBrains Mono", "SF Mono", "Fira Code", monospace;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  text-wrap: balance;
+}
+.detail-header .subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-top: 6px;
+  max-width: 60ch;
+  line-height: 1.6;
+}
+
+/* Option tabs */
+.options-bar {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.opt-btn {
+  font-family: "JetBrains Mono", "SF Mono", "Fira Code", monospace;
+  font-size: 11px;
+  padding: 6px 14px;
+  border: 1.5px solid var(--node-border);
+  border-radius: 4px;
+  background: var(--node-bg);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.opt-btn:hover { border-color: var(--accent); color: var(--accent); }
+.opt-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* Canvas area */
+.canvas-wrap {
+  background: var(--canvas-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+.canvas-wrap canvas {
+  display: block;
+  width: 100%;
+  height: 340px;
+  transition: height 0.3s ease;
+}
+.canvas-wrap.canvas-tall canvas {
+  height: 440px;
+}
+
+/* Info cards */
+
+/* Legend */
+.legend {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 10px 16px;
+  background: var(--field);
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.legend-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+}
+
+/* Welcome panel */
+.welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  padding: 40px;
+}
+.welcome h2 {
+  font-family: "JetBrains Mono", "SF Mono", "Fira Code", monospace;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+.welcome p {
+  font-size: 14px;
+  color: var(--text-tertiary);
+  max-width: 40ch;
+  line-height: 1.6;
+}
+.welcome .arrow-hint {
+  margin-top: 24px;
+  font-size: 24px;
+  color: var(--accent);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; transform: translateX(-8px); }
+  50% { opacity: 1; transform: translateX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .welcome .arrow-hint { animation: none; opacity: 0.7; }
+  .connector::after { animation: none; }
+}
+
+/* Responsive */
+@media (max-width: 720px) {
+  .app { flex-direction: column; height: auto; }
+  .pipeline {
+    width: 100%; min-width: 0;
+    border-right: none; border-bottom: 1px solid var(--panel-border);
+    display: flex; flex-wrap: wrap; gap: 6px;
+    padding: 12px;
+    overflow-y: visible;
+  }
+  .pipeline-label { display: none; }
+  .connector { display: none; }
+  .step-node { margin-bottom: 0; flex: 1; min-width: 100px; }
+  .step-node .step-desc { display: none; }
+  .detail { padding: 20px 16px; }
+  .canvas-wrap canvas { height: 280px; }
+  .canvas-wrap.canvas-tall canvas { height: 380px; }
+}
+</style>
+
+<header>
+  <h1>ViroForge Pipeline Overview</h1>
+  <p>Interactive guide to each stage of synthetic virome dataset generation</p>
+</header>
+
+<div class="app">
+  <nav class="pipeline" id="pipeline"></nav>
+  <main class="detail" id="detail">
+    <div class="welcome">
+      <h2>Select a pipeline step</h2>
+      <p>Click any step on the left to see how it works, explore protocol options, and watch animated demonstrations.</p>
+      <div class="arrow-hint">&larr;</div>
+    </div>
+  </main>
+</div>
+
+<script>
+const STEPS = [
+  {
+    id: 'collection', num: '01', name: 'Collection Selection',
+    desc: 'Choose a virome collection',
+    subtitle: 'Select from 20 curated virome collections. Click any bar to see its composition breakdown at different contamination levels (clean 0.25×, realistic 1×, heavy 2.5×).',
+    options: [],
+    animation: 'collection'
+  },
+  {
+    id: 'vlp', num: '02', name: 'VLP Enrichment',
+    desc: 'Concentrate viral particles',
+    subtitle: 'Simulate virus-like particle enrichment to remove bacteria and host cells while retaining viral particles. Each protocol has different size selectivity and recovery characteristics.',
+    options: [
+      { id: 'filtration', label: 'Filtration' },
+      { id: 'ultracentrifugation', label: 'Ultracentrifuge' },
+      { id: 'column', label: 'Column Kit' },
+      { id: 'none', label: 'No VLP (Bulk)' }
+    ],
+    animation: 'vlp'
+  },
+  {
+    id: 'amplification', num: '03', name: 'Amplification',
+    desc: 'Model amplification bias',
+    subtitle: 'Simulate how different amplification protocols distort the original abundance distribution through GC content bias, length bias, and stochastic effects.',
+    options: [
+      { id: 'linker', label: 'Linker (PCR)' },
+      { id: 'mda', label: 'MDA (phi29)' },
+      { id: 'rdab', label: 'RdAB (RT-PCR)' },
+      { id: 'none_amp', label: 'None' }
+    ],
+    animation: 'amplification'
+  },
+  {
+    id: 'sequencing', num: '04', name: 'Read Simulation',
+    desc: 'Generate synthetic reads',
+    subtitle: 'Simulate platform-specific sequencing. Each technology produces reads with distinct length distributions, error profiles, and output formats.',
+    options: [
+      { id: 'novaseq', label: 'NovaSeq' },
+      { id: 'miseq', label: 'MiSeq' },
+      { id: 'pacbio', label: 'PacBio HiFi' },
+      { id: 'nanopore', label: 'Nanopore' }
+    ],
+    animation: 'sequencing'
+  },
+  {
+    id: 'artifacts', num: '05', name: 'Artifact Injection',
+    desc: 'Add sequencing artifacts',
+    subtitle: 'Layer realistic sequencing artifacts onto the reads: adapter read-through from short inserts, PCR duplicates with GC/length bias, low-complexity sequences, and chimeric reads from MDA.',
+    options: [
+      { id: 'adapters', label: 'Adapters' },
+      { id: 'duplicates', label: 'PCR Duplicates' },
+      { id: 'lowcomplex', label: 'Low-Complexity' }
+    ],
+    animation: 'artifacts'
+  },
+  {
+    id: 'output', num: '06', name: 'Output Files',
+    desc: 'FASTQ + ground truth',
+    subtitle: 'Every read is labeled with its source (viral, host_dna, rrna, phix, reagent, bacterial, erv_endogenous). The output includes FASTQ files, metadata JSON, and composition tables.',
+    options: [
+      { id: 'fastq', label: 'FASTQ Files' },
+      { id: 'metadata', label: 'Metadata JSON' },
+      { id: 'manifests', label: 'Manifests' }
+    ],
+    animation: 'output'
+  },
+  {
+    id: 'report', num: '07', name: 'Diagnostic Report',
+    desc: 'HTML visualization',
+    subtitle: 'Auto-generated HTML report with 8 diagnostic plots: composition pie chart, VLP before/after bars, family distribution, rank-abundance curve, GC histogram, genome length scatter, contamination table, and artifact summary.',
+    options: [],
+    animation: 'report'
+  },
+  {
+    id: 'benchmark', num: '08', name: 'Benchmarking',
+    desc: 'Score your pipeline',
+    subtitle: 'Score your analysis pipeline against known ground truth. Three modules available: QC (contamination removal), Assembly (genome recovery), and Taxonomy (read/contig classification accuracy).',
+    options: [
+      { id: 'qc', label: 'QC Module' },
+      { id: 'assembly', label: 'Assembly' },
+      { id: 'taxonomy', label: 'Taxonomy' }
+    ],
+    animation: 'benchmark'
+  }
+];
+
+// Build pipeline nav
+const pipelineEl = document.getElementById('pipeline');
+const detailEl = document.getElementById('detail');
+const labelEl = document.createElement('div');
+labelEl.className = 'pipeline-label';
+labelEl.textContent = 'Pipeline Steps';
+pipelineEl.appendChild(labelEl);
+
+STEPS.forEach((step, i) => {
+  if (i > 0) {
+    const conn = document.createElement('div');
+    conn.className = 'connector';
+    pipelineEl.appendChild(conn);
+  }
+  const node = document.createElement('div');
+  node.className = 'step-node';
+  node.dataset.step = step.id;
+  node.innerHTML = `<div class="step-num mono">${step.num}</div><div class="step-name">${step.name}</div><div class="step-desc">${step.desc}</div>`;
+  node.addEventListener('click', () => selectStep(step));
+  node.setAttribute('tabindex', '0');
+  node.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectStep(step); } });
+  pipelineEl.appendChild(node);
+});
+
+let currentStep = null;
+let currentOption = null;
+let animFrame = null;
+
+function selectStep(step) {
+  currentStep = step;
+  document.querySelectorAll('.step-node').forEach(n => n.classList.remove('active'));
+  document.querySelector(`.step-node[data-step="${step.id}"]`).classList.add('active');
+  currentOption = step.options.length > 0 ? step.options[0].id : null;
+  renderDetail();
+}
+
+function renderDetail() {
+  const step = currentStep;
+  if (!step) return;
+  if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; }
+  const cvs = document.getElementById('anim-canvas');
+  if (cvs && cvs._collClickHandler) { cvs.removeEventListener('click', cvs._collClickHandler); cvs._collClickHandler = null; }
+  if (cvs && cvs._collMoveHandler) { cvs.removeEventListener('mousemove', cvs._collMoveHandler); cvs._collMoveHandler = null; cvs.style.cursor = 'default'; }
+
+  let optionsHtml = '';
+  if (step.options.length > 0) {
+    optionsHtml = `<div class="options-bar">${step.options.map(o =>
+      `<button class="opt-btn${o.id === currentOption ? ' active' : ''}" data-opt="${o.id}">${o.label}</button>`
+    ).join('')}</div>`;
+  }
+
+  detailEl.innerHTML = `
+    <div class="detail-header">
+      <h2>${step.name}</h2>
+      <div class="subtitle">${step.subtitle}</div>
+    </div>
+    ${optionsHtml}
+    <div id="legend-area"></div>
+    <div class="canvas-wrap"><canvas id="anim-canvas"></canvas></div>
+  `;
+
+  detailEl.querySelectorAll('.opt-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentOption = btn.dataset.opt;
+      renderDetail();
+    });
+  });
+
+  const canvas = document.getElementById('anim-canvas');
+  const wrap = canvas.closest('.canvas-wrap');
+  const splitPanelSteps = ['vlp', 'amplification', 'sequencing', 'artifacts'];
+  if (step.animation === 'collection' || splitPanelSteps.includes(step.animation)) wrap.classList.add('canvas-tall');
+  else wrap.classList.remove('canvas-tall');
+
+  requestAnimationFrame(() => {
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    const zoom = 1.35;
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr * zoom, dpr * zoom);
+    const W = rect.width / zoom, H = rect.height / zoom;
+    ctx.clearRect(0, 0, W, H);
+
+    startAnimation(step.animation, currentOption, ctx, W, H);
+    renderInfo(step.id, currentOption);
+  });
+}
+
+function getColor(varName) {
+  return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+}
+
+function startAnimation(type, option, ctx, W, H) {
+  const colors = {
+    viral: getColor('--particle-viral'),
+    bacteria: getColor('--particle-bacteria'),
+    host: getColor('--particle-host'),
+    rrna: getColor('--particle-rrna'),
+    phix: getColor('--particle-phix'),
+    accent: getColor('--accent'),
+    warm: getColor('--accent-warm'),
+    muted: getColor('--muted'),
+    bg: getColor('--canvas-bg'),
+    text: getColor('--text-primary'),
+    textSec: getColor('--text-secondary'),
+    textTer: getColor('--text-tertiary'),
+    border: getColor('--panel-border'),
+    field: getColor('--field'),
+  };
+
+  if (type === 'vlp') animateVLP(option, ctx, W, H, colors);
+  else if (type === 'amplification') animateAmplification(option, ctx, W, H, colors);
+  else if (type === 'sequencing') animateSequencing(option, ctx, W, H, colors);
+  else if (type === 'artifacts') animateArtifacts(option, ctx, W, H, colors);
+  else if (type === 'collection') animateCollection(option, ctx, W, H, colors);
+  else if (type === 'output') animateOutput(option, ctx, W, H, colors);
+  else if (type === 'report') animateReport(ctx, W, H, colors);
+  else if (type === 'benchmark') animateBenchmark(option, ctx, W, H, colors);
+}
+
+/* Particle helpers */
+function makeParticle(x, y, r, type, vx, vy) {
+  return { x, y, r, type, vx: vx||0, vy: vy||0, opacity: 1, alive: true };
+}
+
+function drawParticle(ctx, p, colors) {
+  if (!p.alive) return;
+  const c = { viral: colors.viral, bacteria: colors.bacteria, host: colors.host, rrna: colors.rrna, phix: colors.phix, fungal: '#8d6e3f', archaeal: '#5a7a3a' }[p.type] || colors.muted;
+  ctx.globalAlpha = p.opacity;
+  ctx.beginPath();
+  if (p.type === 'bacteria') {
+    ctx.ellipse(p.x, p.y, p.r * 1.6, p.r, 0, 0, Math.PI * 2);
+  } else if (p.type === 'host') {
+    // irregular blob
+    ctx.moveTo(p.x + p.r, p.y);
+    for (let a = 0; a < Math.PI * 2; a += 0.4) {
+      const rr = p.r * (0.8 + 0.4 * Math.sin(a * 3.7));
+      ctx.lineTo(p.x + Math.cos(a) * rr, p.y + Math.sin(a) * rr);
+    }
+    ctx.closePath();
+  } else {
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+  }
+  ctx.fillStyle = c;
+  ctx.fill();
+  ctx.globalAlpha = 1;
+}
+
+function showLegend(items) {
+  const el = document.getElementById('legend-area');
+  if (!el) return;
+  el.innerHTML = `<div class="legend">${items.map(([color, label]) =>
+    `<div class="legend-item"><div class="legend-dot" style="background:${color}"></div>${label}</div>`
+  ).join('')}</div>`;
+}
+
+/* === SPLIT PANEL HELPER === */
+function drawSplitPanel(ctx, W, H, colors) {
+  const midX = Math.floor(W / 2);
+  const headerH = 32;
+  const pad = 6;
+
+  // Divider line
+  ctx.strokeStyle = colors.border;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(midX, 0);
+  ctx.lineTo(midX, H);
+  ctx.stroke();
+
+  // Column headers
+  ctx.font = '14px "JetBrains Mono", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = colors.warm;
+  ctx.fillText('IN THE LAB', midX * 0.5, 20);
+  ctx.fillStyle = colors.accent;
+  ctx.fillText('IN VIROFORGE', midX * 1.5, 20);
+
+  // Header underlines
+  ctx.strokeStyle = colors.border + '60';
+  ctx.lineWidth = 0.5;
+  ctx.beginPath();
+  ctx.moveTo(pad, headerH);
+  ctx.lineTo(midX - pad, headerH);
+  ctx.moveTo(midX + pad, headerH);
+  ctx.lineTo(W - pad, headerH);
+  ctx.stroke();
+
+  return { midX, headerH, pad, contentY: headerH + 6 };
+}
+
+/* === VLP ENRICHMENT ANIMATION === */
+function animateVLP(option, ctx, W, H, colors) {
+  showLegend([
+    [colors.viral, 'Viral (20-150 nm)'],
+    [colors.bacteria, 'Bacteria (1-5 µm)'],
+    [colors.host, 'Host DNA (free)'],
+    [colors.rrna, 'rRNA'],
+  ]);
+
+  const rng = mulberry32(42);
+
+  if (option === 'none') {
+    // No VLP — no split needed
+    const particles = [];
+    for (let i = 0; i < 40; i++) {
+      const types = ['viral','viral','viral','viral','bacteria','bacteria','host','host','rrna'];
+      const tp = types[Math.floor(rng() * types.length)];
+      const sz = tp === 'bacteria' ? 8 + rng()*6 : tp === 'viral' ? 3 + rng()*5 : 4 + rng()*4;
+      particles.push(makeParticle(20 + rng() * (W - 40), 30 + rng() * (H - 60), sz, tp));
+    }
+    function draw(t) {
+      ctx.clearRect(0, 0, W, H);
+      ctx.font = '11px -apple-system, sans-serif';
+      ctx.fillStyle = colors.textSec;
+      ctx.textAlign = 'center';
+      ctx.fillText('No VLP enrichment applied', W * 0.5, H * 0.3);
+      ctx.font = '11px -apple-system, sans-serif';
+      ctx.fillStyle = colors.textTer;
+      ctx.fillText('All particles retained — bulk metagenome simulation', W * 0.5, H * 0.3 + 24);
+      ctx.fillText('Bacterial reads dominate: 60–80% of total', W * 0.5, H * 0.3 + 46);
+      particles.forEach(p => {
+        p.x += (rng() - 0.5) * 2;
+        p.y += (rng() - 0.5) * 2;
+        if (p.x < 20) p.x = 20; if (p.x > W - 20) p.x = W - 20;
+        if (p.y < 60) p.y = 60; if (p.y > H - 20) p.y = H - 20;
+        drawParticle(ctx, p, colors);
+      });
+      animFrame = requestAnimationFrame(() => draw(t + 16));
+    }
+    draw(0);
+    return;
+  }
+
+  // --- Split-panel layout for filtration / ultracentrifugation / column ---
+  const particles = [];
+  for (let i = 0; i < 30; i++) {
+    const types = ['viral','viral','viral','viral','bacteria','bacteria','host','host','rrna'];
+    const tp = types[Math.floor(rng() * types.length)];
+    const sz = tp === 'bacteria' ? 6 + rng()*4 : tp === 'viral' ? 3 + rng()*4 : 3 + rng()*3;
+    particles.push(makeParticle(0, 0, sz, tp, 0.3 + rng() * 0.5, (rng() - 0.5) * 0.3));
+  }
+
+  function draw(t) {
+    ctx.clearRect(0, 0, W, H);
+    const sp = drawSplitPanel(ctx, W, H, colors);
+    const lW = sp.midX - sp.pad * 2, rX = sp.midX + sp.pad, rW = W - sp.midX - sp.pad * 2;
+    const cY = sp.contentY;
+    const areaH = H - cY - 10;
+
+    // ===== LEFT: Real lab =====
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(sp.pad, cY, lW, areaH);
+    ctx.clip();
+
+    if (option === 'filtration') {
+      const memX = sp.pad + lW * 0.5;
+      // Membrane
+      ctx.fillStyle = colors.border;
+      ctx.fillRect(memX - 2, cY, 4, areaH);
+      ctx.fillStyle = colors.bg;
+      for (let y = cY + 10; y < cY + areaH; y += 22) {
+        ctx.fillRect(memX - 2, y, 4, 10);
+      }
+      ctx.font = '11px "JetBrains Mono", monospace';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'center';
+      ctx.fillText('0.2 µm', memX, cY + areaH - 2);
+      ctx.fillText('Sample', sp.pad + lW * 0.25, cY + 12);
+      ctx.fillText('Filtrate', sp.pad + lW * 0.75, cY + 12);
+
+      particles.forEach((p, i) => {
+        if (t < 20) { p.x = 16 + rng() * (lW * 0.4); p.y = cY + 20 + rng() * (areaH - 40); }
+        p.x += p.vx;
+        p.y += p.vy + Math.sin(t * 0.002 + i) * 0.2;
+        if (p.y < cY + 10 || p.y > cY + areaH - 10) p.vy *= -1;
+        if (p.x > memX - 4 && p.x < memX + 4) {
+          const pass = p.type === 'bacteria' ? 0.02 : p.type === 'viral' ? 0.92 : 0.15;
+          if (rng() < pass) { p.x = memX + 6; } else { p.vx *= -0.5; p.x = memX - 6; }
+        }
+        if (p.x > sp.pad + lW - 6) { p.vx *= -0.3; p.x = sp.pad + lW - 8; }
+        if (p.x < 12) { p.vx = Math.abs(p.vx); }
+        drawParticle(ctx, p, colors);
+      });
+
+    } else if (option === 'ultracentrifugation') {
+      const tubeL = sp.pad + lW * 0.15, tubeR = sp.pad + lW * 0.85, tubeT = cY + 20, tubeB = cY + areaH - 20;
+      const tubeW = tubeR - tubeL;
+      const tubeH = tubeB - tubeT;
+      const tubeCX = (tubeL + tubeR) / 2;
+
+      // Timeline (~60fps):
+      //   0-180   (~3s)   mixed, gentle Brownian drift
+      //   180-360 (~3s)   spin ramps up, swirl becomes visible
+      //   360-900 (~9s)   full spin — swirling + sedimentation separates layers
+      //   900-1100(~3s)   spin winds down, particles settle to rest
+      //   1100+           done, labels appear
+      const rampStart = 180, fullSpinStart = 360, spinEnd = 900, settleEnd = 1100;
+
+      let spinSpeed = 0;
+      if (t >= rampStart && t < fullSpinStart) {
+        spinSpeed = (t - rampStart) / (fullSpinStart - rampStart);
+      } else if (t >= fullSpinStart && t < spinEnd) {
+        spinSpeed = 1;
+      } else if (t >= spinEnd && t < settleEnd) {
+        spinSpeed = Math.max(0, 1 - (t - spinEnd) / (settleEnd - spinEnd));
+      }
+
+      let sep = 0;
+      if (t >= fullSpinStart && t < settleEnd) {
+        sep = Math.min(1, (t - fullSpinStart) / (settleEnd - fullSpinStart));
+      } else if (t >= settleEnd) {
+        sep = 1;
+      }
+
+      // Draw tube
+      ctx.strokeStyle = colors.border;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(tubeL, tubeT);
+      ctx.lineTo(tubeL, tubeB - 15);
+      ctx.quadraticCurveTo(tubeL, tubeB, tubeL + 15, tubeB);
+      ctx.lineTo(tubeR - 15, tubeB);
+      ctx.quadraticCurveTo(tubeR, tubeB, tubeR, tubeB - 15);
+      ctx.lineTo(tubeR, tubeT);
+      ctx.stroke();
+
+      // Density gradient appears as separation progresses
+      if (sep > 0.1) {
+        const gAlpha = Math.min(1, sep * 1.3);
+        const grad = ctx.createLinearGradient(0, tubeT, 0, tubeB);
+        grad.addColorStop(0, 'transparent');
+        grad.addColorStop(0.55, `rgba(100,100,200,${0.04 * gAlpha})`);
+        grad.addColorStop(0.82, colors.bacteria + (Math.floor(20 * gAlpha)).toString(16).padStart(2, '0'));
+        grad.addColorStop(0.95, colors.viral + (Math.floor(35 * gAlpha)).toString(16).padStart(2, '0'));
+        ctx.fillStyle = grad;
+        ctx.fillRect(tubeL + 2, tubeT, tubeW - 4, tubeH);
+      }
+
+      // Status label
+      ctx.font = '11px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      if (spinSpeed > 0.05) {
+        ctx.fillStyle = colors.accent;
+        ctx.fillText('100,000×g  ↻ spinning', (tubeL + tubeR) / 2, tubeT - 4);
+      } else if (sep >= 1) {
+        ctx.fillStyle = colors.textTer;
+        ctx.fillText('100,000×g  done', (tubeL + tubeR) / 2, tubeT - 4);
+      } else {
+        ctx.fillStyle = colors.textTer;
+        ctx.fillText('mixed sample', (tubeL + tubeR) / 2, tubeT - 4);
+      }
+
+      // Result labels after settling
+      if (sep > 0.85) {
+        const la = Math.min(1, (sep - 0.85) / 0.15);
+        ctx.globalAlpha = la;
+        ctx.font = '11px -apple-system, sans-serif';
+        ctx.fillStyle = colors.textTer;
+        ctx.textAlign = 'left';
+        ctx.fillText('supernatant (discard)', tubeR + 4, tubeT + tubeH * 0.2);
+        ctx.fillText('free DNA/rRNA stay', tubeR + 4, tubeT + tubeH * 0.2 + 14);
+        ctx.fillText('in solution', tubeR + 4, tubeT + tubeH * 0.2 + 28);
+        ctx.fillStyle = colors.accent;
+        ctx.fillText('pellet (keep)', tubeR + 4, tubeB - 20);
+        ctx.fillStyle = colors.textTer;
+        ctx.fillText('virus + bacteria', tubeR + 4, tubeB - 6);
+        ctx.fillText('sediment here', tubeR + 4, tubeB + 8);
+        ctx.globalAlpha = 1;
+      }
+
+      // Particle simulation — swirl in liquid + sedimentation
+      particles.forEach((p, i) => {
+        if (!p._ucInit) {
+          p._ucInit = true;
+          const pRng = mulberry32(i * 37 + 7);
+          p.x = tubeL + 10 + pRng() * (tubeW - 20);
+          p.y = tubeT + 10 + pRng() * (tubeH - 25);
+          p._vx = 0;
+          p._vy = 0;
+          p._phase = pRng() * Math.PI * 2;
+          p._swirlR = 8 + pRng() * 15;
+        }
+
+        // Swirl: each particle orbits its own small circle, like
+        // being carried by a rotating liquid. The orbit speed and
+        // radius scale with spinSpeed.
+        const swirlAngle = p._phase + t * 0.012 * spinSpeed;
+        const swirlAmt = spinSpeed * (1 - sep * 0.7);
+        const swirlOX = Math.cos(swirlAngle) * p._swirlR * swirlAmt;
+        const swirlOY = Math.sin(swirlAngle) * p._swirlR * swirlAmt * 0.4;
+
+        // Sedimentation: heavy particles sink, free molecules float up
+        let targetY;
+        if (p.type === 'bacteria') {
+          targetY = tubeB - 8 - (i % 3) * 4;
+        } else if (p.type === 'viral') {
+          targetY = tubeB - 18 - (i % 5) * 4;
+        } else {
+          targetY = tubeT + 12 + (i % 5) * 8;
+        }
+
+        // Smoothstep easing for separation
+        const s = sep * sep * (3 - 2 * sep);
+
+        // Base position: blend from start toward target
+        const baseX = p.x;
+        const baseY = p.y;
+
+        // Before spin: gentle Brownian drift
+        if (t < rampStart) {
+          p.x += Math.sin(t * 0.01 + p._phase) * 0.12;
+          p.y += Math.cos(t * 0.008 + p._phase * 1.3) * 0.12;
+        } else {
+          // During/after spin: move toward target + swirl offset
+          const pull = spinSpeed * 0.004;
+          p._vy += (targetY - p.y) * pull;
+          // Horizontal: drift toward center column
+          p._vx += (tubeCX - p.x) * pull * 0.3;
+
+          p._vx *= 0.94;
+          p._vy *= 0.94;
+
+          p.x += p._vx + swirlOX * 0.15;
+          p.y += p._vy + swirlOY * 0.15;
+        }
+
+        // Clamp to tube
+        if (p.x < tubeL + 6) { p.x = tubeL + 6; p._vx = Math.abs(p._vx) * 0.3; }
+        if (p.x > tubeR - 6) { p.x = tubeR - 6; p._vx = -Math.abs(p._vx) * 0.3; }
+        if (p.y < tubeT + 5) { p.y = tubeT + 5; p._vy = Math.abs(p._vy) * 0.2; }
+        if (p.y > tubeB - 8) { p.y = tubeB - 8; p._vy = -Math.abs(p._vy) * 0.15; }
+
+        // Fade host/rRNA after settled to show supernatant discarded
+        if (sep > 0.92 && (p.type === 'host' || p.type === 'rrna')) {
+          ctx.globalAlpha = Math.max(0.2, 1 - (sep - 0.92) / 0.08);
+        }
+        drawParticle(ctx, p, colors);
+        ctx.globalAlpha = 1;
+      });
+
+    } else if (option === 'column') {
+      // Five-stage Norgen column extraction matching the code:
+      //   1. Lyse: break open viral capsids to release DNA
+      //   2. Nuclease: degrade free host DNA/rRNA (92% efficiency)
+      //   3. Load: pour lysate onto column — viral DNA binds to silica resin
+      //   4. Wash: buffer flushes bacteria and debris out
+      //   5. Elute: elution buffer releases bound viral DNA → collect
+      //
+      // Frames per stage (~60fps):
+      const S = 1200; // frames per stage (~20s each)
+      const stage = Math.min(5, Math.floor(t / S));
+      const stageT = Math.min(1, (t - stage * S) / S);
+
+      // Layout: top label, then working area split into upper zone + collection
+      const zoneT = cY + 14;
+      const zoneB = cY + areaH - 2;
+      const zoneH = zoneB - zoneT;
+      const midY = zoneT + zoneH * 0.55;
+
+      // Column dimensions (shown in stages 2-4)
+      const colL = sp.pad + lW * 0.22, colR = sp.pad + lW * 0.78;
+      const colT = zoneT + 14, colB = midY - 4;
+      const colW = colR - colL, colH = colB - colT;
+
+      // Collection area
+      const ctL = colL + 2, ctR = colR - 2;
+      const ctT = midY + 10, ctB = zoneB - 2;
+
+      // Stage label
+      ctx.font = '12px -apple-system, sans-serif';
+      ctx.fillStyle = colors.accent;
+      ctx.textAlign = 'center';
+      const labels = [
+        '1. Lyse viral capsids',
+        '2. Nuclease treatment',
+        '3. Load onto column',
+        '4. Wash contaminants',
+        '5. Elute viral DNA',
+        'Done — viral DNA collected',
+      ];
+      ctx.fillText(labels[stage], sp.pad + lW / 2, cY + 10);
+
+      // Draw column (stages 2-5)
+      if (stage >= 2) {
+        ctx.fillStyle = colors.field || '#f5f5f5';
+        ctx.fillRect(colL, colT, colW, colH);
+        ctx.strokeStyle = colors.border;
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(colL, colT, colW, colH);
+
+        // Resin beads
+        const beadRows = 4, beadCols = 3;
+        for (let row = 0; row < beadRows; row++) {
+          for (let col = 0; col < beadCols; col++) {
+            const bx = colL + 10 + col * (colW - 20) / (beadCols - 1) + (row % 2) * 6;
+            const by = colT + 8 + row * (colH - 16) / (beadRows - 1);
+            if (bx > colL + 3 && bx < colR - 3) {
+              ctx.fillStyle = (stage === 4) ? colors.accent + '40' : colors.muted + '18';
+              ctx.beginPath(); ctx.arc(bx, by, 5, 0, Math.PI * 2); ctx.fill();
+            }
+          }
+        }
+        ctx.font = '11px "JetBrains Mono", monospace';
+        ctx.fillStyle = colors.textTer;
+        ctx.textAlign = 'center';
+        ctx.fillText('silica resin', (colL + colR) / 2, colT - 3);
+
+        // Spout
+        ctx.strokeStyle = colors.border;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(colL + colW / 2 - 5, colB);
+        ctx.lineTo(colL + colW / 2 - 5, colB + 8);
+        ctx.moveTo(colL + colW / 2 + 5, colB);
+        ctx.lineTo(colL + colW / 2 + 5, colB + 8);
+        ctx.stroke();
+
+        // Collection tube
+        ctx.strokeStyle = stage >= 4 ? colors.accent + '80' : colors.muted + '30';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(ctL, ctT, ctR - ctL, ctB - ctT);
+        if (stage === 3) {
+          ctx.font = '11px -apple-system, sans-serif';
+          ctx.fillStyle = colors.textTer;
+          ctx.textAlign = 'center';
+          ctx.fillText('waste', (ctL + ctR) / 2, ctB + 8);
+        } else if (stage >= 4) {
+          ctx.font = '11px -apple-system, sans-serif';
+          ctx.fillStyle = colors.accent;
+          ctx.textAlign = 'center';
+          ctx.fillText('collected', (ctL + ctR) / 2, ctB + 8);
+        }
+      }
+
+      // Particle simulation
+      particles.forEach((p, i) => {
+        if (!p._colInit) {
+          p._colInit = true;
+          const pRng = mulberry32(i * 53 + 13);
+          // Random position in sample area
+          p._homeX = sp.pad + 8 + pRng() * (lW - 16);
+          p._homeY = zoneT + 16 + pRng() * (zoneH * 0.4);
+          p.x = p._homeX;
+          p.y = p._homeY;
+          // For viral particles: the DNA fragment released after lysis
+          p._dnaX = p._homeX + (pRng() - 0.5) * 8;
+          p._dnaY = p._homeY + (pRng() - 0.5) * 8;
+          // Column bind position
+          p._bindX = colL + 8 + pRng() * (colW - 16);
+          p._bindY = colT + 6 + pRng() * (colH * 0.8);
+          // Size-dependent binding efficiency (larger = better)
+          p._viralSize = 3 + pRng() * 4; // matches particle radius
+          p._bindEff = 0.6 + 0.4 * Math.min(1, (p._viralSize * 15) / 80);
+          // Collection position
+          p._collectX = ctL + 4 + pRng() * (ctR - ctL - 8);
+          p._collectY = ctT + 4 + pRng() * (ctB - ctT - 8);
+          // State flags
+          p._lysed = false;
+          p._degraded = false;
+          p._washed = false;
+        }
+
+        let drawIt = true;
+        let showBind = false;
+        let drawAsDNA = false;
+
+        if (stage === 0) {
+          // LYSE: viral capsids break open, releasing DNA strands
+          // Non-viral particles just drift gently
+          p.x = p._homeX + Math.sin(t * 0.005 + i * 0.7) * 2;
+          p.y = p._homeY + Math.cos(t * 0.004 + i * 0.5) * 1.5;
+
+          if (p.type === 'viral') {
+            // Capsid shrinks/fades, DNA appears
+            const lyseT = Math.max(0, (stageT - 0.2 - (i % 6) * 0.08) / 0.5);
+            const lp = Math.min(1, lyseT);
+            if (lp > 0) {
+              // Fading capsid
+              ctx.globalAlpha = Math.max(0, 1 - lp);
+              drawParticle(ctx, p, colors);
+              ctx.globalAlpha = 1;
+              // Emerging DNA strand (small wavy line)
+              if (lp > 0.3) {
+                const dnaAlpha = Math.min(1, (lp - 0.3) / 0.4);
+                ctx.globalAlpha = dnaAlpha;
+                ctx.strokeStyle = colors.viral;
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                const dLen = 10 + p._viralSize * 2;
+                for (let s = 0; s < dLen; s++) {
+                  const sx = p._dnaX - dLen / 2 + s;
+                  const sy = p._dnaY + Math.sin(s * 0.5 + t * 0.02) * 2;
+                  if (s === 0) ctx.moveTo(sx, sy); else ctx.lineTo(sx, sy);
+                }
+                ctx.stroke();
+                ctx.globalAlpha = 1;
+              }
+              drawIt = false; // already drew
+            }
+          }
+
+        } else if (stage === 1) {
+          // NUCLEASE: degrades free host DNA and rRNA (92%)
+          // Viral DNA survives (it was just released from capsids)
+          if (p.type === 'viral') {
+            // Show as DNA strand, drifting
+            const dLen = 10 + p._viralSize * 2;
+            ctx.strokeStyle = colors.viral;
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            for (let s = 0; s < dLen; s++) {
+              const sx = p._dnaX - dLen / 2 + s + Math.sin(t * 0.003 + i) * 2;
+              const sy = p._dnaY + Math.sin(s * 0.5 + t * 0.015) * 2 + Math.cos(t * 0.004 + i * 0.7) * 1;
+              if (s === 0) ctx.moveTo(sx, sy); else ctx.lineTo(sx, sy);
+            }
+            ctx.stroke();
+            drawIt = false;
+          } else if (p.type === 'host' || p.type === 'rrna') {
+            // Nuclease degrades: particle shrinks and fades
+            const degradeT = Math.max(0, (stageT - 0.1 - (i % 5) * 0.1) / 0.6);
+            const dp = Math.min(1, degradeT);
+            if (dp > 0) {
+              ctx.globalAlpha = Math.max(0, 1 - dp);
+              const origR = p.r;
+              p.r = origR * (1 - dp * 0.7);
+              drawParticle(ctx, p, colors);
+              p.r = origR;
+              ctx.globalAlpha = 1;
+              if (dp >= 1) p._degraded = true;
+              drawIt = false;
+            }
+          } else {
+            // Bacteria: intact, nuclease doesn't affect whole cells
+            p.x = p._homeX + Math.sin(t * 0.004 + i) * 1.5;
+            p.y = p._homeY + Math.cos(t * 0.003 + i * 0.5) * 1;
+          }
+
+        } else if (stage === 2) {
+          // LOAD onto column: viral DNA flows in and binds to resin
+          // Bacteria flow through, degraded host/rRNA are gone
+          if (p._degraded) { drawIt = false; }
+          else if (p.type === 'viral') {
+            // DNA moves from sample area into column, binds to resin
+            const ease = stageT * stageT * (3 - 2 * stageT);
+            const dLen = 10 + p._viralSize * 2;
+            const curX = p._dnaX + (p._bindX - p._dnaX) * ease;
+            const curY = p._dnaY + (p._bindY - p._dnaY) * ease;
+            ctx.strokeStyle = colors.viral;
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            const wobble = (1 - ease) * 2;
+            for (let s = 0; s < dLen; s++) {
+              const sx = curX - dLen / 2 + s;
+              const sy = curY + Math.sin(s * 0.5 + t * 0.015) * wobble;
+              if (s === 0) ctx.moveTo(sx, sy); else ctx.lineTo(sx, sy);
+            }
+            ctx.stroke();
+            if (ease > 0.8) {
+              // Glow ring shows binding
+              ctx.strokeStyle = colors.accent + '40';
+              ctx.lineWidth = 1;
+              ctx.beginPath();
+              ctx.arc(curX, curY, dLen / 2 + 3, 0, Math.PI * 2);
+              ctx.stroke();
+            }
+            drawIt = false;
+          } else if (p.type === 'bacteria') {
+            // Bacteria flow through column to bottom
+            const ease = stageT * stageT * (3 - 2 * stageT);
+            p.x = p._homeX + (colL + colW / 2 - p._homeX) * Math.min(1, ease * 1.5);
+            p.y = p._homeY + (colB + 2 - p._homeY) * ease;
+            if (ease > 0.9) ctx.globalAlpha = Math.max(0.1, 1 - (ease - 0.9) / 0.1);
+          }
+
+        } else if (stage === 3) {
+          // WASH: buffer flushes bacteria out, viral DNA stays bound
+          if (p._degraded) { drawIt = false; }
+          else if (p.type === 'viral') {
+            // Bound DNA: gentle wobble on resin
+            const dLen = 10 + p._viralSize * 2;
+            ctx.strokeStyle = colors.viral;
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            for (let s = 0; s < dLen; s++) {
+              const sx = p._bindX - dLen / 2 + s;
+              const sy = p._bindY + Math.sin(s * 0.5 + t * 0.01) * 0.8;
+              if (s === 0) ctx.moveTo(sx, sy); else ctx.lineTo(sx, sy);
+            }
+            ctx.stroke();
+            ctx.strokeStyle = colors.accent + '35';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.arc(p._bindX, p._bindY, dLen / 2 + 3, 0, Math.PI * 2);
+            ctx.stroke();
+            drawIt = false;
+          } else {
+            // Bacteria/remaining: wash down and out
+            if (!p._washed) {
+              const wy = colB + 2 + stageT * (ctB - colB);
+              p.y = wy;
+              p.x = colL + colW / 2 + Math.sin(i) * 6;
+              if (stageT > 0.7) {
+                ctx.globalAlpha = Math.max(0, 1 - (stageT - 0.7) / 0.3);
+                if (stageT > 0.95) p._washed = true;
+              }
+            }
+            if (p._washed) drawIt = false;
+          }
+
+        } else if (stage === 4) {
+          // ELUTE: elution buffer releases viral DNA from resin → collect
+          if (p.type === 'viral') {
+            const releaseDelay = (i % 10) * 0.05;
+            const localT = Math.max(0, Math.min(1, (stageT - releaseDelay) / (0.7)));
+            const ease = localT * localT * (3 - 2 * localT);
+            const dLen = 10 + p._viralSize * 2;
+            const curX = p._bindX + (p._collectX - p._bindX) * ease;
+            const curY = p._bindY + (p._collectY - p._bindY) * ease;
+
+            ctx.strokeStyle = colors.viral;
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            const wobble = (1 - ease) * 1.5;
+            for (let s = 0; s < dLen; s++) {
+              const sx = curX - dLen / 2 + s;
+              const sy = curY + Math.sin(s * 0.5 + t * 0.01) * wobble;
+              if (s === 0) ctx.moveTo(sx, sy); else ctx.lineTo(sx, sy);
+            }
+            ctx.stroke();
+
+            if (ease < 0.2) {
+              ctx.strokeStyle = colors.accent + '35';
+              ctx.lineWidth = 1;
+              ctx.beginPath();
+              ctx.arc(p._bindX, p._bindY, dLen / 2 + 3, 0, Math.PI * 2);
+              ctx.stroke();
+            }
+            drawIt = false;
+          } else {
+            drawIt = false;
+          }
+
+        } else {
+          // DONE: viral DNA in collection tube
+          if (p.type === 'viral') {
+            const dLen = 10 + p._viralSize * 2;
+            ctx.strokeStyle = colors.viral;
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            for (let s = 0; s < dLen; s++) {
+              const sx = p._collectX - dLen / 2 + s;
+              const sy = p._collectY + Math.sin(s * 0.5) * 0.5;
+              if (s === 0) ctx.moveTo(sx, sy); else ctx.lineTo(sx, sy);
+            }
+            ctx.stroke();
+            drawIt = false;
+          } else {
+            drawIt = false;
+          }
+        }
+
+        if (drawIt) {
+          drawParticle(ctx, p, colors);
+          ctx.globalAlpha = 1;
+        }
+      });
+    }
+    ctx.restore();
+
+    // ===== RIGHT: ViroForge model =====
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(rX, cY, rW, areaH);
+    ctx.clip();
+
+    if (option === 'filtration') {
+      // Sigmoid retention curve
+      ctx.font = '12px -apple-system, sans-serif';
+      ctx.fillStyle = colors.accent;
+      ctx.textAlign = 'center';
+      ctx.fillText('Sigmoid retention model', rX + rW / 2, cY + 14);
+
+      ctx.font = '11px "JetBrains Mono", monospace';
+      ctx.fillStyle = colors.textTer;
+      ctx.fillText('P(pass) = 1 / (1 + exp(s·(d − pore)))', rX + rW / 2, cY + 30);
+
+      // Plot sigmoid on LOG scale (10 nm – 10,000 nm)
+      const plotL = rX + 24, plotR = rX + rW - 10;
+      const plotT = cY + 42, plotB = cY + areaH * 0.55;
+      const plotW = plotR - plotL, plotH = plotB - plotT;
+      const logMin = Math.log10(10), logMax = Math.log10(10000);
+      const logRange = logMax - logMin; // 3 decades
+      function nmToPx(nm) { return plotL + ((Math.log10(nm) - logMin) / logRange) * plotW; }
+
+      // Axes
+      ctx.strokeStyle = colors.border;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(plotL, plotB);
+      ctx.lineTo(plotR, plotB);
+      ctx.moveTo(plotL, plotT);
+      ctx.lineTo(plotL, plotB);
+      ctx.stroke();
+
+      // Log-scale tick marks
+      ctx.font = '9px "JetBrains Mono", monospace';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'center';
+      [10, 100, 1000, 10000].forEach(nm => {
+        const tx = nmToPx(nm);
+        ctx.beginPath();
+        ctx.moveTo(tx, plotB);
+        ctx.lineTo(tx, plotB + 4);
+        ctx.stroke();
+        ctx.fillText(nm >= 1000 ? (nm/1000) + 'µm' : nm + 'nm', tx, plotB + 13);
+      });
+
+      // Sigmoid curve
+      ctx.beginPath();
+      ctx.strokeStyle = colors.accent;
+      ctx.lineWidth = 2;
+      const pore = 200;
+      const s = 0.04;
+      for (let px = 0; px < plotW; px++) {
+        const logD = logMin + (px / plotW) * logRange;
+        const d = Math.pow(10, logD);
+        const p = 1 / (1 + Math.exp(s * (d - pore)));
+        const y = plotB - p * plotH;
+        if (px === 0) ctx.moveTo(plotL + px, y); else ctx.lineTo(plotL + px, y);
+      }
+      ctx.stroke();
+      ctx.lineWidth = 1;
+
+      // Pore size marker
+      const porePx = nmToPx(pore);
+      ctx.strokeStyle = colors.warm + '80';
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      ctx.moveTo(porePx, plotT);
+      ctx.lineTo(porePx, plotB);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.font = '10px "JetBrains Mono", monospace';
+      ctx.fillStyle = colors.warm;
+      ctx.textAlign = 'center';
+      ctx.fillText('pore 200nm', porePx, plotB + 24);
+
+      // Axis labels
+      ctx.fillStyle = colors.textTer;
+      ctx.font = '10px -apple-system, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Particle diameter (log scale)', plotL + plotW / 2, plotB + 35);
+      ctx.textAlign = 'right';
+      ctx.font = '10px "JetBrains Mono", monospace';
+      ctx.fillText('1.0', plotL - 4, plotT + 5);
+      ctx.fillText('0', plotL - 4, plotB + 3);
+
+      // Size-range shading
+      const virusPx0 = nmToPx(20), virusPx1 = nmToPx(300);
+      const overlapPx0 = nmToPx(200), overlapPx1 = nmToPx(500);
+      const bactPx0 = nmToPx(500), bactPx1 = nmToPx(10000);
+
+      ctx.globalAlpha = 0.45;
+      ctx.fillStyle = colors.viral + '20';
+      ctx.fillRect(virusPx0, plotT, overlapPx0 - virusPx0, plotH);
+      ctx.fillStyle = colors.viral + '12';
+      ctx.fillRect(overlapPx0, plotT, overlapPx1 - overlapPx0, plotH);
+      ctx.fillStyle = colors.bacteria + '12';
+      ctx.fillRect(overlapPx0, plotT, overlapPx1 - overlapPx0, plotH);
+      ctx.fillStyle = colors.bacteria + '15';
+      ctx.fillRect(bactPx0, plotT, bactPx1 - bactPx0, plotH);
+      ctx.globalAlpha = 1;
+
+      // Range labels along top
+      ctx.font = '10px -apple-system, sans-serif';
+      ctx.fillStyle = colors.viral;
+      ctx.textAlign = 'center';
+      ctx.fillText('most viruses', (virusPx0 + overlapPx0) / 2, plotT + 10);
+      ctx.font = '9px "JetBrains Mono", monospace';
+      ctx.fillText('20–300 nm', (virusPx0 + overlapPx0) / 2, plotT + 20);
+      ctx.font = '10px -apple-system, sans-serif';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'center';
+      ctx.fillText('overlap', (overlapPx0 + overlapPx1) / 2, plotT + 10);
+      ctx.font = '9px "JetBrains Mono", monospace';
+      ctx.fillText('200–500', (overlapPx0 + overlapPx1) / 2, plotT + 20);
+      ctx.font = '10px -apple-system, sans-serif';
+      ctx.fillStyle = colors.bacteria;
+      ctx.textAlign = 'center';
+      ctx.fillText('most bacteria', (bactPx0 + bactPx1) / 2, plotT + 10);
+      ctx.font = '9px "JetBrains Mono", monospace';
+      ctx.fillText('500–10,000 nm', (bactPx0 + bactPx1) / 2, plotT + 20);
+
+      // Description and parameters below
+      const descY = plotB + 42;
+      ctx.font = '11px "JetBrains Mono", monospace';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'left';
+      const pX = rX + sp.pad;
+      let dy = descY;
+      const descLines = [
+        'Model: each particle is assigned a',
+        'pass probability based on its diameter',
+        'relative to the filter pore size.',
+        '',
+        'Small viruses (20–150 nm) pass with',
+        'high probability (~95–99%). Bacteria',
+        '(>500 nm) are mostly blocked (<1%).',
+        'Giant viruses and small bacteria in',
+        'the 200–500 nm overlap zone have',
+        'intermediate pass rates.',
+        '',
+        'After filtration, nuclease treatment',
+        'degrades free DNA/RNA outside intact',
+        'capsids, removing host and bacterial',
+        'nucleic acids from the filtrate.',
+      ];
+      descLines.forEach(line => {
+        if (line === '') { dy += 6; return; }
+        ctx.fillText(line, pX, dy);
+        dy += 14;
+      });
+
+      dy += 6;
+      ctx.fillStyle = colors.accent;
+      ctx.fillText('Default parameters:', pX, dy);
+      dy += 16;
+      ctx.fillStyle = colors.textTer;
+      ctx.fillText('recovery      = 85%', pX, dy);
+      ctx.fillText('nuclease_eff  = 98%', pX, dy + 14);
+      ctx.fillText('pore_size     = 0.2 µm (default)', pX, dy + 28);
+      ctx.fillText('pore_options  = 0.1, 0.2, 0.45 µm', pX, dy + 42);
+      ctx.fillText('steepness (s) = 0.04', pX, dy + 56);
+
+    } else if (option === 'ultracentrifugation') {
+      ctx.font = '12px -apple-system, sans-serif';
+      ctx.fillStyle = colors.accent;
+      ctx.textAlign = 'center';
+      ctx.fillText('Density-based separation', rX + rW / 2, cY + 14);
+
+      ctx.font = '11px "JetBrains Mono", monospace';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'left';
+      const pX = rX + sp.pad;
+      let py = cY + 36;
+      const lines = [
+        'Model: all particles sediment by',
+        'density, not size.',
+        '',
+        'Viral recovery    = 90%',
+        'Bacteria removal  = 75%',
+        'Host DNA removal  = 85%',
+        'rRNA removal      = 90%',
+        '',
+        'Key difference from filtration:',
+        '• No size selectivity',
+        '• Bacteria co-sediment with virus',
+        '• Lower contamination reduction',
+        '',
+        'Post-step: nuclease degrades',
+        'free DNA in the supernatant',
+      ];
+      lines.forEach(line => {
+        if (line === '') { py += 8; return; }
+        ctx.fillText(line, pX, py);
+        py += 18;
+      });
+
+    } else if (option === 'column') {
+      ctx.font = '12px -apple-system, sans-serif';
+      ctx.fillStyle = colors.accent;
+      ctx.textAlign = 'center';
+      ctx.fillText('Size-dependent binding model', rX + rW / 2, cY + 14);
+
+      ctx.font = '11px "JetBrains Mono", monospace';
+      ctx.fillStyle = colors.textTer;
+      ctx.fillText('eff = 0.6 + 0.4 × min(1, d / 80nm)', rX + rW / 2, cY + 30);
+
+      // Plot binding efficiency vs diameter
+      const plotL = rX + 20, plotR = rX + rW - 15;
+      const plotT = cY + 42, plotB = cY + areaH * 0.5;
+      const plotW = plotR - plotL, plotH = plotB - plotT;
+
+      ctx.strokeStyle = colors.border;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(plotL, plotB);
+      ctx.lineTo(plotR, plotB);
+      ctx.moveTo(plotL, plotT);
+      ctx.lineTo(plotL, plotB);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.strokeStyle = colors.accent;
+      ctx.lineWidth = 2;
+      for (let px = 0; px < plotW; px++) {
+        const d = (px / plotW) * 150;
+        const eff = 0.6 + 0.4 * Math.min(1, d / 80);
+        const y = plotB - eff * plotH;
+        if (px === 0) ctx.moveTo(plotL + px, y); else ctx.lineTo(plotL + px, y);
+      }
+      ctx.stroke();
+      ctx.lineWidth = 1;
+
+      // Saturation marker at 80nm
+      const sat80 = plotL + (80 / 150) * plotW;
+      ctx.strokeStyle = colors.warm + '60';
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      ctx.moveTo(sat80, plotT);
+      ctx.lineTo(sat80, plotB);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.font = '11px "JetBrains Mono", monospace';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'center';
+      ctx.fillText('Diameter (nm)', plotL + plotW / 2, plotB + 14);
+      ctx.fillText('80', sat80, plotB + 24);
+      ctx.textAlign = 'right';
+      ctx.fillText('1.0', plotL - 3, plotT + 6);
+      ctx.fillText('0.6', plotL - 3, plotB - plotH * 0.6 + 3);
+
+      const paramY = plotB + 30;
+      ctx.font = '11px "JetBrains Mono", monospace';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'left';
+      const pX = rX + sp.pad;
+      ctx.fillText('recovery       = 70%', pX, paramY);
+      ctx.fillText('nuclease_eff   = 92%', pX, paramY + 14);
+      ctx.fillText('bact_removal   = 88%', pX, paramY + 28);
+      ctx.fillText('host_removal   = 92%', pX, paramY + 42);
+      ctx.fillText('rrna_removal   = 85%', pX, paramY + 56);
+      ctx.fillText('', pX, paramY + 70);
+      ctx.fillText('Larger viruses bind', pX, paramY + 74);
+      ctx.fillText('BETTER (opposite of', pX, paramY + 88);
+      ctx.fillText('filtration)', pX, paramY + 102);
+    }
+    ctx.restore();
+
+    animFrame = requestAnimationFrame(() => draw(t + 16));
+  }
+  draw(0);
+}
+
+/* === AMPLIFICATION ANIMATION === */
+function animateAmplification(option, ctx, W, H, colors) {
+  const rng = mulberry32(99);
+
+  if (option === 'none_amp') {
+    showLegend([]);
+    let t = 0;
+    function drawNone() {
+      t++;
+      ctx.clearRect(0, 0, W, H);
+      ctx.font = '11px -apple-system, sans-serif';
+      ctx.fillStyle = colors.textSec;
+      ctx.textAlign = 'center';
+      ctx.fillText('No Amplification', W / 2, H * 0.35);
+      ctx.font = '11px -apple-system, sans-serif';
+      ctx.fillStyle = colors.textTer;
+      ctx.fillText('Relative abundances pass through unchanged', W / 2, H * 0.35 + 24);
+      ctx.fillText('Used when input DNA is sufficient for direct library prep', W / 2, H * 0.35 + 46);
+      animFrame = requestAnimationFrame(drawNone);
+    }
+    drawNone();
+    return;
+  }
+
+  showLegend([
+    [colors.accent, 'GC content bias'],
+    [colors.warm, option === 'rdab' ? 'Length bias (RdAB)' : 'Method-specific effect'],
+  ]);
+
+  const gcValues = [0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70];
+
+  function calcBias(gc, opt) {
+    const optGC = 0.50;
+    if (opt === 'mda') return Math.exp(-45 * Math.pow(gc - optGC, 2));
+    if (opt === 'rdab') return Math.exp(-Math.pow((gc - optGC) / 0.15, 2) * 1.0);
+    return Math.exp(-Math.pow((gc - optGC) / 0.20, 2) * 0.5); // linker
+  }
+
+  let t = 0;
+  function draw() {
+    t++;
+    ctx.clearRect(0, 0, W, H);
+    const sp = drawSplitPanel(ctx, W, H, colors);
+    const lW = sp.midX - sp.pad * 2, rX = sp.midX + sp.pad, rW = W - sp.midX - sp.pad * 2;
+    const cY = sp.contentY;
+    const areaH = H - cY - 10;
+
+    // ===== LEFT: In the Lab =====
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(sp.pad, cY, lW, areaH);
+    ctx.clip();
+
+    const methodNames = { mda: 'MDA (phi29 polymerase)', rdab: 'RdAB (random priming RT-PCR)', linker: 'Linker Amplification (PCR)' };
+    // method name removed — the button label is enough
+
+    if (option === 'mda') {
+      // phi29 rolling circle amplification illustration
+      ctx.font = '11px -apple-system, sans-serif';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'center';
+      // subtitle removed — button label is enough
+
+      // MDA: phi29 binds at random sites on a circular/linear template,
+      // copies while displacing the strand ahead, then new polymerases
+      // bind the displaced strands → branching tree of copies, all at 30°C
+
+      const mdaFrames = 1200; // total ~20s animation
+      const mdaProg = Math.min(1, t / mdaFrames);
+
+      const strandL = 16, strandR = sp.pad + lW - 8;
+      const strandW = strandR - strandL;
+      const tY = cY + 44; // template y
+
+      // --- Stage timeline ---
+      // 0.00-0.10  show double-stranded template
+      // 0.10-0.20  denature (strands separate slightly — isothermal so mild)
+      // 0.20-0.25  random primers land on template
+      // 0.25-0.60  phi29 extends from primers, displacing the top strand upward
+      // 0.60-0.80  new primers land on displaced strands (branching)
+      // 0.80-1.00  secondary extensions → exponential branching
+
+      // Draw template (bottom strand — always visible)
+      ctx.fillStyle = colors.accent + '60';
+      ctx.fillRect(strandL, tY + 4, strandW, 3);
+      ctx.font = '9px "JetBrains Mono", monospace';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'left';
+      ctx.fillText('template', strandL, tY + 16);
+
+      // Top strand — gets displaced
+      if (mdaProg < 0.25) {
+        // Still intact or just separating
+        const sepY = mdaProg < 0.10 ? 0 : ((mdaProg - 0.10) / 0.15) * 3;
+        ctx.fillStyle = colors.accent + '40';
+        ctx.fillRect(strandL, tY - sepY, strandW, 3);
+      }
+
+      // Temperature label
+      ctx.font = '11px "JetBrains Mono", monospace';
+      ctx.fillStyle = colors.warm;
+      ctx.textAlign = 'right';
+      ctx.fillText('30°C constant', strandR, cY + 14);
+
+      // Step label
+      ctx.font = '10px -apple-system, sans-serif';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'left';
+      if (mdaProg < 0.10) ctx.fillText('Double-stranded template DNA', strandL, cY + 14);
+      else if (mdaProg < 0.20) ctx.fillText('Strands loosen at 30°C', strandL, cY + 14);
+      else if (mdaProg < 0.25) ctx.fillText('Random hexamer primers bind', strandL, cY + 14);
+      else if (mdaProg < 0.60) ctx.fillText('phi29 extends, displacing strand ahead', strandL, cY + 14);
+      else if (mdaProg < 0.80) ctx.fillText('New primers bind displaced strands', strandL, cY + 14);
+      else ctx.fillText('Branching amplification (exponential)', strandL, cY + 14);
+
+      // Primary extensions from template — both strands, both directions
+      // Top-strand primers extend rightward → displace top strand upward
+      // Bottom-strand primers extend leftward → displace bottom strand downward
+      const fwdPrimers = [0.12, 0.45, 0.75]; // on bottom strand, extend right
+      const revPrimers = [0.85, 0.55, 0.25]; // on top strand, extend left
+
+      if (mdaProg >= 0.20) {
+        const primerAlpha = Math.min(1, (mdaProg - 0.20) / 0.05);
+        const extStart = 0.25, extEnd = 0.60;
+        const extProg = mdaProg < extStart ? 0 : Math.min(1, (mdaProg - extStart) / (extEnd - extStart));
+
+        // --- Forward primers (extend rightward along bottom strand) ---
+        fwdPrimers.forEach((ps, pi) => {
+          const px = strandL + ps * strandW;
+
+          if (mdaProg < 0.25) {
+            ctx.globalAlpha = primerAlpha;
+            ctx.fillStyle = colors.warm;
+            ctx.fillRect(px - 3, tY + 1, 6, 2);
+            ctx.globalAlpha = 1;
+          } else {
+            const remainLen = (1 - ps) * strandW;
+            const curLen = extProg * remainLen;
+            const dispH = 10 + pi * 4;
+
+            // Displaced top strand peels upward
+            if (curLen > 0) {
+              ctx.strokeStyle = colors.accent + '30';
+              ctx.lineWidth = 2;
+              ctx.beginPath();
+              ctx.moveTo(px, tY);
+              ctx.quadraticCurveTo(px + curLen * 0.3, tY - dispH, px + curLen, tY - dispH - 2);
+              ctx.stroke();
+              ctx.lineWidth = 1;
+            }
+
+            // New strand synthesized rightward
+            ctx.fillStyle = colors.accent;
+            ctx.fillRect(px, tY + 1, curLen, 2);
+
+            // Primer
+            ctx.fillStyle = colors.warm;
+            ctx.fillRect(px - 3, tY + 1, 6, 2);
+
+            // Polymerase dot
+            if (curLen > 2) {
+              ctx.fillStyle = colors.warm;
+              ctx.beginPath();
+              ctx.arc(px + curLen, tY + 2, 3, 0, Math.PI * 2);
+              ctx.fill();
+              if (pi === 0 && mdaProg < 0.40) {
+                ctx.font = '9px "JetBrains Mono", monospace';
+                ctx.fillStyle = colors.warm;
+                ctx.textAlign = 'left';
+                ctx.fillText('phi29', px + curLen + 5, tY + 5);
+              }
+            }
+
+            // Secondary branching on displaced strand
+            if (mdaProg >= 0.60 && curLen > 20) {
+              const secProg = Math.min(1, (mdaProg - 0.60) / 0.40);
+              const secPx = px + curLen * 0.3;
+              const secY = tY - dispH + 1;
+              const secLen = secProg * curLen * 0.5;
+              ctx.fillStyle = colors.warm + '80';
+              ctx.fillRect(secPx - 2, secY, 4, 2);
+              if (secLen > 2) {
+                ctx.fillStyle = colors.accent + '70';
+                ctx.fillRect(secPx, secY - 3, secLen, 2);
+                ctx.strokeStyle = colors.accent + '20';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(secPx, secY);
+                ctx.quadraticCurveTo(secPx + secLen * 0.4, secY - 8, secPx + secLen, secY - 10);
+                ctx.stroke();
+                ctx.lineWidth = 1;
+                ctx.fillStyle = colors.warm + '80';
+                ctx.beginPath();
+                ctx.arc(secPx + secLen, secY - 2, 2, 0, Math.PI * 2);
+                ctx.fill();
+              }
+            }
+          }
+        });
+
+        // --- Reverse primers (extend leftward along top strand) ---
+        revPrimers.forEach((ps, pi) => {
+          const px = strandL + ps * strandW;
+
+          if (mdaProg < 0.25) {
+            ctx.globalAlpha = primerAlpha;
+            ctx.fillStyle = colors.warm;
+            ctx.fillRect(px - 3, tY + 5, 6, 2);
+            ctx.globalAlpha = 1;
+          } else {
+            const remainLen = ps * strandW; // distance to left end
+            const curLen = extProg * remainLen;
+            const dispH = 10 + pi * 4;
+
+            // Displaced bottom strand peels downward
+            if (curLen > 0) {
+              ctx.strokeStyle = colors.accent + '30';
+              ctx.lineWidth = 2;
+              ctx.beginPath();
+              ctx.moveTo(px, tY + 7);
+              ctx.quadraticCurveTo(px - curLen * 0.3, tY + 7 + dispH, px - curLen, tY + 7 + dispH + 2);
+              ctx.stroke();
+              ctx.lineWidth = 1;
+            }
+
+            // New strand synthesized leftward
+            ctx.fillStyle = colors.accent + 'B0';
+            ctx.fillRect(px - curLen, tY + 5, curLen, 2);
+
+            // Primer
+            ctx.fillStyle = colors.warm;
+            ctx.fillRect(px - 3, tY + 5, 6, 2);
+
+            // Polymerase dot
+            if (curLen > 2) {
+              ctx.fillStyle = colors.warm;
+              ctx.beginPath();
+              ctx.arc(px - curLen, tY + 6, 3, 0, Math.PI * 2);
+              ctx.fill();
+              if (pi === 0 && mdaProg < 0.40) {
+                ctx.font = '9px "JetBrains Mono", monospace';
+                ctx.fillStyle = colors.warm;
+                ctx.textAlign = 'right';
+                ctx.fillText('phi29', px - curLen - 5, tY + 9);
+              }
+            }
+
+            // Secondary branching on displaced strand
+            if (mdaProg >= 0.60 && curLen > 20) {
+              const secProg = Math.min(1, (mdaProg - 0.60) / 0.40);
+              const secPx = px - curLen * 0.3;
+              const secY = tY + 7 + dispH - 1;
+              const secLen = secProg * curLen * 0.4;
+              ctx.fillStyle = colors.warm + '80';
+              ctx.fillRect(secPx - 2, secY, 4, 2);
+              if (secLen > 2) {
+                ctx.fillStyle = colors.accent + '70';
+                ctx.fillRect(secPx - secLen, secY + 3, secLen, 2);
+                ctx.strokeStyle = colors.accent + '20';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(secPx, secY + 2);
+                ctx.quadraticCurveTo(secPx - secLen * 0.4, secY + 10, secPx - secLen, secY + 12);
+                ctx.stroke();
+                ctx.lineWidth = 1;
+                ctx.fillStyle = colors.warm + '80';
+                ctx.beginPath();
+                ctx.arc(secPx - secLen, secY + 4, 2, 0, Math.PI * 2);
+                ctx.fill();
+              }
+            }
+          }
+        });
+      }
+
+      // Key properties below — pushed down to avoid overlapping the animation
+      const propY = tY + 55;
+      ctx.font = '11px -apple-system, sans-serif';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'left';
+      const props = [
+        'Isothermal (30°C, no heat cycling)',
+        'Primers on both strands → full coverage',
+        'phi29 displaces strand as it copies',
+        'Displaced strands → new templates → exponential',
+        'Strong GC bias toward 50%',
+      ];
+      props.forEach((p, i) => {
+        if (propY + i * 16 < cY + areaH - 2)
+          ctx.fillText('• ' + p, sp.pad, propY + i * 16);
+      });
+
+    } else if (option === 'rdab') {
+      ctx.font = '11px -apple-system, sans-serif';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'center';
+      // subtitle removed — button label is enough
+
+      // RdAB: 3-step process
+      // 1. Random primers bind RNA → reverse transcriptase makes cDNA
+      // 2. Sequenase makes second strand → double-stranded DNA
+      // 3. PCR amplifies (40 cycles) with length + GC bias
+
+      const rdabFrames = 1200; // ~20s total
+      const rdabProg = Math.min(1, t / rdabFrames);
+
+      const strandL = 16, strandR = sp.pad + lW - 8;
+      const strandW = strandR - strandL;
+
+      // --- Timeline ---
+      // 0.00-0.30  Step 1: random primers + RT → cDNA
+      // 0.30-0.50  Step 2: second-strand synthesis → dsDNA
+      // 0.50-1.00  Step 3: PCR cycles (shows 3 cycles with doubling)
+
+      // Step label
+      ctx.font = '10px -apple-system, sans-serif';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'left';
+      if (rdabProg < 0.30) ctx.fillText('Step 1: Random primers + Reverse Transcription', strandL, cY + 14);
+      else if (rdabProg < 0.50) ctx.fillText('Step 2: Second-strand synthesis (Sequenase)', strandL, cY + 14);
+      else ctx.fillText('Step 3: PCR amplification (40 cycles)', strandL, cY + 14);
+
+      // Use areaH to lay out proportionally — no overlaps
+      // Region breakdown:
+      //   0%-5%   step label (already drawn above at cY+14)
+      //   8%-40%  animation area (RNA/cDNA/dsDNA or PCR copies)
+      //   42%-55% secondary labels (cDNA label, Sequenase, or length bias)
+      //   60%-100% bullet points
+
+      const animTop = cY + areaH * 0.10;  // where animation starts
+      const animMid = cY + areaH * 0.30;  // midpoint for secondary elements
+      const labelY  = cY + areaH * 0.48;  // where secondary labels go
+      const propTop = cY + areaH * 0.58;  // where bullet points start
+
+      // === STEP 1: RNA → cDNA ===
+      // RNA template (wavy line — always shown in steps 1-2)
+      if (rdabProg < 0.50) {
+        ctx.strokeStyle = '#c06040';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        for (let px = 0; px <= strandW; px += 1) {
+          const y = animTop + Math.sin(px * 0.08) * 2.5;
+          if (px === 0) ctx.moveTo(strandL + px, y); else ctx.lineTo(strandL + px, y);
+        }
+        ctx.stroke();
+        ctx.lineWidth = 1;
+        ctx.font = '9px "JetBrains Mono", monospace';
+        ctx.fillStyle = '#c06040';
+        ctx.textAlign = 'left';
+        ctx.fillText('RNA', strandL, animTop - 7);
+      }
+
+      if (rdabProg < 0.30) {
+        const rtProg = rdabProg / 0.30;
+        const primerPositions = [0.05, 0.25, 0.50, 0.72];
+
+        primerPositions.forEach((pp, pi) => {
+          const px = strandL + pp * strandW;
+          const primerAppear = Math.min(1, rtProg * 4 - pi * 0.5);
+          if (primerAppear <= 0) return;
+
+          ctx.globalAlpha = Math.min(1, primerAppear);
+          ctx.fillStyle = colors.warm;
+          ctx.fillRect(px, animTop + 8, 6, 2);
+
+          const extProg = Math.max(0, Math.min(1, (rtProg - 0.3 - pi * 0.1) / 0.5));
+          if (extProg > 0) {
+            const fragLen = extProg * (0.22 * strandW);
+            ctx.fillStyle = colors.accent;
+            ctx.fillRect(px, animTop + 14, fragLen, 2);
+
+            ctx.fillStyle = colors.warm;
+            ctx.beginPath();
+            ctx.arc(px + fragLen, animTop + 15, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            if (pi === 0 && extProg > 0.2) {
+              ctx.font = '8px "JetBrains Mono", monospace';
+              ctx.fillStyle = colors.warm;
+              ctx.textAlign = 'left';
+              ctx.fillText('RT', px + fragLen + 4, animTop + 18);
+            }
+          }
+          ctx.globalAlpha = 1;
+        });
+
+        ctx.font = '9px "JetBrains Mono", monospace';
+        ctx.fillStyle = colors.accent;
+        ctx.textAlign = 'left';
+        if (rtProg > 0.4) ctx.fillText('cDNA fragments', strandL, labelY);
+
+      } else if (rdabProg < 0.50) {
+        // === STEP 2: Second-strand synthesis ===
+        const ssProg = (rdabProg - 0.30) / 0.20;
+        const fragPositions = [0.05, 0.25, 0.50, 0.72];
+        const fragLen = 0.22 * strandW;
+
+        fragPositions.forEach((pp) => {
+          const px = strandL + pp * strandW;
+          ctx.fillStyle = colors.accent;
+          ctx.fillRect(px, animTop + 14, fragLen, 2);
+
+          const secLen = ssProg * fragLen;
+          ctx.fillStyle = colors.accent + '60';
+          ctx.fillRect(px, animTop + 20, secLen, 2);
+
+          if (secLen > 4) {
+            ctx.fillStyle = '#6a9';
+            ctx.beginPath();
+            ctx.arc(px + secLen, animTop + 21, 2, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        });
+
+        ctx.font = '9px "JetBrains Mono", monospace';
+        ctx.fillStyle = '#6a9';
+        ctx.textAlign = 'right';
+        if (ssProg > 0.2) ctx.fillText('Sequenase', strandR, labelY);
+        ctx.fillStyle = colors.textTer;
+        ctx.textAlign = 'left';
+        ctx.fillText('→ double-stranded DNA', strandL, labelY);
+
+      } else {
+        // === STEP 3: PCR amplification ===
+        const pcrProg = (rdabProg - 0.50) / 0.50;
+        const pcrCycleFrames = 0.33;
+        const pcrCycleNum = Math.min(3, Math.floor(pcrProg / pcrCycleFrames));
+        const pcrCycleT = Math.min(1, (pcrProg - pcrCycleNum * pcrCycleFrames) / pcrCycleFrames);
+
+        const fragments = [
+          { x: 0.05, w: 0.12, label: 'short' },
+          { x: 0.25, w: 0.20, label: 'medium' },
+          { x: 0.55, w: 0.35, label: 'long' },
+        ];
+
+        // Fragment labels
+        fragments.forEach((frag) => {
+          const fx = strandL + frag.x * strandW;
+          const fw = frag.w * strandW;
+          ctx.font = '8px "JetBrains Mono", monospace';
+          ctx.fillStyle = colors.textTer;
+          ctx.textAlign = 'center';
+          ctx.fillText(frag.label, fx + fw / 2, animTop - 2);
+        });
+
+        // Copies stacking — use space from animTop to labelY
+        const copyAreaH = labelY - animTop - 10;
+        const copyRowH = Math.max(5, copyAreaH / 8);
+
+        fragments.forEach((frag, fi) => {
+          const fx = strandL + frag.x * strandW;
+          const fw = frag.w * strandW;
+          const lengthFactor = fi === 0 ? 1.5 : fi === 1 ? 1.0 : 0.6;
+          const totalCopies = Math.floor(Math.pow(2, pcrCycleNum) * lengthFactor);
+          const maxDraw = Math.min(totalCopies, Math.floor(copyAreaH / copyRowH));
+
+          for (let c = 0; c < maxDraw; c++) {
+            const cy = animTop + 4 + c * copyRowH;
+            const alpha = Math.max(25, 80 - c * 8);
+            const prevCopies = Math.floor(Math.pow(2, Math.max(0, pcrCycleNum - 1)) * lengthFactor);
+            const isNew = c >= Math.min(prevCopies, maxDraw);
+            let drawAlpha = alpha;
+            if (isNew && pcrCycleNum > 0) {
+              drawAlpha = Math.floor(alpha * Math.min(1, pcrCycleT * 2));
+            }
+            ctx.fillStyle = colors.accent + drawAlpha.toString(16).padStart(2, '0');
+            ctx.fillRect(fx, cy, fw, 2);
+            ctx.fillStyle = colors.accent + Math.floor(drawAlpha * 0.6).toString(16).padStart(2, '0');
+            ctx.fillRect(fx, cy + 2.5, fw, 2);
+          }
+
+          ctx.font = '8px "JetBrains Mono", monospace';
+          ctx.fillStyle = colors.textTer;
+          ctx.textAlign = 'center';
+          ctx.fillText(totalCopies + '×', fx + fw / 2, labelY - 2);
+        });
+
+        // Length bias label
+        ctx.font = '9px -apple-system, sans-serif';
+        ctx.fillStyle = colors.warm;
+        ctx.textAlign = 'center';
+        ctx.fillText('← shorter = more copies (length bias) →', strandL + strandW / 2, labelY + 10);
+      }
+
+      // Key properties — anchored to bottom
+      ctx.font = '11px -apple-system, sans-serif';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'left';
+      const props = [
+        'Random primers → RT → Sequenase → PCR',
+        'Length bias: shorter fragments amplified more',
+        'GC bias similar to MDA',
+      ];
+      props.forEach((p, i) => {
+        ctx.fillText('• ' + p, sp.pad, propTop + i * 16);
+      });
+
+    } else { // linker
+      ctx.font = '11px -apple-system, sans-serif';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'center';
+      // subtitle removed — button label is enough
+
+      // PCR cycle animation: shows 4 cycles, each with
+      // denature (strands separate) → anneal (primers bind) → extend (new strand grows)
+      // then the count doubles
+      const cycleFrames = 480; // ~8s per cycle
+      const totalCycles = 4;
+      const cycleNum = Math.min(totalCycles, Math.floor(t / cycleFrames));
+      const cycleT = Math.min(1, (t - cycleNum * cycleFrames) / cycleFrames);
+
+      // How many completed molecules exist
+      const completedCount = Math.pow(2, cycleNum);
+
+      // Layout
+      const strandL = 16, strandR = sp.pad + lW - 8;
+      const strandW = strandR - strandL;
+      const adpW = strandW * 0.06; // adapter/linker region
+
+      // Current cycle substep:
+      //   0.00-0.15  denature (95°C — strands separate)
+      //   0.15-0.35  anneal (55°C — primers bind to ends)
+      //   0.35-0.85  extend (72°C — polymerase copies each strand)
+      //   0.85-1.00  pause — show the doubled result
+
+      // Stage label
+      ctx.font = '11px "JetBrains Mono", monospace';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'left';
+      if (cycleNum < totalCycles) {
+        let stepLabel = '';
+        if (cycleT < 0.15) stepLabel = '95°C  Denature (separate strands)';
+        else if (cycleT < 0.35) stepLabel = '55°C  Anneal (primers bind)';
+        else if (cycleT < 0.85) stepLabel = '72°C  Extend (copy strands)';
+        else stepLabel = 'Cycle ' + (cycleNum + 1) + ' complete → ' + (completedCount * 2) + ' copies';
+        ctx.fillText(stepLabel, sp.pad, cY + 44);
+      } else {
+        ctx.fillText('After ' + totalCycles + ' cycles: ' + completedCount + ' copies', sp.pad, cY + 44);
+      }
+
+      // Draw current cycle's DNA
+      const dnaY = cY + 58;
+      const gap = 4; // gap between strands when denatured
+
+      if (cycleNum < totalCycles) {
+        // Top strand (template, forward)
+        // Bottom strand (template, reverse)
+        let topY = dnaY;
+        let botY = dnaY + 6;
+
+        if (cycleT < 0.15) {
+          // DENATURE: strands separate vertically
+          const sep = (cycleT / 0.15);
+          topY = dnaY - sep * gap;
+          botY = dnaY + 6 + sep * gap;
+        } else {
+          topY = dnaY - gap;
+          botY = dnaY + 6 + gap;
+        }
+
+        // Draw top strand
+        ctx.fillStyle = colors.accent;
+        ctx.fillRect(strandL, topY, strandW, 3);
+        // Draw bottom strand
+        ctx.fillStyle = colors.accent + '80';
+        ctx.fillRect(strandL, botY, strandW, 3);
+
+        // Adapters/linkers at ends
+        ctx.fillStyle = colors.warm + '60';
+        ctx.fillRect(strandL, topY - 1, adpW, 5);
+        ctx.fillRect(strandR - adpW, topY - 1, adpW, 5);
+        ctx.fillRect(strandL, botY - 1, adpW, 5);
+        ctx.fillRect(strandR - adpW, botY - 1, adpW, 5);
+
+        if (cycleT >= 0.15 && cycleT < 0.35) {
+          // ANNEAL: primers bind ON the adapter regions
+          const primerAlpha = Math.min(1, (cycleT - 0.15) / 0.1);
+          ctx.globalAlpha = primerAlpha;
+          ctx.fillStyle = colors.warm;
+          // Primer on bottom strand's left adapter (will extend rightward)
+          ctx.fillRect(strandL, botY + 5, adpW, 2);
+          // Primer on top strand's right adapter (will extend leftward)
+          ctx.fillRect(strandR - adpW, topY - 4, adpW, 2);
+          // Labels
+          ctx.font = '11px "JetBrains Mono", monospace';
+          ctx.fillStyle = colors.warm;
+          ctx.textAlign = 'left';
+          ctx.fillText('primer', strandL + adpW + 4, botY + 8);
+          ctx.textAlign = 'right';
+          ctx.fillText('primer', strandR - adpW - 4, topY - 1);
+          ctx.globalAlpha = 1;
+        }
+
+        if (cycleT >= 0.35 && cycleT < 0.85) {
+          // EXTEND: new complementary strand grows from primer (which sits on adapter)
+          const extProg = (cycleT - 0.35) / 0.5;
+          const extLen = extProg * (strandW - adpW);
+
+          // Primer on bottom strand's left adapter
+          ctx.fillStyle = colors.warm;
+          ctx.fillRect(strandL, botY + 5, adpW, 2);
+          // New strand growing rightward from that primer
+          ctx.fillStyle = colors.accent + '50';
+          ctx.fillRect(strandL + adpW, botY + 5, extLen, 2);
+          // Polymerase dot at extending end
+          ctx.fillStyle = colors.warm;
+          ctx.beginPath();
+          ctx.arc(strandL + adpW + extLen, botY + 6, 3, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Primer on top strand's right adapter
+          ctx.fillStyle = colors.warm;
+          ctx.fillRect(strandR - adpW, topY - 4, adpW, 2);
+          // New strand growing leftward from that primer
+          ctx.fillStyle = colors.accent + '50';
+          const revStart = strandR - adpW - extLen;
+          ctx.fillRect(revStart, topY - 4, extLen, 2);
+          // Polymerase dot
+          ctx.fillStyle = colors.warm;
+          ctx.beginPath();
+          ctx.arc(revStart, topY - 3, 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        if (cycleT >= 0.85) {
+          // COMPLETE: show both new strands fully formed
+          // Completed new strands span from adapter to far end
+          ctx.fillStyle = colors.warm;
+          ctx.fillRect(strandL, botY + 5, adpW, 2);
+          ctx.fillRect(strandR - adpW, topY - 4, adpW, 2);
+          ctx.fillStyle = colors.accent + '50';
+          ctx.fillRect(strandL + adpW, botY + 5, strandW - adpW, 2);
+          ctx.fillRect(strandL, topY - 4, strandW - adpW, 2);
+        }
+      }
+
+      // Show accumulated copies below the active cycle
+      const countY = dnaY + 32;
+      const maxShow = Math.min(completedCount, 8);
+      const rowH = 7;
+      for (let c = 0; c < maxShow; c++) {
+        const ry = countY + c * rowH;
+        if (ry > cY + areaH - 30) break;
+        const alpha = Math.max(20, 70 - c * 8);
+        ctx.fillStyle = colors.accent + alpha.toString(16).padStart(2, '0');
+        ctx.fillRect(strandL, ry, strandW, 3);
+        // Linker adapters
+        ctx.fillStyle = colors.warm + (Math.floor(alpha * 0.5)).toString(16).padStart(2, '0');
+        ctx.fillRect(strandL, ry, adpW, 3);
+        ctx.fillRect(strandR - adpW, ry, adpW, 3);
+      }
+      if (completedCount > 0) {
+        ctx.font = '11px "JetBrains Mono", monospace';
+        ctx.fillStyle = colors.textTer;
+        ctx.textAlign = 'left';
+        ctx.fillText(completedCount + ' copies so far', strandL, countY + Math.min(maxShow, 6) * rowH + 12);
+      }
+
+      // Key properties below
+      const propY = countY + Math.min(maxShow, 6) * rowH + 26;
+      if (propY < cY + areaH - 10) {
+        ctx.font = '11px -apple-system, sans-serif';
+        ctx.fillStyle = colors.textTer;
+        ctx.textAlign = 'left';
+        const props = [
+          'Mildest GC bias of the three',
+          'No length bias (all have adapters)',
+        ];
+        props.forEach((p, i) => {
+          if (propY + i * 18 < cY + areaH - 2)
+            ctx.fillText('• ' + p, sp.pad, propY + i * 18);
+        });
+      }
+    }
+    ctx.restore();
+
+    // ===== RIGHT: ViroForge model =====
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(rX, cY, rW, areaH);
+    ctx.clip();
+
+    // Right panel layout — proportional zones to prevent overlaps
+    // Zone 1: 0-12%   title + formula
+    // Zone 2: 14-50%  GC bias plot (shorter for rdab to fit length plot)
+    // Zone 3: 52-100% params (mda/linker) or length bias plot (rdab)
+    const rZone1 = cY + areaH * 0.00;
+    const rZone2T = cY + areaH * 0.14;
+    const rZone2B = cY + areaH * (option === 'rdab' ? 0.46 : 0.55);
+    const rZone3T = cY + areaH * (option === 'rdab' ? 0.50 : 0.58);
+    const rZone3B = cY + areaH * 0.97;
+
+    // Title + formula
+    ctx.font = '12px -apple-system, sans-serif';
+    ctx.fillStyle = colors.accent;
+    ctx.textAlign = 'center';
+    ctx.fillText('GC Efficiency Model', rX + rW / 2, rZone1 + 14);
+
+    const formulas = {
+      mda: 'exp(−45 × (GC − 0.50)²)',
+      rdab: 'exp(−(GC−0.50)² / 0.15² )',
+      linker: 'exp(−(GC−0.50)² / (2×0.20²))',
+    };
+    ctx.font = '11px "JetBrains Mono", monospace';
+    ctx.fillStyle = colors.textTer;
+    ctx.fillText(formulas[option] || '', rX + rW / 2, rZone1 + 28);
+
+    // GC bias plot
+    const plotL = rX + 18, plotR = rX + rW - 10;
+    const plotT = rZone2T + 6, plotB = rZone2B - 22;
+    const plotW = plotR - plotL, plotH = plotB - plotT;
+
+    // Axes
+    ctx.strokeStyle = colors.border;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(plotL, plotB);
+    ctx.lineTo(plotR, plotB);
+    ctx.moveTo(plotL, plotT);
+    ctx.lineTo(plotL, plotB);
+    ctx.stroke();
+
+    // GC bias curve
+    ctx.beginPath();
+    ctx.strokeStyle = colors.accent;
+    ctx.lineWidth = 2;
+    for (let px = 0; px < plotW; px++) {
+      const gc = 0.25 + (px / plotW) * 0.50;
+      const bias = calcBias(gc, option);
+      const y = plotB - bias * (plotH - 6);
+      if (px === 0) ctx.moveTo(plotL + px, y); else ctx.lineTo(plotL + px, y);
+    }
+    ctx.stroke();
+    ctx.lineWidth = 1;
+
+    // Bar chart on top of curve
+    const barW = Math.min(12, plotW / gcValues.length - 3);
+    const barProg = Math.min(1, t / 80);
+    gcValues.forEach((gc, i) => {
+      const bias = calcBias(gc, option);
+      const bx = plotL + ((gc - 0.25) / 0.50) * plotW;
+      const bh = bias * (plotH - 6) * barProg;
+      ctx.fillStyle = colors.accent + '50';
+      ctx.fillRect(bx - barW / 2, plotB - bh, barW, bh);
+    });
+
+    // Axis labels
+    ctx.font = '10px "JetBrains Mono", monospace';
+    ctx.fillStyle = colors.textTer;
+    ctx.textAlign = 'center';
+    [30, 40, 50, 60, 70].forEach(gc => {
+      const px = plotL + ((gc / 100 - 0.25) / 0.50) * plotW;
+      ctx.fillText(gc + '%', px, plotB + 10);
+    });
+    ctx.fillText('GC Content', plotL + plotW / 2, plotB + 20);
+    ctx.textAlign = 'right';
+    ctx.fillText('1.0', plotL - 3, plotT + 5);
+    ctx.fillText('0', plotL - 3, plotB + 3);
+
+    // Optimum marker
+    const opt50 = plotL + (0.50 - 0.25) / 0.50 * plotW;
+    ctx.strokeStyle = colors.warm + '60';
+    ctx.setLineDash([2, 2]);
+    ctx.beginPath();
+    ctx.moveTo(opt50, plotT);
+    ctx.lineTo(opt50, plotB);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.font = '10px "JetBrains Mono", monospace';
+    ctx.fillStyle = colors.warm;
+    ctx.textAlign = 'center';
+    ctx.fillText('optimum', opt50, plotT - 4);
+
+    if (option === 'rdab') {
+      // Length bias plot in zone 3
+      const lPlotT = rZone3T + 14;
+      const lPlotB = rZone3B - 12;
+      const lPlotH = lPlotB - lPlotT;
+
+      ctx.font = '11px -apple-system, sans-serif';
+      ctx.fillStyle = colors.warm;
+      ctx.textAlign = 'center';
+      ctx.fillText('Length Bias (RdAB only)', rX + rW / 2, rZone3T + 2);
+      ctx.font = '10px "JetBrains Mono", monospace';
+      ctx.fillStyle = colors.textTer;
+      ctx.fillText('exp(−0.015 × length_kb)', rX + rW / 2, rZone3T + 14);
+
+      // Axes
+      ctx.strokeStyle = colors.border;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(plotL, lPlotB);
+      ctx.lineTo(plotR, lPlotB);
+      ctx.moveTo(plotL, lPlotT + 6);
+      ctx.lineTo(plotL, lPlotB);
+      ctx.stroke();
+
+      // Decay curve
+      ctx.beginPath();
+      ctx.strokeStyle = colors.warm;
+      ctx.lineWidth = 2;
+      for (let px = 0; px < plotW; px++) {
+        const kb = (px / plotW) * 160;
+        const eff = Math.exp(-0.015 * kb);
+        const y = lPlotB - eff * (lPlotH - 10);
+        if (px === 0) ctx.moveTo(plotL + px, y); else ctx.lineTo(plotL + px, y);
+      }
+      ctx.stroke();
+      ctx.lineWidth = 1;
+
+      // Key length markers
+      ctx.font = '10px "JetBrains Mono", monospace';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'center';
+      [5, 20, 50, 100, 150].forEach(kb => {
+        const px = plotL + (kb / 160) * plotW;
+        ctx.fillText(kb + 'kb', px, lPlotB + 10);
+        const eff = Math.exp(-0.015 * kb);
+        ctx.fillStyle = colors.warm;
+        ctx.fillText((eff * 100).toFixed(0) + '%', px, lPlotB - eff * (lPlotH - 10) - 4);
+        ctx.fillStyle = colors.textTer;
+      });
+    } else {
+      // Parameters section in zone 3
+      const paramY = rZone3T + 4;
+      ctx.font = '11px "JetBrains Mono", monospace';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'left';
+      const pX = rX + sp.pad;
+
+      if (option === 'mda') {
+        ctx.fillText('Method:   MDA (phi29)', pX, paramY);
+        ctx.fillText('Duration: 4 hours', pX, paramY + 14);
+        ctx.fillText('Noise CV: 0.30', pX, paramY + 28);
+        ctx.fillText('Chimera:  15%', pX, paramY + 42);
+        ctx.fillText('GC opt:   50%', pX, paramY + 56);
+
+        ctx.font = '11px -apple-system, sans-serif';
+        ctx.fillStyle = colors.warm;
+        ctx.fillText('Strongest GC bias', pX, paramY + 76);
+        ctx.fillText('of the three methods', pX, paramY + 90);
+      } else {
+        ctx.fillText('Method:    Linker (PCR)', pX, paramY);
+        ctx.fillText('Cycles:    20', pX, paramY + 14);
+        ctx.fillText('GC opt:    50%', pX, paramY + 28);
+        ctx.fillText('No length bias', pX, paramY + 42);
+
+        ctx.font = '11px -apple-system, sans-serif';
+        ctx.fillStyle = colors.accent;
+        ctx.fillText('Mildest GC bias', pX, paramY + 62);
+        ctx.fillText('Standard Illumina workflow', pX, paramY + 76);
+      }
+    }
+    ctx.restore();
+
+    animFrame = requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+/* === SEQUENCING ANIMATION === */
+function animateSequencing(option, ctx, W, H, colors) {
+  const rng = mulberry32(77);
+  let t = 0;
+  showLegend([]);
+
+  function draw() {
+    t++;
+    ctx.clearRect(0, 0, W, H);
+    const sp = drawSplitPanel(ctx, W, H, colors);
+    const lW = sp.midX - sp.pad * 2, rX = sp.midX + sp.pad, rW = W - sp.midX - sp.pad * 2;
+    const cY = sp.contentY;
+    const areaH = H - cY - 10;
+    const progress = Math.min(1, t / (option === 'pacbio' || option === 'nanopore' ? 300 : 150));
+
+    // ===== LEFT: In the Lab =====
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(sp.pad, cY, lW, areaH);
+    ctx.clip();
+
+    // Line spacing helper — fits lines into available height
+    const lineH = Math.min(15, areaH / 20);
+    const gapH = Math.min(6, lineH * 0.4);
+
+    if (option === 'novaseq' || option === 'miseq') {
+      const cfg = option === 'novaseq'
+        ? { label: 'NovaSeq 6000', readLen: 150, insert: 350 }
+        : { label: 'MiSeq', readLen: 250, insert: 450 };
+
+      ctx.font = '11px -apple-system, sans-serif';
+      ctx.fillStyle = colors.textSec;
+      ctx.textAlign = 'center';
+      ctx.fillText(cfg.label + ' — Sequencing by Synthesis', sp.pad + lW / 2, cY + 12);
+
+      // DNA fragment with adapters
+      const fragY = cY + areaH * 0.10;
+      const fragL = sp.pad, fragR = sp.pad + lW - 8;
+      const fragW = fragR - fragL;
+      const adpW = fragW * 0.06;
+
+      ctx.fillStyle = colors.warm + '60';
+      ctx.fillRect(fragL, fragY, adpW, 10);
+      ctx.fillStyle = colors.muted + '30';
+      ctx.fillRect(fragL + adpW, fragY, fragW - adpW * 2, 10);
+      ctx.fillStyle = colors.warm + '60';
+      ctx.fillRect(fragR - adpW, fragY, adpW, 10);
+
+      // Insert size bracket
+      ctx.strokeStyle = colors.textTer;
+      ctx.lineWidth = 0.5;
+      ctx.beginPath();
+      ctx.moveTo(fragL + adpW, fragY - 3);
+      ctx.lineTo(fragL + adpW, fragY - 8);
+      ctx.lineTo(fragR - adpW, fragY - 8);
+      ctx.lineTo(fragR - adpW, fragY - 3);
+      ctx.stroke();
+      ctx.font = '10px "JetBrains Mono", monospace';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'center';
+      ctx.fillText('~' + cfg.insert + ' bp insert', (fragL + fragR) / 2, fragY - 10);
+
+      // R1 and R2 reads
+      const readFrac = cfg.readLen / cfg.insert;
+      const r1W = (fragW - adpW * 2) * readFrac;
+      const rProg = Math.min(1, progress * 2.5);
+
+      const r1Y = fragY + 16;
+      ctx.fillStyle = colors.accent;
+      ctx.fillRect(fragL + adpW, r1Y, r1W * rProg, 6);
+      ctx.fillStyle = colors.accent + 'A0';
+      ctx.fillRect(fragR - adpW - r1W * rProg, r1Y + 12, r1W * rProg, 6);
+
+      if (rProg > 0.3) {
+        ctx.font = '10px "JetBrains Mono", monospace';
+        ctx.fillStyle = colors.accent;
+        ctx.textAlign = 'left';
+        ctx.fillText('R1 → ' + cfg.readLen + 'bp', fragL + adpW, r1Y - 2);
+        ctx.textAlign = 'right';
+        ctx.fillText(cfg.readLen + 'bp ← R2', fragR - adpW, r1Y + 12 + 14);
+      }
+
+      // Cycle steps
+      const fluY = cY + areaH * 0.45;
+      ctx.font = '10px -apple-system, sans-serif';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'center';
+      ctx.fillText('Each cycle:', sp.pad + lW / 2, fluY);
+
+      ctx.textAlign = 'left';
+      const steps = [
+        '1. Add fluorescent nucleotides',
+        '2. One base incorporates',
+        '3. Camera images the color',
+        '4. Cleave terminator + dye',
+      ];
+      steps.forEach((s, i) => { ctx.fillText(s, sp.pad, fluY + 12 + i * lineH); });
+
+      // Quality note
+      if (progress > 0.5) {
+        const qY = cY + areaH * 0.80;
+        ctx.fillStyle = colors.textTer;
+        ctx.fillText('Signal weakens over cycles', sp.pad, qY);
+        ctx.fillText('→ quality drops at read ends', sp.pad, qY + lineH);
+        if (option === 'novaseq') {
+          ctx.fillStyle = colors.warm;
+          ctx.fillText('NovaSeq bins quality scores', sp.pad, qY + lineH * 2);
+        }
+      }
+
+    } else if (option === 'pacbio') {
+      ctx.font = '11px -apple-system, sans-serif';
+      ctx.fillStyle = colors.textSec;
+      ctx.textAlign = 'center';
+      ctx.fillText('PacBio HiFi — Circular Consensus', sp.pad + lW / 2, cY + 12);
+
+      // SMRTbell diagram
+      const bellY = cY + areaH * 0.12;
+      const bellL = 16, bellR = sp.pad + lW - 8;
+      const hpR = 8;
+
+      ctx.strokeStyle = colors.accent;
+      ctx.lineWidth = 2.5;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(bellL + hpR, bellY - 3);
+      ctx.lineTo(bellR - hpR, bellY - 3);
+      ctx.stroke();
+      ctx.strokeStyle = colors.warm;
+      ctx.beginPath();
+      ctx.moveTo(bellL + hpR, bellY + 3);
+      ctx.lineTo(bellR - hpR, bellY + 3);
+      ctx.stroke();
+      ctx.strokeStyle = colors.muted;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(bellL + hpR, bellY, hpR, Math.PI * 0.5, Math.PI * 1.5);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(bellR - hpR, bellY, hpR, -Math.PI * 0.5, Math.PI * 0.5);
+      ctx.stroke();
+
+      ctx.font = '10px "JetBrains Mono", monospace';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'center';
+      ctx.fillText('SMRTbell (~15 kb)', (bellL + bellR) / 2, bellY + 14);
+
+      // Circular polymerase animation
+      const circCX = sp.pad + lW * 0.35, circCY = cY + areaH * 0.38, circR = Math.min(24, areaH * 0.09);
+      ctx.strokeStyle = colors.muted + '25';
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.arc(circCX, circCY, circR, 0, Math.PI * 2);
+      ctx.stroke();
+
+      const nPasses = 10;
+      const totalAng = progress * nPasses * Math.PI * 2;
+      const curAng = totalAng - Math.PI / 2;
+      const curPass = Math.min(10, Math.floor(progress * nPasses));
+
+      ctx.strokeStyle = colors.accent + '50';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(circCX, circCY, circR, curAng - Math.min(Math.PI * 2, totalAng), curAng);
+      ctx.stroke();
+
+      ctx.fillStyle = colors.accent;
+      ctx.beginPath();
+      ctx.arc(circCX + Math.cos(curAng) * circR, circCY + Math.sin(curAng) * circR, 3, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.font = '10px "JetBrains Mono", monospace';
+      ctx.fillStyle = colors.text;
+      ctx.textAlign = 'center';
+      ctx.fillText('Pass ' + curPass + '/10', circCX, circCY + circR + 12);
+
+      // Subread rows
+      const subX = sp.pad + lW * 0.6, subEndX = sp.pad + lW - 6;
+      const subStartY = cY + areaH * 0.22;
+      const subSp = Math.min(8, (areaH * 0.40) / 12);
+      const subLen = subEndX - subX;
+      const passRng = mulberry32(42);
+      const errPos = [];
+      for (let p = 0; p < 10; p++) { const e = []; for (let i = 0; i < 5; i++) e.push(passRng()); errPos.push(e); }
+
+      ctx.font = '10px "JetBrains Mono", monospace';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'center';
+      ctx.fillText('Subreads', (subX + subEndX) / 2, subStartY);
+
+      for (let p = 0; p < 10; p++) {
+        const sy = subStartY + 5 + p * subSp;
+        const vis = p < curPass;
+        ctx.strokeStyle = vis ? colors.accent + '40' : colors.muted + '10';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(subX, sy);
+        ctx.lineTo(subEndX, sy);
+        ctx.stroke();
+        if (vis) errPos[p].forEach(pos => {
+          ctx.fillStyle = '#e05555';
+          ctx.fillRect(subX + pos * subLen - 1, sy - 1.5, 2, 3);
+        });
+      }
+
+      // Consensus
+      if (curPass >= 3) {
+        const consY = subStartY + 5 + 10 * subSp + 5;
+        ctx.strokeStyle = colors.accent;
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(subX, consY);
+        ctx.lineTo(subEndX, consY);
+        ctx.stroke();
+        const qv = curPass >= 10 ? '>Q40' : curPass >= 7 ? 'Q30+' : 'Q20+';
+        ctx.font = '10px "JetBrains Mono", monospace';
+        ctx.fillStyle = colors.accent;
+        ctx.textAlign = 'center';
+        ctx.fillText('HiFi ' + qv, (subX + subEndX) / 2, consY + 10);
+      }
+
+    } else if (option === 'nanopore') {
+      ctx.font = '11px -apple-system, sans-serif';
+      ctx.fillStyle = colors.textSec;
+      ctx.textAlign = 'center';
+      ctx.fillText('Nanopore — Ionic Current Sensing', sp.pad + lW / 2, cY + 12);
+
+      // Membrane + pore
+      const memY = cY + areaH * 0.25;
+      const memTh = 16;
+      const porW = 18;
+      const porCX = sp.pad + lW * 0.4;
+
+      ctx.fillStyle = colors.muted + '15';
+      ctx.fillRect(8, memY - memTh / 2, porCX - porW / 2 - 8, memTh);
+      ctx.fillRect(porCX + porW / 2, memY - memTh / 2, sp.pad + lW - porCX - porW / 2, memTh);
+
+      ctx.fillStyle = colors.warm + '60';
+      ctx.beginPath();
+      ctx.moveTo(porCX - porW / 2 - 3, memY - memTh / 2);
+      ctx.lineTo(porCX - 4, memY);
+      ctx.lineTo(porCX - porW / 2 - 3, memY + memTh / 2);
+      ctx.closePath();
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(porCX + porW / 2 + 3, memY - memTh / 2);
+      ctx.lineTo(porCX + 4, memY);
+      ctx.lineTo(porCX + porW / 2 + 3, memY + memTh / 2);
+      ctx.closePath();
+      ctx.fill();
+
+      // Motor protein
+      ctx.fillStyle = colors.accent + '70';
+      ctx.beginPath();
+      ctx.arc(porCX, memY - memTh / 2 - 5, 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      // DNA threading
+      const threadP = Math.min(1, progress * 1.5);
+      const dnaLen = 28 * (1 - threadP * 0.5);
+      if (dnaLen > 3) {
+        ctx.strokeStyle = colors.accent;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(porCX, memY - memTh / 2 - 9);
+        ctx.lineTo(porCX - 2, memY - memTh / 2 - 9 - dnaLen);
+        ctx.stroke();
+      }
+      ctx.strokeStyle = colors.warm;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(porCX, memY - 4);
+      ctx.lineTo(porCX, memY + 4);
+      ctx.stroke();
+      if (threadP > 0.1) {
+        ctx.strokeStyle = colors.warm + '70';
+        ctx.beginPath();
+        ctx.moveTo(porCX, memY + memTh / 2 + 2);
+        ctx.lineTo(porCX + 2, memY + memTh / 2 + 2 + threadP * 20);
+        ctx.stroke();
+      }
+
+      ctx.font = '10px "JetBrains Mono", monospace';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'center';
+      ctx.fillText('pore', porCX, memY + memTh / 2 + 10);
+
+      // Mini squiggle
+      const sqL = sp.pad, sqR = sp.pad + lW - 6;
+      const sqMidY = cY + areaH * 0.58;
+      const sqH = Math.min(20, areaH * 0.08);
+      ctx.fillStyle = colors.muted + '06';
+      ctx.fillRect(sqL, sqMidY - sqH, sqR - sqL, sqH * 2);
+
+      function kmerHash(idx) {
+        let h = idx * 2654435761;
+        h = ((h >>> 16) ^ h) * 0x45d9f3b;
+        h = ((h >>> 16) ^ h);
+        return ((h >>> 0) / 4294967296) - 0.5;
+      }
+
+      const sqLen = sqR - sqL;
+      const scrollOff = t * 0.6;
+      ctx.beginPath();
+      ctx.strokeStyle = colors.warm;
+      ctx.lineWidth = 1;
+      const flat0 = sqLen * 0.4, flat1 = sqLen * 0.55;
+      for (let px = 0; px < sqLen; px++) {
+        const wx = px + scrollOff;
+        let lev;
+        if (px >= flat0 && px <= flat1) lev = 0.3 + Math.sin(wx * 0.3) * 0.03;
+        else { const ki = Math.floor(wx / 10); lev = kmerHash(ki) * 0.6 + Math.sin(wx * 0.7) * 0.08; }
+        const y = sqMidY - lev * sqH;
+        if (px === 0) ctx.moveTo(sqL + px, y); else ctx.lineTo(sqL + px, y);
+      }
+      ctx.stroke();
+
+      ctx.fillStyle = '#e0555518';
+      ctx.fillRect(sqL + flat0, sqMidY - sqH, flat1 - flat0, sqH * 2);
+      ctx.font = '10px "JetBrains Mono", monospace';
+      ctx.fillStyle = '#e05555';
+      ctx.textAlign = 'center';
+      ctx.fillText('AAAA?', sqL + (flat0 + flat1) / 2, sqMidY + sqH + 10);
+
+      // Basecalling
+      const bcY = cY + areaH * 0.78;
+      ctx.font = '10px -apple-system, sans-serif';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'left';
+      ctx.fillText('truth: ATGCCAAAAAGGTC', sp.pad, bcY);
+      ctx.fillText('call:  ATGCCAAA', sp.pad, bcY + 12);
+      ctx.fillStyle = '#e05555';
+      ctx.fillText('__', 14 + ctx.measureText('call:  ATGCCAAA').width, bcY + 12);
+      ctx.fillStyle = colors.textTer;
+      ctx.fillText('GGTC', 14 + ctx.measureText('call:  ATGCCAAA__').width, bcY + 12);
+
+      ctx.font = '10px -apple-system, sans-serif';
+      ctx.fillStyle = '#e05555';
+      ctx.fillText('homopolymer deletion error', sp.pad, bcY + 24);
+
+    }
+    ctx.restore();
+
+    // ===== RIGHT: ViroForge model =====
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(rX, cY, rW, areaH);
+    ctx.clip();
+
+    // Right panel line spacing — tighter to fit
+    const rLineH = Math.min(14, areaH / 22);
+    const rGapH = Math.min(5, rLineH * 0.35);
+
+    if (option === 'novaseq' || option === 'miseq') {
+      const cfg = option === 'novaseq'
+        ? { label: 'NovaSeq', readLen: 150, insert: 350, throughput: '6 Tb/run' }
+        : { label: 'MiSeq', readLen: 250, insert: 450, throughput: '15 Gb/run' };
+
+      ctx.font = '11px -apple-system, sans-serif';
+      ctx.fillStyle = colors.accent;
+      ctx.textAlign = 'center';
+      ctx.fillText('InSilicoSeq (ISS) simulation', rX + rW / 2, cY + 12);
+
+      ctx.font = '10px "JetBrains Mono", monospace';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'left';
+      const pX = rX + sp.pad;
+      let py = cY + 28;
+      const lines = [
+        'Simulator: InSilicoSeq',
+        'Mode:      basic (kde-free)',
+        '',
+        'read_length  = ' + cfg.readLen,
+        'insert_size  = N(' + cfg.insert + ', 50²)',
+        'error_model  = ' + cfg.label.toLowerCase(),
+        '',
+        'Output:',
+        '  R1.fastq.gz  (forward)',
+        '  R2.fastq.gz  (reverse)',
+        '',
+        'Error profile:',
+        '  Position-dependent Q scores',
+        option === 'novaseq' ? '  Binned quality (4 bins)' : '  Full quality spectrum',
+      ];
+      lines.forEach(line => {
+        if (py > cY + areaH - 60) return;
+        if (line === '') { py += rGapH; return; }
+        ctx.fillText(line, pX, py);
+        py += rLineH;
+      });
+
+      // Mini quality curve — anchored to bottom
+      const qH = Math.min(30, areaH * 0.12);
+      const qY = cY + areaH - qH - 18;
+      const qW = rW - 24;
+      const qL = rX + 12, qB = qY + qH;
+
+      ctx.strokeStyle = colors.border;
+      ctx.lineWidth = 0.5;
+      ctx.beginPath();
+      ctx.moveTo(qL, qB);
+      ctx.lineTo(qL + qW, qB);
+      ctx.moveTo(qL, qY);
+      ctx.lineTo(qL, qB);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.strokeStyle = colors.accent;
+      ctx.lineWidth = 1.5;
+      for (let px = 0; px < qW; px++) {
+        const pos = px / qW;
+        let q = 35 - pos * 10 + Math.sin(px * 0.15) * 1.5;
+        if (option === 'novaseq') q = Math.round(q / 8) * 8;
+        const y = qB - (q / 40) * qH;
+        if (px === 0) ctx.moveTo(qL + px, y); else ctx.lineTo(qL + px, y);
+      }
+      ctx.stroke();
+
+      ctx.font = '10px "JetBrains Mono", monospace';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'right';
+      ctx.fillText('Q35', qL - 2, qY + 5);
+      ctx.fillText('Q20', qL - 2, qB - 2);
+      ctx.textAlign = 'center';
+      ctx.fillText('Read position', qL + qW / 2, qB + 10);
+
+    } else if (option === 'pacbio') {
+      ctx.font = '11px -apple-system, sans-serif';
+      ctx.fillStyle = colors.accent;
+      ctx.textAlign = 'center';
+      ctx.fillText('PBSIM3 + CCS simulation', rX + rW / 2, cY + 12);
+
+      ctx.font = '10px "JetBrains Mono", monospace';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'left';
+      const pX = rX + sp.pad;
+      let py = cY + 28;
+      const lines = [
+        'Simulator: PBSIM3 → pbccs',
+        '',
+        'mean_length  = 15,000 bp',
+        'n_passes     = 10',
+        'clr_error    = 15%',
+        'hifi_accuracy= >99.9%',
+        '',
+        'Pipeline:',
+        '  1. PBSIM3 generates CLR',
+        '  2. samtools → BAM',
+        '  3. pbccs consensus call',
+        '',
+        'Error cancellation:',
+        '  random errors differ',
+        '  across passes → >Q40',
+        '',
+        'ViroForge adds:',
+        '  • GC/length bias from amp',
+        '  • Contamination injection',
+        '  • Source labeling in header',
+      ];
+      lines.forEach(line => {
+        if (py > cY + areaH - 4) return;
+        if (line === '') { py += rGapH; return; }
+        ctx.fillText(line, pX, py);
+        py += rLineH;
+      });
+
+    } else if (option === 'nanopore') {
+      ctx.font = '11px -apple-system, sans-serif';
+      ctx.fillStyle = colors.accent;
+      ctx.textAlign = 'center';
+      ctx.fillText('PBSIM3 Nanopore model', rX + rW / 2, cY + 12);
+
+      ctx.font = '10px "JetBrains Mono", monospace';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'left';
+      const pX = rX + sp.pad;
+      let py = cY + 28;
+      const lines = [
+        'Simulator: PBSIM3 (ONT mode)',
+        '',
+        'chemistry    = R10.4',
+        'mean_length  = 20,000 bp',
+        'error_rate   = 5%',
+        'hp_del_bias  = 6',
+        '',
+        'Error model:',
+        '  Homopolymer deletions 6×',
+        '  more likely than random',
+        '',
+        'Length distribution:',
+        '  Log-normal, mean 20 kb',
+        '  Range: 1 kb to 100+ kb',
+        '',
+        'ViroForge adds:',
+        '  • Contamination injection',
+        '  • source= header labels',
+        '  • Ground truth mapping',
+      ];
+      lines.forEach(line => {
+        if (py > cY + areaH - 4) return;
+        if (line === '') { py += rGapH; return; }
+        ctx.fillText(line, pX, py);
+        py += rLineH;
+      });
+    }
+    ctx.restore();
+
+    animFrame = requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+/* === ARTIFACTS ANIMATION === */
+function animateArtifacts(option, ctx, W, H, colors) {
+  let t = 0;
+  showLegend([]);
+
+  function draw() {
+    t++;
+    ctx.clearRect(0, 0, W, H);
+    const sp = drawSplitPanel(ctx, W, H, colors);
+    const lW = sp.midX - sp.pad * 2, rX = sp.midX + sp.pad, rW = W - sp.midX - sp.pad * 2;
+    const cY = sp.contentY;
+    const areaH = H - cY - 10;
+    const progress = Math.min(1, t / 200);
+
+    if (option === 'adapters') {
+      // ===== LEFT: Lab — how adapter read-through happens =====
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(sp.pad, cY, lW, areaH);
+      ctx.clip();
+
+      ctx.font = '12px -apple-system, sans-serif';
+      ctx.fillStyle = colors.textSec;
+      ctx.textAlign = 'center';
+      ctx.fillText('Adapter Read-Through', sp.pad + lW / 2, cY + 14);
+
+      // Normal insert
+      const fY = cY + 32;
+      ctx.font = '11px -apple-system, sans-serif';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'left';
+      ctx.fillText('Normal insert (350 bp):', 14, fY);
+
+      const normY = fY + 10;
+      const normL = 14, normR = sp.pad + lW - 6;
+      const normW = normR - normL;
+      const adpW = normW * 0.06;
+
+      ctx.fillStyle = colors.warm + '50';
+      ctx.fillRect(normL, normY, adpW, 10);
+      ctx.fillStyle = colors.muted + '20';
+      ctx.fillRect(normL + adpW, normY, normW - adpW * 2, 10);
+      ctx.fillStyle = colors.warm + '50';
+      ctx.fillRect(normR - adpW, normY, adpW, 10);
+
+      // R1 and R2
+      const rFrac = 150 / 350;
+      const r1W = (normW - adpW * 2) * rFrac;
+      const rProg = Math.min(1, progress * 2.5);
+      ctx.fillStyle = colors.accent;
+      ctx.fillRect(normL + adpW, normY + 14, r1W * rProg, 7);
+      ctx.fillStyle = colors.accent + 'A0';
+      ctx.fillRect(normR - adpW - r1W * rProg, normY + 14, r1W * rProg, 7);
+      if (rProg > 0.3) {
+        ctx.font = '12px "JetBrains Mono", monospace';
+        ctx.fillStyle = colors.accent;
+        ctx.textAlign = 'left';
+        ctx.fillText('R1→', normL + adpW, normY + 12);
+        ctx.textAlign = 'right';
+        ctx.fillText('←R2', normR - adpW, normY + 12);
+        ctx.textAlign = 'right';
+        ctx.fillStyle = colors.textTer;
+        ctx.fillText('OK', normR + 1, normY + 22);
+      }
+
+      // Short insert — read-through
+      const sY = normY + 34;
+      ctx.font = '11px -apple-system, sans-serif';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'left';
+      ctx.fillText('Short insert (100 bp) — read-through:', 14, sY);
+
+      const sInsert = normW * (100 / 350);
+      const sL = 14 + normW * 0.2;
+      ctx.fillStyle = colors.warm + '40';
+      ctx.fillRect(sL - adpW, sY + 10, adpW, 10);
+      ctx.fillStyle = colors.muted + '15';
+      ctx.fillRect(sL, sY + 10, sInsert, 10);
+      ctx.fillStyle = colors.warm + '40';
+      ctx.fillRect(sL + sInsert, sY + 10, adpW, 10);
+
+      // Read extending into adapter
+      const sProg = Math.min(1, Math.max(0, progress * 2.5 - 0.3));
+      if (sProg > 0) {
+        const readPx = (normW - adpW * 2) * rFrac * sProg;
+        const dnaPart = Math.min(readPx, sInsert);
+        const adpPart = Math.max(0, readPx - sInsert);
+        ctx.fillStyle = colors.accent;
+        ctx.fillRect(sL, sY + 24, dnaPart, 7);
+        if (adpPart > 0) {
+          ctx.fillStyle = colors.warm;
+          ctx.fillRect(sL + sInsert, sY + 24, adpPart, 7);
+        }
+        if (adpPart > 5) {
+          ctx.font = '12px "JetBrains Mono", monospace';
+          ctx.fillStyle = colors.warm;
+          ctx.textAlign = 'left';
+          ctx.fillText('adapter in read!', sL + sInsert + adpPart + 4, sY + 30);
+        }
+      }
+
+      // Why it matters
+      const whyY = sY + 50;
+      ctx.font = '11px -apple-system, sans-serif';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'left';
+      const whys = [
+        'Insert sizes follow a normal',
+        'distribution. The left tail',
+        '(insert < read length) creates',
+        'reads that extend into adapters.',
+        '',
+        'QC tools (fastp, Trimmomatic)',
+        'detect and trim these sequences.',
+      ];
+      whys.forEach((w, i) => {
+        if (w === '') return;
+        ctx.fillText(w, sp.pad, whyY + i * 18);
+      });
+
+      ctx.restore();
+
+      // ===== RIGHT: ViroForge model =====
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(rX, cY, rW, areaH);
+      ctx.clip();
+
+      const aRLineH = Math.min(13, areaH / 24);
+      const aRGapH = Math.min(4, aRLineH * 0.3);
+
+      ctx.font = '11px -apple-system, sans-serif';
+      ctx.fillStyle = colors.accent;
+      ctx.textAlign = 'center';
+      ctx.fillText('Insert size distribution model', rX + rW / 2, cY + 12);
+
+      ctx.font = '10px "JetBrains Mono", monospace';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'center';
+      ctx.fillText('insert ~ N(350, 50²)', rX + rW / 2, cY + 24);
+
+      // Distribution curve
+      const curveL = rX + 16, curveR = rX + rW - 8;
+      const curveW = curveR - curveL;
+      const curveT = cY + areaH * 0.12, curveB = cY + areaH * 0.40;
+      const curveH = curveB - curveT;
+      const minI = 50, maxI = 600, mu = 350, sig = 50;
+
+      ctx.strokeStyle = colors.border;
+      ctx.lineWidth = 0.5;
+      ctx.beginPath();
+      ctx.moveTo(curveL, curveB);
+      ctx.lineTo(curveR, curveB);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.strokeStyle = colors.accent;
+      ctx.lineWidth = 1.5;
+      for (let px = 0; px < curveW; px++) {
+        const ins = minI + (px / curveW) * (maxI - minI);
+        const p = Math.exp(-Math.pow(ins - mu, 2) / (2 * sig * sig));
+        const y = curveB - p * (curveH - 6);
+        if (px === 0) ctx.moveTo(curveL + px, y); else ctx.lineTo(curveL + px, y);
+      }
+      ctx.stroke();
+
+      // Read-through zone
+      const rtPx = curveL + ((150 - minI) / (maxI - minI)) * curveW;
+      ctx.fillStyle = colors.warm + '15';
+      ctx.fillRect(curveL, curveT, rtPx - curveL, curveH);
+      ctx.strokeStyle = colors.warm + '70';
+      ctx.setLineDash([2, 2]);
+      ctx.beginPath();
+      ctx.moveTo(rtPx, curveT);
+      ctx.lineTo(rtPx, curveB);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.font = '9px "JetBrains Mono", monospace';
+      ctx.fillStyle = colors.warm;
+      ctx.textAlign = 'center';
+      ctx.fillText('read-through', (curveL + rtPx) / 2, curveT + curveH * 0.5);
+
+      const muPx = curveL + ((mu - minI) / (maxI - minI)) * curveW;
+      ctx.fillStyle = colors.textTer;
+      ctx.fillText('μ=350', muPx, curveT - 3);
+
+      ctx.font = '9px "JetBrains Mono", monospace';
+      ctx.fillStyle = colors.textTer;
+      [100, 300, 500].forEach(v => {
+        const px = curveL + ((v - minI) / (maxI - minI)) * curveW;
+        ctx.fillText(v + '', px, curveB + 9);
+      });
+
+      // Parameters
+      const paramY = cY + areaH * 0.48;
+      ctx.font = '10px "JetBrains Mono", monospace';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'left';
+      const pX = rX + sp.pad;
+      const params = [
+        '--adapter-rate  0.05',
+        '--adapter-type  truseq',
+        '',
+        'Rate is emergent from',
+        'insert size left tail.',
+        '',
+        'Adapter sequences:',
+        '  TruSeq (11 sequences)',
+        '  Nextera (chimeric)',
+        '',
+        'Output: manifest TSV',
+      ];
+      let py = paramY;
+      params.forEach(line => {
+        if (py > cY + areaH - 4) return;
+        if (line === '') { py += aRGapH; return; }
+        ctx.fillText(line, pX, py);
+        py += aRLineH;
+      });
+
+      ctx.restore();
+
+    } else if (option === 'duplicates') {
+      // ===== LEFT: Lab — PCR creates duplicates =====
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(sp.pad, cY, lW, areaH);
+      ctx.clip();
+
+      ctx.font = '12px -apple-system, sans-serif';
+      ctx.fillStyle = colors.textSec;
+      ctx.textAlign = 'center';
+      ctx.fillText('PCR Duplicate Formation', sp.pad + lW / 2, cY + 14);
+
+      // Template + copies
+      const tY = cY + 34;
+      ctx.fillStyle = colors.accent;
+      ctx.fillRect(14, tY, lW - 20, 7);
+      ctx.font = '12px "JetBrains Mono", monospace';
+      ctx.fillStyle = colors.accent;
+      ctx.textAlign = 'left';
+      ctx.fillText('Original template', sp.pad, tY - 3);
+
+      const copyProg = Math.min(1, progress * 3);
+      const nCyc = Math.min(3, Math.floor(copyProg * 3.5));
+      const dupRng = mulberry32(55);
+      let total = 0;
+      const copyY = tY + 14;
+
+      for (let c = 0; c < nCyc; c++) {
+        const nNew = Math.min(Math.pow(2, c), 4);
+        for (let j = 0; j < nNew; j++) {
+          total++;
+          const cy = copyY + (total - 1) * 11;
+          if (cy > tY + 70) continue;
+          const alpha = Math.max(30, 80 - c * 15);
+          ctx.fillStyle = colors.warm + alpha.toString(16).padStart(2, '0');
+          ctx.fillRect(14 + c * 4, cy, lW - 20 - c * 4, 5);
+
+          const errRng = mulberry32(c * 100 + j);
+          for (let e = 0; e < c; e++) {
+            const ex = 14 + c * 4 + errRng() * (lW - 30 - c * 4);
+            ctx.fillStyle = '#e05555';
+            ctx.fillRect(ex, cy, 2, 5);
+          }
+        }
+      }
+
+      if (nCyc > 0) {
+        ctx.font = '12px -apple-system, sans-serif';
+        ctx.fillStyle = '#e05555';
+        ctx.textAlign = 'left';
+        ctx.fillText('Red = PCR errors (~0.1%/base/cycle)', 14, copyY + Math.min(total, 6) * 11 + 6);
+      }
+
+      // Why biased
+      const biasY = tY + 100;
+      ctx.font = '11px -apple-system, sans-serif';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'left';
+      const biasLines = [
+        'Not all templates duplicate equally:',
+        '',
+        '• 50% GC templates amplify best',
+        '• Shorter fragments amplify more',
+        '• Bridge amplification favors',
+        '  certain binding efficiencies',
+        '',
+        'This creates systematic bias in',
+        'coverage depth, not just noise.',
+      ];
+      biasLines.forEach((l, i) => {
+        if (l === '') return;
+        ctx.fillText(l, sp.pad, biasY + i * 18);
+      });
+
+      ctx.restore();
+
+      // ===== RIGHT: ViroForge model =====
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(rX, cY, rW, areaH);
+      ctx.clip();
+
+      const dRLineH = Math.min(13, areaH / 24);
+      const dRGapH = Math.min(4, dRLineH * 0.3);
+
+      ctx.font = '11px -apple-system, sans-serif';
+      ctx.fillStyle = colors.accent;
+      ctx.textAlign = 'center';
+      ctx.fillText('Geometric copy distribution', rX + rW / 2, cY + 12);
+
+      ctx.font = '10px "JetBrains Mono", monospace';
+      ctx.fillStyle = colors.textTer;
+      ctx.fillText('P(k copies) = 0.5^k', rX + rW / 2, cY + 24);
+
+      // Bar chart — zone 1: 10-30%
+      const geoL = rX + 20, geoR = rX + rW - 10;
+      const geoT = cY + areaH * 0.12, geoB = cY + areaH * 0.30;
+      const geoH = geoB - geoT;
+      const copies = [1, 2, 3, 4, 5];
+      const probs = copies.map(k => Math.pow(0.5, k));
+      const barW = Math.min(14, (geoR - geoL) / copies.length - 4);
+      const barProg = Math.min(1, Math.max(0, progress * 2.5 - 0.3));
+
+      ctx.strokeStyle = colors.border;
+      ctx.lineWidth = 0.5;
+      ctx.beginPath();
+      ctx.moveTo(geoL, geoB);
+      ctx.lineTo(geoR, geoB);
+      ctx.stroke();
+
+      copies.forEach((k, i) => {
+        const bx = geoL + 6 + i * ((geoR - geoL) / copies.length);
+        const bh = (probs[i] / probs[0]) * geoH * barProg;
+        ctx.fillStyle = colors.accent + '70';
+        ctx.fillRect(bx, geoB - bh, barW, bh);
+        ctx.font = '9px "JetBrains Mono", monospace';
+        ctx.fillStyle = colors.textTer;
+        ctx.textAlign = 'center';
+        ctx.fillText(k + '', bx + barW / 2, geoB + 9);
+        if (barProg > 0.5) {
+          ctx.fillStyle = colors.accent;
+          ctx.fillText((probs[i] * 100).toFixed(0) + '%', bx + barW / 2, geoB - bh - 3);
+        }
+      });
+      ctx.font = '9px "JetBrains Mono", monospace';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'center';
+      ctx.fillText('# copies', (geoL + geoR) / 2, geoB + 18);
+
+      // GC bias curve — zone 2: 36-60%
+      const gcY2 = cY + areaH * 0.36;
+      ctx.font = '10px -apple-system, sans-serif';
+      ctx.fillStyle = colors.warm;
+      ctx.textAlign = 'left';
+      ctx.fillText('Template selection bias:', rX + 10, gcY2);
+
+      ctx.font = '10px "JetBrains Mono", monospace';
+      ctx.fillStyle = colors.textTer;
+      ctx.fillText('GC: Gaussian(0.50, 0.15²)', rX + 10, gcY2 + 12);
+
+      // Mini GC curve
+      const gcMiniL = rX + 10, gcMiniR = rX + rW - 10;
+      const gcMiniW = gcMiniR - gcMiniL;
+      const gcMiniT = gcY2 + 18, gcMiniH = Math.min(22, areaH * 0.08);
+
+      if (barProg > 0.3) {
+        ctx.beginPath();
+        ctx.strokeStyle = colors.warm + '70';
+        ctx.lineWidth = 1.5;
+        for (let px = 0; px < gcMiniW; px++) {
+          const gc = 0.25 + (px / gcMiniW) * 0.50;
+          const w = Math.exp(-Math.pow(gc - 0.50, 2) / (2 * 0.15 * 0.15));
+          const y = gcMiniT + gcMiniH - w * gcMiniH;
+          if (px === 0) ctx.moveTo(gcMiniL + px, y); else ctx.lineTo(gcMiniL + px, y);
+        }
+        ctx.stroke();
+
+        ctx.font = '9px "JetBrains Mono", monospace';
+        ctx.fillStyle = colors.textTer;
+        ctx.textAlign = 'center';
+        ctx.fillText('30%', gcMiniL + gcMiniW * 0.1, gcMiniT + gcMiniH + 8);
+        ctx.fillText('50%', gcMiniL + gcMiniW * 0.5, gcMiniT + gcMiniH + 8);
+        ctx.fillText('70%', gcMiniL + gcMiniW * 0.9, gcMiniT + gcMiniH + 8);
+      }
+
+      // Length bias + params — zone 3: 65-100%
+      const lenY2 = cY + areaH * 0.65;
+      ctx.font = '10px "JetBrains Mono", monospace';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'left';
+      ctx.fillText('Length: max(0.3,', rX + 10, lenY2);
+      ctx.fillText('  1.0-(len-100)/500)', rX + 10, lenY2 + dRLineH);
+
+      const pX = rX + sp.pad;
+      const params = [
+        '--duplicate-rate  0.05',
+        'pcr_error_rate = 0.001',
+        '',
+        'Output: manifest TSV',
+      ];
+      let py = lenY2 + dRLineH * 2 + dRGapH;
+      params.forEach(line => {
+        if (py > cY + areaH - 4) return;
+        if (line === '') { py += dRGapH; return; }
+        ctx.fillText(line, pX, py);
+        py += dRLineH;
+      });
+
+      ctx.restore();
+
+    } else {
+      // Low complexity — split panel
+      // ===== LEFT: Lab — what low-complexity reads are =====
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(sp.pad, cY, lW, areaH);
+      ctx.clip();
+
+      ctx.font = '12px -apple-system, sans-serif';
+      ctx.fillStyle = colors.textSec;
+      ctx.textAlign = 'center';
+      ctx.fillText('Low-Complexity Reads', sp.pad + lW / 2, cY + 14);
+
+      ctx.font = '11px -apple-system, sans-serif';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'left';
+      ctx.fillText('Real sequencing runs produce', sp.pad, cY + 30);
+      ctx.fillText('reads with repetitive sequence:', sp.pad, cY + 42);
+
+      const types = [
+        { name: 'Homopolymer', seq: 'AAAAAAAAAAAA', entropy: '0.0' },
+        { name: 'Dinucleotide', seq: 'ATATATATATATAT', entropy: '0.5' },
+        { name: 'Simple repeat', seq: 'ATGATGATGATG', entropy: '0.8' },
+        { name: 'Low entropy', seq: 'AATGAATGAATC', entropy: '1.2' },
+      ];
+      const baseColors = { A: '#4CAF50', T: '#F44336', G: '#FFC107', C: '#2196F3' };
+
+      types.forEach((tp, i) => {
+        const y = cY + 60 + i * 42;
+        ctx.font = '11px "JetBrains Mono", monospace';
+        ctx.fillStyle = colors.textTer;
+        ctx.textAlign = 'left';
+        ctx.fillText(tp.name, sp.pad, y);
+
+        const seqProg = Math.min(1, (t - i * 15) / 60);
+        if (seqProg > 0) {
+          const chars = tp.seq.substring(0, Math.floor(seqProg * tp.seq.length));
+          ctx.font = '11px "JetBrains Mono", monospace';
+          let cx = 14;
+          for (const ch of chars) {
+            ctx.fillStyle = baseColors[ch] || colors.text;
+            ctx.fillText(ch, cx, y + 14);
+            cx += 8;
+          }
+          ctx.font = '11px "JetBrains Mono", monospace';
+          ctx.fillStyle = colors.textTer;
+          ctx.fillText('H=' + tp.entropy, cx + 4, y + 14);
+        }
+      });
+
+      ctx.font = '11px -apple-system, sans-serif';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'left';
+      ctx.fillText('Sources: polymerase slippage,', sp.pad, cY + areaH - 30);
+      ctx.fillText('tandem repeats, signal noise', sp.pad, cY + areaH - 18);
+
+      ctx.restore();
+
+      // ===== RIGHT: ViroForge model =====
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(rX, cY, rW, areaH);
+      ctx.clip();
+
+      const lcRLineH = Math.min(13, areaH / 24);
+      const lcRGapH = Math.min(4, lcRLineH * 0.3);
+
+      ctx.font = '11px -apple-system, sans-serif';
+      ctx.fillStyle = colors.accent;
+      ctx.textAlign = 'center';
+      ctx.fillText('Entropy-controlled injection', rX + rW / 2, cY + 12);
+
+      ctx.font = '10px "JetBrains Mono", monospace';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'left';
+      const pX = rX + sp.pad;
+      let py = cY + 28;
+      const lines = [
+        '--low-complexity-rate 0.02',
+        '--entropy-range 0.3-0.7',
+        '',
+        'Shannon entropy H measures',
+        'sequence randomness:',
+        '  H = 0.0  pure repeat',
+        '  H = 2.0  random sequence',
+        '',
+        'Gray-zone reads (H=0.3-0.7)',
+        'test complexity filter',
+        'threshold sensitivity.',
+        '',
+        'Generation modes:',
+        '  • Homopolymer runs',
+        '  • Dinucleotide repeats',
+        '  • Simple sequence repeats',
+        '  • Controlled-entropy mix',
+        '',
+        'Output: manifest TSV',
+      ];
+      lines.forEach(line => {
+        if (py > cY + areaH - 4) return;
+        if (line === '') { py += lcRGapH; return; }
+        ctx.fillText(line, pX, py);
+        py += lcRLineH;
+      });
+
+      ctx.restore();
+    }
+
+    animFrame = requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+/* === COLLECTION ANIMATION === */
+function animateCollection(option, ctx, W, H, colors) {
+  showLegend([]);
+  let t = 0;
+
+  const COLLECTIONS = [
+    { id: 1, name: 'Gut (Western Diet)', genomes: 134, cat: 'body', host: 5, rrna: 3, reagent: 0.5, phix: 0.1, bact: 70, fungal: 2, arch: 2 },
+    { id: 2, name: 'Oral (Saliva)', genomes: 47, cat: 'body', host: 10, rrna: 4, reagent: 0.5, phix: 0.1, bact: 65, fungal: 1, arch: 0.5 },
+    { id: 3, name: 'Skin (Sebaceous)', genomes: 15, cat: 'body', host: 15, rrna: 3, reagent: 1, phix: 0.1, bact: 25, fungal: 3, arch: 0 },
+    { id: 4, name: 'Respiratory (Nasopharynx)', genomes: 43, cat: 'body', host: 20, rrna: 4, reagent: 0.5, phix: 0.1, bact: 25, fungal: 0.5, arch: 0 },
+    { id: 5, name: 'Marine (Coastal)', genomes: 445, cat: 'env', host: 0.05, rrna: 5, reagent: 0.5, phix: 0.1, bact: 75, fungal: 0.5, arch: 2 },
+    { id: 6, name: 'Soil (Agricultural)', genomes: 290, cat: 'env', host: 0.05, rrna: 4, reagent: 0.5, phix: 0.1, bact: 80, fungal: 5, arch: 2 },
+    { id: 7, name: 'Freshwater (Lake)', genomes: 200, cat: 'env', host: 0.05, rrna: 5, reagent: 0.5, phix: 0.1, bact: 70, fungal: 0.5, arch: 0.5 },
+    { id: 8, name: 'Mouse Gut (C57BL/6)', genomes: 22, cat: 'body', host: 3, rrna: 3, reagent: 0.5, phix: 0.1, bact: 70, fungal: 2, arch: 2 },
+    { id: 9, name: 'Wastewater (Urban)', genomes: 352, cat: 'env', host: 1, rrna: 8, reagent: 0.5, phix: 0.1, bact: 75, fungal: 2, arch: 3 },
+    { id: 10, name: 'IBD Gut Virome', genomes: 90, cat: 'disease', host: 5, rrna: 3, reagent: 0.5, phix: 0.1, bact: 70, fungal: 2, arch: 1 },
+    { id: 11, name: 'HIV+ Gut Virome', genomes: 55, cat: 'disease', host: 5, rrna: 3, reagent: 0.5, phix: 0.1, bact: 70, fungal: 3, arch: 2 },
+    { id: 12, name: 'CF Respiratory', genomes: 79, cat: 'disease', host: 25, rrna: 5, reagent: 0.5, phix: 0.1, bact: 55, fungal: 2, arch: 0 },
+    { id: 13, name: 'Respiratory RNA', genomes: 53, cat: 'rna', host: 15, rrna: 10, reagent: 0.5, phix: 0.1, bact: 0, fungal: 0, arch: 0 },
+    { id: 14, name: 'Arbovirus (Mosquito)', genomes: 39, cat: 'rna', host: 0.05, rrna: 8, reagent: 0.5, phix: 0.1, bact: 0, fungal: 0, arch: 0 },
+    { id: 15, name: 'Fecal RNA', genomes: 46, cat: 'rna', host: 5, rrna: 12, reagent: 0.5, phix: 0.1, bact: 0, fungal: 0, arch: 0 },
+    { id: 16, name: 'Vaginal (Healthy)', genomes: 26, cat: 'body', host: 20, rrna: 3, reagent: 0.5, phix: 0.1, bact: 60, fungal: 3, arch: 0 },
+    { id: 17, name: 'Blood/Plasma', genomes: 21, cat: 'body', host: 40, rrna: 0.5, reagent: 1, phix: 0.1, bact: 1, fungal: 0.1, arch: 0 },
+    { id: 18, name: 'Ocular Surface', genomes: 17, cat: 'body', host: 15, rrna: 2, reagent: 2, phix: 0.1, bact: 10, fungal: 0.5, arch: 0 },
+    { id: 19, name: 'Lung (Lower Resp.)', genomes: 31, cat: 'body', host: 25, rrna: 4, reagent: 1, phix: 0.1, bact: 20, fungal: 1, arch: 0 },
+    { id: 20, name: 'Urinary', genomes: 20, cat: 'body', host: 10, rrna: 3, reagent: 1, phix: 0.1, bact: 30, fungal: 0.5, arch: 0 },
+  ];
+  COLLECTIONS.forEach(c => {
+    const totalVirome = 100 - c.host - c.rrna - c.reagent - c.phix - c.bact - c.fungal - c.arch;
+    c.darkmatter = totalVirome * 0.30;
+    c.viral = totalVirome - c.darkmatter;
+  });
+  const maxGenomes = Math.max(...COLLECTIONS.map(c => c.genomes));
+  const catColors = { body: colors.accent, env: colors.phix, disease: colors.warm, rna: colors.rrna };
+
+  let selectedIdx = -1;
+  let detailAnim = 0;
+  let contamLevel = 'realistic';
+  const contamLevels = [
+    { id: 'clean', label: 'Clean', mult: 0.25 },
+    { id: 'realistic', label: 'Realistic', mult: 1 },
+    { id: 'heavy', label: 'Heavy', mult: 2.5 },
+  ];
+  const scaledKeys = ['host', 'rrna', 'reagent', 'phix'];
+
+  function getScaled(c) {
+    const mult = contamLevels.find(l => l.id === contamLevel).mult;
+    const sc = {};
+    compKeys.forEach(key => {
+      if (key === 'viral' || key === 'darkmatter') return;
+      sc[key] = scaledKeys.includes(key) ? Math.min(c[key] * mult, 100) : c[key];
+    });
+    const totalContam = Object.values(sc).reduce((a, b) => a + b, 0);
+    const totalVirome = Math.max(0, 100 - totalContam);
+    sc.darkmatter = totalVirome * 0.30;
+    sc.viral = totalVirome - sc.darkmatter;
+    return sc;
+  }
+
+  // Click handler
+  const canvas = ctx.canvas;
+  const hitStartY = 38;
+  const hitRowH = (H - hitStartY - 30) / 20;
+  const btnH = 20;
+  const btnRowY = 24 + 22;
+
+  function onCanvasClick(e) {
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+
+    const detailOpen = selectedIdx >= 0;
+    const panelX = W * 0.50;
+    const listW = detailOpen ? W * 0.48 : W;
+
+    // If clicking inside the detail panel, only respond to contamination buttons
+    if (detailOpen && mx >= panelX - 6) {
+      ctx.font = '11px "JetBrains Mono", monospace';
+      const prefW = ctx.measureText('Contamination: ').width + 4;
+      ctx.font = '12px "JetBrains Mono", monospace';
+      let bx = panelX + prefW;
+      for (const lev of contamLevels) {
+        const bw = ctx.measureText(lev.label + ' (' + lev.mult + '×)').width + 18;
+        if (mx >= bx && mx <= bx + bw && my >= btnRowY && my <= btnRowY + btnH) {
+          contamLevel = lev.id;
+          detailAnim = Math.max(detailAnim, 0.5);
+          return;
+        }
+        bx += bw + 6;
+      }
+      return;
+    }
+
+    // Collection rows — only in left panel area
+    for (let i = 0; i < 20; i++) {
+      const y = hitStartY + i * hitRowH;
+      if (my >= y && my <= y + hitRowH && mx >= 0 && mx <= listW) {
+        selectedIdx = (selectedIdx === i) ? -1 : i;
+        detailAnim = 0;
+        contamLevel = 'realistic';
+        break;
+      }
+    }
+  }
+  canvas.addEventListener('click', onCanvasClick);
+  function onCanvasMove(e) {
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    let hit = false;
+    for (let i = 0; i < 20; i++) {
+      const y = hitStartY + i * hitRowH;
+      if (my >= y && my <= y + hitRowH) { hit = true; break; }
+    }
+    if (!hit && selectedIdx >= 0 && my >= btnRowY && my <= btnRowY + btnH && mx >= W * 0.50) hit = true;
+    canvas.style.cursor = hit ? 'pointer' : 'default';
+  }
+  canvas.addEventListener('mousemove', onCanvasMove);
+  canvas._collClickHandler = onCanvasClick;
+  canvas._collMoveHandler = onCanvasMove;
+
+  const compColors = {
+    viral: colors.viral,
+    darkmatter: '#1a5566',
+    bact: colors.bacteria,
+    host: colors.host,
+    rrna: colors.rrna,
+    fungal: '#8d6e3f',
+    arch: '#5a7a3a',
+    reagent: colors.muted,
+    phix: colors.phix,
+  };
+  const compLabels = {
+    viral: 'Viral (classified)', darkmatter: 'Viral (dark matter)', bact: 'Bacterial', host: 'Host DNA', rrna: 'rRNA',
+    fungal: 'Fungal', arch: 'Archaeal', reagent: 'Reagent', phix: 'PhiX',
+  };
+  const compKeys = ['viral', 'darkmatter', 'bact', 'host', 'rrna', 'fungal', 'arch', 'reagent', 'phix'];
+
+  function draw() {
+    t++;
+    ctx.clearRect(0, 0, W, H);
+    const progress = Math.min(1, t / 100);
+
+      // Split layout: left = collection list, right = detail panel
+      const detailOpen = selectedIdx >= 0;
+      const listW = detailOpen ? W * 0.48 : W;
+
+      ctx.font = '11px "JetBrains Mono", monospace';
+      ctx.fillStyle = colors.textSec;
+      ctx.textAlign = 'center';
+      ctx.fillText(detailOpen ? 'Click a collection' : '20 Curated Virome Collections — click any bar', listW / 2, 22);
+
+      const barMaxW = (detailOpen ? listW * 0.38 : W * 0.36);
+      const labelX = detailOpen ? listW * 0.52 : W * 0.42;
+      const barX = labelX + 10;
+      const startY = 38;
+      const rowH = (H - startY - 30) / 20;
+      const barH = Math.max(10, rowH - 6);
+
+      COLLECTIONS.forEach((c, i) => {
+        const y = startY + i * rowH;
+        const barW = barMaxW * (c.genomes / maxGenomes) * progress;
+        const cc = catColors[c.cat] || colors.accent;
+        const isSelected = i === selectedIdx;
+
+        if (isSelected) {
+          ctx.fillStyle = colors.accent + '18';
+          ctx.fillRect(0, y - 2, listW, rowH);
+        }
+
+        ctx.font = '11px "JetBrains Mono", monospace';
+        ctx.fillStyle = isSelected ? colors.accent : colors.textTer;
+        ctx.textAlign = 'right';
+        ctx.fillText(String(c.id).padStart(2, ' '), 22, y + barH * 0.75);
+
+        ctx.font = '11px -apple-system, sans-serif';
+        ctx.fillStyle = isSelected ? colors.accent : colors.text;
+        ctx.textAlign = 'right';
+        ctx.fillText(c.name, labelX, y + barH * 0.75);
+
+        ctx.fillStyle = cc;
+        ctx.globalAlpha = isSelected ? 1 : 0.7;
+        ctx.fillRect(barX, y, barW, barH);
+        ctx.globalAlpha = 1;
+
+        if (barW > 5) {
+          ctx.font = '11px "JetBrains Mono", monospace';
+          ctx.fillStyle = colors.textTer;
+          ctx.textAlign = 'left';
+          ctx.fillText(c.genomes, barX + barW + 6, y + barH * 0.75);
+        }
+      });
+
+      // Category legend at bottom left
+      const legY = H - 10;
+      const cats = [['Body-site', 'body'], ['Environmental', 'env'], ['Disease', 'disease'], ['RNA', 'rna']];
+      let legX = 10;
+      ctx.font = '11px -apple-system, sans-serif';
+      cats.forEach(([label, key]) => {
+        ctx.fillStyle = catColors[key];
+        ctx.fillRect(legX, legY - 8, 10, 10);
+        ctx.fillStyle = colors.textTer;
+        ctx.textAlign = 'left';
+        ctx.fillText(label, legX + 14, legY);
+        legX += ctx.measureText(label).width + 28;
+      });
+
+      // Detail panel on the right
+      if (detailOpen) {
+        detailAnim = Math.min(1, detailAnim + 0.05);
+        const c = COLLECTIONS[selectedIdx];
+        const panelX = W * 0.50;
+        const panelW = W * 0.48;
+
+        // Divider
+        ctx.strokeStyle = colors.border || colors.textTer + '30';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(panelX - 6, 32);
+        ctx.lineTo(panelX - 6, H - 20);
+        ctx.stroke();
+
+        // Layout positions for detail panel
+        const titleY = 24;
+        const btnRowY = titleY + 22;
+        const subtitleY = btnRowY + btnH + 12;
+        const stackY = subtitleY + 16;
+        const stackH = 28;
+
+        // Title
+        ctx.font = '11px "JetBrains Mono", monospace';
+        ctx.fillStyle = colors.accent;
+        ctx.textAlign = 'left';
+        ctx.fillText(c.name, panelX, titleY);
+
+        // Contamination level toggle buttons
+        const curMult = contamLevels.find(l => l.id === contamLevel);
+        ctx.font = '11px "JetBrains Mono", monospace';
+        ctx.fillStyle = colors.textTer;
+        ctx.textAlign = 'left';
+        ctx.fillText('Contamination:', panelX, btnRowY + btnH * 0.65);
+        let bx = panelX + ctx.measureText('Contamination: ').width + 4;
+        contamLevels.forEach(lev => {
+          ctx.font = '12px "JetBrains Mono", monospace';
+          const bLabel = lev.label + ' (' + lev.mult + '×)';
+          const bw = ctx.measureText(bLabel).width + 18;
+          const isActive = lev.id === contamLevel;
+          if (isActive) {
+            ctx.fillStyle = colors.accent;
+            ctx.globalAlpha = 0.15;
+            ctx.fillRect(bx, btnRowY, bw, btnH);
+            ctx.globalAlpha = 1;
+          }
+          ctx.strokeStyle = isActive ? colors.accent : (colors.border || colors.textTer + '40');
+          ctx.lineWidth = 1;
+          ctx.strokeRect(bx, btnRowY, bw, btnH);
+          ctx.fillStyle = isActive ? colors.accent : colors.textSec;
+          ctx.textAlign = 'center';
+          ctx.fillText(bLabel, bx + bw / 2, btnRowY + btnH * 0.65);
+          bx += bw + 6;
+        });
+
+        // Compute scaled composition
+        const sc = getScaled(c);
+
+        // Subtitle
+        ctx.font = '11px "JetBrains Mono", monospace';
+        ctx.fillStyle = colors.textTer;
+        ctx.textAlign = 'left';
+        ctx.fillText(c.genomes + ' genomes | Prep-quality contaminants scale by ' + curMult.mult + '×', panelX, subtitleY);
+        const stackW = panelW - 20;
+        let sx = panelX;
+
+        compKeys.forEach(key => {
+          const pct = sc[key];
+          if (pct <= 0) return;
+          const segW = stackW * (pct / 100) * detailAnim;
+          ctx.fillStyle = compColors[key];
+          ctx.globalAlpha = 0.85;
+          ctx.fillRect(sx, stackY, segW, stackH);
+          ctx.globalAlpha = 1;
+          sx += segW;
+        });
+
+        // Border around stack
+        ctx.strokeStyle = colors.border || colors.textTer + '40';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(panelX, stackY, stackW * detailAnim, stackH);
+
+        // Percentage labels inside bar
+        sx = panelX;
+        ctx.font = '12px "JetBrains Mono", monospace';
+        ctx.textAlign = 'center';
+        compKeys.forEach(key => {
+          const pct = sc[key];
+          if (pct <= 0) return;
+          const segW = stackW * (pct / 100) * detailAnim;
+          if (segW > 32) {
+            ctx.fillStyle = '#fff';
+            ctx.globalAlpha = detailAnim;
+            ctx.fillText(pct.toFixed(pct >= 1 ? 0 : 1) + '%', sx + segW / 2, stackY + stackH / 2 + 4);
+            ctx.globalAlpha = 1;
+          }
+          sx += segW;
+        });
+
+        // Legend rows below the bar
+        const legStartY = stackY + stackH + 18;
+        const legColW = panelW * 0.5;
+        compKeys.forEach((key, i) => {
+          const pct = sc[key];
+          if (pct <= 0.01) return;
+          const col = i < 5 ? 0 : 1;
+          const row = i < 5 ? i : i - 5;
+          const lx = panelX + col * legColW;
+          const ly = legStartY + row * 18;
+          const ap = Math.min(1, detailAnim * 3 - i * 0.15);
+          if (ap <= 0) return;
+          ctx.globalAlpha = ap;
+
+          ctx.fillStyle = compColors[key];
+          ctx.fillRect(lx, ly - 7, 10, 10);
+
+          ctx.font = '11px -apple-system, sans-serif';
+          ctx.fillStyle = colors.text;
+          ctx.textAlign = 'left';
+          ctx.fillText(compLabels[key], lx + 16, ly + 2);
+
+          ctx.font = '11px "JetBrains Mono", monospace';
+          ctx.fillStyle = colors.textTer;
+          const isScaledKey = scaledKeys.includes(key);
+          const labelOffsetX = (key === 'darkmatter' || key === 'viral') ? 130 : 85;
+          ctx.fillText(pct.toFixed(pct >= 1 ? 1 : 2) + '%' + (isScaledKey && contamLevel !== 'realistic' ? ' (' + curMult.mult + '×)' : ''), lx + labelOffsetX, ly + 2);
+          ctx.globalAlpha = 1;
+        });
+
+        // Note
+        const noteY = legStartY + 5 * 18 + 10;
+        if (detailAnim > 0.8) {
+          ctx.globalAlpha = (detailAnim - 0.8) * 5;
+          ctx.font = '11px -apple-system, sans-serif';
+          ctx.fillStyle = colors.textTer;
+          ctx.textAlign = 'left';
+          ctx.fillText('Dark matter = unclassified viral sequences (--dark-matter-fraction 0.30)', panelX, noteY);
+          ctx.fillText('Host/rRNA/reagent/PhiX scale by level; bacterial/fungal/archaeal do not', panelX, noteY + 16);
+          ctx.globalAlpha = 1;
+        }
+      }
+
+    animFrame = requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+/* === OUTPUT ANIMATION === */
+function animateOutput(option, ctx, W, H, colors) {
+  showLegend([]);
+  let t = 0;
+
+  function draw() {
+    t++;
+    ctx.clearRect(0, 0, W, H);
+
+    if (option === 'fastq') {
+      ctx.font = '11px "JetBrains Mono", monospace';
+      ctx.fillStyle = colors.textSec;
+      ctx.textAlign = 'center';
+      ctx.fillText('FASTQ Output with Per-Read Labels', W / 2, 24);
+
+      const lines = [
+        { text: '@NC_001422.1_42_1/1 source=phix', hl: 'source=phix', hlColor: colors.phix },
+        { text: 'ATGAAAGCAATTATTGCTGAAACTGCTGCTCTG', hl: null },
+        { text: '+', hl: null },
+        { text: 'FFFFFFFFFFFFFFFFFFFFFFFFFFFF:FFFF', hl: null },
+        { text: '@GCF_000819615_108_2/1 source=viral', hl: 'source=viral', hlColor: colors.viral },
+        { text: 'GCTAACGATCGTAAGCTTGATCGTAAGCTTGAT', hl: null },
+        { text: '@T2T_chr1_55_1/1 source=host_dna', hl: 'source=host_dna', hlColor: colors.host },
+        { text: 'CAGGTGCAGCTGGTGCAGTCTGGGGCTGAGGTG', hl: null },
+      ];
+
+      const startY = 50;
+      lines.forEach((line, i) => {
+        const progress = Math.min(1, (t - i * 8) / 40);
+        if (progress <= 0) return;
+        const y = startY + i * 22;
+        ctx.font = '11px "JetBrains Mono", monospace';
+        ctx.globalAlpha = progress;
+        ctx.fillStyle = colors.text;
+        const visText = line.text.substring(0, Math.floor(progress * line.text.length));
+        ctx.textAlign = 'left';
+        ctx.fillText(visText, 30, y);
+
+        if (line.hl && progress > 0.8) {
+          const hlIdx = line.text.indexOf(line.hl);
+          const beforeW = ctx.measureText(line.text.substring(0, hlIdx)).width;
+          const hlW = ctx.measureText(line.hl).width;
+          ctx.fillStyle = line.hlColor + '30';
+          ctx.fillRect(30 + beforeW - 2, y - 12, hlW + 4, 16);
+          ctx.fillStyle = line.hlColor;
+          ctx.fillText(line.hl, 30 + beforeW, y);
+        }
+        ctx.globalAlpha = 1;
+      });
+    } else if (option === 'metadata') {
+      ctx.font = '11px "JetBrains Mono", monospace';
+      ctx.fillStyle = colors.textSec;
+      ctx.textAlign = 'center';
+      ctx.fillText('Metadata JSON (ground truth)', W / 2, 24);
+
+      const jsonLines = [
+        '{',
+        '  "collection": "IBD Gut Virome",',
+        '  "n_reads": 1000000,',
+        '  "platform": "novaseq",',
+        '  "enrichment_stats": {',
+        '    "viral_enrichment": 14.2,',
+        '    "host_reduction": 0.98',
+        '  },',
+        '  "benchmarking": {',
+        '    "expected_coverage": [...],',
+        '    "taxonomy": [...]',
+        '  }',
+        '}',
+      ];
+
+      jsonLines.forEach((line, i) => {
+        const progress = Math.min(1, (t - i * 6) / 30);
+        if (progress <= 0) return;
+        ctx.globalAlpha = progress;
+        ctx.font = '11px "JetBrains Mono", monospace';
+        ctx.fillStyle = colors.text;
+        ctx.textAlign = 'left';
+        ctx.fillText(line, 40, 50 + i * 18);
+        ctx.globalAlpha = 1;
+      });
+    } else {
+      ctx.font = '11px "JetBrains Mono", monospace';
+      ctx.fillStyle = colors.textSec;
+      ctx.textAlign = 'center';
+      ctx.fillText('Manifest Files', W / 2, 24);
+
+      const files = [
+        { name: 'adapter_manifest.tsv', desc: 'Read ID, adapter type, position' },
+        { name: 'duplicate_manifest.tsv', desc: 'Original read, copy count, errors' },
+        { name: 'lowcomplex_manifest.tsv', desc: 'Read ID, entropy, repeat type' },
+        { name: 'contamination_manifest.tsv', desc: 'Source, count, percentage' },
+        { name: 'composition.tsv', desc: 'Genome ID, abundance, reads, family' },
+      ];
+
+      files.forEach((f, i) => {
+        const y = 55 + i * 48;
+        const progress = Math.min(1, (t - i * 15) / 40);
+        if (progress <= 0) return;
+        ctx.globalAlpha = progress;
+
+        ctx.fillStyle = colors.field || colors.border + '20';
+        ctx.fillRect(40, y - 6, W - 80, 38);
+        ctx.font = '11px "JetBrains Mono", monospace';
+        ctx.fillStyle = colors.accent;
+        ctx.textAlign = 'left';
+        ctx.fillText(f.name, 52, y + 10);
+        ctx.font = '12px -apple-system, sans-serif';
+        ctx.fillStyle = colors.textTer;
+        ctx.fillText(f.desc, 52, y + 26);
+
+        ctx.globalAlpha = 1;
+      });
+    }
+    animFrame = requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+/* === REPORT ANIMATION === */
+function animateReport(ctx, W, H, colors) {
+  showLegend([]);
+  let t = 0;
+
+  function draw() {
+    t++;
+    ctx.clearRect(0, 0, W, H);
+
+    ctx.font = '11px "JetBrains Mono", monospace';
+    ctx.fillStyle = colors.textSec;
+    ctx.textAlign = 'center';
+    ctx.fillText('Auto-Generated HTML Diagnostic Report', W / 2, 24);
+
+    const plots = [
+      { name: 'Composition Pie', x: 0, y: 0 },
+      { name: 'VLP Before/After', x: 1, y: 0 },
+      { name: 'Family Distribution', x: 2, y: 0 },
+      { name: 'Rank-Abundance', x: 3, y: 0 },
+      { name: 'GC Histogram', x: 0, y: 1 },
+      { name: 'Length vs Abundance', x: 1, y: 1 },
+      { name: 'Contamination Table', x: 2, y: 1 },
+      { name: 'Artifact Summary', x: 3, y: 1 },
+    ];
+
+    const gridW = (W - 60) / 4, gridH = (H - 80) / 2;
+    const rng = mulberry32(33);
+
+    plots.forEach((p, i) => {
+      const progress = Math.min(1, (t - i * 18) / 50);
+      if (progress <= 0) return;
+      const px = 20 + p.x * gridW, py = 45 + p.y * gridH;
+
+      ctx.globalAlpha = progress;
+      ctx.fillStyle = colors.field || colors.border + '15';
+      ctx.fillRect(px + 4, py + 4, gridW - 8, gridH - 8);
+      ctx.strokeStyle = colors.border;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(px + 4, py + 4, gridW - 8, gridH - 8);
+
+      // Mini chart placeholder
+      ctx.fillStyle = colors.accent + '60';
+      if (i < 4) {
+        for (let b = 0; b < 5; b++) {
+          const bh = rng() * (gridH * 0.5) * progress;
+          ctx.fillRect(px + 14 + b * 18, py + gridH - 18 - bh, 12, bh);
+        }
+      } else {
+        ctx.beginPath();
+        ctx.strokeStyle = colors.accent;
+        ctx.lineWidth = 1.5;
+        for (let x = 0; x < 6; x++) {
+          const lx = px + 14 + x * 18;
+          const ly = py + 20 + rng() * gridH * 0.4;
+          if (x === 0) ctx.moveTo(lx, ly); else ctx.lineTo(lx, ly);
+        }
+        ctx.stroke();
+      }
+
+      ctx.font = '11px "JetBrains Mono", monospace';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'center';
+      ctx.fillText(p.name, px + gridW / 2, py + gridH - 4);
+      ctx.globalAlpha = 1;
+    });
+
+    animFrame = requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+/* === BENCHMARK ANIMATION === */
+function animateBenchmark(option, ctx, W, H, colors) {
+  showLegend([]);
+  let t = 0;
+  const rng = mulberry32(88);
+
+  function draw() {
+    t++;
+    ctx.clearRect(0, 0, W, H);
+
+    const titles = {
+      qc: 'QC Benchmark: Contamination Removal Accuracy',
+      assembly: 'Assembly Benchmark: Genome Recovery',
+      taxonomy: 'Taxonomy Benchmark: Classification Accuracy'
+    };
+    ctx.font = '11px "JetBrains Mono", monospace';
+    ctx.fillStyle = colors.textSec;
+    ctx.textAlign = 'center';
+    ctx.fillText(titles[option] || '', W / 2, 24);
+
+    if (option === 'qc') {
+      const metrics = [
+        { name: 'Viral Retention', value: 0.97, target: 0.97 },
+        { name: 'Host Removal', value: 0.98, target: 0.98 },
+        { name: 'rRNA Removal', value: 0.95, target: 0.95 },
+        { name: 'PhiX Removal', value: 0.99, target: 0.99 },
+        { name: 'Duplicate Removal', value: 0.92, target: 0.92 },
+      ];
+
+      metrics.forEach((m, i) => {
+        const progress = Math.min(1, (t - i * 15) / 60);
+        if (progress <= 0) return;
+        const y = 55 + i * 46;
+        const barW = W * 0.5;
+
+        ctx.font = '12px "JetBrains Mono", monospace';
+        ctx.fillStyle = colors.textSec;
+        ctx.textAlign = 'right';
+        ctx.fillText(m.name, W * 0.28, y + 10);
+
+        // Background bar
+        ctx.fillStyle = colors.field || colors.border + '20';
+        ctx.fillRect(W * 0.3, y, barW, 16);
+
+        // Value bar
+        const filledW = barW * m.value * progress;
+        ctx.fillStyle = m.value > 0.9 ? colors.accent : colors.warm;
+        ctx.fillRect(W * 0.3, y, filledW, 16);
+
+        // Percentage
+        ctx.fillStyle = colors.text;
+        ctx.textAlign = 'left';
+        ctx.fillText((m.value * 100 * progress).toFixed(1) + '%', W * 0.3 + barW + 8, y + 12);
+      });
+
+    } else if (option === 'assembly') {
+      const genomes = [];
+      for (let i = 0; i < 12; i++) {
+        genomes.push({ completeness: 0.3 + rng() * 0.7, identity: 0.95 + rng() * 0.05 });
+      }
+
+      const plotL = W * 0.15, plotR = W * 0.85, plotT = 50, plotB = H - 50;
+      // Axes
+      ctx.strokeStyle = colors.border;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(plotL, plotT); ctx.lineTo(plotL, plotB); ctx.lineTo(plotR, plotB);
+      ctx.stroke();
+
+      ctx.font = '11px "JetBrains Mono", monospace';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'center';
+      ctx.fillText('Completeness (%)', (plotL + plotR) / 2, plotB + 30);
+      ctx.save();
+      ctx.translate(plotL - 30, (plotT + plotB) / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText('Identity (%)', 0, 0);
+      ctx.restore();
+
+      genomes.forEach((g, i) => {
+        const progress = Math.min(1, (t - i * 8) / 40);
+        if (progress <= 0) return;
+        const x = plotL + g.completeness * (plotR - plotL) * progress;
+        const y = plotB - (g.identity - 0.9) / 0.1 * (plotB - plotT) * progress;
+        ctx.globalAlpha = progress;
+        ctx.beginPath();
+        ctx.arc(x, y, 5, 0, Math.PI * 2);
+        ctx.fillStyle = g.completeness > 0.8 ? colors.accent : colors.warm;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      });
+
+    } else {
+      // Taxonomy
+      const ranks = ['Exact TaxID', 'Genus', 'Family'];
+      const values = [0.72, 0.85, 0.93];
+
+      ranks.forEach((r, i) => {
+        const progress = Math.min(1, (t - i * 18) / 60);
+        if (progress <= 0) return;
+        const y = 70 + i * 70;
+
+        ctx.font = '11px "JetBrains Mono", monospace';
+        ctx.fillStyle = colors.textSec;
+        ctx.textAlign = 'right';
+        ctx.fillText(r, W * 0.25, y + 12);
+
+        const barW = W * 0.5;
+        ctx.fillStyle = colors.field || colors.border + '20';
+        ctx.fillRect(W * 0.28, y, barW, 20);
+
+        ctx.fillStyle = colors.accent;
+        ctx.fillRect(W * 0.28, y, barW * values[i] * progress, 20);
+
+        ctx.fillStyle = colors.text;
+        ctx.textAlign = 'left';
+        ctx.fillText((values[i] * 100 * progress).toFixed(1) + '%', W * 0.28 + barW + 8, y + 14);
+      });
+
+      ctx.font = '12px -apple-system, sans-serif';
+      ctx.fillStyle = colors.textTer;
+      ctx.textAlign = 'center';
+      ctx.fillText('Auto-detects: Kraken2, Centrifuge, DIAMOND, MMseqs2, Kaiju, generic', W / 2, H - 20);
+    }
+
+    animFrame = requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+/* Info cards */
+function renderInfo(stepId, option) {}
+
+/* Seeded PRNG */
+function mulberry32(a) {
+  return function() {
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    var t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  }
+}
+</script>
+
+</body></html>

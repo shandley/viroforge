@@ -391,6 +391,12 @@ LIMIT 10"
   sieving so this may be right, but it has not been checked against literature.
 - `--contamination-level failed` exists in `LEVEL_MULTIPLIERS` but neither CLI
   parser accepts it.
+- Amplification (MDA/RdAB) adjusts relative abundances between genomes but
+  does not model intra-genome coverage unevenness. Read Simulation samples
+  positions uniformly across the full reference. Real MDA produces uneven
+  coverage (over-represented near primer binding sites, gaps elsewhere),
+  which breaks contigs during assembly. This makes ViroForge's assembly
+  benchmarks optimistic relative to real amplified data.
 
 **Benchmarking framework**: Module 5 (completeness across coverage), HTML reports
 and visualizations, then Modules 3 and 6-9. See `ROADMAP.md`.

@@ -489,6 +489,25 @@ sqlite3 viroforge/data/viral_genomes.db \
 - Impact on QC benchmarking: none (QC tools process reads the same regardless of dark
   matter origin). Body-site specificity only matters for taxonomy benchmarking.
 
+**Amplification: Uniform Intra-Genome Coverage (Known Simplification)**
+- In real MDA/RdAB amplification, coverage within a genome is uneven — regions
+  near primer binding sites are over-represented, while regions where primers
+  don't bind well have low or no coverage. This creates coverage gaps that
+  break contigs during assembly.
+- ViroForge does not model this. Amplification only adjusts the relative
+  abundance table between genomes (GC bias, length bias). Read Simulation
+  then samples positions uniformly across the full reference genome,
+  giving every position an equal chance of being covered.
+- Impact on QC benchmarking: none (QC tools process reads independently).
+- Impact on assembly benchmarking: ViroForge's uniform coverage makes assembly
+  easier than real MDA-amplified data. Tools may score better on synthetic data
+  than on real data where coverage gaps break contigs.
+- Impact on taxonomy benchmarking: minor — if diagnostic marker regions are
+  systematically under-covered by MDA in reality, a classifier might miss
+  genomes in real data but detect them in ViroForge's evenly-covered synthetic data.
+- Future improvement: weight read sampling positions by local GC content and
+  primer binding affinity to model intra-genome coverage unevenness.
+
 ---
 
 ## Recent Bug Fixes (2025-11-16)
