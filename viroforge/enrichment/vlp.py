@@ -63,11 +63,31 @@ class VirionSizeEstimator:
         'unknown': {'a': 25, 'b': -45, 'variance': 20}  # Conservative estimate
     }
 
+    # Giant viruses (>500 kb) have known diameters that the log-linear model
+    # underestimates. Use direct lookup by genome name prefix when available,
+    # otherwise extrapolate with a steeper slope above 500 kb.
+    GIANT_VIRUS_DIAMETERS = {
+        'Pandoravirus': (1000, 50),       # ~1000 nm (Philippe et al. 2013)
+        'Mimivirus': (450, 40),           # ~450 nm (La Scola et al. 2003)
+        'Acanthamoeba polyphaga mimivirus': (450, 40),
+        'Megavirus': (440, 40),           # ~440 nm (Arslan et al. 2011)
+        'Moumouvirus': (420, 35),         # ~420 nm
+        'Powai lake megavirus': (440, 40),
+        'Mollivirus': (600, 50),          # ~600 nm (Legendre et al. 2015)
+        'Pithovirus': (1500, 100),        # ~1500 nm length (Legendre et al. 2014)
+        'Cafeteria roenbergensis virus': (300, 30),  # ~300 nm
+        'Bodo saltans virus': (300, 30),  # ~300 nm
+        'Cotonvirus': (400, 40),          # estimated
+        'Tetraselmis virus': (200, 25),   # ~200 nm
+        'Prymnesium kappa virus': (160, 20),  # ~160 nm (Johannessen et al. 2015)
+    }
+
     def estimate_size(
         self,
         genome_length: int,
         genome_type: str = 'dsDNA',
-        rng: Optional[np.random.Generator] = None
+        rng: Optional[np.random.Generator] = None,
+        genome_name: Optional[str] = None
     ) -> VirionSizeEstimate:
         """
         Estimate virion diameter from genome length and type
@@ -76,33 +96,50 @@ class VirionSizeEstimator:
             genome_length: Genome length in base pairs
             genome_type: Genome type (dsDNA, ssDNA, dsRNA, ssRNA, etc.)
             rng: Optional random number generator for reproducibility
+            genome_name: Optional genome name for giant virus lookup
 
         Returns:
             VirionSizeEstimate with diameter, volume, and confidence
         """
-        # Get relationship parameters
-        if genome_type not in self.SIZE_RELATIONSHIPS:
-            genome_type = 'unknown'
-            confidence = 'low'
+        # Check giant virus lookup first (>500 kb dsDNA)
+        giant_match = None
+        if genome_length > 500000 and genome_name:
+            for prefix, (mean_d, var_d) in self.GIANT_VIRUS_DIAMETERS.items():
+                if genome_name.startswith(prefix):
+                    giant_match = (mean_d, var_d)
+                    break
+
+        if giant_match:
+            mean_d, var_d = giant_match
+            diameter_nm = mean_d
+            if rng is not None:
+                diameter_nm += rng.normal(0, var_d * 0.3)
+            else:
+                diameter_nm += np.random.normal(0, var_d * 0.3)
+            diameter_nm = max(100, min(2000, diameter_nm))
+            confidence = 'high'
         else:
-            # dsDNA/ssDNA have most empirical data (tailed phages, microviruses)
-            # RNA viruses have more variable morphologies
-            confidence = 'high' if genome_type in ['dsDNA', 'ssDNA'] else 'medium'
+            # Get relationship parameters
+            if genome_type not in self.SIZE_RELATIONSHIPS:
+                genome_type = 'unknown'
+                confidence = 'low'
+            else:
+                confidence = 'high' if genome_type in ['dsDNA', 'ssDNA'] else 'medium'
 
-        params = self.SIZE_RELATIONSHIPS[genome_type]
+            params = self.SIZE_RELATIONSHIPS[genome_type]
 
-        # Calculate base diameter
-        log_length = np.log10(genome_length)
-        diameter_nm = params['a'] * log_length + params['b']
+            # Calculate base diameter
+            log_length = np.log10(genome_length)
+            diameter_nm = params['a'] * log_length + params['b']
 
-        # Add stochastic variation
-        if rng is not None:
-            diameter_nm += rng.normal(0, params['variance'] * 0.3)
-        else:
-            diameter_nm += np.random.normal(0, params['variance'] * 0.3)
+            # Add stochastic variation
+            if rng is not None:
+                diameter_nm += rng.normal(0, params['variance'] * 0.3)
+            else:
+                diameter_nm += np.random.normal(0, params['variance'] * 0.3)
 
-        # Ensure reasonable bounds
-        diameter_nm = max(15, min(500, diameter_nm))  # 15 nm (small ssDNA) to 500 nm (giant viruses)
+            # Ensure reasonable bounds
+            diameter_nm = max(15, min(500, diameter_nm))
 
         # Calculate volume (assume spherical or icosahedral, close to spherical)
         volume_nm3 = (4/3) * np.pi * (diameter_nm/2)**3
@@ -517,7 +554,8 @@ class VLPEnrichment:
                 size_est = self.size_estimator.estimate_size(
                     genome['length'],
                     genome.get('genome_type', 'dsDNA'),
-                    rng=self.rng
+                    rng=self.rng,
+                    genome_name=genome.get('genome_name')
                 )
                 size_estimates.append(size_est)
 
@@ -554,7 +592,8 @@ class VLPEnrichment:
                 size_est = self.size_estimator.estimate_size(
                     genome['length'],
                     genome.get('genome_type', 'dsDNA'),
-                    rng=self.rng
+                    rng=self.rng,
+                    genome_name=genome.get('genome_name')
                 )
                 size_estimates.append(size_est)
 

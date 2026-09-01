@@ -35,7 +35,7 @@ class QualityFilter:
     def __init__(
         self,
         min_length: int = 1000,
-        max_length: int = 500000,
+        max_length: int = 3000000,
         min_gc: float = 0.15,
         max_gc: float = 0.75,
         allowed_genome_types: Optional[List[str]] = None
@@ -475,8 +475,8 @@ Examples:
     parser.add_argument(
         '--max-length',
         type=int,
-        default=500000,
-        help='Maximum genome length (bp) (default: 500000)'
+        default=3000000,
+        help='Maximum genome length (bp) (default: 3000000)'
     )
 
     parser.add_argument(

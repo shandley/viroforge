@@ -199,11 +199,11 @@ class DatabaseQC:
         if very_short > 0:
             issues.append(f"{very_short} genomes < 1kb")
 
-        # Very long genomes (potential assembly artifacts)
-        cursor = conn.execute("SELECT COUNT(*) FROM genomes WHERE length > 500000")
+        # Very long genomes (potential assembly artifacts, excluding giant viruses)
+        cursor = conn.execute("SELECT COUNT(*) FROM genomes WHERE length > 3000000")
         very_long = cursor.fetchone()[0]
         if very_long > 0:
-            issues.append(f"{very_long} genomes > 500kb")
+            issues.append(f"{very_long} genomes > 3Mb")
 
         # Extreme GC content
         cursor = conn.execute("""
