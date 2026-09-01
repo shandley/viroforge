@@ -308,6 +308,93 @@ def _per_rank_metrics(items, tree, ranks) -> dict:
     return out
 
 
+def _provenance_stratification(items_with_provenance) -> dict | None:
+    """Stratify taxonomy results by genome provenance.
+
+    items_with_provenance: list of (assigned_taxid, true_taxid, is_known, provenance).
+    Returns provenance metrics only if any non-isolate genomes exist.
+    """
+    by_prov: dict[str, dict] = {}
+    for assigned, true_taxid, is_known, prov in items_with_provenance:
+        if prov not in by_prov:
+            by_prov[prov] = {"correct": 0, "unclassified": 0, "misclassified": 0}
+        s = by_prov[prov]
+        if assigned is None:
+            s["unclassified"] += 1
+        elif assigned == true_taxid:
+            s["correct"] += 1
+        else:
+            s["misclassified"] += 1
+
+    non_isolate = {k: v for k, v in by_prov.items() if k != "isolate"}
+    if not non_isolate:
+        return None
+
+    out = {}
+    for prov, s in sorted(by_prov.items()):
+        out[prov] = _stratum_metrics(s)
+    return out
+
+
+PROVENANCE_GUIDANCE = {
+    "prophage": {
+        "context": "Prophage genomes are integrated in bacterial chromosomes. "
+                   "In a real bulk metagenome, these reads look like bacterial DNA.",
+        "if_classified_viral": "A classifier calling prophage reads 'viral' is "
+                               "sequence-correct but context-wrong: in a VLP-enriched "
+                               "sample most prophages remain in bacterial cells and "
+                               "should not appear. Consider filtering prophage-derived "
+                               "contigs by checking for bacterial flanking regions or "
+                               "using tools like VIBRANT/CheckV to distinguish integrated "
+                               "from free phage.",
+        "if_classified_bacterial": "Calling prophage reads 'bacterial' is biologically "
+                                   "correct for bulk metagenomes. This is not a false "
+                                   "positive -- the reads genuinely come from a bacterial "
+                                   "chromosome.",
+    },
+    "provirus": {
+        "context": "Proviral genomes (e.g. HIV provirus) are retroviral DNA integrated "
+                   "in host cell chromosomes via reverse transcription.",
+        "if_classified_viral": "Sequence-level correct, but in a host-DNA-depleted "
+                               "sample most proviral DNA is removed with host DNA. "
+                               "High proviral read counts may indicate incomplete host "
+                               "depletion rather than active viral particles.",
+        "if_classified_bacterial": "Unexpected -- proviral sequences are eukaryotic, not "
+                                   "bacterial. May indicate database contamination or "
+                                   "homology-based misassignment.",
+    },
+    "endogenous": {
+        "context": "Endogenous retroviruses (ERVs) are ancient proviral insertions "
+                   "inherited in the host germline (~8% of the human genome).",
+        "if_classified_viral": "Sequence-correct but misleading: ERV reads come from "
+                               "the host genome, not from active viral particles. "
+                               "They should be removed during host DNA depletion. "
+                               "Consider adding ERV-aware filtering (e.g., mapping "
+                               "against a repeat-masked host reference) or using "
+                               "RepeatMasker annotations to flag ERV-derived reads.",
+        "if_classified_bacterial": "Incorrect -- ERVs are eukaryotic host sequences. "
+                                   "Suggests the classifier's database lacks ERV "
+                                   "representation.",
+    },
+    "satellite": {
+        "context": "Satellite viruses depend on a helper virus for replication "
+                   "and are often co-purified with their helper.",
+        "if_classified_viral": "Correct -- satellite viruses are genuine viral entities. "
+                               "However, their presence implies the helper virus should "
+                               "also be present; check for it.",
+        "if_classified_bacterial": "Incorrect -- satellites are viral, not bacterial.",
+    },
+    "viroid": {
+        "context": "Viroids are small circular RNA molecules (~250-400 nt) that "
+                   "infect plants. They have no protein coat and are not true viruses.",
+        "if_classified_viral": "Taxonomically debatable -- viroids are subviral agents, "
+                               "not viruses. Some databases include them; others exclude "
+                               "them. Note this in results interpretation.",
+        "if_classified_bacterial": "Incorrect -- viroids infect plants, not bacteria.",
+    },
+}
+
+
 def benchmark_taxonomy(
     assignments: dict[str, int | None],
     taxonomy_gt: dict,
@@ -323,6 +410,7 @@ def benchmark_taxonomy(
         ranks: taxonomic ranks to score when a tree is given.
     """
     items = []
+    items_with_provenance = []
     non_viral = 0
     for rid, assigned in assignments.items():
         gt = taxonomy_gt.get(parse_genome_id(rid))
@@ -330,9 +418,14 @@ def benchmark_taxonomy(
             non_viral += 1
             continue
         items.append((assigned, gt.get("ncbi_taxid"), gt.get("is_known")))
+        items_with_provenance.append((
+            assigned, gt.get("ncbi_taxid"), gt.get("is_known"),
+            gt.get("genome_provenance", "isolate"),
+        ))
 
     core = _score(items, ncbi_tree, ranks)
-    return {
+    provenance = _provenance_stratification(items_with_provenance)
+    result = {
         "reliable": core["reliable"],
         "n_assignments": len(assignments),
         "n_viral_reads": core["n_viral"],
@@ -342,6 +435,9 @@ def benchmark_taxonomy(
         "per_rank": core["per_rank"],
         "abundance_profile": core["abundance_profile"],
     }
+    if provenance is not None:
+        result["provenance_stratification"] = provenance
+    return result
 
 
 def _score(items, ncbi_tree, ranks) -> dict:

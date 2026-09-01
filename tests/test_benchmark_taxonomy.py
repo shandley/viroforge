@@ -357,3 +357,78 @@ def test_cli_format_choices_match_the_registry():
             f"CLI choices {sorted(choices)} drifted from "
             f"FORMAT_CHOICES {sorted(FORMAT_CHOICES)}"
         )
+
+
+# ---- provenance stratification -----------------------------------------------
+
+TAX_GT_PROV = {
+    "K0": {"ncbi_taxid": 100, "is_known": True, "genome_provenance": "isolate"},
+    "K1": {"ncbi_taxid": 101, "is_known": True, "genome_provenance": "prophage"},
+    "D0": {"ncbi_taxid": 200, "is_known": False, "genome_provenance": "isolate"},
+    "E0": {"ncbi_taxid": 300, "is_known": True, "genome_provenance": "endogenous"},
+}
+
+
+def _prov_assignments():
+    a = {}
+    # K0 (isolate, taxid 100): 5 correct, 1 unclassified
+    for i in range(5):
+        a[f"K0_{i}_0/1"] = 100
+    a["K0_5_0/1"] = None
+    # K1 (prophage, taxid 101): 3 correct, 2 misclassified
+    for i in range(3):
+        a[f"K1_{i}_0/1"] = 101
+    a["K1_3_0/1"] = 999
+    a["K1_4_0/1"] = 888
+    # D0 (dark matter isolate, taxid 200): 2 unclassified
+    a["D0_0_0/1"] = None
+    a["D0_1_0/1"] = None
+    # E0 (endogenous, taxid 300): 1 correct, 1 unclassified
+    a["E0_0_0/1"] = 300
+    a["E0_1_0/1"] = None
+    return a
+
+
+def test_provenance_stratification():
+    r = benchmark_taxonomy(_prov_assignments(), TAX_GT_PROV)
+
+    prov = r.get("provenance_stratification")
+    assert prov is not None, "provenance_stratification missing from results"
+
+    assert "isolate" in prov
+    assert "prophage" in prov
+    assert "endogenous" in prov
+
+    # isolate: K0 (5 correct, 1 unclassified) + D0 (2 unclassified) = 8 reads
+    iso = prov["isolate"]
+    assert iso["n"] == 8
+    assert iso["correct"] == 5
+    assert iso["unclassified"] == 3
+
+    # prophage: K1 (3 correct, 2 misclassified) = 5 reads
+    pro = prov["prophage"]
+    assert pro["n"] == 5
+    assert pro["correct"] == 3
+    assert pro["misclassified"] == 2
+    assert pro["sensitivity"] == pytest.approx(0.6)
+
+    # endogenous: E0 (1 correct, 1 unclassified) = 2 reads
+    endo = prov["endogenous"]
+    assert endo["n"] == 2
+    assert endo["correct"] == 1
+    assert endo["unclassified"] == 1
+
+
+def test_no_provenance_when_all_isolate():
+    r = benchmark_taxonomy(_assignments(), TAX_GT)
+    assert "provenance_stratification" not in r
+
+
+def test_provenance_report_has_guidance():
+    from viroforge.benchmarking.report import taxonomy_to_markdown
+    r = benchmark_taxonomy(_prov_assignments(), TAX_GT_PROV)
+    md = taxonomy_to_markdown(r)
+    assert "Provenance stratification" in md
+    assert "prophage" in md.lower()
+    assert "endogenous" in md.lower()
+    assert "recommendations" in md.lower()

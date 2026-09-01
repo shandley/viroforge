@@ -133,6 +133,54 @@ def _num(x, nd=3):
     return "n/a" if x is None else f"{x:.{nd}f}"
 
 
+def _provenance_md(m: dict) -> list:
+    """Render provenance stratification section with actionable guidance."""
+    prov = m.get("provenance_stratification")
+    if not prov:
+        return []
+
+    from ..benchmarking.taxonomy import PROVENANCE_GUIDANCE
+
+    lines = [
+        "",
+        "## Provenance stratification",
+        "",
+        "Reads from genomes with non-isolate provenance (prophage, provirus, "
+        "endogenous, etc.) have ambiguous ground truth: the sequence is viral "
+        "but the biological context may be bacterial or host DNA.",
+        "",
+        "| provenance | reads | sensitivity | precision | unclassified | misclassified |",
+        "|---|---:|---:|---:|---:|---:|",
+    ]
+    for prov_type, s in sorted(prov.items()):
+        lines.append(
+            f"| {prov_type} | {s['n']:,} | {_pct(s['sensitivity'])} | "
+            f"{_pct(s['precision'])} | {_pct(s['unclassified_rate'])} | "
+            f"{s['misclassified']:,} |"
+        )
+    lines.append("")
+
+    non_isolate = {k: v for k, v in prov.items() if k != "isolate"}
+    if non_isolate:
+        lines += ["### Interpretation and recommendations", ""]
+        for prov_type, s in sorted(non_isolate.items()):
+            guide = PROVENANCE_GUIDANCE.get(prov_type, {})
+            classified = s["correct"] + s["misclassified"]
+            lines.append(f"**{prov_type}** ({s['n']:,} reads)")
+            if guide.get("context"):
+                lines.append(f"- {guide['context']}")
+            if classified > 0 and guide.get("if_classified_viral"):
+                lines.append(f"- {classified:,} reads classified: {guide['if_classified_viral']}")
+            if s["unclassified"] > 0:
+                lines.append(
+                    f"- {s['unclassified']:,} reads left unclassified "
+                    f"({_pct(s['unclassified_rate'])})"
+                )
+            lines.append("")
+
+    return lines
+
+
 def taxonomy_to_markdown(m: dict) -> str:
     lines = ["# Taxonomy Benchmark (read-based, taxid-exact)", ""]
     if not m.get("reliable", True):
@@ -194,6 +242,7 @@ def taxonomy_to_markdown(m: dict) -> str:
         f"- Pearson: {_num(ab['pearson'])}   Spearman: {_num(ab['spearman'])}   "
         f"mean abs error: {_num(ab['mean_abs_error'], 4)}",
     ]
+    lines += _provenance_md(m)
     return "\n".join(lines) + "\n"
 
 

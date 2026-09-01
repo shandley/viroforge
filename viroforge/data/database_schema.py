@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS genomes (
     genome_type TEXT NOT NULL,
     genome_structure TEXT,
     n_segments INTEGER DEFAULT 1,
+    genome_provenance TEXT NOT NULL DEFAULT 'isolate',
 
     -- Quality metrics
     assembly_level TEXT,
@@ -60,6 +61,7 @@ CREATE INDEX IF NOT EXISTS idx_genome_type ON genomes(genome_type);
 CREATE INDEX IF NOT EXISTS idx_length ON genomes(length);
 CREATE INDEX IF NOT EXISTS idx_gc_content ON genomes(gc_content);
 CREATE INDEX IF NOT EXISTS idx_source ON genomes(source_database);
+CREATE INDEX IF NOT EXISTS idx_provenance ON genomes(genome_provenance);
 """
 
 CREATE_TAXONOMY_TABLE = """

@@ -71,6 +71,10 @@ class CollectionLoader:
         if not self.db_path.exists():
             raise FileNotFoundError(f"Database not found: {db_path}")
 
+    def _has_provenance_column(self, conn: sqlite3.Connection) -> bool:
+        cursor = conn.execute("PRAGMA table_info(genomes)")
+        return any(row[1] == 'genome_provenance' for row in cursor.fetchall())
+
     def list_collections(self) -> List[Dict]:
         """List available collections."""
         conn = sqlite3.connect(self.db_path)
@@ -112,7 +116,9 @@ class CollectionLoader:
         collection_meta = dict(collection)
 
         # Get genomes with abundances
-        cursor = conn.execute("""
+        has_provenance = self._has_provenance_column(conn)
+        provenance_col = "g.genome_provenance," if has_provenance else ""
+        cursor = conn.execute(f"""
             SELECT
                 cg.genome_id,
                 cg.relative_abundance,
@@ -121,6 +127,7 @@ class CollectionLoader:
                 g.length,
                 g.gc_content,
                 g.genome_type,
+                {provenance_col}
                 g.sequence,
                 t.family,
                 t.genus,
@@ -133,6 +140,9 @@ class CollectionLoader:
         """, (collection_id,))
 
         genomes = [dict(row) for row in cursor.fetchall()]
+        if not has_provenance:
+            for g in genomes:
+                g['genome_provenance'] = 'isolate'
         conn.close()
 
         logger.info(f"Loaded collection '{collection_meta['collection_name']}' "
@@ -242,9 +252,12 @@ class CollectionLoader:
         selected_ids = random.Random(random_seed).sample(eligible_ids, n_to_select)
 
         sel_placeholders = ','.join('?' for _ in selected_ids)
+        has_provenance = self._has_provenance_column(conn)
+        provenance_col = "g.genome_provenance," if has_provenance else ""
         cursor = conn.execute(f"""
             SELECT g.genome_id, g.genome_name, g.length, g.gc_content,
-                   g.genome_type, g.sequence, t.family, t.genus, t.species
+                   g.genome_type, {provenance_col} g.sequence,
+                   t.family, t.genus, t.species
             FROM genomes g
             JOIN taxonomy t ON g.genome_id = t.genome_id
             WHERE g.genome_id IN ({sel_placeholders})
@@ -253,6 +266,8 @@ class CollectionLoader:
         dark_matter = []
         for row in cursor.fetchall():
             genome = dict(row)
+            if not has_provenance:
+                genome['genome_provenance'] = 'isolate'
             genome['relative_abundance'] = 0.0  # Will be set by caller
             genome['abundance_rank'] = 0
             genome['is_dark_matter'] = True
