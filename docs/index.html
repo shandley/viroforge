@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ViroForge — Interactive Docs</title>
+<style>
+:root {
+  --ink: #1a1d23;
+  --surface: #faf9f5;
+  --card-bg: #ffffff;
+  --accent: #2d7d9a;
+  --accent-hover: #236a84;
+  --warm: #c4643a;
+  --muted: #777a80;
+  --border: #e0dfda;
+  --field: #f0eeea;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #e8e6e1;
+    --surface: #1a1d23;
+    --card-bg: #23262e;
+    --accent: #4fafc8;
+    --accent-hover: #6cc4d8;
+    --warm: #d88a66;
+    --muted: #8a8d94;
+    --border: #333640;
+    --field: #2a2d35;
+  }
+}
+:root[data-theme="dark"] {
+  --ink: #e8e6e1;
+  --surface: #1a1d23;
+  --card-bg: #23262e;
+  --accent: #4fafc8;
+  --accent-hover: #6cc4d8;
+  --warm: #d88a66;
+  --muted: #8a8d94;
+  --border: #333640;
+  --field: #2a2d35;
+}
+:root[data-theme="light"] {
+  --ink: #1a1d23;
+  --surface: #faf9f5;
+  --card-bg: #ffffff;
+  --accent: #2d7d9a;
+  --accent-hover: #236a84;
+  --warm: #c4643a;
+  --muted: #777a80;
+  --border: #e0dfda;
+  --field: #f0eeea;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+  background: var(--surface);
+  color: var(--ink);
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.container {
+  max-width: 640px;
+  width: 100%;
+  padding: 60px 24px 80px;
+}
+
+.logo-mark {
+  font-family: "JetBrains Mono", "SF Mono", "Fira Code", monospace;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--accent);
+}
+.logo-mark span { color: var(--warm); }
+
+.tagline {
+  font-size: 15px;
+  color: var(--muted);
+  margin-top: 6px;
+  max-width: 48ch;
+}
+
+.cards {
+  margin-top: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+a.card {
+  display: block;
+  padding: 20px 22px;
+  background: var(--card-bg);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--ink);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+a.card:hover, a.card:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 2px 12px rgba(45, 125, 154, 0.1);
+  outline: none;
+}
+
+.card-label {
+  font-family: "JetBrains Mono", "SF Mono", "Fira Code", monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+.card-title {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.card-desc {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 4px;
+  line-height: 1.5;
+}
+
+.meta {
+  margin-top: 48px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.meta a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.meta a:hover { text-decoration: underline; }
+
+@media (max-width: 480px) {
+  .container { padding: 40px 16px 60px; }
+  .logo-mark { font-size: 24px; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="logo-mark">Viro<span>Forge</span></div>
+  <p class="tagline">Interactive documentation for the synthetic virome dataset generator</p>
+
+  <div class="cards">
+    <a class="card" href="pipeline_explorer.html">
+      <div class="card-label">Interactive</div>
+      <div class="card-title">Pipeline Explorer</div>
+      <div class="card-desc">Step through each stage of synthetic virome generation with animated demonstrations — from collection selection through VLP enrichment, amplification, sequencing, artifact injection, and benchmarking.</div>
+    </a>
+
+    <a class="card" href="SEQUENCING_GLOSSARY.html">
+      <div class="card-label">Reference</div>
+      <div class="card-title">Sequencing Glossary</div>
+      <div class="card-desc">Terminology reference for sequencing platforms, library preparation methods, and virome-specific concepts used throughout ViroForge.</div>
+    </a>
+  </div>
+
+  <div class="meta">
+    <a href="https://github.com/shandley/viroforge">GitHub Repository</a><br>
+    Handley Lab &middot; Washington University in St. Louis
+  </div>
+</div>
+
+</body>
+</html>
