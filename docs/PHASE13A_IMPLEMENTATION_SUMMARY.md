@@ -308,7 +308,7 @@ All logic tests passed:
 - ✓ Contamination manifest structure (7 required fields)
 - ✓ Metadata schema validation (v1.1 structure)
 - ✓ Expected coverage calculation (2 scenarios)
-- ✓ Long-read coverage calculation (PacBio/Nanopore)
+- ✓ Long-read coverage calculation (Nanopore)
 
 ### Integration Testing (Requires Full Environment)
 

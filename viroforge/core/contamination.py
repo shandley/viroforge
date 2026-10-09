@@ -57,6 +57,7 @@ class ContaminantType(Enum):
     BACTERIAL_BACKGROUND = "bacterial_background"
     FUNGAL_BACKGROUND = "fungal_background"
     ARCHAEAL_BACKGROUND = "archaeal_background"
+    DIETARY_BACKGROUND = "dietary_background"
     PHIX = "phix"
     ERV_ENDOGENOUS = "erv_endogenous"
     ERV_EXOGENOUS = "erv_exogenous"
@@ -872,6 +873,41 @@ ARCHAEAL_COMMUNITY_PROFILES: Dict[str, Dict] = {
     'wastewater': {'gc_content': 35.3, 'genera': ['Methanosarcina', 'Methanobrevibacter']},
 }
 
+# Dietary background. Food-derived nucleic acids that survive digestion and
+# appear in gut viromes/metagenomes. The dominant signal is plant viruses:
+# PMMoV (pepper mild mottle virus) is the most abundant RNA virus in human
+# stool globally, at up to 10^9 copies/g (Zhang et al. 2006; Rosario et al.
+# 2009). ToMV and TBSV are also commonly detected. Beyond plant viruses,
+# chloroplast DNA from leafy greens and mitochondrial DNA from meat contribute
+# a low-level food background. The profiles below are diet-type-specific:
+# a plant-based diet yields more plant virus reads, while a Western diet with
+# less produce yields less.
+#
+# gc_content values are from representative plant virus genomes until a
+# dietary_fragments.fasta is built and measured. PMMoV ~41% GC, ToMV ~40% GC.
+DIETARY_COMMUNITY_PROFILES: Dict[str, Dict] = {
+    'western': {
+        'gc_content': 41.0,
+        'genera': ['Tobamovirus', 'Tombusvirus'],
+        'description': 'Low fruit/vegetable intake; modest plant virus carriage',
+    },
+    'mediterranean': {
+        'gc_content': 41.0,
+        'genera': ['Tobamovirus', 'Tombusvirus', 'Potyvirus'],
+        'description': 'High fruit, vegetable, olive oil; moderate plant virus load',
+    },
+    'plant_based': {
+        'gc_content': 41.5,
+        'genera': ['Tobamovirus', 'Tombusvirus', 'Potyvirus'],
+        'description': 'Vegan/vegetarian; highest plant virus diversity and load',
+    },
+    'high_fiber': {
+        'gc_content': 41.2,
+        'genera': ['Tobamovirus', 'Potyvirus'],
+        'description': 'Agrarian/high-fiber diet; moderate-high plant virus load',
+    },
+}
+
 # Everything needed to generate one domain of microbial background. Keeps the
 # three domains from being three near-identical copies of the same 120 lines.
 MICROBIAL_BACKGROUNDS: Dict[str, Dict] = {
@@ -892,6 +928,12 @@ MICROBIAL_BACKGROUNDS: Dict[str, Dict] = {
         'profiles': ARCHAEAL_COMMUNITY_PROFILES,
         'resolver': 'get_archaeal_fragments_path',
         'label': 'archaeal background',
+    },
+    'dietary': {
+        'type': ContaminantType.DIETARY_BACKGROUND,
+        'profiles': DIETARY_COMMUNITY_PROFILES,
+        'resolver': 'get_dietary_fragments_path',
+        'label': 'dietary background',
     },
 }
 
@@ -1489,6 +1531,22 @@ def create_contamination_profile(
             kind,
             abundance_pct=kwargs.get(key, 0.0),
             community_type=community,
+            random_seed=random_seed,
+            use_real_references=use_real_references,
+        )
+
+    # Dietary background: food-derived plant viruses and chloroplast DNA from
+    # the diet. Only meaningful for gut collections. The diet type (western,
+    # mediterranean, plant_based, high_fiber) selects the community profile
+    # and is separate from the bacterial community type.
+    diet_type = kwargs.get('diet_type')
+    dietary_pct = kwargs.get('dietary_pct', 0.0)
+    if dietary_pct > 0 and diet_type:
+        add_microbial_background(
+            profile,
+            'dietary',
+            abundance_pct=dietary_pct,
+            community_type=diet_type,
             random_seed=random_seed,
             use_real_references=use_real_references,
         )

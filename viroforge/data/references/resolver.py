@@ -135,6 +135,21 @@ def get_archaeal_fragments_path(user_path: Optional[Path] = None) -> Optional[Pa
     )
 
 
+def get_dietary_fragments_path(user_path: Optional[Path] = None) -> Optional[Path]:
+    """Locate dietary background fragments (plant viruses, chloroplast DNA).
+
+    Built by ``scripts/curate_dietary_background.py``, which fetches plant
+    virus genomes (PMMoV, ToMV, TBSV, etc.) from RefSeq by taxon name and
+    cuts fragments from them. These represent food-derived nucleic acids
+    that appear in gut viromes."""
+    return _resolve(
+        user_path,
+        "VIROFORGE_DIETARY_FRAGMENTS",
+        "dietary_fragments.fasta",
+        "dietary background fragments",
+    )
+
+
 def get_host_genome_path(user_path: Optional[Path] = None) -> Optional[Path]:
     """Locate full host genome (user-supplied only, not bundled).
 
@@ -175,4 +190,8 @@ def has_bundled_references() -> dict[str, bool]:
         "rrna": (_REFERENCES_DIR / "rrna_representatives.fasta").exists(),
         "host_fragments": (_REFERENCES_DIR / "host_fragments.fasta").exists(),
         "adapters": (_REFERENCES_DIR / "adapters.fasta").exists(),
+        "bacterial_fragments": (_REFERENCES_DIR / "bacterial_fragments.fasta").exists(),
+        "fungal_fragments": (_REFERENCES_DIR / "fungal_fragments.fasta").exists(),
+        "archaeal_fragments": (_REFERENCES_DIR / "archaeal_fragments.fasta").exists(),
+        "dietary_fragments": (_REFERENCES_DIR / "dietary_fragments.fasta").exists(),
     }

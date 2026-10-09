@@ -110,6 +110,22 @@ class QualityFilter:
         return True, None
 
 
+def detect_genome_provenance(genome_name: str) -> str:
+    """Detect genome provenance from RefSeq genome name."""
+    name_lower = genome_name.lower()
+    if 'prophage' in name_lower:
+        return 'prophage'
+    if 'endogenous' in name_lower:
+        return 'endogenous'
+    if 'proviral' in name_lower or 'provirus' in name_lower:
+        return 'provirus'
+    if 'satellite' in name_lower:
+        return 'satellite'
+    if 'viroid' in name_lower:
+        return 'viroid'
+    return 'isolate'
+
+
 class DatabasePopulator:
     """Populate ViroForge genome database."""
 
@@ -258,14 +274,20 @@ class DatabasePopulator:
         try:
             cursor = conn.cursor()
 
+            # Detect provenance from genome name
+            provenance = detect_genome_provenance(
+                genome.get('genome_name', '')
+            )
+
             # Insert into genomes table
             cursor.execute("""
                 INSERT INTO genomes (
                     genome_id, genome_name, sequence, length, gc_content,
-                    genome_type, genome_structure, n_segments, assembly_level,
+                    genome_type, genome_structure, n_segments,
+                    genome_provenance, assembly_level,
                     quality_score, source_database, refseq_category,
                     genbank_accession, date_added, date_modified, version
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 genome['genome_id'],
                 genome.get('genome_name', ''),
@@ -275,6 +297,7 @@ class DatabasePopulator:
                 genome['genome_type'],
                 genome.get('genome_structure', 'linear'),
                 genome.get('n_segments', 1),
+                provenance,
                 genome.get('assembly_level', 'Complete Genome'),
                 None,  # quality_score - to be calculated later
                 genome.get('source_database', 'RefSeq'),

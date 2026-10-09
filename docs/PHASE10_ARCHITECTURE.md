@@ -2,6 +2,10 @@
 
 **Date**: 2025-11-10
 **Status**: Design Phase
+
+> **Note (2026-09)**: PacBio HiFi support was later removed from ViroForge because
+> `pbccs` only runs on Linux x86-64, preventing local macOS usage. Only Oxford
+> Nanopore is supported. This document preserves the original architecture design.
 **Implementation**: viroforge/simulators/longread.py
 
 ---

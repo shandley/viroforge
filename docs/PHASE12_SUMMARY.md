@@ -93,7 +93,7 @@ viroforge presets create <name> # Create custom preset
 4. **respiratory-rna** - Respiratory RNA virome (NovaSeq, 40x, Ribo-Zero)
 5. **quick-test-short** - Fast test dataset for short reads (5x coverage)
 6. **quick-test-long** - Fast test dataset for long reads (5x depth)
-7. **hybrid-standard** - Hybrid assembly dataset (NovaSeq 30x + HiFi 15x)
+7. **hybrid-standard** - Hybrid assembly dataset (NovaSeq 30x + Nanopore 15x)
 8. **assembly-high-coverage** - High coverage for assembly (100x)
 
 **Preset Format** (YAML):

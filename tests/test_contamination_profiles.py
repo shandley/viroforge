@@ -70,7 +70,7 @@ def test_host_free_collection_stays_near_zero():
 # ---- populate script -------------------------------------------------------- #
 def test_load_defaults_parses_tsv():
     rows = pcd.load_defaults(REPO / "data/reference_profiles/contamination_defaults.tsv")
-    assert len(rows) == 20
+    assert len(rows) == 24
     blood = next(r for r in rows if r["collection_id"] == 17)
     assert blood["default_host_pct"] == 40.0 and blood["host_organism"] == "human"
     marine = next(r for r in rows if r["collection_id"] == 5)

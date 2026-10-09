@@ -24,6 +24,7 @@ COLUMNS = {
     "default_bacterial_pct": "REAL",
     "default_fungal_pct": "REAL",
     "default_archaeal_pct": "REAL",
+    "default_dietary_pct": "REAL",
     "bacterial_community": "TEXT",
     "host_organism": "TEXT",
 }
@@ -43,6 +44,7 @@ def load_defaults(tsv: Path) -> list[dict]:
                 "default_bacterial_pct": float(r["bacterial_pct"]),
                 "default_fungal_pct": float(r["fungal_pct"]),
                 "default_archaeal_pct": float(r["archaeal_pct"]),
+                "default_dietary_pct": float(r["dietary_pct"]),
                 "bacterial_community": r["bacterial_community"].strip(),
                 "host_organism": r["host_organism"].strip(),
             })

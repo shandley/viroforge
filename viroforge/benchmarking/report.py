@@ -194,6 +194,28 @@ def taxonomy_to_markdown(m: dict) -> str:
         f"- Pearson: {_num(ab['pearson'])}   Spearman: {_num(ab['spearman'])}   "
         f"mean abs error: {_num(ab['mean_abs_error'], 4)}",
     ]
+    prov = m.get("provenance")
+    if prov:
+        lines += [
+            "",
+            "## By genome provenance",
+            "",
+            "| provenance | reads | sensitivity | precision |",
+            "|---|---:|---:|---:|",
+        ]
+        for cat, s in prov.items():
+            k = s.get("known_viruses", {})
+            lines.append(
+                f"| {cat} | {s['n_reads']:,} | "
+                f"{_pct(k.get('sensitivity'))} | {_pct(k.get('precision'))} |"
+            )
+        lines += [
+            "",
+            "> Prophage and endogenous reads originate from integrated sequences. "
+            "A classifier that calls them 'viral' is sequence-correct but "
+            "context-wrong in a bulk metagenome. Use VIBRANT, CheckV, or "
+            "RepeatMasker to distinguish integrated from free viral particles.",
+        ]
     return "\n".join(lines) + "\n"
 
 
@@ -257,10 +279,83 @@ def taxonomy_contig_to_markdown(m: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
+def discovery_to_markdown(m: dict) -> str:
+    lines = ["# Novel Discovery Benchmark", ""]
+    if not m.get("reliable", True):
+        lines += [
+            "> WARNING: no read IDs mapped to known viral genomes. Check that the "
+            "classifier output uses the ViroForge read names and that the "
+            "ground-truth metadata matches this dataset.",
+            "",
+        ]
+    lines += [
+        f"Reads: {m['n_assignments']:,}   viral {m['n_viral_reads']:,}   "
+        f"non-viral {m['n_non_viral_reads']:,}",
+        "",
+        "## Known virus detection (baseline)",
+        "",
+        f"- Known reads: {m['n_known_reads']:,}   detected: {m['n_known_detected']:,}   "
+        f"rate: **{_pct(m['known_detection_rate'])}**",
+        "",
+        "## Dark matter detection (the novel-discovery question)",
+        "",
+        f"- Dark matter reads: {m['n_dark_matter_reads']:,}   detected: {m['n_dark_detected']:,}   "
+        f"rate: **{_pct(m['dark_matter_detection_rate'])}**",
+        f"- Dark matter genomes: {m['n_dark_genomes']:,}   detected: {m['n_dark_genomes_detected']:,}   "
+        f"rate: {_pct(m['genome_detection_rate'])}",
+        "",
+    ]
+    bins = m.get("detection_by_depth", [])
+    if bins:
+        lines += [
+            "## Detection by read depth (dark matter genomes)",
+            "",
+            "| reads/genome | genomes | detected | rate |",
+            "|---|---:|---:|---:|",
+        ]
+        for b in bins:
+            lines.append(
+                f"| {b['bin']} | {b['n_genomes']:,} | {b['n_detected']:,} | "
+                f"{_pct(b['detection_rate'])} |"
+            )
+        lines.append("")
+
+    per_genome = m.get("per_genome", [])
+    if per_genome:
+        lines += ["## Per-genome detection (dark matter)", ""]
+        detected = [g for g in per_genome if g["detection_rate"] > 0]
+        missed = [g for g in per_genome if g["detection_rate"] == 0]
+        if detected:
+            lines += [
+                "### Detected",
+                "",
+                "| genome | reads | detected | rate |",
+                "|---|---:|---:|---:|",
+            ]
+            for g in sorted(detected, key=lambda x: -x["detection_rate"]):
+                lines.append(
+                    f"| {g['genome_id']} | {g['total_reads']:,} | "
+                    f"{g['detected_reads']:,} | {_pct(g['detection_rate'])} |"
+                )
+            lines.append("")
+        if missed:
+            lines += [
+                "### Missed (0% detection)",
+                "",
+                "| genome | reads |",
+                "|---|---:|",
+            ]
+            for g in sorted(missed, key=lambda x: -x["total_reads"]):
+                lines.append(f"| {g['genome_id']} | {g['total_reads']:,} |")
+            lines.append("")
+    return "\n".join(lines) + "\n"
+
+
 def write_reports(m: dict, json_path=None, md_path=None, kind="qc") -> None:
     render = {"assembly": assembly_to_markdown,
               "taxonomy": taxonomy_to_markdown,
-              "taxonomy_contig": taxonomy_contig_to_markdown}.get(kind, to_markdown)
+              "taxonomy_contig": taxonomy_contig_to_markdown,
+              "discovery": discovery_to_markdown}.get(kind, to_markdown)
     if json_path:
         Path(json_path).write_text(json.dumps(m, indent=2))
     if md_path:

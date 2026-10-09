@@ -1,5 +1,5 @@
 # Technology Comparison Batch Configuration
-# Compare all 5 sequencing platforms with the same collection
+# Compare all 4 sequencing platforms with the same collection
 
 batch_name: "Technology Comparison - All Platforms"
 output_base: "data/tech_comparison"
@@ -31,17 +31,7 @@ datasets:
     contamination_level: realistic
     seed: 42
 
-  # Long-read platforms
-  - name: gut_pacbio_hifi
-    collection_id: 1
-    platform: pacbio-hifi
-    depth: 15
-    pacbio_passes: 10
-    pacbio_read_length: 15000
-    vlp_protocol: tangential_flow
-    contamination_level: realistic
-    seed: 42
-
+  # Long-read platform
   - name: gut_nanopore
     collection_id: 1
     platform: nanopore

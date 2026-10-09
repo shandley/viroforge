@@ -69,7 +69,7 @@ ViroForge is a comprehensive mock metavirome data generator for benchmarking vir
 **Core Capabilities**:
 - 20 curated virome collections (host-associated, environmental, disease states)
 - 14,423 RefSeq viral genomes with ICTV taxonomy (71.7% family, 88.9% class coverage after 2026-07-16 NCBI rank enrichment)
-- 5 sequencing platforms (NovaSeq, MiSeq, HiSeq, PacBio HiFi, Oxford Nanopore)
+- 4 sequencing platforms (NovaSeq, MiSeq, HiSeq, Oxford Nanopore)
 - DNA and RNA virome workflows (RT, rRNA depletion, degradation)
 - VLP enrichment modeling (5 protocols)
 - Real reference contamination (rRNA from NCBI, host DNA from T2T, PhiX NC_001422.1, Illumina adapters)
@@ -186,7 +186,7 @@ viroforge web                 # Launch web interface
 
 ### Core Generation
 - `scripts/generate_fastq_dataset.py` - Main dataset generation script (all platforms)
-- `viroforge/simulators/longread.py` - PacBio HiFi and Nanopore simulator (850+ lines)
+- `viroforge/simulators/longread.py` - Oxford Nanopore simulator (PBSIM3-based)
 - `viroforge/simulators/illumina.py` - Short-read simulator wrapper
 - `viroforge/simulators/adapters.py` - Adapter read-through post-processor
 - `viroforge/simulators/low_complexity.py` - Low-complexity artifact injector with entropy control
@@ -228,7 +228,7 @@ viroforge web                 # Launch web interface
 - `docs/PHASE12.1_SUMMARY.md` - Generate command documentation
 - `docs/PHASE12.2_SUMMARY.md` - Batch/report/compare documentation
 - `docs/PHASE12.3_SUMMARY.md` - Web interface documentation
-- `docs/LONGREAD_TUTORIAL.md` - PacBio HiFi and Nanopore guide
+- `docs/LONGREAD_TUTORIAL.md` - Oxford Nanopore long-read guide
 - `docs/HYBRID_ASSEMBLY_TUTORIAL.md` - Hybrid assembly workflows
 - `docs/COLLECTION_IMPLEMENTATION_GUIDE.md` - All 20 collections documented
 - `docs/TAXONOMY_BUG_FIX.md` - Critical taxonomy fix documentation
@@ -381,7 +381,6 @@ For production deployment: Add authentication, HTTPS, job queue, rate limiting.
 
 ### Platform Requirements
 **Short-read (Illumina)**: InSilicoSeq required
-**Long-read (PacBio HiFi)**: PBSIM3 + pbccs (samtools) required
 **Long-read (Nanopore)**: PBSIM3 required
 **RNA workflows**: All dependencies above
 **Web interface**: Flask >= 2.0.0
@@ -424,7 +423,7 @@ python scripts/generate_hybrid_dataset.py \
     --collection-id 1 \
     --output data/gut_hybrid \
     --short-platform novaseq \
-    --long-platform pacbio-hifi \
+    --long-platform nanopore \
     --coverage 30 \
     --depth 15 \
     --seed 42

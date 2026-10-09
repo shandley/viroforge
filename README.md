@@ -8,7 +8,7 @@ ViroForge creates realistic FASTQ sequencing data from curated viral genome coll
 
 - 20 curated virome collections (human body sites, disease states, environmental)
 - 14,423 RefSeq viral genomes with ICTV/NCBI taxonomy (71.7% family, 88.9% class coverage)
-- 5 sequencing platforms (NovaSeq, MiSeq, HiSeq, PacBio HiFi, Oxford Nanopore)*
+- 4 sequencing platforms (NovaSeq, MiSeq, HiSeq, Oxford Nanopore)*
 - DNA and RNA virome workflows
 - VLP enrichment modeling (5 protocols)
 - Real reference contamination (rRNA, host DNA, PhiX, adapters)
@@ -24,7 +24,7 @@ ViroForge creates realistic FASTQ sequencing data from curated viral genome coll
   in basic mode and produce identical 125 bp reads regardless of the platform
   chosen or `--read-length`. They are interchangeable for short-read output; the
   platform choice does not change read length or error profile. Long-read
-  platforms (PacBio HiFi, Nanopore) use PBSIM3 and are differentiated. See
+  Nanopore long reads use PBSIM3 and are differentiated. See
   `docs/DATA_QUALITY_EVALUATION.md` for the full evaluation.
 
 ## Installation
@@ -43,9 +43,6 @@ ViroForge requires external tools depending on which sequencing platform you wan
 |----------|---------------|-----------------|
 | NovaSeq, MiSeq, HiSeq | InSilicoSeq | `conda install -c bioconda insilicoseq` |
 | Oxford Nanopore | PBSIM3 | `conda install -c bioconda pbsim3` |
-| PacBio HiFi | PBSIM3, samtools, pbccs | `conda install -c bioconda pbsim3 samtools pbccs` |
-
-**Note**: `pbccs` (the PacBio CCS tool) is only available for **Linux x86-64**. It does not support macOS ARM (Apple Silicon) or other architectures. If you need PacBio HiFi generation, run ViroForge on a Linux x86-64 machine or cluster.
 
 ViroForge will check for these tools before starting generation and tell you what to install if anything is missing. See [Long-Read Tutorial](docs/LONGREAD_TUTORIAL.md) for details.
 
@@ -131,14 +128,6 @@ viroforge generate \
 ### Generate long-read data
 
 ```bash
-# PacBio HiFi
-viroforge generate \
-    --collection-id 1 \
-    --output data/gut_hifi \
-    --platform pacbio-hifi \
-    --depth 15
-
-# Oxford Nanopore
 viroforge generate \
     --collection-id 6 \
     --output data/soil_nanopore \
@@ -153,7 +142,7 @@ python scripts/generate_hybrid_dataset.py \
     --collection-id 1 \
     --output data/gut_hybrid \
     --short-platform novaseq \
-    --long-platform pacbio-hifi \
+    --long-platform nanopore \
     --coverage 30 \
     --depth 15 \
     --seed 42
@@ -176,7 +165,7 @@ viroforge batch examples/batch_configs/coverage_sweep.yaml --parallel 4
 viroforge report data/gut-standard
 
 # Compare multiple datasets
-viroforge compare data/gut_novaseq data/gut_hiseq data/gut_pacbio_hifi
+viroforge compare data/gut_novaseq data/gut_hiseq data/gut_nanopore
 ```
 
 ### Benchmark analysis pipelines
@@ -223,7 +212,7 @@ viroforge web
 | `respiratory-rna` | Respiratory RNA virome, NovaSeq, 40x |
 | `quick-test-short` | Fast test dataset, 5x coverage |
 | `quick-test-long` | Fast long-read test, 5x depth |
-| `hybrid-standard` | Hybrid assembly, NovaSeq 30x + HiFi 15x |
+| `hybrid-standard` | Hybrid assembly, NovaSeq 30x + Nanopore 15x |
 | `assembly-high-coverage` | High coverage for assembly, 100x |
 
 ## Collections
@@ -364,7 +353,6 @@ output/
   fastq/
     collection_R1.fastq       # Forward reads (Illumina)
     collection_R2.fastq       # Reverse reads (Illumina)
-    collection_hifi.fastq.gz  # PacBio HiFi reads
     collection.fastq          # Nanopore reads
   metadata/
     metadata.json             # Ground truth (composition, taxonomy, workflow stats)
@@ -380,7 +368,7 @@ output/
 - Python 3.9+
 - numpy, pandas, biopython, scipy, pyyaml, rich
 - InSilicoSeq (for Illumina read simulation)
-- PBSIM3, pbccs, samtools (for long-read simulation, optional)
+- PBSIM3 (for Nanopore long-read simulation, optional)
 - Flask (for web interface, optional)
 
 ## Testing

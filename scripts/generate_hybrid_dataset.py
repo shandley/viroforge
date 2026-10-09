@@ -9,17 +9,16 @@ compositions by using the same random seed and collection for both platforms.
 Hybrid assembly combines short-read accuracy with long-read length to produce
 superior viral genome assemblies. Supported assemblers include:
 - Unicycler (SPAdes + miniasm hybrid)
-- SPAdes (--pacbio or --nanopore modes)
+- SPAdes (--nanopore mode)
 - MaSuRCA (hybrid OLC assembler)
 - HybridSPAdes
 
 Usage:
-    # Generate NovaSeq + PacBio HiFi hybrid dataset
+    # Generate NovaSeq + Nanopore hybrid dataset
     python generate_hybrid_dataset.py \\
         --collection-id 9 \\
         --output data/gut_hybrid \\
         --short-platform novaseq \\
-        --long-platform pacbio-hifi \\
         --coverage 30 \\
         --depth 15 \\
         --seed 42
@@ -29,7 +28,6 @@ Usage:
         --collection-id 1 \\
         --output data/soil_hybrid \\
         --short-platform miseq \\
-        --long-platform nanopore \\
         --coverage 50 \\
         --depth 20 \\
         --seed 123
@@ -91,9 +89,11 @@ def create_hybrid_metadata(args, short_output, long_output, output_dir):
             "r2": str((short_output / "fastq" / f"*_R2.fastq").relative_to(output_dir))
         },
         "long_reads": {
-            "platform": args.long_platform,
+            "platform": "nanopore",
             "depth": args.depth,
-            "output_dir": str(long_output.relative_to(output_dir))
+            "output_dir": str(long_output.relative_to(output_dir)),
+            "chemistry": args.ont_chemistry,
+            "read_length_mean": args.ont_read_length
         },
         "composition_consistency": {
             "same_seed": True,
@@ -103,17 +103,9 @@ def create_hybrid_metadata(args, short_output, long_output, output_dir):
         },
         "usage": {
             "unicycler_example": f"unicycler -1 {short_output}/fastq/*_R1.fastq -2 {short_output}/fastq/*_R2.fastq -l {long_output}/fastq/*.fastq* -o results/unicycler",
-            "spades_example": f"spades.py --meta -1 {short_output}/fastq/*_R1.fastq -2 {short_output}/fastq/*_R2.fastq --{'pacbio' if args.long_platform == 'pacbio-hifi' else 'nanopore'} {long_output}/fastq/*.fastq* -o results/spades"
+            "spades_example": f"spades.py --meta -1 {short_output}/fastq/*_R1.fastq -2 {short_output}/fastq/*_R2.fastq --nanopore {long_output}/fastq/*.fastq* -o results/spades"
         }
     }
-
-    # Add platform-specific parameters
-    if args.long_platform == "pacbio-hifi":
-        metadata["long_reads"]["pacbio_passes"] = args.pacbio_passes
-        metadata["long_reads"]["read_length_mean"] = args.pacbio_read_length
-    elif args.long_platform == "nanopore":
-        metadata["long_reads"]["chemistry"] = args.ont_chemistry
-        metadata["long_reads"]["read_length_mean"] = args.ont_read_length
 
     # Write metadata
     metadata_path = output_dir / "hybrid_metadata.json"
@@ -130,12 +122,11 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # NovaSeq + PacBio HiFi (high accuracy)
+  # NovaSeq + Nanopore (recommended)
   python generate_hybrid_dataset.py \\
       --collection-id 9 \\
       --output data/gut_hybrid \\
       --short-platform novaseq \\
-      --long-platform pacbio-hifi \\
       --coverage 30 --depth 15
 
   # MiSeq + Nanopore (cost-effective)
@@ -143,12 +134,11 @@ Examples:
       --collection-id 1 \\
       --output data/soil_hybrid \\
       --short-platform miseq \\
-      --long-platform nanopore \\
       --coverage 50 --depth 20
 
 Supported Hybrid Assemblers:
   - Unicycler: Combines SPAdes (short) + miniasm (long)
-  - SPAdes: --pacbio or --nanopore modes
+  - SPAdes: --nanopore mode
   - MaSuRCA: Overlap-layout-consensus hybrid
   - HybridSPAdes: Specialized for metagenomes
         """
@@ -176,13 +166,6 @@ Supported Hybrid Assemblers:
         help='Short-read platform (default: novaseq)'
     )
 
-    parser.add_argument(
-        '--long-platform',
-        choices=['pacbio-hifi', 'nanopore'],
-        default='pacbio-hifi',
-        help='Long-read platform (default: pacbio-hifi)'
-    )
-
     # Short-read parameters
     parser.add_argument(
         '--coverage',
@@ -205,26 +188,12 @@ Supported Hybrid Assemblers:
         help='Insert size for paired-end (default: 350)'
     )
 
-    # Long-read parameters
+    # Long-read parameters (Nanopore only)
     parser.add_argument(
         '--depth',
         type=float,
         default=15.0,
-        help='Long-read depth (default: 15x)'
-    )
-
-    parser.add_argument(
-        '--pacbio-passes',
-        type=int,
-        default=10,
-        help='PacBio HiFi CCS passes (default: 10)'
-    )
-
-    parser.add_argument(
-        '--pacbio-read-length',
-        type=int,
-        default=15000,
-        help='PacBio HiFi mean read length (default: 15000)'
+        help='Nanopore long-read depth (default: 15x)'
     )
 
     parser.add_argument(
@@ -300,8 +269,10 @@ Short-read platform:  {args.short_platform}
   Read length:        {args.read_length} bp
   Output:             {short_output}
 
-Long-read platform:   {args.long_platform}
+Long-read platform:   nanopore
   Depth:              {args.depth}x
+  Chemistry:          {args.ont_chemistry}
+  Read length:        {args.ont_read_length} bp
   Output:             {long_output}
 
 VLP protocol:         {args.vlp_protocol if not args.no_vlp else 'none (bulk)'}
@@ -348,29 +319,19 @@ Contamination:        {args.contamination_level}
             sys.exit(1)
 
     # ========================================================================
-    # Step 2: Generate LONG-READ dataset
+    # Step 2: Generate LONG-READ dataset (Nanopore)
     # ========================================================================
     long_cmd = [
         sys.executable, str(generator_script),
         '--collection-id', str(args.collection_id),
         '--output', str(long_output),
-        '--platform', args.long_platform,
+        '--platform', 'nanopore',
         '--depth', str(args.depth),
+        '--ont-chemistry', args.ont_chemistry,
+        '--ont-read-length', str(args.ont_read_length),
         '--contamination-level', args.contamination_level,
         '--seed', str(args.seed)
     ]
-
-    # Add platform-specific parameters
-    if args.long_platform == 'pacbio-hifi':
-        long_cmd.extend([
-            '--pacbio-passes', str(args.pacbio_passes),
-            '--pacbio-read-length', str(args.pacbio_read_length)
-        ])
-    elif args.long_platform == 'nanopore':
-        long_cmd.extend([
-            '--ont-chemistry', args.ont_chemistry,
-            '--ont-read-length', str(args.ont_read_length)
-        ])
 
     if args.no_vlp:
         long_cmd.append('--no-vlp')
@@ -380,7 +341,7 @@ Contamination:        {args.contamination_level}
     if args.dry_run:
         print(f"LONG-READ COMMAND:\n{' '.join(long_cmd)}\n")
     else:
-        success = run_command(long_cmd, f"Step 2/2: Generating long-read dataset ({args.long_platform})")
+        success = run_command(long_cmd, "Step 2/2: Generating long-read dataset (nanopore)")
         if not success:
             print("\n✗ Failed to generate long-read dataset", file=sys.stderr)
             sys.exit(1)
@@ -406,7 +367,7 @@ Output structure:
   │   │   ├── *_R1.fastq
   │   │   └── *_R2.fastq
   │   └── metadata/
-  ├── long_reads/         # {args.long_platform} reads
+  ├── long_reads/         # nanopore reads
   │   ├── fastq/
   │   │   └── *.fastq*
   │   └── metadata/
@@ -425,7 +386,7 @@ Next steps - Hybrid Assembly:
    spades.py --meta \\
        -1 {short_output}/fastq/*_R1.fastq \\
        -2 {short_output}/fastq/*_R2.fastq \\
-       --{'pacbio' if args.long_platform == 'pacbio-hifi' else 'nanopore'} {long_output}/fastq/*.fastq* \\
+       --nanopore {long_output}/fastq/*.fastq* \\
        -o results/spades_hybrid
 
 3. Evaluate against ground truth:

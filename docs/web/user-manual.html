@@ -1,0 +1,1486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ViroForge User Manual</title>
+<style>
+  @page {
+    size: letter;
+    margin: 1in;
+  }
+
+  :root {
+    --bg: #ffffff;
+    --text: #333333;
+    --text-sec: #555555;
+    --text-ter: #777777;
+    --accent: #1a6e7f;
+    --accent-light: #e8f4f7;
+    --code-bg: #f6f8fa;
+    --code-border: #e1e4e8;
+    --table-header: #f0f3f5;
+    --table-border: #d0d7de;
+    --table-stripe: #f8fafb;
+    --border-light: #e5e8eb;
+    --link: #1a6e7f;
+    --sidebar-bg: #f7f8f9;
+    --callout-bg: #f0f7fa;
+    --callout-border: #b0d4de;
+    --warn-bg: #fff8f0;
+    --warn-border: #e6c07b;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #ffffff;
+      --text: #333333;
+      --text-sec: #555555;
+      --text-ter: #777777;
+      --accent: #1a6e7f;
+      --accent-light: #e8f4f7;
+      --code-bg: #f6f8fa;
+      --code-border: #e1e4e8;
+      --table-header: #f0f3f5;
+      --table-border: #d0d7de;
+      --table-stripe: #f8fafb;
+      --border-light: #e5e8eb;
+      --link: #1a6e7f;
+      --sidebar-bg: #f7f8f9;
+      --callout-bg: #f0f7fa;
+      --callout-border: #b0d4de;
+      --warn-bg: #fff8f0;
+      --warn-border: #e6c07b;
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #ffffff;
+    --text: #333333;
+    --text-sec: #555555;
+    --text-ter: #777777;
+    --accent: #1a6e7f;
+    --accent-light: #e8f4f7;
+    --code-bg: #f6f8fa;
+    --code-border: #e1e4e8;
+    --table-header: #f0f3f5;
+    --table-border: #d0d7de;
+    --table-stripe: #f8fafb;
+    --border-light: #e5e8eb;
+    --link: #1a6e7f;
+    --sidebar-bg: #f7f8f9;
+    --callout-bg: #f0f7fa;
+    --callout-border: #b0d4de;
+    --warn-bg: #fff8f0;
+    --warn-border: #e6c07b;
+  }
+  :root[data-theme="dark"] {
+    --bg: #ffffff;
+    --text: #333333;
+    --text-sec: #555555;
+    --text-ter: #777777;
+    --accent: #1a6e7f;
+    --accent-light: #e8f4f7;
+    --code-bg: #f6f8fa;
+    --code-border: #e1e4e8;
+    --table-header: #f0f3f5;
+    --table-border: #d0d7de;
+    --table-stripe: #f8fafb;
+    --border-light: #e5e8eb;
+    --link: #1a6e7f;
+    --sidebar-bg: #f7f8f9;
+    --callout-bg: #f0f7fa;
+    --callout-border: #b0d4de;
+    --warn-bg: #fff8f0;
+    --warn-border: #e6c07b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    line-height: 1.7;
+    font-size: 15px;
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ── Sidebar TOC ── */
+  .sidebar {
+    width: 260px;
+    min-width: 260px;
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--border-light);
+    padding: 24px 16px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    font-size: 13px;
+  }
+  .sidebar-brand {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: -0.3px;
+    margin-bottom: 4px;
+  }
+  .sidebar-version {
+    font-size: 11px;
+    color: var(--text-ter);
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border-light);
+  }
+  .sidebar a {
+    display: block;
+    color: var(--text-sec);
+    text-decoration: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background 0.15s, color 0.15s;
+  }
+  .sidebar a:hover {
+    background: var(--accent-light);
+    color: var(--accent);
+  }
+  .sidebar a.active {
+    background: var(--accent-light);
+    color: var(--accent);
+    font-weight: 700;
+    border-left: 3px solid var(--accent);
+    padding-left: 5px;
+  }
+  .sidebar .toc-h2 {
+    font-weight: 600;
+    color: var(--text);
+    margin-top: 14px;
+    font-size: 13px;
+  }
+  .sidebar .toc-h3 {
+    padding-left: 20px;
+    font-size: 12.5px;
+  }
+
+  /* ── Main content ── */
+  .main {
+    flex: 1;
+    max-width: 860px;
+    padding: 40px 48px 80px;
+    margin: 0 auto;
+  }
+
+  /* ── Title block ── */
+  .title-block {
+    margin-bottom: 36px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid var(--border-light);
+  }
+  .title-block h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: -0.5px;
+    line-height: 1.3;
+    margin-bottom: 8px;
+  }
+  .title-block .subtitle {
+    font-size: 16px;
+    color: var(--accent);
+    font-weight: 400;
+    margin-bottom: 12px;
+    opacity: 0.75;
+  }
+  .title-block .meta {
+    font-size: 12px;
+    color: var(--text-ter);
+  }
+  .title-block .meta span + span::before {
+    content: " | ";
+    color: var(--border-light);
+  }
+
+  /* ── Headings ── */
+  h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-top: 48px;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-light);
+    letter-spacing: -0.3px;
+  }
+  h3 {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--accent);
+    margin-top: 32px;
+    margin-bottom: 12px;
+  }
+  h4 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--accent);
+    margin-top: 24px;
+    margin-bottom: 8px;
+  }
+
+  p { margin-bottom: 14px; }
+
+  a { color: var(--link); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* ── Code ── */
+  code {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 13px;
+    background: var(--code-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--code-border);
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--code-border);
+    border-radius: 6px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+  pre code {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 13px;
+  }
+
+  /* Output blocks */
+  pre.output {
+    background: var(--bg);
+    border-left: 3px solid var(--border-light);
+    color: var(--text-ter);
+    font-style: normal;
+  }
+  pre.output code {
+    color: var(--text-ter);
+  }
+
+  /* ── Tables ── */
+  .table-wrap {
+    overflow-x: auto;
+    margin-bottom: 20px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+  }
+  thead th {
+    background: var(--table-header);
+    font-weight: 600;
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 2px solid var(--table-border);
+    font-size: 13px;
+    color: var(--text-sec);
+    white-space: nowrap;
+  }
+  tbody td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-light);
+    vertical-align: top;
+  }
+  tbody tr:nth-child(even) {
+    background: var(--table-stripe);
+  }
+
+  /* ── Callout boxes ── */
+  .callout {
+    background: var(--callout-bg);
+    border-left: 4px solid var(--callout-border);
+    padding: 14px 18px;
+    margin: 20px 0;
+    border-radius: 0 6px 6px 0;
+    font-size: 14px;
+  }
+  .callout strong {
+    color: var(--accent);
+  }
+  .callout-warn {
+    background: var(--warn-bg);
+    border-left-color: var(--warn-border);
+  }
+  .callout-warn strong {
+    color: #b8860b;
+  }
+
+  /* ── Lists ── */
+  ul, ol {
+    margin-bottom: 14px;
+    padding-left: 24px;
+  }
+  li {
+    margin-bottom: 6px;
+  }
+  li > ul, li > ol {
+    margin-top: 6px;
+    margin-bottom: 6px;
+  }
+
+  /* ── Horizontal rule ── */
+  hr {
+    border: none;
+    border-top: 1px solid var(--border-light);
+    margin: 40px 0;
+  }
+
+  /* ── Pipeline steps list ── */
+  .pipeline-step {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 16px;
+    align-items: flex-start;
+  }
+  .step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 700;
+    font-size: 13px;
+    border-radius: 50%;
+    margin-top: 2px;
+  }
+  .step-body strong {
+    color: var(--text);
+  }
+  .step-body {
+    color: var(--text-sec);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    margin-top: 60px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-light);
+    font-size: 12px;
+    color: var(--text-ter);
+  }
+
+  /* ── Print styles ── */
+  @media print {
+    .sidebar { display: none; }
+    .main { max-width: 100%; padding: 0; }
+    body { font-size: 11pt; }
+    h2 { break-before: page; }
+    pre { break-inside: avoid; }
+    table { break-inside: avoid; }
+    .callout { break-inside: avoid; }
+    a { color: var(--text); }
+    a[href]::after { content: none; }
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .main { padding: 24px 20px 60px; }
+  }
+</style>
+
+<!-- Sidebar -->
+<nav class="sidebar">
+  <div class="sidebar-brand">ViroForge</div>
+  <div class="sidebar-version">v0.20.0 &middot; User Manual</div>
+
+  <a href="#pipeline-overview" class="toc-h2">Pipeline Overview</a>
+  <a href="#collections" class="toc-h2">Collections</a>
+  <a href="#collection-details" class="toc-h3">Collection Details</a>
+  <a href="#composition-heatmap" class="toc-h3">Composition Heatmap</a>
+  <a href="#database-structure" class="toc-h2">Database Structure</a>
+  <a href="#reference-files" class="toc-h3">Reference Files</a>
+  <a href="#installation" class="toc-h2">Installation</a>
+  <a href="#commands" class="toc-h2">Commands</a>
+  <a href="#generate" class="toc-h3">Generate a Dataset</a>
+  <a href="#presets" class="toc-h3">Generate from a Preset</a>
+  <a href="#batch-generation" class="toc-h3">Batch Generation</a>
+  <a href="#benchmarking" class="toc-h3">Benchmarking</a>
+  <a href="#other-commands" class="toc-h3">Other Commands</a>
+  <a href="#understanding-output" class="toc-h2">Understanding the Output</a>
+  <a href="#ground-truth" class="toc-h3">Ground Truth Labels</a>
+  <a href="#diagnostic-report" class="toc-h2">Diagnostic Report</a>
+  <a href="#use-case" class="toc-h2">Use Case: IBD Virome</a>
+  <a href="#uc-background" class="toc-h3">Background</a>
+  <a href="#uc-generate" class="toc-h3">Generate the Dataset</a>
+  <a href="#uc-inspect" class="toc-h3">Inspect the Output</a>
+  <a href="#uc-qc" class="toc-h3">Run QC &amp; Benchmark</a>
+  <a href="#uc-assembly" class="toc-h3">Assembly &amp; Taxonomy</a>
+  <a href="#quick-reference" class="toc-h2">Quick Reference</a>
+</nav>
+
+<!-- Main Content -->
+<div class="main">
+
+  <!-- Title block -->
+  <div class="title-block">
+    <h1>ViroForge User Manual</h1>
+    <div class="subtitle">Generating synthetic virome datasets with known ground truth</div>
+    <div class="meta">
+      <span>Version 0.20.0</span>
+      <span>Handley Lab, Washington University in St. Louis</span>
+    </div>
+  </div>
+
+  <p>ViroForge generates synthetic virome FASTQ datasets with complete ground truth for benchmarking virome analysis pipelines. This manual covers installation, dataset generation, and interpretation of results.</p>
+
+  <!-- ════════════════════════════════════════ -->
+  <h2 id="pipeline-overview">Pipeline Overview</h2>
+
+  <p>ViroForge simulates the full virome sequencing workflow, from sample preparation through read generation. Each step models a real laboratory or computational process:</p>
+
+  <div class="pipeline-step">
+    <span class="step-num">1</span>
+    <div class="step-body"><strong>Collection Selection</strong> &mdash; Choose from 20 built-in virome collections (gut, skin, marine, etc.) or register your own custom genomes.</div>
+  </div>
+  <div class="pipeline-step">
+    <span class="step-num">2</span>
+    <div class="step-body"><strong>Contamination Injection</strong> &mdash; Add realistic non-viral contamination matching the body site: host DNA, ribosomal RNA, bacterial background, fungal background, reagent bacteria, and PhiX spike-in.</div>
+  </div>
+  <div class="pipeline-step">
+    <span class="step-num">3</span>
+    <div class="step-body"><strong>VLP Enrichment</strong> &mdash; Simulate virus-like particle enrichment to concentrate viruses and remove bacteria/host cells. Choose from filtration (0.1&ndash;0.45 &mu;m pore), ultracentrifugation, or column-based kits. Skip with <code>--no-vlp</code> for bulk metagenome simulation.</div>
+  </div>
+  <div class="pipeline-step">
+    <span class="step-num">4</span>
+    <div class="step-body"><strong>Amplification Bias</strong> &mdash; Model amplification effects (linker-based PCR, MDA with phi29, or random-primed RdAB). Each method introduces characteristic GC and length biases.</div>
+  </div>
+  <div class="pipeline-step">
+    <span class="step-num">5</span>
+    <div class="step-body"><strong>Read Simulation</strong> &mdash; Generate paired-end Illumina reads (via InSilicoSeq) or long reads (PacBio HiFi / Nanopore via PBSIM3).</div>
+  </div>
+  <div class="pipeline-step">
+    <span class="step-num">6</span>
+    <div class="step-body"><strong>Artifact Injection</strong> &mdash; Add realistic sequencing artifacts: adapter read-through, PCR duplicates, low-complexity sequences, and MDA chimeras.</div>
+  </div>
+  <div class="pipeline-step">
+    <span class="step-num">7</span>
+    <div class="step-body"><strong>Output</strong> &mdash; FASTQ files with per-read ground truth labels (<code>source=viral</code>, <code>source=host_dna</code>, etc.), metadata JSON, and composition tables.</div>
+  </div>
+  <div class="pipeline-step">
+    <span class="step-num">8</span>
+    <div class="step-body"><strong>Diagnostic Report</strong> &mdash; An HTML report with plots showing dataset composition, community structure, and quality metrics.</div>
+  </div>
+  <div class="pipeline-step">
+    <span class="step-num">9</span>
+    <div class="step-body"><strong>Benchmarking</strong> &mdash; Score your analysis pipeline (QC, assembly, or taxonomy) against the known ground truth.</div>
+  </div>
+
+  <!-- ════════════════════════════════════════ -->
+  <h2 id="collections">Collections</h2>
+
+  <p>ViroForge includes 20 curated virome collections. Each has body-site-specific contamination profiles based on published literature.</p>
+
+  <div class="callout">
+    <strong>Contamination profiles.</strong> The percentages in collection metadata represent the <em>pre-VLP</em> composition. After VLP enrichment, most contamination is removed (typically &gt;90%), leaving a dataset dominated by viral reads.
+  </div>
+
+  <h3 id="collection-details">Collection Details</h3>
+
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>ID</th><th>Collection</th><th>Genomes</th><th>Host</th><th>Body Site</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td>Gut Virome &mdash; Adult Healthy (Western Diet)</td><td>134</td><td>Human</td><td>Gut</td></tr>
+      <tr><td>2</td><td>Oral Virome &mdash; Saliva (Healthy)</td><td>47</td><td>Human</td><td>Oral</td></tr>
+      <tr><td>3</td><td>Skin Virome &mdash; Sebaceous Sites (Healthy)</td><td>15</td><td>Human</td><td>Skin</td></tr>
+      <tr><td>4</td><td>Respiratory Virome &mdash; Nasopharynx (Healthy)</td><td>43</td><td>Human</td><td>Respiratory</td></tr>
+      <tr><td>5</td><td>Marine Virome &mdash; Coastal Surface Water</td><td>445</td><td>None</td><td>Marine</td></tr>
+      <tr><td>6</td><td>Soil Virome &mdash; Agricultural</td><td>290</td><td>None</td><td>Soil</td></tr>
+      <tr><td>7</td><td>Freshwater Virome &mdash; Lake Surface Water</td><td>200</td><td>None</td><td>Freshwater</td></tr>
+      <tr><td>8</td><td>Mouse Gut Virome &mdash; Laboratory (C57BL/6)</td><td>22</td><td>Mouse</td><td>Gut</td></tr>
+      <tr><td>9</td><td>Wastewater Virome &mdash; Urban Treatment Plant</td><td>352</td><td>Human</td><td>Wastewater</td></tr>
+      <tr><td>10</td><td>IBD Gut Virome (Inflammatory Bowel Disease)</td><td>90</td><td>Human</td><td>Gut</td></tr>
+      <tr><td>11</td><td>HIV+ Gut Virome</td><td>55</td><td>Human</td><td>Gut</td></tr>
+      <tr><td>12</td><td>Cystic Fibrosis (CF) Respiratory Virome</td><td>79</td><td>Human</td><td>Respiratory</td></tr>
+      <tr><td>13</td><td>Human Respiratory RNA Virome</td><td>53</td><td>Human</td><td>Respiratory</td></tr>
+      <tr><td>14</td><td>Arbovirus Environmental (Mosquito Virome)</td><td>39</td><td>None</td><td>Environmental</td></tr>
+      <tr><td>15</td><td>Fecal RNA Virome</td><td>46</td><td>Human</td><td>Gut</td></tr>
+      <tr><td>16</td><td>Vaginal Virome (Healthy)</td><td>26</td><td>Human</td><td>Vaginal</td></tr>
+      <tr><td>17</td><td>Blood/Plasma Virome (Healthy)</td><td>21</td><td>Human</td><td>Blood</td></tr>
+      <tr><td>18</td><td>Ocular Surface Virome (Healthy)</td><td>17</td><td>Human</td><td>Ocular</td></tr>
+      <tr><td>19</td><td>Lower Respiratory (Lung) Virome (Healthy)</td><td>31</td><td>Human</td><td>Lung</td></tr>
+      <tr><td>20</td><td>Urinary Virome (Healthy)</td><td>20</td><td>Human</td><td>Urinary</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3 id="composition-heatmap">Contamination Composition</h3>
+
+  <p>Each collection has a body-site-specific contamination profile. The heatmap below shows the pre-VLP composition at the <em>realistic</em> contamination level. Use the buttons to see how prep-quality contaminants (host, rRNA, reagent, PhiX) scale at different levels, while microbial background (bacterial, fungal, archaeal) stays fixed.</p>
+
+  <div style="margin-bottom:8px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+    <span style="font-size:13px; color:var(--text-sec); font-weight:500;">Contamination level:</span>
+    <button id="hm-btn-clean" onclick="hmSetLevel('clean')" style="font:13px -apple-system,sans-serif; padding:3px 10px; border:1px solid var(--border-light); border-radius:4px; background:var(--code-bg); color:var(--text); cursor:pointer;">Clean (0.25x)</button>
+    <button id="hm-btn-realistic" onclick="hmSetLevel('realistic')" style="font:13px -apple-system,sans-serif; padding:3px 10px; border:1px solid var(--accent); border-radius:4px; background:var(--accent-light); color:var(--accent); cursor:pointer; font-weight:600;">Realistic (1x)</button>
+    <button id="hm-btn-heavy" onclick="hmSetLevel('heavy')" style="font:13px -apple-system,sans-serif; padding:3px 10px; border:1px solid var(--border-light); border-radius:4px; background:var(--code-bg); color:var(--text); cursor:pointer;">Heavy (2.5x)</button>
+  </div>
+
+  <div style="overflow-x:auto; margin-bottom:12px;">
+    <canvas id="hm-canvas"></canvas>
+  </div>
+
+  <div style="display:flex; gap:16px; flex-wrap:wrap; font-size:12px; color:var(--text-ter); margin-bottom:6px;">
+    <span style="font-weight:600; color:var(--accent);">Body-site</span>
+    <span style="font-weight:600; color:#6a7a2a;">Environmental</span>
+    <span style="font-weight:600; color:#b85530;">Disease</span>
+    <span style="font-weight:600; color:#7a4a8f;">RNA</span>
+    <span style="margin-left:auto; font-size:11px;">Host/rRNA/reagent/PhiX scale by level; bacterial/fungal/archaeal do not.</span>
+  </div>
+
+  <script>
+  (function(){
+    const HM_COLLECTIONS = [
+      { id:1,  name:'Gut (Western Diet)',       genomes:134, cat:'body',    host:5,    rrna:3,  reagent:0.5, phix:0.1, bact:70,  fungal:2,   arch:2   },
+      { id:2,  name:'Oral (Saliva)',            genomes:47,  cat:'body',    host:10,   rrna:4,  reagent:0.5, phix:0.1, bact:65,  fungal:1,   arch:0.5 },
+      { id:3,  name:'Skin (Sebaceous)',         genomes:15,  cat:'body',    host:15,   rrna:3,  reagent:1,   phix:0.1, bact:25,  fungal:3,   arch:0   },
+      { id:4,  name:'Respiratory (Nasopharynx)',genomes:43,  cat:'body',    host:20,   rrna:4,  reagent:0.5, phix:0.1, bact:25,  fungal:0.5, arch:0   },
+      { id:5,  name:'Marine (Coastal)',         genomes:445, cat:'env',     host:0.05, rrna:5,  reagent:0.5, phix:0.1, bact:75,  fungal:0.5, arch:2   },
+      { id:6,  name:'Soil (Agricultural)',      genomes:290, cat:'env',     host:0.05, rrna:4,  reagent:0.5, phix:0.1, bact:80,  fungal:5,   arch:2   },
+      { id:7,  name:'Freshwater (Lake)',        genomes:200, cat:'env',     host:0.05, rrna:5,  reagent:0.5, phix:0.1, bact:70,  fungal:0.5, arch:0.5 },
+      { id:8,  name:'Mouse Gut (C57BL/6)',      genomes:22,  cat:'body',    host:3,    rrna:3,  reagent:0.5, phix:0.1, bact:70,  fungal:2,   arch:2   },
+      { id:9,  name:'Wastewater (Urban)',       genomes:352, cat:'env',     host:1,    rrna:8,  reagent:0.5, phix:0.1, bact:75,  fungal:2,   arch:3   },
+      { id:10, name:'IBD Gut',                  genomes:90,  cat:'disease', host:5,    rrna:3,  reagent:0.5, phix:0.1, bact:70,  fungal:2,   arch:1   },
+      { id:11, name:'HIV+ Gut',                 genomes:55,  cat:'disease', host:5,    rrna:3,  reagent:0.5, phix:0.1, bact:70,  fungal:3,   arch:2   },
+      { id:12, name:'CF Respiratory',           genomes:79,  cat:'disease', host:25,   rrna:5,  reagent:0.5, phix:0.1, bact:55,  fungal:2,   arch:0   },
+      { id:13, name:'Respiratory RNA',          genomes:53,  cat:'rna',     host:15,   rrna:10, reagent:0.5, phix:0.1, bact:0,   fungal:0,   arch:0   },
+      { id:14, name:'Arbovirus (Mosquito)',     genomes:39,  cat:'rna',     host:0.05, rrna:8,  reagent:0.5, phix:0.1, bact:0,   fungal:0,   arch:0   },
+      { id:15, name:'Fecal RNA',               genomes:46,  cat:'rna',     host:5,    rrna:12, reagent:0.5, phix:0.1, bact:0,   fungal:0,   arch:0   },
+      { id:16, name:'Vaginal (Healthy)',        genomes:26,  cat:'body',    host:20,   rrna:3,  reagent:0.5, phix:0.1, bact:60,  fungal:3,   arch:0   },
+      { id:17, name:'Blood/Plasma',            genomes:21,  cat:'body',    host:40,   rrna:0.5, reagent:1,  phix:0.1, bact:1,   fungal:0.1, arch:0   },
+      { id:18, name:'Ocular Surface',          genomes:17,  cat:'body',    host:15,   rrna:2,  reagent:2,   phix:0.1, bact:10,  fungal:0.5, arch:0   },
+      { id:19, name:'Lung (Lower Resp.)',       genomes:31,  cat:'body',    host:25,   rrna:4,  reagent:1,   phix:0.1, bact:20,  fungal:1,   arch:0   },
+      { id:20, name:'Urinary',                 genomes:20,  cat:'body',    host:10,   rrna:3,  reagent:1,   phix:0.1, bact:30,  fungal:0.5, arch:0   },
+    ];
+    const hmKeys = ['viral','bact','host','rrna','fungal','arch','reagent','phix'];
+    const hmLabels = {viral:'Viral',bact:'Bacterial',host:'Host DNA',rrna:'rRNA',fungal:'Fungal',arch:'Archaeal',reagent:'Reagent',phix:'PhiX'};
+    const hmScaled = ['host','rrna','reagent','phix'];
+    const hmMults = {clean:0.25,realistic:1,heavy:2.5};
+    const hmStops = {
+      viral:['#e8f5e9','#a5d6a7','#66bb6a','#2e7d32','#1b5e20'],
+      bact:['#e3f2fd','#90caf9','#42a5f5','#1565c0','#0d47a1'],
+      host:['#fce4ec','#ef9a9a','#ef5350','#c62828','#b71c1c'],
+      rrna:['#f3e5f5','#ce93d8','#ab47bc','#7b1fa2','#4a148c'],
+      fungal:['#fff8e1','#ffe082','#ffc107','#f57f17','#e65100'],
+      arch:['#e0f2f1','#80cbc4','#26a69a','#00796b','#004d40'],
+      reagent:['#f5f5f5','#bdbdbd','#757575','#424242','#212121'],
+      phix:['#fff3e0','#ffcc80','#ff9800','#e65100','#bf360c'],
+    };
+    const hmMaxVals = {bact:80,viral:100,host:40,rrna:12,fungal:5,arch:3,reagent:2,phix:0.2};
+    let hmLevel = 'realistic';
+
+    function hmHex(h){const s=h.replace('#','');return[parseInt(s.substring(0,2),16),parseInt(s.substring(2,4),16),parseInt(s.substring(4,6),16)];}
+    function hmLerp(a,b,t){const pa=hmHex(a),pb=hmHex(b);return`rgb(${Math.round(pa[0]+(pb[0]-pa[0])*t)},${Math.round(pa[1]+(pb[1]-pa[1])*t)},${Math.round(pa[2]+(pb[2]-pa[2])*t)})`;}
+    function hmLum(c){const m=c.match(/\d+/g);if(!m)return 128;return 0.299*m[0]+0.587*m[1]+0.114*m[2];}
+    function hmColor(key,val){const s=hmStops[key],mx=hmMaxVals[key],t=Math.min(1,val/mx),idx=t*(s.length-1),lo=Math.floor(idx),hi=Math.min(lo+1,s.length-1);return hmLerp(s[lo],s[hi],idx-lo);}
+    function hmScaledVals(c,mult){
+      const sc={};
+      hmKeys.forEach(k=>{if(k==='viral')return;sc[k]=hmScaled.includes(k)?Math.min(c[k]*mult,100):c[k];});
+      sc.viral=Math.max(0,100-Object.values(sc).reduce((a,b)=>a+b,0));
+      return sc;
+    }
+    function hmRR(ctx,x,y,w,h,r){ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();}
+
+    const catCols = {body:'#1a6e7f',env:'#6a7a2a',disease:'#b85530',rna:'#7a4a8f'};
+
+    function hmDraw(){
+      const canvas = document.getElementById('hm-canvas');
+      const dpr = window.devicePixelRatio||1;
+      const isDark = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()==='#ffffff' ? false : true;
+      if(isDark){catCols.body='#4abcd0';catCols.env='#a0b858';catCols.disease='#e08060';catCols.rna='#b88ad0';}
+      else{catCols.body='#1a6e7f';catCols.env='#6a7a2a';catCols.disease='#b85530';catCols.rna='#7a4a8f';}
+
+      const idW=28, labelW=180, cellW=65, cellH=26, headerH=56, gColW=50;
+      const totalW=idW+labelW+hmKeys.length*cellW+gColW+10;
+      const totalH=headerH+20*cellH+4;
+      canvas.width=totalW*dpr; canvas.height=totalH*dpr;
+      canvas.style.width=totalW+'px'; canvas.style.height=totalH+'px';
+      const ctx=canvas.getContext('2d');
+      ctx.scale(dpr,dpr);
+
+      const bg=isDark?'#1a1a2e':'#ffffff';
+      const txt=isDark?'#d4d4d8':'#1a1a1a';
+      const txtS=isDark?'#a1a1aa':'#4a4a4a';
+      const txtT=isDark?'#71717a':'#888888';
+      const brd=isDark?'#30363d':'#e0e0e0';
+
+      ctx.fillStyle=bg; ctx.fillRect(0,0,totalW,totalH);
+      const mult=hmMults[hmLevel];
+      const colX0=idW+labelW;
+
+      // Column headers (rotated)
+      hmKeys.forEach((key,ci)=>{
+        const cx=colX0+ci*cellW+cellW/2;
+        ctx.save(); ctx.translate(cx,headerH-4); ctx.rotate(-Math.PI/4);
+        ctx.font='11px -apple-system,sans-serif'; ctx.fillStyle=txtS;
+        ctx.textAlign='left'; ctx.textBaseline='middle';
+        ctx.fillText(hmLabels[key],0,0); ctx.restore();
+      });
+      // Genomes header
+      ctx.save(); ctx.translate(colX0+hmKeys.length*cellW+gColW/2,headerH-4); ctx.rotate(-Math.PI/4);
+      ctx.font='11px -apple-system,sans-serif'; ctx.fillStyle=txtT;
+      ctx.textAlign='left'; ctx.textBaseline='middle';
+      ctx.fillText('Genomes',0,0); ctx.restore();
+
+      const maxG=445;
+      HM_COLLECTIONS.forEach((c,ri)=>{
+        const y=headerH+ri*cellH;
+        const sc=hmScaledVals(c,mult);
+
+        if(ri%2===0){ctx.fillStyle=isDark?'#1e1e30':'#fafafa';ctx.fillRect(0,y,totalW,cellH);}
+
+        // ID
+        ctx.font='10px "SFMono-Regular",Consolas,monospace'; ctx.fillStyle=txtT;
+        ctx.textAlign='right'; ctx.textBaseline='middle';
+        ctx.fillText(String(c.id).padStart(2,' '),idW-6,y+cellH/2);
+
+        // Name
+        ctx.font='11px -apple-system,sans-serif'; ctx.fillStyle=catCols[c.cat]||txt;
+        ctx.textAlign='left'; ctx.fillText(c.name,idW+4,y+cellH/2);
+
+        // Cells
+        hmKeys.forEach((key,ci)=>{
+          const val=sc[key]; const cx=colX0+ci*cellW; const pd=1;
+          if(val>0.01){
+            const color=hmColor(key,val);
+            ctx.fillStyle=color; ctx.beginPath(); hmRR(ctx,cx+pd,y+pd,cellW-pd*2,cellH-pd*2,3); ctx.fill();
+            const disp=val>=10?val.toFixed(0)+'%':val>=1?val.toFixed(1)+'%':val>=0.1?val.toFixed(1)+'%':'<0.1%';
+            ctx.font='10px "SFMono-Regular",Consolas,monospace';
+            ctx.fillStyle=hmLum(color)>160?'#333':'#fff';
+            ctx.textAlign='center'; ctx.fillText(disp,cx+cellW/2,y+cellH/2);
+          } else {
+            ctx.fillStyle=isDark?'#1e1e30':'#f5f5f5'; ctx.beginPath(); hmRR(ctx,cx+pd,y+pd,cellW-pd*2,cellH-pd*2,3); ctx.fill();
+            ctx.font='10px "SFMono-Regular",Consolas,monospace'; ctx.fillStyle=isDark?'#444':'#ccc';
+            ctx.textAlign='center'; ctx.fillText('—',cx+cellW/2,y+cellH/2);
+          }
+        });
+
+        // Genome bar
+        const gx=colX0+hmKeys.length*cellW+4;
+        const barW=(gColW-28)*(c.genomes/maxG);
+        ctx.fillStyle=isDark?'#333':'#e8e8e8'; ctx.beginPath(); hmRR(ctx,gx,y+7,gColW-28,cellH-14,2); ctx.fill();
+        ctx.fillStyle=(catCols[c.cat]||'#888')+(isDark?'99':'66'); ctx.beginPath(); hmRR(ctx,gx,y+7,barW,cellH-14,2); ctx.fill();
+        ctx.font='9px "SFMono-Regular",Consolas,monospace'; ctx.fillStyle=txtS;
+        ctx.textAlign='left'; ctx.fillText(c.genomes,gx+gColW-24,y+cellH/2);
+      });
+
+      // Grid lines
+      ctx.strokeStyle=brd; ctx.lineWidth=0.5;
+      for(let ci=0;ci<=hmKeys.length;ci++){const x=colX0+ci*cellW;ctx.beginPath();ctx.moveTo(x,headerH);ctx.lineTo(x,headerH+20*cellH);ctx.stroke();}
+      ctx.beginPath();ctx.moveTo(colX0,headerH);ctx.lineTo(colX0+hmKeys.length*cellW,headerH);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(colX0,headerH+20*cellH);ctx.lineTo(colX0+hmKeys.length*cellW,headerH+20*cellH);ctx.stroke();
+    }
+
+    window.hmSetLevel = function(level){
+      hmLevel=level;
+      ['clean','realistic','heavy'].forEach(l=>{
+        const b=document.getElementById('hm-btn-'+l);
+        if(l===level){b.style.borderColor='var(--accent)';b.style.background='var(--accent-light)';b.style.color='var(--accent)';b.style.fontWeight='600';}
+        else{b.style.borderColor='var(--border-light)';b.style.background='var(--code-bg)';b.style.color='var(--text)';b.style.fontWeight='normal';}
+      });
+      hmDraw();
+    };
+
+    hmDraw();
+    const hmMq=window.matchMedia('(prefers-color-scheme:dark)');
+    hmMq.addEventListener('change',hmDraw);
+    new MutationObserver(hmDraw).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+  })();
+  </script>
+
+<!-- ════════════════════════════════════════ -->
+  <h2 id="database-structure">Database Structure</h2>
+
+  <p>ViroForge stores all data in a SQLite database (<code>viroforge/data/viral_genomes.db</code>, ~500 MB).</p>
+
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Table</th><th>Records</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>genomes</code></td><td>14,423</td><td>Viral genome sequences from RefSeq</td></tr>
+      <tr><td><code>taxonomy</code></td><td>14,423</td><td>ICTV/NCBI taxonomy (71.7% family, 88.9% class coverage)</td></tr>
+      <tr><td><code>body_site_collections</code></td><td>20</td><td>Collection metadata and contamination defaults</td></tr>
+      <tr><td><code>collection_genomes</code></td><td>~2,000</td><td>Genome-collection associations with abundances</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p>Query the database directly with SQLite:</p>
+
+  <pre><code>sqlite3 viroforge/data/viral_genomes.db \
+  "SELECT collection_id, collection_name, n_genomes
+   FROM body_site_collections
+   ORDER BY collection_id;"</code></pre>
+
+  <h3 id="reference-files">Reference Files</h3>
+
+  <p>Contamination reads are generated from bundled reference sequences:</p>
+
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>File</th><th>Sequences</th><th>Source</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>host_fragments.fasta</code></td><td>48</td><td>Human genome (T2T-CHM13v2.0), 10 kb fragments</td></tr>
+      <tr><td><code>rrna_representatives.fasta</code></td><td>23</td><td>E. coli, human, gut bacteria 16S/18S/23S/28S</td></tr>
+      <tr><td><code>bacterial_fragments.fasta</code></td><td>120</td><td>Gut/oral/skin/marine bacteria from RefSeq</td></tr>
+      <tr><td><code>fungal_fragments.fasta</code></td><td>15</td><td>Common fungi (Candida, Saccharomyces, etc.)</td></tr>
+      <tr><td><code>archaeal_fragments.fasta</code></td><td>15</td><td>Gut archaea (Methanobrevibacter, etc.)</td></tr>
+      <tr><td><code>phix174.fasta</code></td><td>1</td><td>PhiX174 genome (NC_001422.1, 5,386 bp)</td></tr>
+      <tr><td><code>adapters.fasta</code></td><td>11</td><td>Illumina TruSeq and Nextera adapter sequences</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <!-- ════════════════════════════════════════ -->
+  <h2 id="installation">Installation</h2>
+
+  <h3>Step 1: Clone and install</h3>
+
+  <pre><code>git clone https://github.com/shandley/viroforge.git
+cd viroforge
+pip install -e .</code></pre>
+
+  <h3>Step 2: Install the read simulator</h3>
+
+  <pre><code>pip install insilicoseq</code></pre>
+
+  <h3>Step 3: Build the database</h3>
+
+  <pre><code>viroforge setup-db</code></pre>
+
+  <p>This downloads RefSeq genomes, builds the SQLite database, and populates all 20 collections. Takes a few minutes; only needed once.</p>
+
+  <h3>Step 4: Verify</h3>
+
+  <pre><code>viroforge browse</code></pre>
+
+  <pre class="output"><code>## You should see 20 collections listed with genome counts.</code></pre>
+
+  <h3>Optional: Benchmarking support</h3>
+
+  <pre><code>pip install -e ".[benchmark]"</code></pre>
+
+  <p>Required only for assembly benchmarking (installs <code>mappy</code> for minimap2 alignment).</p>
+
+  <h3>Optional: Long-read support</h3>
+
+  <p>Install PBSIM3 for PacBio HiFi or Nanopore read simulation:</p>
+
+  <pre><code>git clone https://github.com/yukiteruono/pbsim3.git
+cd pbsim3 && ./configure && make && sudo make install</code></pre>
+
+  <!-- ════════════════════════════════════════ -->
+  <h2 id="commands">Commands</h2>
+
+  <h3 id="generate">Generate a Dataset</h3>
+
+  <p>This is the core command. It generates FASTQ files with ground truth.</p>
+
+  <pre><code>viroforge generate \
+    --collection-id 1 \
+    --output data/gut_virome \
+    --platform novaseq \
+    --coverage 30 \
+    --vlp-protocol tangential_flow \
+    --seed 42</code></pre>
+
+  <pre class="output"><code>## ViroForge v0.20.0 — Generating dataset
+## Collection: Gut Virome - Adult Healthy (Western Diet) (134 genomes)
+## Platform: novaseq | Coverage: 30x | VLP: tangential_flow
+## Amplification: linker | Contamination: realistic
+##
+## [1/6] Injecting contamination...  done (0.8s)
+## [2/6] Applying VLP enrichment...  done (0.3s)
+## [3/6] Applying amplification...   done (0.2s)
+## [4/6] Simulating reads...         done (45.1s)
+## [5/6] Injecting artifacts...      done (2.4s)
+## [6/6] Writing output...           done (1.1s)
+##
+## Output: data/gut_virome/
+## Total reads: 1,245,382 (viral: 92.3%, host: 3.1%, bacterial: 2.8%, other: 1.8%)</code></pre>
+
+  <h4>Key options</h4>
+
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Option</th><th>Description</th><th>Default</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>--collection-id N</code></td><td>Which collection to use (1&ndash;20)</td><td>Required</td></tr>
+      <tr><td><code>--output DIR</code></td><td>Output directory</td><td>Required</td></tr>
+      <tr><td><code>--seed N</code></td><td>Random seed for reproducibility</td><td>42</td></tr>
+      <tr><td><code>--coverage N</code></td><td>Coverage depth</td><td>10</td></tr>
+      <tr><td><code>--platform NAME</code></td><td>novaseq, miseq, hiseq, pacbio-hifi, nanopore</td><td>novaseq</td></tr>
+      <tr><td><code>--vlp-protocol NAME</code></td><td>VLP enrichment method</td><td>tangential_flow</td></tr>
+      <tr><td><code>--no-vlp</code></td><td>Skip VLP (bulk metagenome)</td><td>&mdash;</td></tr>
+      <tr><td><code>--contamination-level</code></td><td>clean, realistic, heavy</td><td>realistic</td></tr>
+      <tr><td><code>--molecule-type</code></td><td>dna, rna</td><td>dna</td></tr>
+      <tr><td><code>--adapter-rate N</code></td><td>Adapter contamination fraction</td><td>0.03</td></tr>
+      <tr><td><code>--duplicate-rate N</code></td><td>PCR duplicate fraction</td><td>0.10</td></tr>
+      <tr><td><code>--dark-matter-fraction N</code></td><td>Unclassified viral fraction</td><td>0.30</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3 id="presets">Generate from a Preset</h3>
+
+  <p>Presets bundle common parameter combinations:</p>
+
+  <pre><code>viroforge generate --preset gut-standard --output data/gut</code></pre>
+
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Preset</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>gut-standard</code></td><td>Human gut virome, 30x, VLP enrichment</td></tr>
+      <tr><td><code>gut-bulk</code></td><td>Gut bulk metagenome (no VLP, ~70% bacterial)</td></tr>
+      <tr><td><code>gut-vlp</code></td><td>Gut virome with VLP enrichment</td></tr>
+      <tr><td><code>stool-clinical</code></td><td>Clinical stool (high host DNA)</td></tr>
+      <tr><td><code>marine-standard</code></td><td>Marine coastal virome</td></tr>
+      <tr><td><code>respiratory-rna</code></td><td>Respiratory RNA virome</td></tr>
+      <tr><td><code>assembly-high-coverage</code></td><td>100x coverage for assembly benchmarking</td></tr>
+      <tr><td><code>quick-test-short</code></td><td>Quick test (tiny dataset, fast)</td></tr>
+      <tr><td><code>quick-test-long</code></td><td>Quick long-read test</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3 id="batch-generation">Batch Generation</h3>
+
+  <p>Generate multiple datasets from a YAML configuration:</p>
+
+  <pre><code>viroforge batch config.yaml --parallel 4</code></pre>
+
+  <p>Example YAML configuration:</p>
+
+  <pre><code>datasets:
+  - name: gut_10x
+    collection_id: 1
+    coverage: 10
+    platform: novaseq
+  - name: gut_30x
+    collection_id: 1
+    coverage: 30
+    platform: novaseq
+  - name: marine_10x
+    collection_id: 5
+    coverage: 10
+    platform: novaseq
+
+sweep:
+  coverage: [10, 30, 50]
+  amplification: [linker, mda]</code></pre>
+
+  <p>When a <code>sweep</code> block is present, ViroForge generates every combination of the listed parameters. For example, 3 coverage values &times; 2 amplification methods = 6 datasets, one for each combination.</p>
+
+  <h3 id="benchmarking">Benchmarking</h3>
+
+  <p>ViroForge includes three benchmarking modules for scoring analysis pipelines against known ground truth.</p>
+
+  <h4>QC Benchmark</h4>
+
+  <p>ViroForge does not perform QC itself &mdash; it <strong>scores how well your QC tool performed</strong>. The command takes two FASTQ files as input (nothing is written):</p>
+
+  <ul>
+    <li><code>--raw-reads</code> &mdash; the <strong>original raw reads</strong> generated by ViroForge (with ground truth labels)</li>
+    <li><code>--cleaned-reads</code> &mdash; the <strong>cleaned reads your QC tool already produced</strong> (not a file ViroForge creates)</li>
+  </ul>
+
+  <p>ViroForge reads both files, checks which labeled reads survived your QC tool and which were removed, and reports a score. The workflow:</p>
+
+  <pre><code># Step 1: Generate a dataset with ground truth
+viroforge generate --preset gut-standard --output data/bench
+
+# Step 2: Run YOUR QC tool on the raw reads
+fastp -i data/bench/fastq/*_R1.fastq -o cleaned_R1.fastq
+
+# Step 3: Ask ViroForge to score what your tool did
+#         (both flags are INPUTS — ViroForge reads them and prints a report)
+viroforge benchmark qc \
+    --raw-reads data/bench/fastq/*_R1.fastq \
+    --cleaned-reads cleaned_R1.fastq</code></pre>
+
+  <pre class="output"><code>## QC Benchmark Results
+## ──────────────────────────────────
+## Viral retention:           97.2%  (source=viral reads kept)
+## Host DNA removal:          99.1%  (source=host_dna reads removed)
+## rRNA removal:              98.5%  (source=rrna reads removed)
+## Bacterial removal:         94.3%  (source=bacterial_background removed)
+## False positive rate:        0.8%  (viral reads incorrectly removed)
+## Duplicate removal recall:  89.4%  (duplicate reads removed)</code></pre>
+
+  <p>A perfect QC tool would retain 100% of <code>source=viral</code> reads and remove 100% of everything else.</p>
+
+  <h4>Assembly Benchmark</h4>
+
+  <p>Like QC benchmarking, ViroForge does not assemble anything &mdash; it <strong>scores contigs your assembler already produced</strong>. The command takes two inputs:</p>
+
+  <ul>
+    <li><code>--contigs</code> &mdash; the <strong>contig FASTA your assembler already produced</strong> (e.g., from megahit, SPAdes, or metaviralSPAdes)</li>
+    <li><code>--genomes</code> &mdash; ViroForge's <strong>source genome FASTA</strong> (the true reference genomes the reads came from)</li>
+    <li><code>--ground-truth</code> &mdash; ViroForge's dataset metadata JSON (optional, for expected coverage and abundance accuracy)</li>
+  </ul>
+
+  <p>ViroForge aligns your contigs against the known source genomes and reports how well the assembler recovered them:</p>
+
+  <pre><code># Step 1: Assemble with YOUR assembler
+megahit -1 cleaned_R1.fastq -2 cleaned_R2.fastq -o assembly/
+
+# Step 2: Ask ViroForge to score the assembly
+#         (both flags are INPUTS — ViroForge reads them and prints a report)
+viroforge benchmark assembly \
+    --contigs assembly/final.contigs.fa \
+    --genomes data/bench/fasta/*.fasta \
+    --ground-truth data/bench/metadata/*_metadata.json</code></pre>
+
+  <pre class="output"><code>## Assembly Benchmark Results
+## ──────────────────────────────────
+## Genomes recovered:     67 / 90   (contigs matching a known genome)
+## Mean completeness:     82.3%     (fraction of each genome covered)
+## Mean identity:         99.7%     (sequence accuracy of aligned regions)
+## Chimeric contigs:      3 (1.2%)  (contigs spanning multiple genomes)
+## N50:                   18,432 bp
+## L50:                   24</code></pre>
+
+  <h4>Taxonomy Benchmark</h4>
+
+  <p>Same pattern &mdash; ViroForge <strong>scores classifications your taxonomy tool already produced</strong>. The command takes:</p>
+
+  <ul>
+    <li><code>--pipeline-output</code> &mdash; the <strong>output file your classifier already produced</strong> (e.g., Kraken2 output, Centrifuge report)</li>
+    <li><code>--ground-truth</code> &mdash; ViroForge's dataset metadata JSON (with the taxonomy block)</li>
+    <li><code>--taxdump-dir</code> &mdash; NCBI taxonomy dump (so ViroForge can compare at genus/family level, not just exact taxids)</li>
+  </ul>
+
+  <pre><code># Step 1: Classify with YOUR tool
+kraken2 --db /path/to/db cleaned_R1.fastq > kraken_out.txt
+
+# Step 2: Ask ViroForge to score the classifications
+viroforge benchmark taxonomy \
+    --pipeline-output kraken_out.txt \
+    --ground-truth data/bench/metadata/*_metadata.json \
+    --taxdump-dir /path/to/taxdump</code></pre>
+
+  <pre class="output"><code>## Taxonomy Benchmark Results
+## ──────────────────────────────────
+## Species precision:    71.2%  (correct species among all assignments)
+## Species recall:       64.8%  (known species that were found)
+## Family precision:     89.4%  (correct family among all assignments)
+## Family recall:        83.1%  (known families that were found)
+## Known viral classified: 78.3%  (reads from known genomes assigned)
+## Dark matter classified: 12.1%  (unclassified genomes misassigned)</code></pre>
+
+  <p>ViroForge auto-detects the format for Kraken2, Centrifuge, DIAMOND, and MMseqs2. For other tools, specify <code>--format generic</code> with a tab-separated file.</p>
+
+  <h3 id="other-commands">Other Commands</h3>
+
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Command</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>viroforge browse</code></td><td>Interactive TUI collection browser</td></tr>
+      <tr><td><code>viroforge report DIR</code></td><td>View a dataset report</td></tr>
+      <tr><td><code>viroforge compare DIR1 DIR2</code></td><td>Compare two datasets</td></tr>
+      <tr><td><code>viroforge presets list</code></td><td>List all presets</td></tr>
+      <tr><td><code>viroforge summary DIR</code></td><td>Show expected ranges for a dataset</td></tr>
+      <tr><td><code>viroforge setup-db</code></td><td>Build/rebuild the database</td></tr>
+      <tr><td><code>viroforge web</code></td><td>Launch the web interface (local use only)</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <!-- ════════════════════════════════════════ -->
+  <h2 id="understanding-output">Understanding the Output</h2>
+
+  <p>After generation, the output directory contains:</p>
+
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>File</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>fastq/*_R1.fastq</code></td><td>Forward reads</td></tr>
+      <tr><td><code>fastq/*_R2.fastq</code></td><td>Reverse reads (paired-end)</td></tr>
+      <tr><td><code>fasta/*.fasta</code></td><td>Source genomes and contaminants</td></tr>
+      <tr><td><code>metadata/*_metadata.json</code></td><td>Complete ground truth (v1.1 schema)</td></tr>
+      <tr><td><code>metadata/*_composition.tsv</code></td><td>Genome abundance table</td></tr>
+      <tr><td><code>metadata/*_manifest.tsv</code></td><td>Artifact manifests (adapters, duplicates, low-complexity)</td></tr>
+      <tr><td><code>generation_report.html</code></td><td>Diagnostic report with plots</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3 id="ground-truth">Ground Truth Labels</h3>
+
+  <p>Every read header contains a <code>source=</code> tag identifying its origin:</p>
+
+  <pre><code>@read_00001 source=viral genome=NC_001422.1 pos=1234 strand=+
+ATCGATCGATCGATCGATCGATCGATCG...
++
+IIIIIIIIIIIIIIIIIIIIIIIIIIIII...</code></pre>
+
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Label</th><th>Meaning</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>source=viral</code></td><td>Viral genome read</td></tr>
+      <tr><td><code>source=host_dna</code></td><td>Host DNA contamination</td></tr>
+      <tr><td><code>source=rrna</code></td><td>Ribosomal RNA</td></tr>
+      <tr><td><code>source=bacterial_background</code></td><td>Bacterial contamination</td></tr>
+      <tr><td><code>source=fungal_background</code></td><td>Fungal contamination</td></tr>
+      <tr><td><code>source=archaeal_background</code></td><td>Archaeal contamination</td></tr>
+      <tr><td><code>source=phix</code></td><td>PhiX spike-in control</td></tr>
+      <tr><td><code>source=reagent_bacteria</code></td><td>Lab reagent contamination</td></tr>
+      <tr><td><code>source=dark_matter</code></td><td>Unclassified viral genome</td></tr>
+      <tr><td><code>source=erv_endogenous</code></td><td>Endogenous retroviral element (HERV)</td></tr>
+      <tr><td><code>source=erv_exogenous</code></td><td>Exogenous retrovirus (Retroviridae)</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout">
+    <strong>Benchmarking with labels.</strong> These source tags are the answer key for QC benchmarking. A perfect QC tool would retain all <code>source=viral</code> reads and remove everything else. The <code>viroforge benchmark qc</code> command automates this comparison.
+  </div>
+
+  <!-- ════════════════════════════════════════ -->
+  <h2 id="diagnostic-report">Interpreting the Diagnostic Report</h2>
+
+  <p>Open <code>generation_report.html</code> in your browser after generating a dataset. It contains the following sections:</p>
+
+  <h3>Composition Pie Chart</h3>
+  <p>Shows the fraction of reads from each source type (viral, host DNA, rRNA, bacterial, etc.) after VLP enrichment. A well-enriched VLP virome should be &gt;90% viral.</p>
+
+  <h3>Before vs. After VLP</h3>
+  <p>Side-by-side bar chart showing how VLP enrichment changed the composition. Before VLP: mostly bacterial. After VLP: mostly viral. This is the primary purpose of VLP enrichment.</p>
+
+  <h3>Top Viral Families</h3>
+  <p>Horizontal bar chart showing the most abundant viral families. Check if the community structure makes sense for the body site (e.g., gut should be dominated by Caudovirales phages).</p>
+
+  <h3>Rank-Abundance Curve</h3>
+  <p>Each dot represents one viral genome. The X axis is rank (1 = most abundant), the Y axis (log scale) is the read fraction from that genome.</p>
+  <ul>
+    <li><strong>Steep curve</strong> &mdash; A few viruses dominate, most are rare (typical of real viromes)</li>
+    <li><strong>Flat curve</strong> &mdash; All viruses equally abundant (unusual in nature)</li>
+  </ul>
+
+  <h3>GC Content Distribution</h3>
+  <p>Histogram of GC content across all genomes. A skewed distribution could indicate amplification bias affecting the community.</p>
+
+  <h3>Genome Length vs. Abundance</h3>
+  <p>Scatter plot checking if genome size correlates with abundance. In an unbiased dataset there should be no trend. A visible pattern could indicate VLP size bias or amplification effects.</p>
+
+  <h3>VLP Contamination Reduction Table</h3>
+  <p>Shows the removal efficiency for each contamination type. Typical values: &gt;95% host DNA removal, &gt;90% bacterial removal, ~40% PhiX loss (small virus, passes through filters).</p>
+
+  <h3>Artifact Summary Table</h3>
+  <p>Shows how many reads were modified by each artifact injection step (adapters, duplicates, low-complexity, chimeras).</p>
+
+  <!-- ════════════════════════════════════════ -->
+  <h2 id="use-case">Use Case: IBD Gut Virome Analysis</h2>
+
+  <p>This walkthrough demonstrates a complete ViroForge workflow using Collection 10 (IBD Gut Virome) &mdash; from dataset generation through QC, assembly, and taxonomy benchmarking. The IBD virome is a good test case because it has a distinctive dysbiotic composition that differs from healthy gut.</p>
+
+  <h3 id="uc-background">Background</h3>
+
+  <p>Inflammatory Bowel Disease is associated with dramatic shifts in the gut virome (Norman et al. 2015, <em>Cell</em>; Clooney et al. 2019, <em>Cell Host &amp; Microbe</em>). Key features include:</p>
+
+  <ul>
+    <li><strong>Reduced crAssphage-like viruses</strong> &mdash; The dominant phage group in healthy gut is depleted ~44% in IBD</li>
+    <li><strong>Expanded temperate phages</strong> &mdash; Prophage induction during inflammation leads to blooms of Drexlerviridae, Demerecviridae, and Ackermannviridae</li>
+    <li><strong>Severely skewed abundance</strong> &mdash; A few viral species dominate, creating a steeper rank-abundance curve than healthy gut</li>
+    <li><strong>Eukaryotic virus enrichment</strong> &mdash; Mucosal barrier damage may increase Adenoviridae and Picornaviridae</li>
+  </ul>
+
+  <p>Collection 10 models these features with 90 curated genomes across 5 viral groups:</p>
+
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Viral Group</th><th>Key Families</th><th>Genomes</th><th>IBD Relevance</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>crAssphage-like (reduced)</td><td>Intestiviridae, Suoliviridae, Steigviridae, Crevaviridae</td><td>20</td><td>44% reduction vs. healthy</td></tr>
+      <tr><td>Temperate phages (increased)</td><td>Drexlerviridae, Demerecviridae, Ackermannviridae</td><td>35</td><td>Dominant group (~39%)</td></tr>
+      <tr><td>Microviridae</td><td>Microviridae (coliphage)</td><td>15</td><td>Altered but maintained</td></tr>
+      <tr><td>Inoviridae</td><td>Inoviridae (filamentous)</td><td>12</td><td>Reduced diversity</td></tr>
+      <tr><td>Eukaryotic viruses</td><td>Adenoviridae, Picornaviridae, Anelloviridae, Parvoviridae</td><td>8</td><td>Increased from mucosal damage</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3 id="uc-generate">Step 1: Generate the Dataset</h3>
+
+  <p>Generate an IBD gut virome dataset with VLP enrichment at 30x coverage:</p>
+
+  <pre><code>viroforge generate \
+    --collection-id 10 \
+    --output data/ibd_virome \
+    --platform novaseq \
+    --coverage 30 \
+    --vlp-protocol tangential_flow \
+    --contamination-level realistic \
+    --seed 42</code></pre>
+
+  <pre class="output"><code>## ViroForge v0.20.0 — Generating dataset
+## Collection: IBD Gut Virome (Inflammatory Bowel Disease) (90 genomes)
+## Platform: novaseq | Coverage: 30x | VLP: tangential_flow
+## Amplification: linker | Contamination: realistic
+##
+## [1/6] Injecting contamination...  done (0.6s)
+##        host_dna: 5.0% | rrna: 3.0% | bacterial: 70.0%
+##        fungal: 2.0% | archaeal: 1.0% | reagent: 0.5% | phix: 0.1%
+## [2/6] Applying VLP enrichment...  done (0.2s)
+##        Viral fraction: 85.2% → 93.3% (tangential_flow, 0.2 μm)
+##        Host DNA removal: 96.5% | Bacterial removal: 91.1%
+## [3/6] Applying amplification...   done (0.1s)
+## [4/6] Simulating reads...         done (38.7s)
+## [5/6] Injecting artifacts...      done (1.9s)
+## [6/6] Writing output...           done (0.8s)
+##
+## Output: data/ibd_virome/
+## Total reads: 1,245,382
+## Composition: viral 93.3% | bacterial 6.2% | host 0.2% | other 0.3%</code></pre>
+
+  <div class="callout">
+    <strong>VLP pore size matters.</strong> With the default 0.2 &mu;m tangential flow, you get ~93% viral reads. Switching to <code>--vlp-protocol tangential_flow_045</code> (0.45 &mu;m pore) drops viral purity to ~85% because more bacteria pass through the larger pores. This models a real experimental trade-off: larger pores recover more large viruses but also more bacterial contamination.
+  </div>
+
+  <p>For comparison, generate a bulk metagenome (no VLP enrichment) from the same collection:</p>
+
+  <pre><code>viroforge generate \
+    --collection-id 10 \
+    --output data/ibd_bulk \
+    --platform novaseq \
+    --coverage 30 \
+    --no-vlp \
+    --seed 42</code></pre>
+
+  <pre class="output"><code>## Composition: viral 4.1% | bacterial 71.8% | host 5.0% | other 19.1%
+## (No VLP enrichment — bulk metagenome composition)</code></pre>
+
+  <p>The contrast illustrates what VLP enrichment does: in a bulk stool metagenome, bacteria dominate (~72%), and viruses are a small minority (~4%). VLP enrichment inverts this ratio.</p>
+
+  <h3 id="uc-inspect">Step 2: Inspect the Output</h3>
+
+  <p>Check the generated files:</p>
+
+  <pre><code>ls data/ibd_virome/</code></pre>
+
+  <pre class="output"><code>## fastq/
+## fasta/
+## metadata/
+## generation_report.html</code></pre>
+
+  <p>View the dataset report:</p>
+
+  <pre><code>viroforge report data/ibd_virome</code></pre>
+
+  <p>Or open <code>data/ibd_virome/generation_report.html</code> in a browser for the full diagnostic report with plots.</p>
+
+  <p>Inspect ground truth labels in the FASTQ:</p>
+
+  <pre><code>head -8 data/ibd_virome/fastq/*_R1.fastq</code></pre>
+
+  <pre class="output"><code>## @read_000001 source=viral genome=NC_048087.1 pos=4521 strand=+
+## ATCGATCGATCGATCGATCGATCGATCGATCGATCG...
+## +
+## IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII...
+## @read_000002 source=viral genome=NC_028857.2 pos=18203 strand=-
+## GCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAG...
+## +
+## IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII...</code></pre>
+
+  <p>Check the composition table for the top viral genomes:</p>
+
+  <pre><code>head -10 data/ibd_virome/metadata/*_composition.tsv</code></pre>
+
+  <pre class="output"><code>## genome_id        genome_name                          family           abundance
+## NC_048087.1      Klebsiella phage KOX1                Drexlerviridae   0.1250
+## NC_001405.1      Human adenovirus 2                   Adenoviridae     0.0620
+## NC_047813.1      Faecalibacterium phage FP_oengus     Unknown          0.0530
+## NC_001420.1      Genome of phage G4 (coliphage)       Microviridae     0.0500
+## NC_028857.2      Faecalibacterium phage FP_Toutatis   Unknown          0.0330
+## NC_019445.1      Enterobacteria phage CAjan           Drexlerviridae   0.0310
+## NC_042045.1      Bacteroides phage B40-8              Suoliviridae     0.0280
+## NC_048018.1      Clostridium phage phi8074-B1         Demerecviridae   0.0260
+## NC_024711.1      CrAssphage                           Intestiviridae   0.0240</code></pre>
+
+  <div class="callout">
+    <strong>Dysbiotic signature visible.</strong> Note how Drexlerviridae (temperate phages) dominate the top ranks, while crAssphage (Intestiviridae), which is typically the most abundant phage in healthy gut, is ranked lower. This matches the expected IBD virome dysbiosis pattern.
+  </div>
+
+  <h3 id="uc-qc">Step 3: Run QC and Benchmark</h3>
+
+  <p>Run a QC tool on the raw reads, then score its performance against ViroForge's ground truth:</p>
+
+  <pre><code># Run fastp for quality control
+fastp \
+    -i data/ibd_virome/fastq/*_R1.fastq \
+    -I data/ibd_virome/fastq/*_R2.fastq \
+    -o cleaned_R1.fastq \
+    -O cleaned_R2.fastq \
+    --detect_adapter_for_pe \
+    --cut_right \
+    --qualified_quality_phred 20</code></pre>
+
+  <pre><code># Score QC performance against ground truth
+viroforge benchmark qc \
+    --raw-reads data/ibd_virome/fastq/*_R1.fastq \
+    --cleaned-reads cleaned_R1.fastq</code></pre>
+
+  <pre class="output"><code>## ┌─────────────────────────────────────────────┐
+## │         QC Benchmark Results                │
+## ├─────────────────────────────────────────────┤
+## │ Viral retention:           97.2%            │
+## │ Host DNA removal:          99.1%            │
+## │ rRNA removal:              98.5%            │
+## │ Bacterial removal:         94.3%            │
+## │ Fungal removal:            91.7%            │
+## │ False positive rate:        0.8%            │
+## │ Duplicate removal recall:  89.4%            │
+## ├─────────────────────────────────────────────┤
+## │ Read-name match rate:      99.97%           │
+## │ Overall F1 (viral):        0.984            │
+## └─────────────────────────────────────────────┘
+##
+## Report saved: qc_benchmark_report.json</code></pre>
+
+  <p>The key metrics: <strong>viral retention</strong> (are you keeping the good reads?) and <strong>contamination removal</strong> (are you removing the bad ones?). A perfect tool scores 100% on both. The read-name match rate confirms that ViroForge's ground truth labels are correctly linking input to output reads.</p>
+
+  <h3 id="uc-assembly">Step 4: Assembly and Taxonomy Benchmarking</h3>
+
+  <p>Assemble the cleaned reads and benchmark the results:</p>
+
+  <pre><code># Assemble with megahit
+megahit \
+    -1 cleaned_R1.fastq \
+    -2 cleaned_R2.fastq \
+    -o assembly/ \
+    --min-contig-len 1000
+
+# Score assembly against ground truth
+viroforge benchmark assembly \
+    --contigs assembly/final.contigs.fa \
+    --genomes data/ibd_virome/fasta/*.fasta \
+    --ground-truth data/ibd_virome/metadata/*_metadata.json</code></pre>
+
+  <pre class="output"><code>## ┌─────────────────────────────────────────────┐
+## │       Assembly Benchmark Results            │
+## ├─────────────────────────────────────────────┤
+## │ Genomes recovered:        67 / 90 (74.4%)   │
+## │ Mean completeness:        82.3%             │
+## │ Mean identity:            99.7%             │
+## │ Chimeric contigs:         3 (1.2%)          │
+## │ Assembly N50:             18,432 bp         │
+## │ Assembly L50:             24                │
+## └─────────────────────────────────────────────┘</code></pre>
+
+  <p>Run a taxonomic classifier and benchmark it:</p>
+
+  <pre><code># Classify with Kraken2
+kraken2 \
+    --db /path/to/kraken2_viral_db \
+    --paired cleaned_R1.fastq cleaned_R2.fastq \
+    --output kraken_out.txt \
+    --report kraken_report.txt
+
+# Score taxonomy against ground truth
+viroforge benchmark taxonomy \
+    --pipeline-output kraken_out.txt \
+    --ground-truth data/ibd_virome/metadata/*_metadata.json \
+    --taxdump-dir /path/to/taxdump</code></pre>
+
+  <pre class="output"><code>## ┌─────────────────────────────────────────────┐
+## │      Taxonomy Benchmark Results             │
+## ├─────────────────────────────────────────────┤
+## │ Read-level:                                 │
+## │   Species precision:      71.2%             │
+## │   Species recall:         64.8%             │
+## │   Species F1:             0.678             │
+## │   Family precision:       89.4%             │
+## │   Family recall:          83.1%             │
+## │   Family F1:              0.861             │
+## ├─────────────────────────────────────────────┤
+## │ Known vs dark matter:                       │
+## │   Known viral classified: 78.3%             │
+## │   Dark matter classified: 12.1%             │
+## └─────────────────────────────────────────────┘</code></pre>
+
+  <div class="callout">
+    <strong>Dark matter is the hard part.</strong> The 30% dark matter fraction (unclassified viral genomes with <code>family='Unknown'</code>) is intentionally difficult to classify. A good classifier should achieve high recall on known viruses while correctly reporting dark matter reads as unclassified rather than misassigning them. The stratified report lets you evaluate both cases separately.
+  </div>
+
+  <p>Compare across tools by generating a single dataset and running multiple classifiers:</p>
+
+  <pre><code># Same dataset, different classifiers
+viroforge benchmark taxonomy --pipeline-output kraken_out.txt    --ground-truth metadata.json --taxdump-dir taxdump/
+viroforge benchmark taxonomy --pipeline-output centrifuge_out.tsv --ground-truth metadata.json --taxdump-dir taxdump/
+viroforge benchmark taxonomy --pipeline-output diamond_out.tsv   --ground-truth metadata.json --taxdump-dir taxdump/ --format diamond
+
+# Compare the reports
+viroforge compare \
+    kraken_benchmark.json \
+    centrifuge_benchmark.json \
+    diamond_benchmark.json</code></pre>
+
+  <p>This is the core ViroForge workflow: generate a dataset with known ground truth, run your analysis tools, and get objective performance metrics. The IBD collection is particularly useful for benchmarking because its dysbiotic composition challenges tools differently than a healthy gut virome &mdash; the skewed abundance distribution and temperate phage blooms test how well tools handle uneven coverage.</p>
+
+  <hr>
+
+  <!-- ════════════════════════════════════════ -->
+  <h2 id="quick-reference">Quick Reference</h2>
+
+  <h3>Key Defaults</h3>
+
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Parameter</th><th>Default</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Platform</td><td>NovaSeq (Illumina)</td></tr>
+      <tr><td>Coverage</td><td>10x</td></tr>
+      <tr><td>VLP protocol</td><td>Tangential flow filtration (0.2 &mu;m)</td></tr>
+      <tr><td>Contamination level</td><td>Realistic (1x baseline)</td></tr>
+      <tr><td>Amplification</td><td>Linker-based (set via preset or generation script)</td></tr>
+      <tr><td>Adapter rate</td><td>3%</td></tr>
+      <tr><td>Duplicate rate</td><td>10%</td></tr>
+      <tr><td>Low-complexity rate</td><td>0.5%</td></tr>
+      <tr><td>Dark matter fraction</td><td>30%</td></tr>
+      <tr><td>Seed</td><td>42</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>Common Workflows</h3>
+
+  <h4>Standard gut virome dataset</h4>
+  <pre><code>viroforge generate --preset gut-standard --output data/gut</code></pre>
+
+  <h4>Bulk metagenome (no VLP enrichment)</h4>
+  <pre><code>viroforge generate --collection-id 1 --no-vlp \
+    --output data/gut_bulk --coverage 30</code></pre>
+
+  <h4>Long-read PacBio HiFi dataset</h4>
+  <pre><code>viroforge generate --collection-id 1 \
+    --platform pacbio-hifi \
+    --output data/gut_hifi --coverage 15</code></pre>
+
+  <h4>Hybrid assembly (matched short + long reads)</h4>
+  <pre><code>python scripts/generate_hybrid_dataset.py \
+    --collection-id 1 \
+    --output data/gut_hybrid \
+    --short-platform novaseq \
+    --long-platform pacbio-hifi \
+    --coverage 30 --depth 15 --seed 42</code></pre>
+
+  <h4>RNA virome dataset</h4>
+  <pre><code>viroforge generate --preset respiratory-rna \
+    --output data/respiratory_rna</code></pre>
+
+  <h4>Full benchmarking pipeline</h4>
+  <pre><code># 1. Generate dataset with ground truth
+viroforge generate --preset gut-standard --output data/bench
+
+# 2. Run your QC tool
+fastp -i data/bench/fastq/*_R1.fastq \
+      -I data/bench/fastq/*_R2.fastq \
+      -o cleaned_R1.fastq -O cleaned_R2.fastq
+
+# 3. Score QC performance
+viroforge benchmark qc \
+    --raw-reads data/bench/fastq/*_R1.fastq \
+    --cleaned-reads cleaned_R1.fastq
+
+# 4. Assemble
+megahit -1 cleaned_R1.fastq -2 cleaned_R2.fastq -o assembly/
+
+# 5. Score assembly
+viroforge benchmark assembly \
+    --contigs assembly/final.contigs.fa \
+    --genomes data/bench/fasta/*.fasta \
+    --ground-truth data/bench/metadata/*_metadata.json
+
+# 6. Classify
+kraken2 --db /path/to/db cleaned_R1.fastq > kraken_out.txt
+
+# 7. Score taxonomy
+viroforge benchmark taxonomy \
+    --pipeline-output kraken_out.txt \
+    --ground-truth data/bench/metadata/*_metadata.json \
+    --taxdump-dir /path/to/taxdump</code></pre>
+
+  <h3>Getting Help</h3>
+
+  <pre><code>viroforge --help
+viroforge generate --help
+viroforge benchmark --help</code></pre>
+
+  <!-- Footer -->
+  <div class="footer">
+    <p>ViroForge v0.20.0 &middot; Handley Lab, Washington University in St. Louis &middot; <a href="https://github.com/shandley/viroforge">github.com/shandley/viroforge</a></p>
+    <p>Site built with Claude Code &middot; MIT License</p>
+  </div>
+
+</div>
+
+<script>
+(function() {
+  const links = document.querySelectorAll('.sidebar a[href^="#"]');
+  const ids = Array.from(links).map(a => a.getAttribute('href').slice(1));
+  const sections = ids.map(id => document.getElementById(id)).filter(Boolean);
+
+  function update() {
+    let current = '';
+    const offset = 80;
+    for (let i = sections.length - 1; i >= 0; i--) {
+      if (sections[i].getBoundingClientRect().top <= offset) {
+        current = sections[i].id;
+        break;
+      }
+    }
+    links.forEach(a => {
+      const href = a.getAttribute('href').slice(1);
+      if (href === current) a.classList.add('active');
+      else a.classList.remove('active');
+    });
+  }
+
+  window.addEventListener('scroll', update, { passive: true });
+  update();
+})();
+</script>
+</body>
+</html>

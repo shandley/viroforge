@@ -120,7 +120,7 @@ viroforge report data/gut_virome --format json --export report.json
 viroforge compare data/gut_* --format html
 
 # Specify output file
-viroforge compare data/gut_novaseq data/gut_pacbio --format html --export comparison.html
+viroforge compare data/gut_novaseq data/gut_nanopore --format html --export comparison.html
 
 # Still works with other formats
 viroforge compare data/gut_* --format terminal  # Default
@@ -348,7 +348,7 @@ Opening in browser...
 ### Example 2: Compare Datasets for Hybrid Assembly
 
 ```bash
-$ viroforge compare data/gut_novaseq data/gut_pacbio --format html
+$ viroforge compare data/gut_novaseq data/gut_nanopore --format html
 ✓ HTML comparison generated: viroforge_comparison.html
 Opening in browser...
 ```
@@ -357,7 +357,7 @@ Opening in browser...
 - Side-by-side table (2 datasets)
 - ✓ Same collection
 - ✓ Same random seed
-- Platform distribution: NovaSeq (1), PacBio HiFi (1)
+- Platform distribution: NovaSeq (1), Nanopore (1)
 - **Recommendation**: "✓ Suitable for Hybrid Assembly! Short + long reads with matched compositions"
 
 ### Example 3: Check Version

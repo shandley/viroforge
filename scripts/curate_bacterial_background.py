@@ -168,14 +168,47 @@ ARCHAEAL_TAXA: dict[str, list[str]] = {
     "wastewater": ["Methanosarcina barkeri", "Methanobrevibacter smithii"],
 }
 
+# Dietary background taxa. Food-derived plant viruses that survive digestion
+# and appear in gut metagenomes. PMMoV is the most abundant RNA virus in human
+# stool (Zhang et al. 2006). These genomes are small (5-10 kb), so whole
+# genomes are fetched rather than fragments (min_length=1000 in DOMAINS).
+# The community types here match DIETARY_COMMUNITY_PROFILES in
+# contamination.py: all diets get Tobamovirus; plant-heavy diets get
+# additional genera. CMV (Cucumovirus) was replaced with TBSV (Tombusvirus)
+# because CMV is tripartite (3 RNA segments) and doesn't resolve as a single
+# "complete genome" entry in RefSeq.
+DIETARY_TAXA: dict[str, list[str]] = {
+    "western": [
+        "Pepper mild mottle virus",
+        "Tobacco mosaic virus",
+    ],
+    "mediterranean": [
+        "Pepper mild mottle virus",
+        "Tobacco mosaic virus",
+        "Potato virus Y",
+    ],
+    "plant_based": [
+        "Pepper mild mottle virus",
+        "Tobacco mosaic virus",
+        "Potato virus Y",
+        "Tomato bushy stunt virus",
+    ],
+    "high_fiber": [
+        "Pepper mild mottle virus",
+        "Potato virus Y",
+    ],
+}
+
 DOMAINS: dict[str, dict] = {
     "bacterial": {"taxa": COMMUNITY_TAXA, "output": "bacterial_fragments.fasta"},
     "fungal": {"taxa": FUNGAL_TAXA, "output": "fungal_fragments.fasta"},
     "archaeal": {"taxa": ARCHAEAL_TAXA, "output": "archaeal_fragments.fasta"},
+    "dietary": {"taxa": DIETARY_TAXA, "output": "dietary_fragments.fasta",
+                "min_length": 1000},
 }
 
 
-def resolve_refseq_genome(taxon: str) -> tuple[str, int] | None:
+def resolve_refseq_genome(taxon: str, min_length: int | None = None) -> tuple[str, int] | None:
     """Find a RefSeq genomic sequence for a taxon name.
 
     Returns (accession, length_bp), or None if nothing suitable is found. The
@@ -218,6 +251,9 @@ def resolve_refseq_genome(taxon: str) -> tuple[str, int] | None:
         return None
 
     # Longest non-organelle record wins: most likely the main chromosome.
+    # For small-genome domains (plant viruses ~6-10 kb), callers pass a lower
+    # min_length so the resolver doesn't reject genomes shorter than FRAGMENT_LENGTH.
+    threshold = min_length if min_length is not None else FRAGMENT_LENGTH
     best = None
     for s in summaries:
         title = (s.get("Title") or "").lower()
@@ -226,11 +262,11 @@ def resolve_refseq_genome(taxon: str) -> tuple[str, int] | None:
             continue
         length = int(s.get("Length", 0))
         acc = s.get("AccessionVersion") or s.get("Caption")
-        if acc and length > FRAGMENT_LENGTH and (best is None or length > best[1]):
+        if acc and length > threshold and (best is None or length > best[1]):
             best = (str(acc), length)
 
     if best is None:
-        logger.warning(f"  no record longer than {FRAGMENT_LENGTH} bp for {taxon}")
+        logger.warning(f"  no record longer than {threshold} bp for {taxon}")
     return best
 
 
@@ -359,10 +395,11 @@ def main() -> int:
 
     all_records = []
     resolved, unresolved = [], []
+    min_length = domain.get("min_length")
 
     for taxon, communities in sorted(taxon_communities.items()):
         logger.info(f"{taxon} ({', '.join(communities)})")
-        hit = resolve_refseq_genome(taxon)
+        hit = resolve_refseq_genome(taxon, min_length=min_length)
         time.sleep(REQUEST_DELAY_S)
         if hit is None:
             unresolved.append(taxon)
@@ -374,8 +411,26 @@ def main() -> int:
         if args.dry_run:
             continue
 
-        all_records.extend(fetch_fragments(
-            taxon, accession, length, communities[0], args.fragments_per_taxon))
+        if length <= FRAGMENT_LENGTH:
+            # Small genomes (plant viruses, ~6-10 kb): fetch the whole sequence
+            # rather than trying to cut fragments longer than the genome itself.
+            time.sleep(REQUEST_DELAY_S)
+            try:
+                rec = _fetch_slice(accession, 0, length)
+                rec.id = taxon.replace(" ", "_")
+                rec.description = (
+                    f"{taxon} [{communities[0]}] [RefSeq {accession}:1-{length}]"
+                )
+                if _n_fraction(rec) <= MAX_N_FRACTION:
+                    all_records.append(rec)
+                    logger.info(f"  fetched whole genome ({length:,} bp)")
+                else:
+                    logger.warning(f"  {accession} is {_n_fraction(rec):.0%} N; skipping")
+            except Exception as e:
+                logger.warning(f"  failed to fetch {accession}: {e}")
+        else:
+            all_records.extend(fetch_fragments(
+                taxon, accession, length, communities[0], args.fragments_per_taxon))
 
     print()
     print(f"Resolved {len(resolved)}/{len(taxon_communities)} taxa")

@@ -166,7 +166,7 @@ def show_platform_info(metadata: Dict):
     elif 'configuration' in metadata and 'platform' in metadata['configuration']:
         platform_name = metadata['configuration']['platform'].upper()
         table.add_row("Platform", platform_name)
-        read_type = 'long' if platform_name.lower() in ['pacbio-hifi', 'nanopore'] else 'short'
+        read_type = 'long' if platform_name.lower() == 'nanopore' else 'short'
         table.add_row("Read Type", f"paired-end {read_type}" if read_type == 'short' else read_type)
 
     # Configuration
@@ -380,7 +380,7 @@ def generate_html_report_content(metadata: Dict, dataset_path: Path, composition
     # Platform info (from configuration)
     platform_name = config.get('platform', 'Unknown').upper()
     # Determine read type from platform
-    read_type = 'long' if platform_name.lower() in ['pacbio-hifi', 'nanopore'] else 'short'
+    read_type = 'long' if platform_name.lower() == 'nanopore' else 'short'
     coverage = config.get('coverage') or config.get('target_coverage')
     depth = config.get('depth') or config.get('target_depth')
     cov_str = f"{coverage}x" if coverage else f"{depth}x" if depth else 'N/A'

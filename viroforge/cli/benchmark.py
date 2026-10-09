@@ -26,7 +26,9 @@ def run_benchmark(args) -> int:
         return _run_assembly(args)
     if args.benchmark_command == "taxonomy":
         return _run_taxonomy(args)
-    print("Usage: viroforge benchmark {qc,assembly,taxonomy} ...", file=sys.stderr)
+    if args.benchmark_command == "discovery":
+        return _run_discovery(args)
+    print("Usage: viroforge benchmark {qc,assembly,taxonomy,discovery} ...", file=sys.stderr)
     return 2
 
 
@@ -144,6 +146,50 @@ def _run_assembly(args) -> int:
     write_reports(metrics, json_path=args.output, md_path=args.markdown, kind="assembly")
     print(assembly_to_markdown(metrics))
     return 0
+
+
+def _run_discovery(args) -> int:
+    from ..benchmarking.taxonomy import (
+        FORMAT_CHOICES,
+        PARSERS,
+        detect_format,
+        parse_generic,
+    )
+    from ..benchmarking.discovery import benchmark_discovery
+    from ..benchmarking.report import discovery_to_markdown
+
+    if not Path(args.pipeline_output).exists():
+        print(f"ERROR: file not found: {args.pipeline_output}", file=sys.stderr)
+        return 2
+    if not Path(args.ground_truth).exists():
+        print(f"ERROR: file not found: {args.ground_truth}", file=sys.stderr)
+        return 2
+
+    fmt = args.format
+    if fmt == "auto":
+        detected = detect_format(args.pipeline_output)
+        if detected == "generic":
+            print("ERROR: could not recognize the classification output format.\n"
+                  "Re-run with --format generic --read-id-column N --taxid-column N",
+                  file=sys.stderr)
+            return 2
+        fmt = detected
+        print(f"Auto-detected format: {fmt}", file=sys.stderr)
+
+    if fmt == "generic":
+        assignments = parse_generic(args.pipeline_output, args.read_id_column, args.taxid_column)
+    else:
+        assignments = PARSERS[fmt](args.pipeline_output)
+
+    tax_gt = json.loads(Path(args.ground_truth).read_text()).get("benchmarking", {}).get("taxonomy")
+    if not tax_gt:
+        print("ERROR: metadata has no benchmarking.taxonomy block.", file=sys.stderr)
+        return 2
+
+    metrics = benchmark_discovery(assignments, tax_gt)
+    write_reports(metrics, json_path=args.output, md_path=args.markdown, kind="discovery")
+    print(discovery_to_markdown(metrics))
+    return 0 if metrics["reliable"] else 1
 
 
 def _run_qc(args) -> int:

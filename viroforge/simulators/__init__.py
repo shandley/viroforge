@@ -6,7 +6,7 @@ platforms and technologies.
 
 Modules:
     illumina: Illumina sequencing simulation using InSilicoSeq
-    longread: PacBio HiFi and Oxford Nanopore simulation using PBSIM3
+    longread: Oxford Nanopore simulation using PBSIM3
 """
 
 from pathlib import Path
@@ -51,10 +51,8 @@ from .illumina import (
 from .longread import (
     generate_long_reads,
     LongReadPlatform,
-    PacBioHiFiConfig,
     NanoporeConfig,
     check_pbsim3_installed,
-    check_pbccs_installed,
 )
 
 __all__ = [
@@ -64,11 +62,9 @@ __all__ = [
     'estimate_file_size',
     'check_insilicoseq_installed',
 
-    # Long-read (PacBio HiFi, Nanopore)
+    # Long-read (Nanopore)
     'generate_long_reads',
     'LongReadPlatform',
-    'PacBioHiFiConfig',
     'NanoporeConfig',
     'check_pbsim3_installed',
-    'check_pbccs_installed',
 ]

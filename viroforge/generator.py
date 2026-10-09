@@ -24,9 +24,11 @@ from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 
+from viroforge import __version__ as _viroforge_version
 from viroforge.enrichment.vlp import VLPEnrichment, VLPProtocol
 from viroforge.core.contamination import (
     BACTERIAL_COMMUNITY_PROFILES,
+    DIETARY_COMMUNITY_PROFILES,
     create_contamination_profile,
     create_rna_contamination_profile,
     ContaminationProfile,
@@ -661,14 +663,23 @@ class FASTQGenerator:
 
         return abundances
 
-    def _export_taxonomy(self, db_path: str, genome_ids: List[str]) -> Dict[str, Dict]:
+    def _export_taxonomy(
+        self,
+        db_path: str,
+        genome_ids: List[str],
+        provenance_map: Optional[Dict[str, str]] = None,
+    ) -> Dict[str, Dict]:
         """Look up ICTV lineage + NCBI taxid for the given viral genomes.
 
         Returns {genome_id: {ncbi_taxid, realm, kingdom, phylum, class, order,
-        family, subfamily, genus, species, is_known}}. is_known is False when the
-        family is Unknown (no ICTV match), which the taxonomy benchmark uses to
-        stratify classifiable versus dark/novel content.
+        family, subfamily, genus, species, is_known, genome_provenance}}.
+        is_known is False when the family is Unknown (no ICTV match), which the
+        taxonomy benchmark uses to stratify classifiable versus dark/novel content.
+        genome_provenance enables stratification by biological origin (prophage,
+        provirus, endogenous, etc.).
         """
+        if provenance_map is None:
+            provenance_map = {}
         if not genome_ids:
             return {}
         out: Dict[str, Dict] = {}
@@ -692,6 +703,7 @@ class FASTQGenerator:
                     "class": cls, "order": order_name, "family": family,
                     "subfamily": subfamily, "genus": genus, "species": species,
                     "is_known": family not in (None, "", "Unknown"),
+                    "genome_provenance": provenance_map.get(gid, "isolate"),
                 }
         finally:
             conn.close()
@@ -925,7 +937,8 @@ class FASTQGenerator:
         amplification_stats: Optional[Dict] = None,
         contamination_profile: Optional[ContaminationProfile] = None,
         enable_benchmarking: bool = True,
-        db_path: Optional[str] = None
+        db_path: Optional[str] = None,
+        provenance_map: Optional[Dict[str, str]] = None
     ):
         """
         Export complete ground truth metadata including all sequences (viral + contaminants).
@@ -956,8 +969,16 @@ class FASTQGenerator:
             'metadata_version': '1.1' if enable_benchmarking else '1.0',
             'generation_info': {
                 'timestamp': datetime.now().isoformat(),
-                'viroforge_version': '0.13.0',
-                'random_seed': self.random_seed
+                'viroforge_version': _viroforge_version,
+                'random_seed': self.random_seed,
+                'output_files': {
+                    'ground_truth_fasta': f"fasta/{self.collection_name}.fasta",
+                    'fastq_r1': f"fastq/{self.collection_name}_R1.fastq",
+                    'fastq_r2': f"fastq/{self.collection_name}_R2.fastq",
+                    'metadata': f"metadata/{self.collection_name}_metadata.json",
+                    'abundances': f"metadata/{self.collection_name}_abundances.txt",
+                    'composition': f"metadata/{self.collection_name}_composition.tsv",
+                },
             },
             'collection': {
                 'id': collection_meta['collection_id'],
@@ -965,7 +986,9 @@ class FASTQGenerator:
                 'description': collection_meta.get('description', ''),
                 'n_viral_genomes': n_viral,
                 'n_contaminants': n_contaminants,
-                'total_sequences': len(sequences)
+                'total_sequences': len(sequences),
+                'diet_context': json.loads(collection_meta['diet_context'])
+                    if collection_meta.get('diet_context') else None,
             },
             'configuration': config,
             'enrichment_stats': enrichment_stats,
@@ -987,7 +1010,8 @@ class FASTQGenerator:
                 'genome_name': seq_name,
                 'sequence_type': seq_type,
                 'length': len(seq.seq),
-                'relative_abundance': abundance
+                'relative_abundance': abundance,
+                'genome_provenance': (provenance_map or {}).get(seq.id, 'isolate') if seq_type == 'viral' else None,
             }
 
             # Add viral-specific taxonomy if available
@@ -1045,7 +1069,7 @@ class FASTQGenerator:
             n_reads = config.get('n_reads')
             read_length = config.get('read_length', 150)
             platform = config.get('platform', 'novaseq')
-            is_long_read = platform in ['pacbio-hifi', 'nanopore']
+            is_long_read = platform == 'nanopore'
 
             # Calculate total sequencing output (in bp)
             if n_reads is not None:
@@ -1102,7 +1126,7 @@ class FASTQGenerator:
             # self-contained (no 500 MB database needed at benchmark time).
             if db_path:
                 viral_ids = [seq.id for i, seq in enumerate(sequences) if i < n_viral]
-                benchmarking['taxonomy'] = self._export_taxonomy(db_path, viral_ids)
+                benchmarking['taxonomy'] = self._export_taxonomy(db_path, viral_ids, provenance_map)
                 logger.info(f"  Taxonomy: exported for {len(benchmarking['taxonomy'])} viral genomes")
 
             # 3. Notes on additional benchmarking metadata (for future phases)
@@ -1213,35 +1237,23 @@ Examples:
 
     parser.add_argument(
         '--platform',
-        choices=['novaseq', 'miseq', 'hiseq', 'pacbio-hifi', 'nanopore'],
+        choices=['novaseq', 'miseq', 'hiseq', 'nanopore'],
         default='novaseq',
         help='Sequencing platform (default: novaseq). ' +
              'Short-read: novaseq, miseq, hiseq (NOTE: these run InSilicoSeq in ' +
              'basic mode and currently produce identical 125 bp reads regardless ' +
              'of choice or --read-length; they are interchangeable). ' +
-             'Long-read: pacbio-hifi, nanopore'
+             'Long-read: nanopore'
     )
 
     # Long-read specific options
-    lr_group = parser.add_argument_group('long-read options (PacBio HiFi, Nanopore)')
+    lr_group = parser.add_argument_group('long-read options (Nanopore)')
     lr_group.add_argument(
         '--depth',
         type=float,
         default=10.0,
         help='Sequencing depth for long reads (default: 10x). ' +
              'Note: --coverage is for short reads, --depth is for long reads'
-    )
-    lr_group.add_argument(
-        '--pacbio-passes',
-        type=int,
-        default=10,
-        help='Number of CCS passes for PacBio HiFi (default: 10)'
-    )
-    lr_group.add_argument(
-        '--pacbio-read-length',
-        type=int,
-        default=15000,
-        help='Mean read length for PacBio HiFi in bp (default: 15000)'
     )
     lr_group.add_argument(
         '--ont-chemistry',
@@ -1552,6 +1564,28 @@ Examples:
              'not.'
     )
 
+    diet_group = parser.add_argument_group('dietary background')
+    diet_group.add_argument(
+        '--diet',
+        default=None,
+        choices=sorted(DIETARY_COMMUNITY_PROFILES),
+        help='Add dietary background reads (plant viruses like PMMoV/ToMV, '
+             'chloroplast DNA) to gut collections. Choices: '
+             'western (low produce, ~0.5%% dietary reads), '
+             'mediterranean (high produce, ~1.5%%), '
+             'plant_based (vegan/vegetarian, ~3%%), '
+             'high_fiber (agrarian, ~2%%). '
+             'Only meaningful for gut/fecal collections; ignored for non-gut '
+             'body sites and environmental samples.'
+    )
+    diet_group.add_argument(
+        '--dietary-fraction',
+        type=float,
+        default=None,
+        help='Override the diet-type default fraction of dietary background '
+             'reads (0.0-1.0). Requires --diet to be set.'
+    )
+
     dm_group = parser.add_argument_group('viral dark matter')
     dm_group.add_argument(
         '--dark-matter-fraction',
@@ -1706,7 +1740,7 @@ def run_generation(args):
         }
 
     # Determine read type based on platform
-    is_long_read = args.platform in ['pacbio-hifi', 'nanopore']
+    is_long_read = args.platform == 'nanopore'
     read_type = "long" if is_long_read else "short"
 
     logger.info(f"Platform: {args.platform} (read_type={read_type})")
@@ -1798,6 +1832,41 @@ def run_generation(args):
             erv_kwargs[kwarg] = frac * 100
             logger.info(f"{label} background: {frac:.2%} pre-VLP")
 
+    # Dietary background: food-derived plant viruses. The --diet flag selects
+    # the diet type (western, mediterranean, plant_based, high_fiber); a
+    # default fraction is assigned per diet type unless --dietary-fraction
+    # overrides it. Only gut/fecal collections get dietary reads.
+    _DIET_DEFAULT_PCT = {
+        'western': 0.5,
+        'mediterranean': 1.5,
+        'plant_based': 3.0,
+        'high_fiber': 2.0,
+    }
+    diet_type = getattr(args, 'diet', None)
+    if diet_type:
+        gut_communities = {'gut', 'wastewater'}
+        coll_community = community or collection_meta.get('bacterial_community', 'gut')
+        if coll_community in gut_communities:
+            dietary_fraction = getattr(args, 'dietary_fraction', None)
+            if dietary_fraction is None:
+                baseline = collection_meta.get('default_dietary_pct')
+                if baseline is not None:
+                    dietary_fraction = baseline / 100.0
+                else:
+                    dietary_fraction = _DIET_DEFAULT_PCT.get(diet_type, 0.5) / 100.0
+            if dietary_fraction > 0:
+                erv_kwargs['dietary_pct'] = dietary_fraction * 100
+                erv_kwargs['diet_type'] = diet_type
+                logger.info(
+                    f"Dietary background: {dietary_fraction:.2%} "
+                    f"({diet_type} diet)"
+                )
+        else:
+            logger.info(
+                f"--diet {diet_type} ignored for non-gut community "
+                f"({coll_community})"
+            )
+
     # Use the collection's sample-type contamination baseline when it has one
     # (blood host-heavy, marine host-free, ...); contamination-level then scales it.
     # Falls back to the global preset when the collection predates the defaults.
@@ -1872,6 +1941,9 @@ def run_generation(args):
         config['rna_primer'] = args.rna_primer
         config['rna_depletion'] = args.rna_depletion
 
+    # Build provenance map from loaded genomes
+    provenance_map = {g['genome_id']: g.get('genome_provenance', 'isolate') for g in genomes}
+
     # Export metadata with enrichment and amplification stats
     generator.export_metadata(
         collection_meta,
@@ -1882,7 +1954,8 @@ def run_generation(args):
         amplification_stats,
         contamination_profile,
         args.enable_benchmarking,
-        db_path=args.database
+        db_path=args.database,
+        provenance_map=provenance_map
     )
 
     if args.dry_run:
@@ -1892,15 +1965,11 @@ def run_generation(args):
     # Route to appropriate sequencing simulator based on platform
     if is_long_read:
         # ===============================================================
-        # LONG-READ SEQUENCING (PacBio HiFi, Nanopore)
+        # LONG-READ SEQUENCING (Nanopore)
         # ===============================================================
         logger.info(f"Generating long-read FASTQ files ({args.platform})...")
 
-        # Import long-read config classes
-        from viroforge.simulators.longread import (
-            PacBioHiFiConfig,
-            NanoporeConfig
-        )
+        from viroforge.simulators.longread import NanoporeConfig
         import tempfile
 
         output_prefix = str(generator.fastq_dir / collection_name)
@@ -1914,34 +1983,38 @@ def run_generation(args):
         }
         min_depth_threshold = 0.01  # Skip genomes below this depth
 
-        # Determine platform and run simulation
-        if args.platform == 'pacbio-hifi':
-            platform_config = PacBioHiFiConfig(
-                passes=args.pacbio_passes,
-                read_length_mean=args.pacbio_read_length
-            )
-            logger.info(f"  PacBio HiFi config: {platform_config.passes} passes, "
-                       f"{platform_config.read_length_mean}bp mean read length")
-            logger.info(f"  Depth: {args.depth}x")
+        platform_config = NanoporeConfig(
+            chemistry=args.ont_chemistry,
+            read_length_mean=args.ont_read_length
+        )
+        logger.info(f"  Nanopore config: {platform_config.chemistry} chemistry, "
+                   f"{platform_config.read_length_mean}bp mean read length")
+        logger.info(f"  Depth: {args.depth}x")
 
-            # Step 1: Generate CLR with PBSIM3 (per-genome for correct abundances)
-            logger.info("  Step 1/2: Generating CLR reads with PBSIM3...")
+        # Generate Nanopore reads with PBSIM3 (per-genome for correct abundances)
+        logger.info("  Generating Nanopore reads with PBSIM3...")
+        nanopore_fastq = Path(output_prefix + '.fastq')
 
-            # Resolve full path to QSHMM model file
-            import shutil as _shutil
-            qshmm_name = platform_config.accuracy_model
-            if not qshmm_name.endswith('.model'):
-                qshmm_name += '.model'
-            qshmm_path = qshmm_name
-            pbsim_path = _shutil.which('pbsim')
-            if pbsim_path:
-                conda_data = Path(pbsim_path).parent.parent / 'data' / qshmm_name
-                if conda_data.exists():
-                    qshmm_path = str(conda_data)
+        # Map chemistry version to PBSIM3 error model file
+        errhmm_map = {
+            'R10.4': 'ERRHMM-ONT-HQ.model',  # R10.4 = high quality
+            'R9.4': 'ERRHMM-ONT.model',       # R9.4 = standard
+        }
+        errhmm_name = errhmm_map.get(platform_config.chemistry, 'ERRHMM-ONT-HQ.model')
 
-            # Run PBSIM3 per-genome with abundance-weighted depth
-            skipped = 0
-            genome_bam_files = []
+        # Find the model file: check conda data dir, then fall back to just the name
+        import shutil
+        pbsim_path = shutil.which('pbsim')
+        errhmm_path = errhmm_name
+        if pbsim_path:
+            conda_data = Path(pbsim_path).parent.parent / 'data' / errhmm_name
+            if conda_data.exists():
+                errhmm_path = str(conda_data)
+
+        # Run PBSIM3 per-genome with abundance-weighted depth
+        skipped = 0
+        total_reads = 0
+        with open(nanopore_fastq, 'w') as fq_out:
             for i, (seq, abundance) in enumerate(zip(sequences, abundances)):
                 genome_depth = per_genome_depths[seq.id]
                 if genome_depth < min_depth_threshold:
@@ -1951,19 +2024,19 @@ def run_generation(args):
                 # Write single-genome FASTA
                 genome_fasta = Path(f"{output_prefix}_genome_{i:04d}.fasta")
                 SeqIO.write([seq], str(genome_fasta), "fasta")
-                genome_prefix = f"{output_prefix}_genome_{i:04d}_clr"
+                genome_prefix = f"{output_prefix}_genome_{i:04d}"
 
                 pbsim_cmd = [
                     'pbsim',
                     '--strategy', 'wgs',
-                    '--method', 'qshmm',
-                    '--qshmm', qshmm_path,
+                    '--method', 'errhmm',
+                    '--errhmm', errhmm_path,
                     '--depth', str(genome_depth),
                     '--genome', str(genome_fasta),
-                    '--pass-num', str(platform_config.passes),
                     '--length-mean', str(platform_config.read_length_mean),
                     '--length-sd', str(platform_config.read_length_sd),
-                    '--accuracy-mean', str(1.0 - platform_config.clr_error_rate),
+                    '--accuracy-mean', str(1.0 - platform_config.error_rate),
+                    '--hp-del-bias', str(platform_config.hp_del_bias),
                     '--prefix', genome_prefix
                 ]
 
@@ -1971,215 +2044,49 @@ def run_generation(args):
                     pbsim_cmd.extend(['--seed', str(args.seed + i)])
 
                 try:
-                    result = subprocess.run(pbsim_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    result = subprocess.run(pbsim_cmd, capture_output=True, text=True)
                     if result.returncode != 0 and result.returncode != -13:
                         logger.warning(f"  PBSIM3 failed for genome {seq.id} (exit {result.returncode})")
-                        genome_fasta.unlink(missing_ok=True)
                         continue
                 except FileNotFoundError:
                     logger.error("PBSIM3 (pbsim) not found in PATH")
                     logger.error("Install with: conda install -c bioconda pbsim3")
                     sys.exit(1)
 
-                # Collect per-genome BAM output (PBSIM3 outputs {prefix}_0001.bam)
-                import glob as _glob_clr
-                genome_bams = sorted(_glob_clr.glob(f"{genome_prefix}_*.bam"))
-                genome_bam_files.extend(genome_bams)
-
-                # Also check for SAM output (older PBSIM3 versions)
-                genome_sam = Path(f"{genome_prefix}.sam")
-                if genome_sam.exists() and not genome_bams:
-                    # Convert SAM to BAM
-                    genome_bam_path = Path(f"{genome_prefix}.bam")
-                    sam_conv = subprocess.run(
-                        ['samtools', 'view', '-b', '-o', str(genome_bam_path), str(genome_sam)],
-                        capture_output=True, text=True
-                    )
-                    if sam_conv.returncode == 0:
-                        genome_bam_files.append(str(genome_bam_path))
-                    genome_sam.unlink()
+                # Collect FASTQ output for this genome
+                # PBSIM3 outputs .fq.gz (gzipped) files
+                import glob as _glob_nano
+                import gzip
+                nano_fastqs = _glob_nano.glob(f"{genome_prefix}*.fq.gz")
+                if not nano_fastqs:
+                    logger.debug(f"  No .fq.gz for genome {i} ({seq.id}), depth={genome_depth:.3f}, rc={result.returncode}")
+                if not nano_fastqs:
+                    # Fall back to uncompressed .fastq
+                    nano_fastqs = _glob_nano.glob(f"{genome_prefix}*.fastq")
+                for fq in sorted(nano_fastqs):
+                    opener = gzip.open if fq.endswith('.gz') else open
+                    with opener(fq, 'rt') as inf:
+                        for line in inf:
+                            fq_out.write(line)
+                            if line.startswith('@'):
+                                total_reads += 1
+                    Path(fq).unlink()
 
                 # Clean up per-genome temp files
                 genome_fasta.unlink(missing_ok=True)
-                for f in _glob_clr.glob(f"{genome_prefix}*.ref"):
+                for f in _glob_nano.glob(f"{genome_prefix}*.ref"):
                     Path(f).unlink(missing_ok=True)
-                for f in _glob_clr.glob(f"{genome_prefix}*.maf"):
-                    Path(f).unlink(missing_ok=True)
-                for f in _glob_clr.glob(f"{genome_prefix}*.maf.gz"):
+                for f in _glob_nano.glob(f"{genome_prefix}*.maf*"):
                     Path(f).unlink(missing_ok=True)
 
                 if (i + 1) % 50 == 0:
-                    logger.info(f"    Processed {i + 1}/{len(sequences)} genomes")
+                    logger.info(f"    Processed {i + 1}/{len(sequences)} genomes ({total_reads} reads)")
 
-            if skipped > 0:
-                logger.info(f"  Skipped {skipped} genomes with depth < {min_depth_threshold}x")
-            logger.info(f"  PBSIM3 CLR generation complete ({len(genome_bam_files)} BAM files)")
+        if skipped > 0:
+            logger.info(f"  Skipped {skipped} genomes with depth < {min_depth_threshold}x")
+        logger.info(f"  PBSIM3 Nanopore generation complete ({total_reads} reads)")
 
-            # Step 2: Merge BAMs and run ccs
-            logger.info("  Step 2/2: Generating HiFi consensus with ccs...")
-            clr_bam = Path(output_prefix + '_clr.bam')
-            hifi_fastq = Path(output_prefix + '_hifi.fastq.gz')
-
-            if not genome_bam_files:
-                logger.error("No CLR BAM files generated by PBSIM3")
-                sys.exit(1)
-
-            # Merge per-genome BAMs into single BAM
-            try:
-                if len(genome_bam_files) == 1:
-                    import shutil
-                    shutil.move(str(genome_bam_files[0]), str(clr_bam))
-                else:
-                    merge_cmd = ['samtools', 'merge', '-f', str(clr_bam)] + [str(b) for b in genome_bam_files]
-                    subprocess.run(merge_cmd, capture_output=True, text=True, check=True)
-                logger.info(f"  Merged {len(genome_bam_files)} BAM files")
-            except subprocess.CalledProcessError as e:
-                logger.error(f"samtools merge failed: {e.stderr}")
-                raise
-            except FileNotFoundError:
-                logger.error("samtools not found in PATH")
-                logger.error("Install with: conda install -c bioconda samtools")
-                sys.exit(1)
-
-            # Clean up per-genome BAMs
-            for bam_file in genome_bam_files:
-                Path(bam_file).unlink(missing_ok=True)
-
-            # Run ccs
-            ccs_cmd = [
-                'ccs',
-                str(clr_bam),
-                str(hifi_fastq),
-                '--min-passes', str(platform_config.min_passes),
-                '--min-rq', '0.99',
-                '--log-level', 'INFO'
-            ]
-
-            try:
-                subprocess.run(ccs_cmd, capture_output=True, text=True, check=True)
-                logger.info("  PacBio ccs complete")
-            except subprocess.CalledProcessError as e:
-                logger.error(f"PacBio ccs failed: {e.stderr}")
-                raise
-            except FileNotFoundError:
-                logger.error("PacBio ccs not found in PATH")
-                logger.error("Install with: conda install -c bioconda pbccs")
-                import platform as _platform
-                if _platform.machine() != 'x86_64':
-                    logger.error(f"Note: pbccs is only available for Linux x86-64 (your system: {_platform.machine()})")
-                    logger.error("PacBio HiFi generation must be run on a Linux x86-64 machine or cluster")
-                sys.exit(1)
-
-            reads_path = hifi_fastq
-
-            # Clean up intermediate files
-            clr_bam.unlink(missing_ok=True)
-
-        else:  # nanopore
-            platform_config = NanoporeConfig(
-                chemistry=args.ont_chemistry,
-                read_length_mean=args.ont_read_length
-            )
-            logger.info(f"  Nanopore config: {platform_config.chemistry} chemistry, "
-                       f"{platform_config.read_length_mean}bp mean read length")
-            logger.info(f"  Depth: {args.depth}x")
-
-            # Generate Nanopore reads with PBSIM3 (per-genome for correct abundances)
-            logger.info("  Generating Nanopore reads with PBSIM3...")
-            nanopore_fastq = Path(output_prefix + '.fastq')
-
-            # Map chemistry version to PBSIM3 error model file
-            errhmm_map = {
-                'R10.4': 'ERRHMM-ONT-HQ.model',  # R10.4 = high quality
-                'R9.4': 'ERRHMM-ONT.model',       # R9.4 = standard
-            }
-            errhmm_name = errhmm_map.get(platform_config.chemistry, 'ERRHMM-ONT-HQ.model')
-
-            # Find the model file: check conda data dir, then fall back to just the name
-            import shutil
-            pbsim_path = shutil.which('pbsim')
-            errhmm_path = errhmm_name
-            if pbsim_path:
-                conda_data = Path(pbsim_path).parent.parent / 'data' / errhmm_name
-                if conda_data.exists():
-                    errhmm_path = str(conda_data)
-
-            # Run PBSIM3 per-genome with abundance-weighted depth
-            skipped = 0
-            total_reads = 0
-            with open(nanopore_fastq, 'w') as fq_out:
-                for i, (seq, abundance) in enumerate(zip(sequences, abundances)):
-                    genome_depth = per_genome_depths[seq.id]
-                    if genome_depth < min_depth_threshold:
-                        skipped += 1
-                        continue
-
-                    # Write single-genome FASTA
-                    genome_fasta = Path(f"{output_prefix}_genome_{i:04d}.fasta")
-                    SeqIO.write([seq], str(genome_fasta), "fasta")
-                    genome_prefix = f"{output_prefix}_genome_{i:04d}"
-
-                    pbsim_cmd = [
-                        'pbsim',
-                        '--strategy', 'wgs',
-                        '--method', 'errhmm',
-                        '--errhmm', errhmm_path,
-                        '--depth', str(genome_depth),
-                        '--genome', str(genome_fasta),
-                        '--length-mean', str(platform_config.read_length_mean),
-                        '--length-sd', str(platform_config.read_length_sd),
-                        '--accuracy-mean', str(1.0 - platform_config.error_rate),
-                        '--hp-del-bias', str(platform_config.hp_del_bias),
-                        '--prefix', genome_prefix
-                    ]
-
-                    if args.seed:
-                        pbsim_cmd.extend(['--seed', str(args.seed + i)])
-
-                    try:
-                        result = subprocess.run(pbsim_cmd, capture_output=True, text=True)
-                        if result.returncode != 0 and result.returncode != -13:
-                            logger.warning(f"  PBSIM3 failed for genome {seq.id} (exit {result.returncode})")
-                            continue
-                    except FileNotFoundError:
-                        logger.error("PBSIM3 (pbsim) not found in PATH")
-                        logger.error("Install with: conda install -c bioconda pbsim3")
-                        sys.exit(1)
-
-                    # Collect FASTQ output for this genome
-                    # PBSIM3 outputs .fq.gz (gzipped) files
-                    import glob as _glob_nano
-                    import gzip
-                    nano_fastqs = _glob_nano.glob(f"{genome_prefix}*.fq.gz")
-                    if not nano_fastqs:
-                        logger.debug(f"  No .fq.gz for genome {i} ({seq.id}), depth={genome_depth:.3f}, rc={result.returncode}")
-                    if not nano_fastqs:
-                        # Fall back to uncompressed .fastq
-                        nano_fastqs = _glob_nano.glob(f"{genome_prefix}*.fastq")
-                    for fq in sorted(nano_fastqs):
-                        opener = gzip.open if fq.endswith('.gz') else open
-                        with opener(fq, 'rt') as inf:
-                            for line in inf:
-                                fq_out.write(line)
-                                if line.startswith('@'):
-                                    total_reads += 1
-                        Path(fq).unlink()
-
-                    # Clean up per-genome temp files
-                    genome_fasta.unlink(missing_ok=True)
-                    for f in _glob_nano.glob(f"{genome_prefix}*.ref"):
-                        Path(f).unlink(missing_ok=True)
-                    for f in _glob_nano.glob(f"{genome_prefix}*.maf*"):
-                        Path(f).unlink(missing_ok=True)
-
-                    if (i + 1) % 50 == 0:
-                        logger.info(f"    Processed {i + 1}/{len(sequences)} genomes ({total_reads} reads)")
-
-            if skipped > 0:
-                logger.info(f"  Skipped {skipped} genomes with depth < {min_depth_threshold}x")
-            logger.info(f"  PBSIM3 Nanopore generation complete ({total_reads} reads)")
-
-            reads_path = nanopore_fastq
+        reads_path = nanopore_fastq
 
         # Create ground truth file
         ground_truth_path = generator.fastq_dir / f"{collection_name}_ground_truth.tsv"
@@ -2226,15 +2133,19 @@ def run_generation(args):
         # Post-process: add source type labels to read headers
         if contamination_profile is not None:
             genome_source_map = {}
-            # Viral genomes (check if dark matter)
+            # Viral genomes (check if dark matter, use provenance for labels)
             n_viral = enrichment_stats.get('n_viral_genomes', 0)
-            # Build set of dark matter genome IDs for labeling
             dark_matter_ids = {g['genome_id'] for g in genomes if g.get('is_dark_matter')}
+            provenance_map = {g['genome_id']: g.get('genome_provenance', 'isolate') for g in genomes}
             for seq in sequences[:n_viral]:
                 if seq.id in dark_matter_ids:
                     genome_source_map[seq.id] = "dark_matter"
                 else:
-                    genome_source_map[seq.id] = "viral"
+                    prov = provenance_map.get(seq.id, 'isolate')
+                    if prov != 'isolate':
+                        genome_source_map[seq.id] = f"viral_{prov}"
+                    else:
+                        genome_source_map[seq.id] = "viral"
             # Contaminant genomes
             for contaminant in contamination_profile.contaminants:
                 genome_source_map[contaminant.genome_id] = contaminant.contaminant_type.value

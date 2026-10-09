@@ -228,10 +228,11 @@ class VLPProtocol:
         """
         Standard tangential flow filtration (0.2 μm)
 
-        High efficiency, good recovery
-        Most commonly used in virome studies
+        Most commonly used in virome studies. Parameters calibrated to
+        real-world VLP results (Duan et al. 2026, mSystems 11(6):e00188-26):
+        ~73% viral reads from gut samples with 0.22 μm filtration.
 
-        Reference: Thurber et al. 2009
+        Reference: Thurber et al. 2009; Duan et al. 2026
         """
         return VLPProtocolConfig(
             name="Tangential Flow Filtration (0.2 μm)",
@@ -241,9 +242,9 @@ class VLPProtocol:
             retention_curve_type='sigmoid',
             retention_curve_steepness=0.008,  # Gentle slope
             nuclease_treatment=True,
-            nuclease_efficiency=0.98,  # Very high efficiency
-            recovery_rate=0.85,  # Good recovery
-            contamination_reduction=0.95  # Excellent decontamination
+            nuclease_efficiency=0.85,
+            recovery_rate=0.85,
+            contamination_reduction=0.91
         )
 
     @classmethod
@@ -264,9 +265,9 @@ class VLPProtocol:
             retention_curve_type='sigmoid',
             retention_curve_steepness=0.010,  # Sharper slope than TFF
             nuclease_treatment=True,
-            nuclease_efficiency=0.90,  # Lower efficiency (less mixing)
-            recovery_rate=0.60,  # Lower recovery (filter clogging)
-            contamination_reduction=0.85  # Good but variable
+            nuclease_efficiency=0.78,
+            recovery_rate=0.60,
+            contamination_reduction=0.87
         )
 
     @classmethod
@@ -287,9 +288,9 @@ class VLPProtocol:
             retention_curve_type='step',  # All virions retained equally
             retention_curve_steepness=1.0,
             nuclease_treatment=True,
-            nuclease_efficiency=0.95,
-            recovery_rate=0.90,  # High recovery
-            contamination_reduction=0.75  # Moderate (density-based, not size-based)
+            nuclease_efficiency=0.82,
+            recovery_rate=0.90,
+            contamination_reduction=0.68
         )
 
     @classmethod
@@ -310,9 +311,9 @@ class VLPProtocol:
             retention_curve_type='sigmoid',
             retention_curve_steepness=0.015,
             nuclease_treatment=True,
-            nuclease_efficiency=0.92,
-            recovery_rate=0.70,  # Variable
-            contamination_reduction=0.88
+            nuclease_efficiency=0.80,
+            recovery_rate=0.70,
+            contamination_reduction=0.80
         )
 
     @classmethod
@@ -334,9 +335,9 @@ class VLPProtocol:
             retention_curve_type='sigmoid',
             retention_curve_steepness=0.006,  # Gentler slope (wider size range)
             nuclease_treatment=True,
-            nuclease_efficiency=0.98,
-            recovery_rate=0.90,  # Higher recovery (less clogging)
-            contamination_reduction=0.80  # Lower decontamination (larger pore)
+            nuclease_efficiency=0.85,
+            recovery_rate=0.90,
+            contamination_reduction=0.85
         )
 
     @classmethod
@@ -356,9 +357,9 @@ class VLPProtocol:
             retention_curve_type='sigmoid',
             retention_curve_steepness=0.008,
             nuclease_treatment=True,
-            nuclease_efficiency=0.90,
-            recovery_rate=0.70,  # Better than 0.2 μm syringe
-            contamination_reduction=0.70  # Lower decontamination
+            nuclease_efficiency=0.78,
+            recovery_rate=0.70,
+            contamination_reduction=0.76
         )
 
     @classmethod
@@ -379,9 +380,9 @@ class VLPProtocol:
             retention_curve_type='sigmoid',
             retention_curve_steepness=0.012,  # Steeper (tighter cutoff)
             nuclease_treatment=True,
-            nuclease_efficiency=0.98,
-            recovery_rate=0.75,  # Lower recovery (more loss)
-            contamination_reduction=0.98  # Excellent decontamination
+            nuclease_efficiency=0.85,
+            recovery_rate=0.75,
+            contamination_reduction=0.92
         )
 
     @classmethod
@@ -411,8 +412,8 @@ class VLPProtocol:
         config.retention_curve_steepness = 0.008 * (0.2 / pore_size_um)
 
         # Adjust contamination reduction (larger pore = less decontamination)
-        base_reduction = 0.95 if base_protocol == 'tangential_flow' else 0.85
-        config.contamination_reduction = min(0.99, base_reduction * (0.2 / pore_size_um) ** 0.3)
+        base_reduction = 0.91 if base_protocol == 'tangential_flow' else 0.87
+        config.contamination_reduction = min(0.95, base_reduction * (0.2 / pore_size_um) ** 0.3)
 
         # Adjust recovery (larger pore = better recovery)
         base_recovery = 0.85 if base_protocol == 'tangential_flow' else 0.60
@@ -497,7 +498,7 @@ class VLPEnrichment:
             Tuple of (enriched_abundances, enrichment_stats)
 
         Note:
-            Long-read sequencing (PacBio HiFi, Nanopore) has reduced size bias
+            Long-read sequencing (Nanopore) has reduced size bias
             compared to short-read sequencing because:
             - Read lengths (10-30kb) span entire small viral genomes
             - Minimal fragmentation-related bias
@@ -673,22 +674,21 @@ class VLPEnrichment:
 
             # Calculate reduction factor based on contaminant type
             if ctype == ContaminantType.HOST_DNA:
-                # Free host DNA - highly susceptible to nuclease
+                # Free host DNA - susceptible to nuclease but some is
+                # protected in debris aggregates or adsorbed to particles.
                 if self.protocol.nuclease_treatment:
                     base_removal = self.protocol.nuclease_efficiency
-                    # Add some variation (biological + technical)
                     removal = base_removal * self.rng.normal(1.0, TECHNICAL_VARIATION_CV)
-                    removal = np.clip(removal, 0.85, 0.99)
+                    removal = np.clip(removal, 0.70, 0.95)
                 else:
-                    # Without nuclease, only filtration helps (minimal for free DNA)
                     removal = 0.20 * self.protocol.contamination_reduction
 
             elif ctype == ContaminantType.RRNA:
-                # rRNA - some protection in cellular debris
+                # rRNA - partially protected in cellular debris
                 if self.protocol.nuclease_treatment:
-                    base_removal = self.protocol.nuclease_efficiency * 0.92  # Slightly less efficient
+                    base_removal = self.protocol.nuclease_efficiency * 0.88
                     removal = base_removal * self.rng.normal(1.0, 0.08)
-                    removal = np.clip(removal, 0.80, 0.97)
+                    removal = np.clip(removal, 0.65, 0.92)
                 else:
                     removal = 0.15 * self.protocol.contamination_reduction
 
@@ -710,28 +710,29 @@ class VLPEnrichment:
                 # what VLP enrichment does. Removing the bacterial background is
                 # the main thing VLP prep is for.
                 if self.protocol.filtration_method in ['tangential_flow', 'syringe', 'centrifugal']:
-                    # Bacteria are 1-5 μm, much larger than pore size
-                    # Should be nearly 100% removed by 0.2 μm filter
-                    base_removal = self.protocol.contamination_reduction * 0.98
+                    # Bacteria are 1-5 μm, larger than pore size, but
+                    # small cells, L-forms, and debris aggregates reduce
+                    # real-world removal below theoretical efficiency.
+                    # Calibrated to Duan et al. 2026 mSystems 11(6):e00188-26.
+                    base_removal = self.protocol.contamination_reduction * 0.95
                     removal = base_removal * self.rng.normal(1.0, 0.10)
-                    removal = np.clip(removal, 0.70, 0.99)
+                    removal = np.clip(removal, 0.60, 0.97)
                 elif self.protocol.filtration_method == 'ultracentrifugation':
                     # Cells pellet differently than viruses
-                    removal = 0.85 * self.rng.normal(1.0, 0.15)
-                    removal = np.clip(removal, 0.60, 0.95)
+                    removal = 0.80 * self.rng.normal(1.0, 0.15)
+                    removal = np.clip(removal, 0.55, 0.92)
                 elif self.protocol.filtration_method == 'column':
                     # Column-based kits variable
-                    removal = 0.88 * self.rng.normal(1.0, 0.12)
-                    removal = np.clip(removal, 0.65, 0.95)
+                    removal = 0.82 * self.rng.normal(1.0, 0.12)
+                    removal = np.clip(removal, 0.60, 0.92)
                 else:  # no filtration
                     removal = 0.0
 
                 # Nuclease also helps if cells are lysed
                 if self.protocol.nuclease_treatment:
-                    # Assume ~30% of bacteria are lysed
                     lysed_fraction = BACTERIAL_LYSIS_FRACTION
-                    additional_removal = lysed_fraction * self.protocol.nuclease_efficiency * 0.5
-                    removal = min(0.99, removal + additional_removal)
+                    additional_removal = lysed_fraction * self.protocol.nuclease_efficiency * 0.3
+                    removal = min(0.97, removal + additional_removal)
 
             elif ctype == ContaminantType.PHIX:
                 # PhiX is an encapsidated virus (27 nm, ssDNA, circular)

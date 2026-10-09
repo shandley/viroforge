@@ -95,7 +95,7 @@ For more information: https://github.com/hecatomb/viroforge
     )
     generate_parser.add_argument(
         '--platform',
-        choices=['novaseq', 'miseq', 'hiseq', 'pacbio-hifi', 'nanopore'],
+        choices=['novaseq', 'miseq', 'hiseq', 'nanopore'],
         help='Sequencing platform'
     )
     generate_parser.add_argument(
@@ -503,6 +503,37 @@ For more information: https://github.com/hecatomb/viroforge
     )
     taxonomy_parser.add_argument('--output', help='Write metrics JSON to this path')
     taxonomy_parser.add_argument('--markdown', help='Write a markdown summary to this path')
+
+    discovery_parser = benchmark_subparsers.add_parser(
+        'discovery',
+        help='Novel discovery benchmarking: dark matter detection rate',
+        description='Score a discovery tool\'s ability to detect viral sequences '
+                    'absent from its reference database (dark matter reads)'
+    )
+    discovery_parser.add_argument(
+        '--pipeline-output', required=True,
+        help='Classifier per-read output (Kraken2, Centrifuge, DIAMOND, MMseqs2, '
+             'or generic TSV) — same formats as taxonomy benchmark'
+    )
+    discovery_parser.add_argument(
+        '--ground-truth', required=True,
+        help='Dataset metadata JSON with the benchmarking.taxonomy block'
+    )
+    discovery_parser.add_argument(
+        '--format', default='auto',
+        choices=['auto', 'kraken2', 'centrifuge', 'diamond', 'mmseqs2', 'generic'],
+        help='Classifier output format (default: auto-detect)'
+    )
+    discovery_parser.add_argument(
+        '--read-id-column', type=int, default=1,
+        help='Column number (1-based) for read IDs in generic format (default: 1)'
+    )
+    discovery_parser.add_argument(
+        '--taxid-column', type=int, default=2,
+        help='Column number (1-based) for taxids in generic format (default: 2)'
+    )
+    discovery_parser.add_argument('--output', help='Write metrics JSON to this path')
+    discovery_parser.add_argument('--markdown', help='Write a markdown summary to this path')
 
     # Parse arguments
     args = parser.parse_args()

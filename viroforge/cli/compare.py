@@ -245,7 +245,7 @@ def show_recommendations(metadata_list: List[Dict]):
 
     # Check if suitable for hybrid assembly
     has_short = any(_get_platform_name(m) in ['novaseq', 'miseq', 'hiseq'] for m in metadata_list)
-    has_long = any(_get_platform_name(m) in ['pacbio-hifi', 'nanopore'] for m in metadata_list)
+    has_long = any(_get_platform_name(m) == 'nanopore' for m in metadata_list)
 
     if has_short and has_long and len(collection_ids) == 1 and len(seeds) == 1:
         console.print()
@@ -402,7 +402,7 @@ def generate_html_comparison_content(metadata_list: List[Dict]) -> str:
 
     # Hybrid assembly check
     has_short = any(m.get('platform', {}).get('name', m.get('configuration', {}).get('platform')) in ['novaseq', 'miseq', 'hiseq'] for m in metadata_list)
-    has_long = any(m.get('platform', {}).get('name', m.get('configuration', {}).get('platform')) in ['pacbio-hifi', 'nanopore'] for m in metadata_list)
+    has_long = any(m.get('platform', {}).get('name', m.get('configuration', {}).get('platform')) == 'nanopore' for m in metadata_list)
 
     if has_short and has_long and len(collection_ids) == 1 and len(seeds) == 1:
         recommendations_html += """
