@@ -85,10 +85,9 @@ def create_workflow_figure():
             'x': 10.5,
             'title': '4. Sequencing',
             'details': [
-                '5 Platforms:',
+                '4 Platforms:',
                 '• NovaSeq',
                 '• MiSeq/HiSeq',
-                '• PacBio HiFi',
                 '• ONT',
                 'Error models'
             ],
@@ -210,7 +209,7 @@ def create_workflow_figure():
         },
         {
             'feature': 'Long-read',
-            'viroforge': 'Yes (PacBio, ONT)',
+            'viroforge': 'Yes (ONT)',
             'others': 'Limited',
             'impact': 'Hybrid assembly'
         },

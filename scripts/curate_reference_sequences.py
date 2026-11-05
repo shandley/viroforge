@@ -175,6 +175,32 @@ HOST_FRAGMENT_REGIONS = [
     ("chrX", 120_000_000, 10_000),
 ]
 
+# HERV-containing host fragments (20 kb each). These capture integrated
+# endogenous retroviral proviruses plus ~5 kb flanking host DNA on each side,
+# so simulated reads can span the HERV-host junction — the hardest case for
+# host removal tools to classify. Windows are centred on the provirus midpoint.
+#
+# HERV-K coordinates from the HML-2 proviral catalog (PMC13238051, hg38);
+# syncytin-1 and syncytin-2 verified against T2T-CHM13v2.0 via NCBI Gene.
+# HERV-H loci from Wildschutte et al. 2016 (PMC6298018, hg38). For euchromatic
+# loci the hg38-to-T2T offset is typically <5 kb, within the 20 kb window.
+HERV_FRAGMENT_REGIONS = [
+    # HERV-K (HML-2) — most transcriptionally active, ~9.5 kb proviruses
+    ("chr22", 18_933_000, 20_000),  # K101 (22q11.21), full-length Type I
+    ("chr3", 113_019_000, 20_000),  # K106 (3q13.2), demonstrated infectious
+    ("chr8", 7_495_000, 20_000),    # K115 (8p23.1), polymorphic insertion
+    ("chr1", 155_621_000, 20_000),  # 1q22, full-length Type I
+    ("chr5", 156_652_000, 20_000),  # 5q33.3, most highly expressed HML-2
+    ("chr11", 118_716_000, 20_000), # 11q23.3, full-length Type I
+    # HERV-W — syncytin-1, functional env gene for placental fusion (T2T coord)
+    ("chr7", 93_705_000, 20_000),   # ERVW-1 (7q21.2), verified T2T
+    # HERV-FRD — syncytin-2, trophoblast fusion (T2T coord)
+    ("chr6", 10_965_000, 20_000),   # ERVFRD-1 (6p24.2), verified T2T
+    # HERV-H — most abundant family (~1000+ copies)
+    ("chr4", 166_711_000, 20_000),  # 4q32.3, dimorphic proviral/solo LTR
+    ("chr2", 64_247_000, 20_000),   # 2p16, full-length HERV-H
+]
+
 
 def fetch_sequences_from_ncbi(accessions: dict[str, str], output_path: Path) -> None:
     """Fetch sequences from NCBI Entrez and write to FASTA."""
@@ -219,33 +245,24 @@ def write_adapters(output_path: Path) -> None:
     logger.info(f"Wrote {len(ILLUMINA_ADAPTERS)} adapter sequences to {output_path}")
 
 
-def fetch_host_fragments(output_path: Path) -> None:
-    """Fetch human genome fragments from NCBI T2T-CHM13v2.0.
-
-    Downloads only the specific regions defined in HOST_FRAGMENT_REGIONS,
-    not entire chromosomes.
-    """
+def _fetch_regions(regions, prefix, records, human_chromosomes):
+    """Fetch genomic regions from NCBI and append to records list."""
     from Bio import Entrez, SeqIO
-
-    Entrez.email = "viroforge@example.com"
-
-    records = []
-    # Group regions by chromosome to minimize fetches
     from collections import defaultdict
 
     chrom_regions: dict[str, list[tuple[int, int]]] = defaultdict(list)
-    for chrom, start, length in HOST_FRAGMENT_REGIONS:
+    for chrom, start, length in regions:
         chrom_regions[chrom].append((start, length))
 
-    for chrom, regions in sorted(chrom_regions.items()):
-        accession = HUMAN_CHROMOSOMES.get(chrom)
+    for chrom, coords in sorted(chrom_regions.items()):
+        accession = human_chromosomes.get(chrom)
         if not accession:
             logger.warning(f"No accession for {chrom}, skipping")
             continue
 
-        for start, length in regions:
+        for start, length in coords:
             end = start + length
-            label = f"human_{chrom}_{start}_{end}"
+            label = f"{prefix}_{chrom}_{start}_{end}"
             logger.info(f"Fetching {label} from {accession}...")
             try:
                 handle = Entrez.efetch(
@@ -253,7 +270,7 @@ def fetch_host_fragments(output_path: Path) -> None:
                     id=accession,
                     rettype="fasta",
                     retmode="text",
-                    seq_start=start + 1,  # Entrez uses 1-based coords
+                    seq_start=start + 1,
                     seq_stop=end,
                 )
                 record = SeqIO.read(handle, "fasta")
@@ -264,8 +281,29 @@ def fetch_host_fragments(output_path: Path) -> None:
             except Exception as e:
                 logger.warning(f"Failed to fetch {label}: {e}")
 
+
+def fetch_host_fragments(output_path: Path) -> None:
+    """Fetch human genome fragments from NCBI T2T-CHM13v2.0.
+
+    Downloads regions defined in HOST_FRAGMENT_REGIONS (generic host DNA)
+    and HERV_FRAGMENT_REGIONS (HERV-containing host DNA). HERV fragments
+    are labelled with a ``herv_`` prefix so downstream code can identify
+    host reads that carry endogenous retroviral sequence.
+    """
+    from Bio import Entrez, SeqIO
+
+    Entrez.email = "viroforge@example.com"
+
+    records = []
+    logger.info(f"Fetching {len(HOST_FRAGMENT_REGIONS)} generic host fragments...")
+    _fetch_regions(HOST_FRAGMENT_REGIONS, "human", records, HUMAN_CHROMOSOMES)
+
+    logger.info(f"Fetching {len(HERV_FRAGMENT_REGIONS)} HERV-containing host fragments...")
+    _fetch_regions(HERV_FRAGMENT_REGIONS, "herv", records, HUMAN_CHROMOSOMES)
+
     SeqIO.write(records, output_path, "fasta")
-    logger.info(f"Wrote {len(records)} host fragments to {output_path}")
+    logger.info(f"Wrote {len(records)} host fragments to {output_path} "
+                f"({len(HOST_FRAGMENT_REGIONS)} generic + {len(HERV_FRAGMENT_REGIONS)} HERV)")
 
 
 def verify_output(output_path: Path, expected_min: int) -> bool:
@@ -317,7 +355,7 @@ def main():
     # Host fragments
     if not args.skip_host:
         logger.info("=== Fetching human genome fragments (T2T-CHM13v2.0) ===")
-        logger.info("This downloads 47 x 10kb regions from NCBI (may take a few minutes)")
+        logger.info("This downloads 48 x 10kb + 10 x 20kb HERV regions from NCBI (may take a few minutes)")
         fetch_host_fragments(args.output_dir / "host_fragments.fasta")
     else:
         logger.info("=== Skipping host fragments (--skip-host) ===")
@@ -329,7 +367,7 @@ def main():
     ok &= verify_output(args.output_dir / "phix174.fasta", 1)
     ok &= verify_output(args.output_dir / "rrna_representatives.fasta", 15)
     if not args.skip_host:
-        ok &= verify_output(args.output_dir / "host_fragments.fasta", 40)
+        ok &= verify_output(args.output_dir / "host_fragments.fasta", 55)
 
     if ok:
         logger.info("All reference files curated successfully.")

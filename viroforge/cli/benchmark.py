@@ -17,6 +17,19 @@ from ..benchmarking.report import (
     to_markdown,
     write_reports,
 )
+from ..benchmarking.html_report import generate_benchmark_report
+
+
+def _write_html_report(metrics: dict, module: str, json_path: str | None) -> None:
+    if json_path:
+        html_path = json_path.replace('.json', '_report.html')
+    else:
+        html_path = f'benchmark_{module}_report.html'
+    try:
+        generate_benchmark_report(metrics, module, html_path)
+        print(f"HTML report: {html_path}", file=sys.stderr)
+    except Exception as exc:
+        print(f"WARNING: could not generate HTML report: {exc}", file=sys.stderr)
 
 
 def run_benchmark(args) -> int:
@@ -119,6 +132,7 @@ def _run_taxonomy(args) -> int:
         kind = "taxonomy"
 
     write_reports(metrics, json_path=args.output, md_path=args.markdown, kind=kind)
+    _write_html_report(metrics, 'taxonomy', args.output)
     from ..benchmarking.report import taxonomy_contig_to_markdown
     render = taxonomy_contig_to_markdown if kind == "taxonomy_contig" else taxonomy_to_markdown
     print(render(metrics))
@@ -142,6 +156,7 @@ def _run_assembly(args) -> int:
 
     metrics = benchmark_assembly(args.contigs, args.genomes, metadata)
     write_reports(metrics, json_path=args.output, md_path=args.markdown, kind="assembly")
+    _write_html_report(metrics, 'assembly', args.output)
     print(assembly_to_markdown(metrics))
     return 0
 
@@ -169,6 +184,7 @@ def _run_qc(args) -> int:
     metrics = benchmark_qc(raw, kept, keep_remove=keep_remove)
 
     write_reports(metrics, json_path=args.output, md_path=args.markdown)
+    _write_html_report(metrics, 'qc', args.output)
     print(to_markdown(metrics))
 
     if not metrics["reliable"]:

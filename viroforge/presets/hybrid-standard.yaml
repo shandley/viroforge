@@ -1,11 +1,11 @@
 name: hybrid-standard
-description: Standard hybrid dataset (NovaSeq 30x + PacBio HiFi 15x)
+description: Standard hybrid dataset (NovaSeq 30x + Nanopore 15x)
 category: assembly_benchmarking
 
 parameters:
   collection_id: 1
   short_platform: novaseq
-  long_platform: pacbio-hifi
+  long_platform: nanopore
   coverage: 30
   depth: 15
   vlp_protocol: tangential_flow

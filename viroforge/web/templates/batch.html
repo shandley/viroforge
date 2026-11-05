@@ -2,27 +2,225 @@
 
 {% block title %}Batch Generation{% endblock %}
 
+{% block extra_css %}
+<style>
+    .dataset-card {
+        border-left: 4px solid var(--vf-primary);
+        margin-bottom: 1rem;
+    }
+    .dataset-card .card-header {
+        cursor: pointer;
+        user-select: none;
+    }
+    .dataset-card .card-header:hover {
+        background-color: #f0f0f0;
+    }
+    .dataset-number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background-color: var(--vf-primary);
+        color: white;
+        font-weight: bold;
+        font-size: 0.85rem;
+        margin-right: 0.5rem;
+    }
+    .btn-remove-dataset {
+        padding: 0.15rem 0.4rem;
+        font-size: 0.8rem;
+    }
+    .sweep-tag {
+        display: inline-block;
+        background-color: #e9ecef;
+        border-radius: 0.25rem;
+        padding: 0.15rem 0.5rem;
+        margin: 0.15rem;
+        font-size: 0.85rem;
+    }
+    .sweep-tag .remove-value {
+        cursor: pointer;
+        margin-left: 0.3rem;
+        color: var(--vf-danger);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container my-5">
     <h1><i class="bi bi-stack"></i> Batch Generation</h1>
-    <p class="text-muted">Generate multiple datasets from a YAML configuration</p>
+    <p class="text-muted">Generate multiple datasets at once using the visual builder or YAML</p>
 
     <div class="row mt-4">
         <div class="col-md-8">
             <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="bi bi-file-earmark-code"></i> Batch Configuration (YAML)</h5>
-                </div>
                 <div class="card-body">
-                    <textarea id="yamlConfig" class="form-control font-monospace" rows="15" placeholder="Paste your YAML configuration here..."></textarea>
+                    <ul class="nav nav-pills mb-4" role="tablist">
+                        <li class="nav-item">
+                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#builderTab">
+                                <i class="bi bi-ui-checks-grid"></i> Visual Builder
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#sweepTab">
+                                <i class="bi bi-graph-up"></i> Parameter Sweep
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#yamlTab">
+                                <i class="bi bi-file-earmark-code"></i> YAML
+                            </button>
+                        </li>
+                    </ul>
 
-                    <div class="mt-3">
-                        <label class="form-label">Parallel Workers</label>
-                        <input type="number" id="parallelWorkers" class="form-control" value="1" min="1" max="8">
-                        <small class="text-muted">Number of datasets to generate simultaneously</small>
+                    <div class="tab-content">
+                        <!-- Visual Builder Tab -->
+                        <div class="tab-pane fade show active" id="builderTab">
+                            <div class="mb-3 row">
+                                <div class="col-md-6">
+                                    <label class="form-label">Batch Name *</label>
+                                    <input type="text" class="form-control" id="batchName" placeholder="My Experiment" value="Batch Study">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Output Base Directory *</label>
+                                    <input type="text" class="form-control" id="outputBase" placeholder="data/batch_output" value="data/batch_output">
+                                </div>
+                            </div>
+
+                            <hr>
+
+                            <div id="datasetList">
+                                <!-- Dataset cards inserted here by JS -->
+                            </div>
+
+                            <button class="btn btn-outline-primary w-100 mb-3" onclick="addDataset()">
+                                <i class="bi bi-plus-circle"></i> Add Dataset
+                            </button>
+                        </div>
+
+                        <!-- Parameter Sweep Tab -->
+                        <div class="tab-pane fade" id="sweepTab">
+                            <div class="mb-3 row">
+                                <div class="col-md-6">
+                                    <label class="form-label">Batch Name *</label>
+                                    <input type="text" class="form-control" id="sweepBatchName" placeholder="Coverage Sweep" value="Parameter Sweep">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Output Base Directory *</label>
+                                    <input type="text" class="form-control" id="sweepOutputBase" placeholder="data/sweep_output" value="data/sweep_output">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Name Template</label>
+                                <input type="text" class="form-control" id="sweepNameTemplate" value="sweep_{coverage}x_{platform}" placeholder="Use {param_name} for placeholders">
+                                <small class="text-muted">Use {coverage}, {platform}, {vlp_protocol}, etc. as placeholders</small>
+                            </div>
+
+                            <h6 class="mt-4 mb-3">Base Configuration</h6>
+
+                            <div class="mb-3 row">
+                                <div class="col-md-6">
+                                    <label class="form-label">Collection *</label>
+                                    <select class="form-select" id="sweepCollection">
+                                        {% for collection in collections %}
+                                        <option value="{{ collection.id }}">{{ collection.id }} - {{ collection.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Random Seed</label>
+                                    <input type="number" class="form-control" id="sweepSeed" value="42">
+                                </div>
+                            </div>
+
+                            <h6 class="mt-4 mb-3">Sweep Parameters <small class="text-muted">(add multiple values to sweep over)</small></h6>
+
+                            <div class="mb-3">
+                                <label class="form-label">Platforms</label>
+                                <div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input sweep-platform" type="checkbox" value="novaseq" id="swpNovaseq" checked>
+                                        <label class="form-check-label" for="swpNovaseq">NovaSeq</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input sweep-platform" type="checkbox" value="miseq" id="swpMiseq">
+                                        <label class="form-check-label" for="swpMiseq">MiSeq</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input sweep-platform" type="checkbox" value="hiseq" id="swpHiseq">
+                                        <label class="form-check-label" for="swpHiseq">HiSeq</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input sweep-platform" type="checkbox" value="nanopore" id="swpNanopore">
+                                        <label class="form-check-label" for="swpNanopore">Nanopore</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Coverage Values</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="sweepCoverageInput" placeholder="e.g. 30">
+                                    <button class="btn btn-outline-secondary" onclick="addSweepValue('coverage')">Add</button>
+                                </div>
+                                <div id="sweepCoverageValues" class="mt-1">
+                                    <span class="sweep-tag">10 <span class="remove-value" onclick="removeSweepValue('coverage', this)">&times;</span></span>
+                                    <span class="sweep-tag">30 <span class="remove-value" onclick="removeSweepValue('coverage', this)">&times;</span></span>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">VLP Protocols</label>
+                                <div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input sweep-vlp" type="checkbox" value="tangential_flow" id="swpTF" checked>
+                                        <label class="form-check-label" for="swpTF">Tangential Flow</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input sweep-vlp" type="checkbox" value="ultracentrifugation" id="swpUC">
+                                        <label class="form-check-label" for="swpUC">Ultracentrifugation</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input sweep-vlp" type="checkbox" value="norgen" id="swpNorgen">
+                                        <label class="form-check-label" for="swpNorgen">Norgen Kit</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input sweep-vlp" type="checkbox" value="syringe" id="swpSyringe">
+                                        <label class="form-check-label" for="swpSyringe">Syringe Filter</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-info mt-3" id="sweepPreview">
+                                <strong>Preview:</strong> <span id="sweepCount">2</span> datasets will be generated from all combinations.
+                            </div>
+                        </div>
+
+                        <!-- YAML Tab -->
+                        <div class="tab-pane fade" id="yamlTab">
+                            <textarea id="yamlConfig" class="form-control font-monospace" rows="18" placeholder="Paste your YAML configuration here..."></textarea>
+                        </div>
                     </div>
 
-                    <div class="d-grid gap-2 mt-3">
+                    <hr>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Parallel Workers</label>
+                            <input type="number" id="parallelWorkers" class="form-control" value="1" min="1" max="8">
+                        </div>
+                        <div class="col-md-8 d-flex align-items-end">
+                            <small class="text-muted">Number of datasets to generate simultaneously (higher = faster but more memory)</small>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary" onclick="previewYAML()">
+                            <i class="bi bi-eye"></i> Preview YAML
+                        </button>
                         <button class="btn btn-outline-primary" onclick="validateBatch()">
                             <i class="bi bi-check-circle"></i> Validate Configuration
                         </button>
@@ -30,6 +228,19 @@
                             <i class="bi bi-play-circle"></i> Start Batch Generation
                         </button>
                     </div>
+                </div>
+            </div>
+
+            <!-- YAML Preview -->
+            <div id="yamlPreviewCard" class="card mt-3 d-none">
+                <div class="card-header bg-dark text-white">
+                    <h6 class="mb-0"><i class="bi bi-file-earmark-code"></i> Generated YAML</h6>
+                </div>
+                <div class="card-body">
+                    <pre id="yamlPreviewContent" class="mb-0" style="max-height: 400px; overflow-y: auto;"></pre>
+                    <button class="btn btn-sm btn-outline-secondary mt-2" onclick="copyYAML()">
+                        <i class="bi bi-clipboard"></i> Copy
+                    </button>
                 </div>
             </div>
 
@@ -53,9 +264,21 @@
         <div class="col-md-4">
             <div class="card">
                 <div class="card-header bg-secondary text-white">
-                    <h5 class="mb-0"><i class="bi bi-lightbulb"></i> Example Configs</h5>
+                    <h5 class="mb-0"><i class="bi bi-lightbulb"></i> Quick Start</h5>
                 </div>
                 <div class="card-body">
+                    <h6>Visual Builder</h6>
+                    <p class="small">Add datasets one by one with dropdowns and inputs. Each dataset can have different settings.</p>
+
+                    <h6>Parameter Sweep</h6>
+                    <p class="small">Pick one base configuration and sweep over multiple values (coverage, platform, VLP protocol). Generates all combinations.</p>
+
+                    <h6>YAML</h6>
+                    <p class="small">Paste a raw YAML config directly. Use "Preview YAML" from the other tabs to see the format.</p>
+
+                    <hr>
+
+                    <h6>Load Example</h6>
                     <button class="btn btn-sm btn-outline-primary w-100 mb-2" onclick="loadExample('technology')">
                         Technology Comparison
                     </button>
@@ -67,23 +290,6 @@
                     </button>
                 </div>
             </div>
-
-            <div class="card mt-3">
-                <div class="card-header bg-info text-white">
-                    <h6 class="mb-0"><i class="bi bi-info-circle"></i> YAML Format</h6>
-                </div>
-                <div class="card-body small">
-                    <pre>batch_name: "Study Name"
-output_base: "data/output"
-
-datasets:
-  - name: dataset1
-    collection_id: 9
-    platform: novaseq
-    coverage: 30
-    seed: 42</pre>
-                </div>
-            </div>
         </div>
     </div>
 </div>
@@ -91,8 +297,324 @@ datasets:
 
 {% block extra_js %}
 <script>
+let datasetCounter = 0;
+
+function addDataset(config) {
+    datasetCounter++;
+    const n = datasetCounter;
+    const cfg = config || {};
+
+    const card = document.createElement('div');
+    card.className = 'card dataset-card';
+    card.id = `dataset-${n}`;
+    card.innerHTML = `
+        <div class="card-header d-flex justify-content-between align-items-center" onclick="toggleDataset(${n})">
+            <span>
+                <span class="dataset-number">${n}</span>
+                <strong class="dataset-title">${cfg.name || 'Dataset ' + n}</strong>
+                <small class="text-muted ms-2 dataset-summary"></small>
+            </span>
+            <button class="btn btn-outline-danger btn-remove-dataset" onclick="event.stopPropagation(); removeDataset(${n})">
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>
+        <div class="card-body" id="dataset-body-${n}">
+            <div class="mb-2">
+                <label class="form-label">Dataset Name</label>
+                <input type="text" class="form-control form-control-sm ds-name" value="${cfg.name || 'dataset_' + n}" onchange="updateDatasetTitle(${n})">
+            </div>
+            <div class="row mb-2">
+                <div class="col-md-6">
+                    <label class="form-label">Collection</label>
+                    <select class="form-select form-select-sm ds-collection">
+                        {% for collection in collections %}
+                        <option value="{{ collection.id }}"${'{{ collection.id }}' == (cfg.collection_id || '1') ? ' selected' : ''}>{{ collection.id }} - {{ collection.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Platform</label>
+                    <select class="form-select form-select-sm ds-platform" onchange="updateCoverageLabel(${n})">
+                        <option value="novaseq"${cfg.platform === 'novaseq' || !cfg.platform ? ' selected' : ''}>NovaSeq</option>
+                        <option value="miseq"${cfg.platform === 'miseq' ? ' selected' : ''}>MiSeq</option>
+                        <option value="hiseq"${cfg.platform === 'hiseq' ? ' selected' : ''}>HiSeq</option>
+                        <option value="nanopore"${cfg.platform === 'nanopore' ? ' selected' : ''}>Nanopore</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-md-4">
+                    <label class="form-label ds-coverage-label">Coverage</label>
+                    <input type="number" class="form-control form-control-sm ds-coverage" value="${cfg.coverage || cfg.depth || 30}" min="1">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">VLP Protocol</label>
+                    <select class="form-select form-select-sm ds-vlp">
+                        <option value=""${!cfg.vlp_protocol && !cfg.no_vlp ? ' selected' : ''}>Default</option>
+                        <option value="tangential_flow"${cfg.vlp_protocol === 'tangential_flow' ? ' selected' : ''}>Tangential Flow</option>
+                        <option value="ultracentrifugation"${cfg.vlp_protocol === 'ultracentrifugation' ? ' selected' : ''}>Ultracentrifugation</option>
+                        <option value="norgen"${cfg.vlp_protocol === 'norgen' ? ' selected' : ''}>Norgen Kit</option>
+                        <option value="syringe"${cfg.vlp_protocol === 'syringe' ? ' selected' : ''}>Syringe Filter</option>
+                        <option value="none"${cfg.no_vlp ? ' selected' : ''}>None (bulk)</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Seed</label>
+                    <input type="number" class="form-control form-control-sm ds-seed" value="${cfg.seed || 42}">
+                </div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-md-6">
+                    <label class="form-label">Contamination Level</label>
+                    <select class="form-select form-select-sm ds-contamination">
+                        <option value="">Default (realistic)</option>
+                        <option value="none">None</option>
+                        <option value="minimal">Minimal</option>
+                        <option value="low">Low</option>
+                        <option value="realistic">Realistic</option>
+                        <option value="high">High</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('datasetList').appendChild(card);
+    updateDatasetTitle(n);
+
+    // Set collection_id if provided (Jinja templates already rendered,
+    // so we set via JS for dynamic values)
+    if (cfg.collection_id) {
+        const sel = card.querySelector('.ds-collection');
+        sel.value = String(cfg.collection_id);
+    }
+}
+
+function removeDataset(n) {
+    const card = document.getElementById(`dataset-${n}`);
+    if (card) card.remove();
+    renumberDatasets();
+}
+
+function renumberDatasets() {
+    const cards = document.querySelectorAll('.dataset-card');
+    cards.forEach((card, i) => {
+        card.querySelector('.dataset-number').textContent = i + 1;
+    });
+}
+
+function toggleDataset(n) {
+    const body = document.getElementById(`dataset-body-${n}`);
+    if (body) body.classList.toggle('d-none');
+}
+
+function updateDatasetTitle(n) {
+    const card = document.getElementById(`dataset-${n}`);
+    if (!card) return;
+    const name = card.querySelector('.ds-name').value;
+    card.querySelector('.dataset-title').textContent = name || 'Dataset ' + n;
+}
+
+function updateCoverageLabel(n) {
+    const card = document.getElementById(`dataset-${n}`);
+    if (!card) return;
+    const platform = card.querySelector('.ds-platform').value;
+    const label = card.querySelector('.ds-coverage-label');
+    label.textContent = platform === 'nanopore' ? 'Depth' : 'Coverage';
+}
+
+function collectBuilderConfig() {
+    const batchName = document.getElementById('batchName').value || 'Batch Study';
+    const outputBase = document.getElementById('outputBase').value || 'data/batch_output';
+
+    const datasets = [];
+    document.querySelectorAll('.dataset-card').forEach(card => {
+        const ds = {};
+        ds.name = card.querySelector('.ds-name').value;
+        ds.collection_id = parseInt(card.querySelector('.ds-collection').value);
+        ds.platform = card.querySelector('.ds-platform').value;
+
+        const coverage = parseInt(card.querySelector('.ds-coverage').value);
+        if (ds.platform === 'nanopore') {
+            ds.depth = coverage;
+        } else {
+            ds.coverage = coverage;
+        }
+
+        const vlp = card.querySelector('.ds-vlp').value;
+        if (vlp === 'none') {
+            ds.no_vlp = true;
+        } else if (vlp) {
+            ds.vlp_protocol = vlp;
+        }
+
+        const seed = card.querySelector('.ds-seed').value;
+        if (seed) ds.seed = parseInt(seed);
+
+        const contam = card.querySelector('.ds-contamination').value;
+        if (contam) ds.contamination_level = contam;
+
+        datasets.push(ds);
+    });
+
+    return {batch_name: batchName, output_base: outputBase, datasets: datasets};
+}
+
+function collectSweepConfig() {
+    const batchName = document.getElementById('sweepBatchName').value || 'Parameter Sweep';
+    const outputBase = document.getElementById('sweepOutputBase').value || 'data/sweep_output';
+    const nameTemplate = document.getElementById('sweepNameTemplate').value || 'sweep_{index}';
+
+    const baseConfig = {
+        collection_id: parseInt(document.getElementById('sweepCollection').value),
+        seed: parseInt(document.getElementById('sweepSeed').value) || 42
+    };
+
+    const sweepParams = {};
+
+    // Platforms
+    const platforms = [];
+    document.querySelectorAll('.sweep-platform:checked').forEach(cb => platforms.push(cb.value));
+    if (platforms.length > 0) sweepParams.platform = platforms;
+
+    // Coverage values
+    const coverageVals = [];
+    document.querySelectorAll('#sweepCoverageValues .sweep-tag').forEach(tag => {
+        const val = parseInt(tag.textContent);
+        if (!isNaN(val)) coverageVals.push(val);
+    });
+    if (coverageVals.length > 0) sweepParams.coverage = coverageVals;
+
+    // VLP protocols
+    const vlps = [];
+    document.querySelectorAll('.sweep-vlp:checked').forEach(cb => vlps.push(cb.value));
+    if (vlps.length > 0) sweepParams.vlp_protocol = vlps;
+
+    return {
+        batch_name: batchName,
+        output_base: outputBase,
+        parameter_sweep: {
+            name_template: nameTemplate,
+            base_config: baseConfig,
+            sweep_parameters: sweepParams
+        }
+    };
+}
+
+function addSweepValue(param) {
+    const input = document.getElementById(`sweep${capitalize(param)}Input`);
+    const container = document.getElementById(`sweep${capitalize(param)}Values`);
+    const val = input.value.trim();
+    if (!val) return;
+
+    const tag = document.createElement('span');
+    tag.className = 'sweep-tag';
+    tag.innerHTML = `${val} <span class="remove-value" onclick="removeSweepValue('${param}', this)">&times;</span>`;
+    container.appendChild(tag);
+    input.value = '';
+    updateSweepPreview();
+}
+
+function removeSweepValue(param, el) {
+    el.parentElement.remove();
+    updateSweepPreview();
+}
+
+function capitalize(s) {
+    return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+function updateSweepPreview() {
+    const config = collectSweepConfig();
+    const sp = config.parameter_sweep.sweep_parameters;
+    let count = 1;
+    for (const key in sp) {
+        if (sp[key].length > 0) count *= sp[key].length;
+    }
+    document.getElementById('sweepCount').textContent = count;
+}
+
+// Attach sweep preview updates
+document.addEventListener('change', function(e) {
+    if (e.target.classList.contains('sweep-platform') || e.target.classList.contains('sweep-vlp')) {
+        updateSweepPreview();
+    }
+});
+
+function configToYAML(config) {
+    let yaml = `batch_name: "${config.batch_name}"\n`;
+    yaml += `output_base: "${config.output_base}"\n`;
+
+    if (config.datasets && config.datasets.length > 0) {
+        yaml += `\ndatasets:\n`;
+        config.datasets.forEach(ds => {
+            yaml += `  - name: ${ds.name}\n`;
+            yaml += `    collection_id: ${ds.collection_id}\n`;
+            yaml += `    platform: ${ds.platform}\n`;
+            if (ds.coverage) yaml += `    coverage: ${ds.coverage}\n`;
+            if (ds.depth) yaml += `    depth: ${ds.depth}\n`;
+            if (ds.vlp_protocol) yaml += `    vlp_protocol: ${ds.vlp_protocol}\n`;
+            if (ds.no_vlp) yaml += `    no_vlp: true\n`;
+            if (ds.seed) yaml += `    seed: ${ds.seed}\n`;
+            if (ds.contamination_level) yaml += `    contamination_level: ${ds.contamination_level}\n`;
+            yaml += `\n`;
+        });
+    }
+
+    if (config.parameter_sweep) {
+        const ps = config.parameter_sweep;
+        yaml += `\nparameter_sweep:\n`;
+        yaml += `  name_template: "${ps.name_template}"\n`;
+        yaml += `  base_config:\n`;
+        for (const [k, v] of Object.entries(ps.base_config)) {
+            yaml += `    ${k}: ${v}\n`;
+        }
+        yaml += `  sweep_parameters:\n`;
+        for (const [k, vals] of Object.entries(ps.sweep_parameters)) {
+            yaml += `    ${k}: [${vals.join(', ')}]\n`;
+        }
+    }
+
+    return yaml;
+}
+
+function getActiveTab() {
+    const active = document.querySelector('#builderTab.active, #sweepTab.active, #yamlTab.active');
+    if (!active) {
+        // Check via aria-selected or classList on the buttons
+        for (const btn of document.querySelectorAll('.nav-link')) {
+            if (btn.classList.contains('active')) {
+                return btn.getAttribute('data-bs-target');
+            }
+        }
+    }
+    return active ? active.getAttribute('data-bs-target') || '#builderTab' : '#builderTab';
+}
+
+function getCurrentYAML() {
+    const activeTab = getActiveTab();
+    if (activeTab === '#yamlTab') {
+        return document.getElementById('yamlConfig').value;
+    } else if (activeTab === '#sweepTab') {
+        return configToYAML(collectSweepConfig());
+    } else {
+        return configToYAML(collectBuilderConfig());
+    }
+}
+
+function previewYAML() {
+    const yaml = getCurrentYAML();
+    document.getElementById('yamlPreviewContent').textContent = yaml;
+    document.getElementById('yamlPreviewCard').classList.remove('d-none');
+}
+
+function copyYAML() {
+    const yaml = document.getElementById('yamlPreviewContent').textContent;
+    navigator.clipboard.writeText(yaml);
+}
+
 function validateBatch() {
-    const yaml = document.getElementById('yamlConfig').value;
+    const yaml = getCurrentYAML();
     fetch('/api/batch/validate', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
@@ -105,7 +627,7 @@ function validateBatch() {
 
         if (data.valid) {
             document.getElementById('validationHeader').className = 'card-header bg-success text-white';
-            document.getElementById('validationHeader').textContent = '✓ Valid Configuration';
+            document.getElementById('validationHeader').textContent = 'Valid Configuration';
             document.getElementById('validationBody').innerHTML = `
                 <p><strong>Batch Name:</strong> ${data.batch_name}</p>
                 <p><strong>Total Datasets:</strong> ${data.total_datasets}</p>
@@ -113,14 +635,14 @@ function validateBatch() {
             `;
         } else {
             document.getElementById('validationHeader').className = 'card-header bg-danger text-white';
-            document.getElementById('validationHeader').textContent = '✗ Invalid Configuration';
+            document.getElementById('validationHeader').textContent = 'Invalid Configuration';
             document.getElementById('validationBody').innerHTML = `<p class="text-danger">${data.error}</p>`;
         }
     });
 }
 
 function startBatch() {
-    const yaml = document.getElementById('yamlConfig').value;
+    const yaml = getCurrentYAML();
     const parallel = document.getElementById('parallelWorkers').value;
 
     document.getElementById('batchProgress').classList.remove('d-none');
@@ -128,7 +650,7 @@ function startBatch() {
     fetch('/api/batch/generate', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({yaml, parallel})
+        body: JSON.stringify({yaml, parallel: parseInt(parallel)})
     })
     .then(r => r.json())
     .then(data => {
@@ -137,53 +659,56 @@ function startBatch() {
 }
 
 function loadExample(type) {
-    const examples = {
-        technology: `batch_name: "Technology Comparison"
-output_base: "data/tech_comparison"
+    // Switch to builder tab
+    const builderBtn = document.querySelector('[data-bs-target="#builderTab"]');
+    const tab = new bootstrap.Tab(builderBtn);
+    tab.show();
 
-datasets:
-  - name: gut_novaseq
-    collection_id: 9
-    platform: novaseq
-    coverage: 30
-    seed: 42
+    // Clear existing datasets
+    document.getElementById('datasetList').innerHTML = '';
+    datasetCounter = 0;
 
-  - name: gut_pacbio_hifi
-    collection_id: 9
-    platform: pacbio-hifi
-    depth: 15
-    seed: 42`,
-        coverage: `batch_name: "Coverage Optimization"
-output_base: "data/coverage_study"
+    if (type === 'technology') {
+        document.getElementById('batchName').value = 'Technology Comparison';
+        document.getElementById('outputBase').value = 'data/tech_comparison';
+        addDataset({name: 'gut_novaseq', collection_id: 1, platform: 'novaseq', coverage: 30, seed: 42});
+        addDataset({name: 'gut_miseq', collection_id: 1, platform: 'miseq', coverage: 30, seed: 42});
+        addDataset({name: 'gut_nanopore', collection_id: 1, platform: 'nanopore', depth: 15, seed: 42});
+    } else if (type === 'coverage') {
+        // Switch to sweep tab for this one
+        const sweepBtn = document.querySelector('[data-bs-target="#sweepTab"]');
+        const sweepTab = new bootstrap.Tab(sweepBtn);
+        sweepTab.show();
 
-parameter_sweep:
-  name_template: "gut_cov_{coverage}x"
-  base_config:
-    collection_id: 9
-    platform: novaseq
-    seed: 42
-  sweep_parameters:
-    coverage: [5, 10, 20, 30, 50, 100]`,
-        vlp: `batch_name: "VLP Protocol Comparison"
-output_base: "data/vlp_comparison"
+        document.getElementById('sweepBatchName').value = 'Coverage Optimization';
+        document.getElementById('sweepOutputBase').value = 'data/coverage_study';
+        document.getElementById('sweepNameTemplate').value = 'gut_cov_{coverage}x';
+        document.getElementById('sweepCollection').value = '1';
+        document.getElementById('sweepSeed').value = '42';
 
-datasets:
-  - name: tangential_flow
-    collection_id: 9
-    platform: novaseq
-    coverage: 30
-    vlp_protocol: tangential_flow
-    seed: 42
+        // Clear and set coverage values
+        document.getElementById('sweepCoverageValues').innerHTML = '';
+        [5, 10, 20, 30, 50, 100].forEach(v => {
+            const tag = document.createElement('span');
+            tag.className = 'sweep-tag';
+            tag.innerHTML = `${v} <span class="remove-value" onclick="removeSweepValue('coverage', this)">&times;</span>`;
+            document.getElementById('sweepCoverageValues').appendChild(tag);
+        });
 
-  - name: bulk_metagenome
-    collection_id: 9
-    platform: novaseq
-    coverage: 30
-    no_vlp: true
-    seed: 42`
-    };
-
-    document.getElementById('yamlConfig').value = examples[type];
+        // Uncheck all platforms except novaseq
+        document.querySelectorAll('.sweep-platform').forEach(cb => cb.checked = cb.value === 'novaseq');
+        document.querySelectorAll('.sweep-vlp').forEach(cb => cb.checked = false);
+        updateSweepPreview();
+    } else if (type === 'vlp') {
+        document.getElementById('batchName').value = 'VLP Protocol Comparison';
+        document.getElementById('outputBase').value = 'data/vlp_comparison';
+        addDataset({name: 'tangential_flow', collection_id: 1, platform: 'novaseq', coverage: 30, vlp_protocol: 'tangential_flow', seed: 42});
+        addDataset({name: 'ultracentrifugation', collection_id: 1, platform: 'novaseq', coverage: 30, vlp_protocol: 'ultracentrifugation', seed: 42});
+        addDataset({name: 'bulk_metagenome', collection_id: 1, platform: 'novaseq', coverage: 30, no_vlp: true, seed: 42});
+    }
 }
+
+// Initialize with one empty dataset
+addDataset();
 </script>
 {% endblock %}

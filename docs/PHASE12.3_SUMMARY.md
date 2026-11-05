@@ -314,7 +314,7 @@ viroforge web
    ```
    data/gut_novaseq
    data/gut_hiseq
-   data/gut_pacbio_hifi
+   data/gut_nanopore
    ```
 3. Click "Compare Datasets"
 4. See comparison table with collection, platform, seed

@@ -166,7 +166,7 @@ def show_platform_info(metadata: Dict):
     elif 'configuration' in metadata and 'platform' in metadata['configuration']:
         platform_name = metadata['configuration']['platform'].upper()
         table.add_row("Platform", platform_name)
-        read_type = 'long' if platform_name.lower() in ['pacbio-hifi', 'nanopore'] else 'short'
+        read_type = 'long' if platform_name.lower() == 'nanopore' else 'short'
         table.add_row("Read Type", f"paired-end {read_type}" if read_type == 'short' else read_type)
 
     # Configuration
@@ -338,26 +338,24 @@ def show_json_report(metadata: Dict, export_path: Optional[str]):
 
 
 def show_html_report(metadata: Dict, dataset_path: Path, export_path: Optional[str]) -> Optional[Path]:
-    """Generate HTML report."""
-    # Determine output path
-    if export_path:
-        output_path = Path(export_path)
-    else:
-        output_path = dataset_path / f"{dataset_path.name}_report.html"
+    """Generate HTML report using the auto_report module (charts included)."""
+    from .auto_report import generate_auto_report
 
-    # Load composition
-    composition = load_composition_file(dataset_path)
-
-    # Generate HTML
-    html_content = generate_html_report_content(metadata, dataset_path, composition)
-
-    try:
-        with open(output_path, 'w') as f:
-            f.write(html_content)
-        return output_path
-    except Exception as e:
-        console.print(f"[red]Error writing HTML report: {e}[/red]")
+    report_path = generate_auto_report(dataset_path)
+    if report_path is None:
         return None
+
+    if export_path:
+        export_dest = Path(export_path)
+        try:
+            import shutil
+            shutil.copy2(report_path, export_dest)
+            return export_dest
+        except Exception as e:
+            console.print(f"[red]Error exporting HTML report: {e}[/red]")
+            return None
+
+    return report_path
 
 
 def generate_html_report_content(metadata: Dict, dataset_path: Path, composition: Optional[list]) -> str:
@@ -380,7 +378,7 @@ def generate_html_report_content(metadata: Dict, dataset_path: Path, composition
     # Platform info (from configuration)
     platform_name = config.get('platform', 'Unknown').upper()
     # Determine read type from platform
-    read_type = 'long' if platform_name.lower() in ['pacbio-hifi', 'nanopore'] else 'short'
+    read_type = 'long' if platform_name.lower() == 'nanopore' else 'short'
     coverage = config.get('coverage') or config.get('target_coverage')
     depth = config.get('depth') or config.get('target_depth')
     cov_str = f"{coverage}x" if coverage else f"{depth}x" if depth else 'N/A'

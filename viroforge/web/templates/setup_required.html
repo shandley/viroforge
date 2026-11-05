@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Database Setup Required{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="mb-0"><i class="bi bi-database-exclamation"></i> Database Setup Required</h4>
+                </div>
+                <div class="card-body">
+                    <p>ViroForge needs a local genome database before you can browse collections or generate datasets. This is a one-time setup that downloads viral genomes from NCBI RefSeq and builds a SQLite database (~500 MB).</p>
+
+                    <h5>Run this command in your terminal:</h5>
+                    <pre class="bg-dark text-light p-3 rounded"><code>viroforge setup-db</code></pre>
+
+                    <p class="text-muted">This will take several minutes on first run (RefSeq download + database build). Once complete, refresh this page and all features will be available.</p>
+
+                    <h6 class="mt-4">Troubleshooting</h6>
+                    <ul class="small text-muted">
+                        <li>Network failed partway? Try <code>viroforge setup-db --skip-download</code> to retry with already-downloaded data.</li>
+                        <li>ICTV website down? Try <code>viroforge setup-db --skip-taxonomy</code> to build without taxonomy (can add later).</li>
+                        <li>Corrupted download? Try <code>viroforge setup-db --force</code> to re-download everything.</li>
+                    </ul>
+                </div>
+                <div class="card-footer">
+                    <a href="/" class="btn btn-outline-secondary"><i class="bi bi-house"></i> Home</a>
+                    <a href="{{ request.url }}" class="btn btn-primary"><i class="bi bi-arrow-clockwise"></i> Refresh</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

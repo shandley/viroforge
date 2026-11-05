@@ -3,8 +3,7 @@
 **Date**: 2026-07-16
 **Version evaluated**: v0.13.0 (canonical seeded database, commit ddd9d38 + working fixes)
 **Scope**: Illumina short-read output, DNA and RNA workflows, both read mates.
-Long-read (PacBio HiFi, Nanopore) not evaluated: pbccs is Linux x86-64 only and
-PBSIM3 was not built in this environment.
+Long-read (Nanopore) not evaluated: PBSIM3 was not built in this environment.
 **Tool**: `scripts/evaluate_dataset.py` (re-runnable)
 
 ## Executive summary

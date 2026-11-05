@@ -194,6 +194,28 @@ def taxonomy_to_markdown(m: dict) -> str:
         f"- Pearson: {_num(ab['pearson'])}   Spearman: {_num(ab['spearman'])}   "
         f"mean abs error: {_num(ab['mean_abs_error'], 4)}",
     ]
+    prov = m.get("provenance")
+    if prov:
+        lines += [
+            "",
+            "## By genome provenance",
+            "",
+            "| provenance | reads | sensitivity | precision |",
+            "|---|---:|---:|---:|",
+        ]
+        for cat, s in prov.items():
+            k = s.get("known_viruses", {})
+            lines.append(
+                f"| {cat} | {s['n_reads']:,} | "
+                f"{_pct(k.get('sensitivity'))} | {_pct(k.get('precision'))} |"
+            )
+        lines += [
+            "",
+            "> Prophage and endogenous reads originate from integrated sequences. "
+            "A classifier that calls them 'viral' is sequence-correct but "
+            "context-wrong in a bulk metagenome. Use VIBRANT, CheckV, or "
+            "RepeatMasker to distinguish integrated from free viral particles.",
+        ]
     return "\n".join(lines) + "\n"
 
 

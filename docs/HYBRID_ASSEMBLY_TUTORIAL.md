@@ -61,12 +61,12 @@ Hybrid assembly combines **short-read accuracy** with **long-read length** to pr
 Generate matched datasets in one command:
 
 ```bash
-# NovaSeq + PacBio HiFi hybrid dataset
+# NovaSeq + Nanopore hybrid dataset
 python scripts/generate_hybrid_dataset.py \
-    --collection-id 9 \
+    --collection-id 1 \
     --output data/gut_hybrid \
     --short-platform novaseq \
-    --long-platform pacbio-hifi \
+    --long-platform nanopore \
     --coverage 30 \
     --depth 15 \
     --seed 42
@@ -74,7 +74,7 @@ python scripts/generate_hybrid_dataset.py \
 # Output structure:
 # data/gut_hybrid/
 # ├── short_reads/       # NovaSeq reads
-# ├── long_reads/        # PacBio HiFi reads
+# ├── long_reads/        # Nanopore reads
 # └── hybrid_metadata.json
 ```
 
@@ -94,8 +94,8 @@ python scripts/generate_fastq_dataset.py \
 # Step 2: Generate long reads (SAME collection, SAME seed)
 python scripts/generate_fastq_dataset.py \
     --collection-id 9 \
-    --output data/gut_hifi \
-    --platform pacbio-hifi \
+    --output data/gut_nanopore \
+    --platform nanopore \
     --depth 15 \
     --seed 42
 ```
@@ -113,7 +113,7 @@ python scripts/generate_hybrid_dataset.py \
     --collection-id ID \              # Collection to use
     --output OUTPUT_DIR \             # Output directory
     --short-platform {novaseq,miseq,hiseq} \
-    --long-platform {pacbio-hifi,nanopore} \
+    --long-platform nanopore \
     --coverage DEPTH \                # Short-read coverage
     --depth DEPTH \                   # Long-read depth
     --seed SEED                       # Random seed (critical!)
@@ -123,20 +123,12 @@ python scripts/generate_hybrid_dataset.py \
 
 | Short | Long | Coverage | Depth | Use Case |
 |-------|------|----------|-------|----------|
-| NovaSeq | PacBio HiFi | 30x | 15x | High accuracy, complete genomes |
-| NovaSeq | Nanopore | 50x | 20x | Ultra-long scaffolds, cost-effective |
-| MiSeq | PacBio HiFi | 50x | 15x | Moderate throughput, high accuracy |
+| NovaSeq | Nanopore | 30x | 15x | Complete genomes, cost-effective |
+| NovaSeq | Nanopore | 50x | 20x | Ultra-long scaffolds, high coverage |
+| MiSeq | Nanopore | 50x | 15x | Moderate throughput |
 | HiSeq | Nanopore | 30x | 25x | Legacy + long reads |
 
 ### Platform-Specific Parameters
-
-#### PacBio HiFi Options
-```bash
-python scripts/generate_hybrid_dataset.py \
-    --long-platform pacbio-hifi \
-    --pacbio-passes 15 \              # More passes = higher accuracy
-    --pacbio-read-length 18000        # Mean read length (10-30kb)
-```
 
 #### Nanopore Options
 ```bash
@@ -192,15 +184,6 @@ conda install -c bioconda spades
 
 **Usage**:
 ```bash
-# For PacBio HiFi
-spades.py --meta \
-    -1 data/gut_hybrid/short_reads/fastq/*_R1.fastq \
-    -2 data/gut_hybrid/short_reads/fastq/*_R2.fastq \
-    --pacbio data/gut_hybrid/long_reads/fastq/*.fastq* \
-    -o results/spades \
-    --threads 8
-
-# For Nanopore
 spades.py --meta \
     -1 data/gut_hybrid/short_reads/fastq/*_R1.fastq \
     -2 data/gut_hybrid/short_reads/fastq/*_R2.fastq \
@@ -236,7 +219,7 @@ masurca -g config.txt
 
 # Edit config.txt:
 # PE= pe 180 20  short_R1.fastq short_R2.fastq
-# PACBIO=long_reads.fastq
+# NANOPORE=long_reads.fastq
 # END
 
 # Run assembly
@@ -266,7 +249,7 @@ conda install -c bioconda spades
 spades.py --meta \
     -1 short_R1.fastq \
     -2 short_R2.fastq \
-    --pacbio long_reads.fastq \
+    --nanopore long_reads.fastq \
     -o results/hybridspades
 ```
 
@@ -286,25 +269,25 @@ python scripts/generate_hybrid_dataset.py \
     --collection-id 9 \
     --output data/gut_hybrid \
     --short-platform novaseq \
-    --long-platform pacbio-hifi \
+    --long-platform nanopore \
     --coverage 30 --depth 15 --seed 42
 
 # 2. Unicycler hybrid
 unicycler \
     -1 data/gut_hybrid/short_reads/fastq/*_R1.fastq \
     -2 data/gut_hybrid/short_reads/fastq/*_R2.fastq \
-    -l data/gut_hybrid/long_reads/fastq/*.fastq.gz \
+    -l data/gut_hybrid/long_reads/fastq/*.fastq \
     -o results/unicycler
 
 # 3. SPAdes hybrid
 spades.py --meta \
     -1 data/gut_hybrid/short_reads/fastq/*_R1.fastq \
     -2 data/gut_hybrid/short_reads/fastq/*_R2.fastq \
-    --pacbio data/gut_hybrid/long_reads/fastq/*.fastq.gz \
+    --nanopore data/gut_hybrid/long_reads/fastq/*.fastq \
     -o results/spades
 
 # 4. Long-read only (Flye for comparison)
-flye --pacbio-hifi data/gut_hybrid/long_reads/fastq/*.fastq.gz \
+flye --nano-hq data/gut_hybrid/long_reads/fastq/*.fastq \
     --out-dir results/flye_longonly
 
 # 5. Short-read only (SPAdes for comparison)
@@ -342,7 +325,7 @@ for SHORT_COV in 20 30 50 100; do
         --collection-id 9 \
         --output data/cov_${SHORT_COV}_${LONG_DEPTH} \
         --short-platform novaseq \
-        --long-platform pacbio-hifi \
+        --long-platform nanopore \
         --coverage $SHORT_COV \
         --depth $LONG_DEPTH \
         --seed 42
@@ -350,7 +333,7 @@ for SHORT_COV in 20 30 50 100; do
     unicycler \
         -1 data/cov_${SHORT_COV}_${LONG_DEPTH}/short_reads/fastq/*_R1.fastq \
         -2 data/cov_${SHORT_COV}_${LONG_DEPTH}/short_reads/fastq/*_R2.fastq \
-        -l data/cov_${SHORT_COV}_${LONG_DEPTH}/long_reads/fastq/*.fastq.gz \
+        -l data/cov_${SHORT_COV}_${LONG_DEPTH}/long_reads/fastq/*.fastq \
         -o results/cov_${SHORT_COV}_${LONG_DEPTH}
   done
 done
@@ -360,27 +343,27 @@ done
 
 ### Workflow 3: Technology Comparison
 
-**Goal**: Compare NovaSeq+HiFi vs NovaSeq+Nanopore
+**Goal**: Compare hybrid assembly at different Nanopore depths
 
 ```bash
-# HiFi hybrid
+# Standard depth
 python scripts/generate_hybrid_dataset.py \
-    --collection-id 9 \
-    --output data/gut_novaseq_hifi \
-    --short-platform novaseq \
-    --long-platform pacbio-hifi \
-    --coverage 30 --depth 15 --seed 42
-
-# Nanopore hybrid
-python scripts/generate_hybrid_dataset.py \
-    --collection-id 9 \
-    --output data/gut_novaseq_nanopore \
+    --collection-id 1 \
+    --output data/gut_novaseq_nanopore_15x \
     --short-platform novaseq \
     --long-platform nanopore \
-    --coverage 30 --depth 20 --seed 42
+    --coverage 30 --depth 15 --seed 42
+
+# Higher depth
+python scripts/generate_hybrid_dataset.py \
+    --collection-id 1 \
+    --output data/gut_novaseq_nanopore_30x \
+    --short-platform novaseq \
+    --long-platform nanopore \
+    --coverage 30 --depth 30 --seed 42
 
 # Assemble both with Unicycler
-# Compare cost, time, and assembly quality
+# Compare assembly quality at different long-read depths
 ```
 
 ---
@@ -399,7 +382,7 @@ python scripts/validate_hybrid_composition.py \
 # Using explicit files
 python scripts/validate_hybrid_composition.py \
     --short data/gut_novaseq/metadata/*_composition.tsv \
-    --long data/gut_hifi/metadata/*_composition.tsv
+    --long data/gut_nanopore/metadata/*_composition.tsv
 ```
 
 **Expected Output**:
@@ -454,7 +437,6 @@ python scripts/generate_fastq_dataset.py --collection-id 9 --seed 42 ...
 
 **Solution**: Use longer reads:
 ```bash
---pacbio-read-length 20000  # Increase from 15000
 --ont-read-length 40000     # Increase from 20000
 ```
 

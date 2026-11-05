@@ -42,6 +42,8 @@ DEFAULT_KEEP_REMOVE: dict[str, str] = {
     "archaeal_background": "remove",
     "artifact_low_complexity": "remove",
     "erv_endogenous": "remove",    # endogenous retrovirus: host-derived
+    "host_dna_herv": "remove",     # host DNA from HERV loci: still host-derived
+    "dietary_background": "keep",  # food-derived plant viruses: real virome signal
 }
 
 MATCH_GATE = 0.99  # min fraction of cleaned reads that must map back to raw

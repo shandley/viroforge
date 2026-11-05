@@ -58,13 +58,6 @@ datasets:
     vlp_protocol: tangential_flow
     seed: 42
 
-  - name: gut_pacbio_hifi
-    collection_id: 9
-    platform: pacbio-hifi
-    depth: 15
-    vlp_protocol: tangential_flow
-    seed: 42
-
   - name: gut_nanopore
     collection_id: 9
     platform: nanopore
@@ -318,7 +311,7 @@ Compare multiple datasets side-by-side with intelligent recommendations.
 viroforge compare \
     data/gut_novaseq \
     data/gut_hiseq \
-    data/gut_pacbio_hifi
+    data/gut_nanopore
 ```
 
 **Output**:
@@ -333,7 +326,7 @@ Dataset Summary:
 ├────────────────┼──────────────────┼────────────┼────────────────┼─────────┼────────┤
 │ gut_novaseq    │ Gut (9)          │ NOVASEQ    │ 30x            │ 134     │ 92.5%  │
 │ gut_hiseq      │ Gut (9)          │ HISEQ      │ 30x            │ 134     │ 92.5%  │
-│ gut_pacbio_hifi│ Gut (9)          │ PACBIO-HIFI│ 15x            │ 134     │ 92.5%  │
+│ gut_nanopore│ Gut (9)          │ NANOPORE│ 15x            │ 134     │ 92.5%  │
 └────────────────┴──────────────────┴────────────┴────────────────┴─────────┴────────┘
 
 Composition Consistency:
@@ -344,7 +337,7 @@ Composition Consistency:
 Platform Comparison:
   • NOVASEQ: 1 dataset(s)
   • HISEQ: 1 dataset(s)
-  • PACBIO-HIFI: 1 dataset(s)
+  • NANOPORE: 1 dataset(s)
 
 Recommendations:
   ✓ Suitable for technology/platform comparison
@@ -569,7 +562,7 @@ All parameters from `viroforge generate` are supported:
 
 **Required**:
 - `collection_id` - Collection to use (1-28)
-- `platform` - Sequencing platform (novaseq/miseq/hiseq/pacbio-hifi/nanopore)
+- `platform` - Sequencing platform (novaseq/miseq/hiseq/nanopore)
 
 **Coverage/Depth**:
 - `coverage` - Coverage for short reads (5-200)
@@ -591,8 +584,6 @@ All parameters from `viroforge generate` are supported:
 - `rna_primer` - RT primer (random_hexamer/random_octamer/oligo_dt/specific)
 
 **Long-Read Specific**:
-- `pacbio_passes` - CCS passes (3-20)
-- `pacbio_read_length` - Read length (10000-30000)
 - `ont_chemistry` - Nanopore chemistry (R9.4/R10.4)
 - `ont_read_length` - Read length (10000-200000)
 
@@ -1031,7 +1022,7 @@ viroforge compare data/coverage_study/gut_cov_*
 viroforge batch examples/batch_configs/technology_comparison.yaml --parallel 2
 
 # 2. Run pipeline on each platform
-for platform in novaseq hiseq miseq pacbio_hifi nanopore; do
+for platform in novaseq hiseq miseq nanopore; do
     your_pipeline data/tech_comparison/gut_$platform/fastq/*
 done
 

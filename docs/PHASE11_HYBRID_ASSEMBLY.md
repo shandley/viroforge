@@ -38,7 +38,7 @@ python scripts/generate_fastq_dataset.py \
     --output data/gut_hybrid \
     --hybrid-mode \
     --short-platform novaseq \
-    --long-platform pacbio-hifi \
+    --long-platform nanopore \
     --coverage 30 \
     --depth 15 \
     --seed 42
@@ -63,7 +63,7 @@ python scripts/generate_fastq_dataset.py \
 python scripts/generate_fastq_dataset.py \
     --collection-id 9 \
     --output data/gut_long \
-    --platform pacbio-hifi \
+    --platform nanopore \
     --depth 15 \
     --seed 42
 ```
@@ -97,7 +97,7 @@ data/gut_hybrid/
 │   ├── fasta/
 │   │   └── gut_virome.fasta (symlink to short_reads/fasta)
 │   ├── fastq/
-│   │   └── gut_virome_hifi.fastq.gz
+│   │   └── gut_virome_nanopore.fastq.gz
 │   └── metadata/
 │       ├── gut_virome_metadata.json
 │       ├── gut_virome_composition.tsv
@@ -125,12 +125,12 @@ data/gut_hybrid/
     "r2": "short_reads/fastq/gut_virome_R2.fastq"
   },
   "long_reads": {
-    "platform": "pacbio-hifi",
+    "platform": "nanopore",
     "depth": 15,
     "read_length_mean": 15000,
     "passes": 10,
     "output_dir": "long_reads/",
-    "reads": "long_reads/fastq/gut_virome_hifi.fastq.gz"
+    "reads": "long_reads/fastq/gut_virome_nanopore.fastq.gz"
   },
   "composition_consistency": {
     "same_seed": true,
@@ -169,9 +169,9 @@ data/gut_hybrid/
 
 | Short Read | Long Read | Use Case |
 |------------|-----------|----------|
-| NovaSeq | PacBio HiFi | High accuracy + complete genomes |
+| NovaSeq | Nanopore | High accuracy + complete genomes |
 | NovaSeq | Nanopore | Cost-effective, ultra-long scaffolds |
-| MiSeq | PacBio HiFi | Moderate depth, high accuracy |
+| MiSeq | Nanopore | Moderate depth, high accuracy |
 | HiSeq | Nanopore | Legacy data + long reads |
 
 ### 6. Hybrid Assembly Workflow Example
@@ -183,7 +183,7 @@ python scripts/generate_fastq_dataset.py \
     --output data/gut_hybrid \
     --hybrid-mode \
     --short-platform novaseq \
-    --long-platform pacbio-hifi \
+    --long-platform nanopore \
     --coverage 30 \
     --depth 15 \
     --vlp-protocol tangential_flow \
@@ -193,7 +193,7 @@ python scripts/generate_fastq_dataset.py \
 unicycler \
     -1 data/gut_hybrid/short_reads/fastq/gut_virome_R1.fastq \
     -2 data/gut_hybrid/short_reads/fastq/gut_virome_R2.fastq \
-    -l data/gut_hybrid/long_reads/fastq/gut_virome_hifi.fastq.gz \
+    -l data/gut_hybrid/long_reads/fastq/gut_virome_nanopore.fastq.gz \
     -o results/unicycler_hybrid
 
 # 3. Evaluate against ground truth
@@ -216,8 +216,8 @@ python scripts/generate_fastq_dataset.py \
 # Generate long reads (SAME collection, SAME seed)
 python scripts/generate_fastq_dataset.py \
     --collection-id 9 \
-    --output data/gut_hifi \
-    --platform pacbio-hifi \
+    --output data/gut_nanopore \
+    --platform nanopore \
     --depth 15 \
     --seed 42
 
@@ -225,7 +225,7 @@ python scripts/generate_fastq_dataset.py \
 unicycler \
     -1 data/gut_novaseq/fastq/gut_virome_R1.fastq \
     -2 data/gut_novaseq/fastq/gut_virome_R2.fastq \
-    -l data/gut_hifi/fastq/gut_virome_hifi.fastq.gz \
+    -l data/gut_nanopore/fastq/gut_virome_nanopore.fastq.gz \
     -o results/unicycler
 ```
 

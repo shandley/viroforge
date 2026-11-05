@@ -13,9 +13,14 @@
                 <label class="form-label">Dataset Path</label>
                 <input type="text" id="datasetPath" class="form-control" placeholder="data/gut-standard">
             </div>
-            <button class="btn btn-vf-primary" onclick="loadReport()">
-                <i class="bi bi-search"></i> Load Report
-            </button>
+            <div class="d-flex gap-2">
+                <button class="btn btn-vf-primary" onclick="loadReport()">
+                    <i class="bi bi-search"></i> Load Summary
+                </button>
+                <button class="btn btn-outline-primary" onclick="openHtmlReport()">
+                    <i class="bi bi-file-earmark-bar-graph"></i> Open HTML Report
+                </button>
+            </div>
         </div>
     </div>
 
@@ -24,6 +29,20 @@
             <h5 class="mb-0"><i class="bi bi-file-text"></i> <span id="reportTitle">Dataset Report</span></h5>
         </div>
         <div class="card-body" id="reportBody"></div>
+    </div>
+
+    <div id="htmlReportFrame" class="mt-4 d-none">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-file-earmark-bar-graph"></i> HTML Report</h5>
+                <a id="htmlReportNewTab" href="#" target="_blank" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-box-arrow-up-right"></i> Open in New Tab
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <iframe id="reportIframe" style="width:100%;height:800px;border:none"></iframe>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -61,7 +80,7 @@ function loadReport() {
             html += `<table class="table table-sm">
                 <thead><tr><th>Rank</th><th>Genome</th><th>Abundance</th></tr></thead>
                 <tbody>`;
-            sorted.slice(0, 5).forEach((g, i) => {
+            sorted.slice(0, 10).forEach((g, i) => {
                 html += `<tr><td>${i+1}</td><td>${g.genome_name || g.genome_id}</td><td>${(g.relative_abundance*100).toFixed(2)}%</td></tr>`;
             });
             html += '</tbody></table>';
@@ -71,6 +90,31 @@ function loadReport() {
     })
     .catch(error => {
         alert('Error loading report: ' + error.message);
+    });
+}
+
+function openHtmlReport() {
+    const path = document.getElementById('datasetPath').value;
+    if (!path) return;
+
+    const url = `/api/report/generate`;
+    fetch(url, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({dataset_path: path})
+    })
+    .then(r => {
+        if (!r.ok) return r.json().then(d => { throw new Error(d.error); });
+        return r.blob();
+    })
+    .then(blob => {
+        const blobUrl = URL.createObjectURL(blob);
+        document.getElementById('htmlReportFrame').classList.remove('d-none');
+        document.getElementById('reportIframe').src = blobUrl;
+        document.getElementById('htmlReportNewTab').href = blobUrl;
+    })
+    .catch(error => {
+        alert('Error generating HTML report: ' + error.message);
     });
 }
 </script>

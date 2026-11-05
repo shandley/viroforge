@@ -95,7 +95,7 @@ For more information: https://github.com/hecatomb/viroforge
     )
     generate_parser.add_argument(
         '--platform',
-        choices=['novaseq', 'miseq', 'hiseq', 'pacbio-hifi', 'nanopore'],
+        choices=['novaseq', 'miseq', 'hiseq', 'nanopore'],
         help='Sequencing platform'
     )
     generate_parser.add_argument(
@@ -135,6 +135,14 @@ For more information: https://github.com/hecatomb/viroforge
         '--no-vlp',
         action='store_true',
         help='Skip VLP enrichment (bulk metagenome)'
+    )
+    generate_parser.add_argument(
+        '--vlp-efficiency',
+        choices=['standard', 'high'],
+        default='standard',
+        help='VLP efficiency model (default: standard). '
+             'standard = ~80%% viral after VLP; '
+             'high = ~93%% viral after VLP (aggressive decontamination)'
     )
     generate_parser.add_argument(
         '--molecule-type',
@@ -182,6 +190,11 @@ For more information: https://github.com/hecatomb/viroforge
         '-v', '--verbose',
         action='store_true',
         help='Show detailed progress'
+    )
+    generate_parser.add_argument(
+        '--no-report',
+        action='store_true',
+        help='Suppress the auto-generated HTML diagnostic report'
     )
 
     # ========================================================================

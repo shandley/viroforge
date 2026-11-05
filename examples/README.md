@@ -375,7 +375,7 @@ The script creates an `output/cross_platform/` directory containing:
 
 As more ViroForge modules are implemented, additional examples will be added here for:
 
-- Long-read sequencing (PacBio, Oxford Nanopore)
+- Long-read sequencing (Oxford Nanopore)
 - Alternative platforms (MGI/DNBSEQ, Element Biosciences)
 - Advanced integration workflows with custom parameters
 

@@ -25,6 +25,12 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'viroforge-web-interface-secret-key'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max upload
 
+
+def _is_db_missing(exc):
+    """Check if an exception is caused by an unpopulated database."""
+    msg = str(exc).lower()
+    return 'no such table' in msg or 'unable to open database' in msg
+
 # Store running generations (in production, use Redis or similar)
 running_generations = {}
 
@@ -47,6 +53,8 @@ def collections():
         all_collections = get_all_collections()
         return render_template('collections.html', collections=all_collections)
     except Exception as e:
+        if _is_db_missing(e):
+            return render_template('setup_required.html'), 503
         return render_template('error.html', error=str(e)), 500
 
 
@@ -57,6 +65,8 @@ def api_collections():
         collections = get_all_collections()
         return jsonify(collections)
     except Exception as e:
+        if _is_db_missing(e):
+            return jsonify({'error': 'Database not set up. Run: viroforge setup-db'}), 503
         return jsonify({'error': str(e)}), 500
 
 
@@ -69,6 +79,8 @@ def api_collection_details(collection_id):
             return jsonify({'error': 'Collection not found'}), 404
         return jsonify(details)
     except Exception as e:
+        if _is_db_missing(e):
+            return jsonify({'error': 'Database not set up. Run: viroforge setup-db'}), 503
         return jsonify({'error': str(e)}), 500
 
 
@@ -82,6 +94,8 @@ def generate_page():
         collections = get_all_collections()
         return render_template('generate.html', presets=presets, collections=collections)
     except Exception as e:
+        if _is_db_missing(e):
+            return render_template('setup_required.html'), 503
         return render_template('error.html', error=str(e)), 500
 
 
@@ -118,18 +132,14 @@ def api_generate():
 
         if data.get('preset'):
             cmd.extend(['--preset', data['preset']])
-        else:
-            # Direct parameters
-            if data.get('collection_id'):
-                cmd.extend(['--collection-id', str(data['collection_id'])])
-            if data.get('platform'):
-                cmd.extend(['--platform', data['platform']])
-            if data.get('coverage'):
-                cmd.extend(['--coverage', str(data['coverage'])])
-            if data.get('depth'):
-                cmd.extend(['--depth', str(data['depth'])])
-
-        # Override parameters
+        if data.get('collection_id'):
+            cmd.extend(['--collection-id', str(data['collection_id'])])
+        if data.get('platform'):
+            cmd.extend(['--platform', data['platform']])
+        if data.get('coverage'):
+            cmd.extend(['--coverage', str(data['coverage'])])
+        if data.get('depth'):
+            cmd.extend(['--depth', str(data['depth'])])
         if data.get('output'):
             cmd.extend(['--output', data['output']])
         if data.get('seed'):
@@ -140,6 +150,8 @@ def api_generate():
             cmd.append('--no-vlp')
         if data.get('contamination_level'):
             cmd.extend(['--contamination-level', data['contamination_level']])
+        if data.get('dark_matter_fraction') is not None and data.get('dark_matter_fraction') != '':
+            cmd.extend(['--dark-matter-fraction', str(data['dark_matter_fraction'])])
 
         # Start generation in background
         process = subprocess.Popen(
@@ -154,7 +166,8 @@ def api_generate():
         running_generations[generation_id] = {
             'process': process,
             'command': ' '.join(cmd),
-            'status': 'running'
+            'status': 'running',
+            'output_dir': data.get('output', ''),
         }
 
         return jsonify({
@@ -190,19 +203,57 @@ def api_generation_status(generation_id):
         status = 'success' if return_code == 0 else 'failed'
         gen['status'] = status
 
+        report_url = None
+        if status == 'success' and gen.get('output_dir'):
+            output_path = Path(gen['output_dir'])
+            report_file = output_path / f"{output_path.name}_report.html"
+            if report_file.is_file():
+                report_url = f"/report-file/{output_path.name}"
+                gen['report_path'] = str(report_file)
+
         return jsonify({
             'status': status,
             'return_code': return_code,
+            'report_url': report_url,
             'stdout': stdout,
             'stderr': stderr,
             'command': gen['command']
         })
 
 
+@app.route('/report-file/<dataset_name>')
+def serve_report(dataset_name):
+    """Serve an auto-generated HTML report for a dataset."""
+    for gen in running_generations.values():
+        if gen.get('report_path') and Path(gen['report_path']).name.startswith(dataset_name):
+            return send_file(gen['report_path'], mimetype='text/html')
+    return jsonify({'error': 'Report not found'}), 404
+
+
+@app.route('/api/report/generate', methods=['POST'])
+def api_generate_report():
+    """API: Generate HTML report for an existing dataset."""
+    try:
+        dataset_path = Path(request.get_json().get('dataset_path', '')).resolve()
+        if not dataset_path.is_dir():
+            return jsonify({'error': 'Dataset directory not found'}), 404
+        from viroforge.cli.auto_report import generate_auto_report
+        report_path = generate_auto_report(dataset_path)
+        if report_path is None:
+            return jsonify({'error': 'No metadata found in dataset'}), 404
+        return send_file(str(report_path.resolve()), mimetype='text/html')
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/batch')
 def batch_page():
     """Batch generation page."""
-    return render_template('batch.html')
+    try:
+        collections = get_all_collections()
+    except Exception:
+        collections = []
+    return render_template('batch.html', collections=collections)
 
 
 @app.route('/api/batch/validate', methods=['POST'])
@@ -383,7 +434,7 @@ def api_compare():
 
         # Check for hybrid assembly
         has_short = any(_get_platform(d) in ['novaseq', 'miseq', 'hiseq'] for d in datasets)
-        has_long = any(_get_platform(d) in ['pacbio-hifi', 'nanopore'] for d in datasets)
+        has_long = any(_get_platform(d) in ['nanopore'] for d in datasets)
 
         if has_short and has_long and len(collection_ids) == 1 and len(seeds) == 1:
             comparison_type = 'hybrid'
@@ -428,6 +479,164 @@ def api_compare():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+@app.route('/benchmark')
+def benchmark_page():
+    """Benchmark page."""
+    return render_template('benchmark.html')
+
+
+@app.route('/api/benchmark', methods=['POST'])
+def api_benchmark():
+    """API: Start a benchmark run."""
+    try:
+        data = request.get_json()
+        module = data.get('module')
+        if module not in ('qc', 'assembly', 'taxonomy'):
+            return jsonify({'error': 'Invalid module'}), 400
+
+        cmd = ['viroforge', 'benchmark', module]
+
+        if module == 'qc':
+            raw = data.get('raw_reads', '')
+            cleaned = data.get('cleaned_reads', '')
+            if not raw or not cleaned:
+                return jsonify({'error': 'raw_reads and cleaned_reads are required'}), 400
+            cmd.extend(['--raw-reads', raw])
+            cmd.extend(['--cleaned-reads', cleaned])
+            if data.get('keep_remove'):
+                for pair in data['keep_remove'].split():
+                    cmd.extend(['--keep-remove', pair])
+
+        elif module == 'assembly':
+            contigs = data.get('contigs', '')
+            genomes = data.get('genomes', '')
+            if not contigs or not genomes:
+                return jsonify({'error': 'contigs and genomes are required'}), 400
+            cmd.extend(['--contigs', contigs])
+            cmd.extend(['--genomes', genomes])
+            if data.get('ground_truth'):
+                cmd.extend(['--ground-truth', data['ground_truth']])
+
+        elif module == 'taxonomy':
+            pipeline_output = data.get('pipeline_output', '')
+            ground_truth = data.get('ground_truth', '')
+            if not ground_truth:
+                return jsonify({'error': 'ground_truth is required'}), 400
+            if pipeline_output:
+                cmd.extend(['--pipeline-output', pipeline_output])
+            cmd.extend(['--ground-truth', ground_truth])
+            fmt = data.get('format', 'auto')
+            if fmt and fmt != 'auto':
+                cmd.extend(['--format', fmt])
+            mode = data.get('mode', 'read-based')
+            if mode != 'read-based':
+                cmd.extend(['--mode', mode])
+            if mode == 'contig-based':
+                if data.get('contig_taxonomy'):
+                    cmd.extend(['--contig-taxonomy', data['contig_taxonomy']])
+                if data.get('contigs'):
+                    cmd.extend(['--contigs', data['contigs']])
+                if data.get('genomes'):
+                    cmd.extend(['--genomes', data['genomes']])
+            if data.get('taxdump_dir'):
+                cmd.extend(['--taxdump-dir', data['taxdump_dir']])
+
+        output_json = tempfile.NamedTemporaryFile(
+            mode='w', suffix='.json', delete=False, prefix='bench_'
+        )
+        output_json.close()
+        markdown_file = output_json.name.replace('.json', '.md')
+        cmd.extend(['--output', output_json.name])
+        cmd.extend(['--markdown', markdown_file])
+
+        process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+
+        benchmark_id = f"bench_{process.pid}"
+        running_generations[benchmark_id] = {
+            'process': process,
+            'command': ' '.join(cmd),
+            'status': 'running',
+            'module': module,
+            'output_json': output_json.name,
+            'markdown_file': markdown_file,
+        }
+
+        return jsonify({
+            'benchmark_id': benchmark_id,
+            'command': ' '.join(cmd),
+            'status': 'started'
+        })
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/benchmark/<benchmark_id>/status')
+def api_benchmark_status(benchmark_id):
+    """API: Check benchmark status."""
+    if benchmark_id not in running_generations:
+        return jsonify({'error': 'Benchmark not found'}), 404
+
+    bench = running_generations[benchmark_id]
+    process = bench['process']
+
+    if process.poll() is None:
+        return jsonify({'status': 'running', 'command': bench['command']})
+
+    return_code = process.returncode
+    stdout, stderr = process.communicate()
+    status = 'success' if return_code == 0 else 'failed'
+    bench['status'] = status
+
+    result = {
+        'status': status,
+        'return_code': return_code,
+        'stdout': stdout,
+        'stderr': stderr,
+        'command': bench['command'],
+    }
+
+    if status == 'success':
+        try:
+            with open(bench['output_json']) as f:
+                result['metrics'] = json.load(f)
+        except Exception:
+            pass
+        try:
+            with open(bench['markdown_file']) as f:
+                result['markdown'] = f.read()
+        except Exception:
+            pass
+        if result.get('metrics'):
+            try:
+                from viroforge.benchmarking.html_report import generate_benchmark_report
+                html_path = bench['output_json'].replace('.json', '_report.html')
+                generate_benchmark_report(result['metrics'], bench['module'], html_path)
+                bench['report_path'] = html_path
+                result['report_url'] = f'/benchmark-report/{benchmark_id}'
+            except Exception:
+                pass
+
+    return jsonify(result)
+
+
+@app.route('/benchmark-report/<benchmark_id>')
+def serve_benchmark_report(benchmark_id):
+    """Serve the HTML benchmark report."""
+    if benchmark_id not in running_generations:
+        return jsonify({'error': 'Benchmark not found'}), 404
+    bench = running_generations[benchmark_id]
+    report_path = bench.get('report_path')
+    if not report_path or not Path(report_path).is_file():
+        return jsonify({'error': 'Report not found'}), 404
+    return send_file(report_path, mimetype='text/html')
 
 
 @app.route('/about')

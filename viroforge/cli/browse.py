@@ -318,7 +318,7 @@ def generate_from_collection(collection_id: int) -> bool:
 
     platform = Prompt.ask(
         "[bold]Platform[/bold] [dim](sequencing platform to simulate)[/dim]",
-        choices=['novaseq', 'miseq', 'hiseq', 'pacbio-hifi', 'nanopore'],
+        choices=['novaseq', 'miseq', 'hiseq', 'nanopore'],
         default='novaseq'
     )
 
@@ -330,26 +330,12 @@ def generate_from_collection(collection_id: int) -> bool:
     elif platform == 'nanopore':
         if not shutil.which('pbsim'):
             missing_tools.append(('pbsim (PBSIM3)', 'conda install -c bioconda pbsim3'))
-    elif platform == 'pacbio-hifi':
-        if not shutil.which('pbsim'):
-            missing_tools.append(('pbsim (PBSIM3)', 'conda install -c bioconda pbsim3'))
-        if not shutil.which('samtools'):
-            missing_tools.append(('samtools', 'conda install -c bioconda samtools'))
-        if not shutil.which('ccs'):
-            missing_tools.append(('ccs (pbccs)', 'conda install -c bioconda pbccs'))
 
     if missing_tools:
         console.print(f"\n[red]Missing required tools for {platform}:[/red]")
         for tool_name, install_cmd in missing_tools:
             console.print(f"  [red]✗[/red] {tool_name}")
             console.print(f"    [yellow]Install with:[/yellow] {install_cmd}")
-        if platform == 'pacbio-hifi' and not shutil.which('ccs'):
-            import platform as _platform
-            machine = _platform.machine()
-            if machine != 'x86_64':
-                console.print(f"\n[red]Note:[/red] pbccs is only available for Linux x86-64.")
-                console.print(f"  Your system architecture is [bold]{machine}[/bold].")
-                console.print(f"  PacBio HiFi generation must be run on a Linux x86-64 machine or cluster.")
         console.print(f"\n[yellow]Install the tools above and try again.[/yellow]")
         return False
 

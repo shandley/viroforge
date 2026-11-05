@@ -230,7 +230,7 @@ Search: [gut________] (type to filter)                          🔍 Press ESC t
 ║                    Generate Dataset: Human Gut Virome                        ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-Platform:           [▶ NovaSeq   ] MiSeq  HiSeq  PacBio-HiFi  Nanopore
+Platform:           [▶ NovaSeq   ] MiSeq  HiSeq  Nanopore
 Output Directory:   [data/gut_virome____________________________________________]
 Coverage/Depth:     [30x________]
 VLP Protocol:       [▶ Tangential Flow] Syringe  Ultracentrifuge  Norgen  None
@@ -262,8 +262,7 @@ Virome Type Presets:
 
 Technology Comparison:
   tech-comparison-short     Same collection, all 3 Illumina platforms
-  tech-comparison-long      Same collection, HiFi + Nanopore
-  tech-comparison-hybrid    Same collection, NovaSeq + HiFi + Nanopore
+  tech-comparison-hybrid    Same collection, NovaSeq + Nanopore
 
 Assembly Benchmarking:
   assembly-short-only       High coverage short reads (50x)
@@ -419,11 +418,6 @@ datasets:
     platform: hiseq
     coverage: 30
 
-  - name: gut_hifi
-    collection_id: 9
-    platform: pacbio-hifi
-    depth: 15
-
   - name: gut_nanopore
     collection_id: 9
     platform: nanopore
@@ -457,7 +451,6 @@ Estimated disk space: ~15 GB
 │ [✓] gut_novaseq       NovaSeq 30x     Complete (3m 25s)                      │
 │ [✓] gut_miseq         MiSeq 30x       Complete (3m 10s)                      │
 │ [●] gut_hiseq         HiSeq 30x       In progress... 60%                     │
-│ [ ] gut_hifi          PacBio HiFi     Queued                                 │
 │ [ ] gut_nanopore      Nanopore        Queued                                 │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 
@@ -492,7 +485,6 @@ Output: data/benchmarks/
   ├─ gut_novaseq/
   ├─ gut_miseq/
   ├─ gut_hiseq/
-  ├─ gut_hifi/
   ├─ gut_nanopore/
   ├─ gut_cov_10x/
   ├─ gut_cov_20x/
@@ -569,19 +561,18 @@ $ viroforge report data/gut_virome
 
 **Comparison Report** (multiple datasets):
 ```bash
-$ viroforge compare data/gut_novaseq data/gut_hifi data/gut_nanopore
+$ viroforge compare data/gut_novaseq data/gut_nanopore
 
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║                         Dataset Comparison Report                            ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-Comparing 3 datasets from Collection 9 (Human Gut Virome):
+Comparing 2 datasets from Collection 9 (Human Gut Virome):
 
 ┌─────────────┬─────────────┬─────────────┬─────────────────┐
 │ Dataset     │ Platform    │ Reads       │ Total Bases     │
 ├─────────────┼─────────────┼─────────────┼─────────────────┤
 │ gut_novaseq │ NovaSeq     │ 16.7M       │ 5.0 Gbp         │
-│ gut_hifi    │ PacBio HiFi │ 125k        │ 1.9 Gbp         │
 │ gut_nanopore│ Nanopore    │ 95k         │ 1.9 Gbp         │
 └─────────────┴─────────────┴─────────────┴─────────────────┘
 
@@ -594,7 +585,6 @@ Composition Consistency:
 
 Platform Characteristics:
   NovaSeq:     2x150bp, 89.2% viral, >99.9% accuracy
-  PacBio HiFi: 15.2kb mean, 89.0% viral, >99.9% accuracy
   Nanopore:    20.1kb mean, 88.9% viral, ~95% accuracy
 
 Recommended Use:

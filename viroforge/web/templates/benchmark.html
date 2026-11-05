@@ -1,0 +1,348 @@
+{% extends "base.html" %}
+
+{% block title %}Benchmark{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h1><i class="bi bi-speedometer2"></i> Benchmark</h1>
+    <p class="text-muted">Validate pipeline outputs against ViroForge ground truth</p>
+
+    <ul class="nav nav-pills mb-4" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#qcTab">
+                <i class="bi bi-funnel"></i> QC
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#assemblyTab">
+                <i class="bi bi-puzzle"></i> Assembly
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#taxonomyTab">
+                <i class="bi bi-diagram-3"></i> Taxonomy
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <!-- QC Tab -->
+        <div class="tab-pane fade show active" id="qcTab">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">QC Benchmark</h5>
+                    <small class="text-muted">Measure contamination removal and viral retention</small>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Path to raw ViroForge FASTQ (R1) *</label>
+                        <input type="text" class="form-control" id="qcRawReads" placeholder="data/my-dataset/fastq/..._R1.fastq">
+                        <small class="form-text text-muted">File path to the original ViroForge R1 reads (contains source= ground truth labels in headers)</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Path to cleaned FASTQ (R1) *</label>
+                        <input type="text" class="form-control" id="qcCleanedReads" placeholder="results/qc/cleaned_R1.fastq.gz">
+                        <small class="form-text text-muted">File path to the R1 reads after your QC tool processed them (fastp, BBDuk, etc.)</small>
+                    </div>
+                    <details class="mb-3">
+                        <summary class="form-label text-muted" style="cursor:pointer">Advanced: Keep/Remove policy overrides</summary>
+                        <div class="mt-2">
+                            <input type="text" class="form-control" id="qcKeepRemove" placeholder="e.g. erv_endogenous:remove">
+                            <small class="form-text text-muted">
+                                By default, <code>viral</code> and <code>erv_endogenous</code> reads are scored as "should keep";
+                                <code>host_dna</code>, <code>rrna</code>, <code>phix</code>, <code>reagent</code>, and <code>erv_exogenous</code> as "should remove".
+                                Override any source type here (e.g. <code>erv_endogenous:remove</code> if your QC tool strips endogenous retroviruses).
+                                Most users can leave this blank.
+                            </small>
+                        </div>
+                    </details>
+                    <button class="btn btn-vf-primary" onclick="runBenchmark('qc')">
+                        <i class="bi bi-play-circle"></i> Run QC Benchmark
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assembly Tab -->
+        <div class="tab-pane fade" id="assemblyTab">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Assembly Benchmark</h5>
+                    <small class="text-muted">Measure genome recovery, chimeras, contiguity, and abundance accuracy</small>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Path to assembled contigs FASTA *</label>
+                        <input type="text" class="form-control" id="assemblyContigs" placeholder="results/assembly/contigs.fasta">
+                        <small class="form-text text-muted">File path to your assembler's output (e.g. SPAdes, MEGAHIT contigs)</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Path to ViroForge source genomes FASTA *</label>
+                        <input type="text" class="form-control" id="assemblyGenomes" placeholder="data/my-dataset/fasta/....fasta">
+                        <small class="form-text text-muted">File path to the reference genomes in your ViroForge dataset's fasta/ directory</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Path to ground truth metadata JSON</label>
+                        <input type="text" class="form-control" id="assemblyGroundTruth" placeholder="data/my-dataset/metadata/..._metadata.json">
+                        <small class="form-text text-muted">File path to the ViroForge metadata JSON (enables expected coverage and abundance accuracy)</small>
+                    </div>
+                    <button class="btn btn-vf-primary" onclick="runBenchmark('assembly')">
+                        <i class="bi bi-play-circle"></i> Run Assembly Benchmark
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Taxonomy Tab -->
+        <div class="tab-pane fade" id="taxonomyTab">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Taxonomy Benchmark</h5>
+                    <small class="text-muted">Measure read classification accuracy against true taxonomy</small>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Path to classifier output *</label>
+                        <input type="text" class="form-control" id="taxPipelineOutput" placeholder="results/kraken2.out">
+                        <small class="form-text text-muted">File path to Kraken2, Centrifuge, DIAMOND, MMseqs2, or generic TSV output</small>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Classifier Format</label>
+                            <select class="form-select" id="taxFormat">
+                                <option value="auto">Auto-detect</option>
+                                <option value="kraken2">Kraken2</option>
+                                <option value="centrifuge">Centrifuge</option>
+                                <option value="diamond">DIAMOND</option>
+                                <option value="mmseqs2">MMseqs2</option>
+                                <option value="generic">Generic TSV</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Mode</label>
+                            <select class="form-select" id="taxMode">
+                                <option value="read-based">Read-based</option>
+                                <option value="contig-based">Contig-based</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Path to ground truth metadata JSON *</label>
+                        <input type="text" class="form-control" id="taxGroundTruth" placeholder="data/my-dataset/metadata/..._metadata.json">
+                        <small class="form-text text-muted">File path to the ViroForge metadata JSON (contains true taxonomy assignments)</small>
+                    </div>
+                    <div id="taxContigFields" class="d-none">
+                        <div class="mb-3">
+                            <label class="form-label">Contig Taxonomy File</label>
+                            <input type="text" class="form-control" id="taxContigTaxonomy" placeholder="results/kraken2_contigs.out">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Contigs FASTA</label>
+                            <input type="text" class="form-control" id="taxContigs" placeholder="results/assembly/contigs.fasta">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Source Genomes FASTA</label>
+                            <input type="text" class="form-control" id="taxGenomes" placeholder="data/my-dataset/fasta/....fasta">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Path to NCBI taxdump directory</label>
+                        <input type="text" class="form-control" id="taxTaxdump" placeholder="/path/to/taxdump">
+                        <small class="form-text text-muted">Optional. Directory containing nodes.dmp and names.dmp — enables genus/family-level metrics</small>
+                    </div>
+                    <button class="btn btn-vf-primary" onclick="runBenchmark('taxonomy')">
+                        <i class="bi bi-play-circle"></i> Run Taxonomy Benchmark
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress -->
+    <div id="benchmarkProgress" class="card mt-4 d-none">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="bi bi-gear-fill"></i> Benchmark Running</h5>
+        </div>
+        <div class="card-body">
+            <div class="mb-2">
+                <strong>Command:</strong>
+                <pre id="benchmarkCommand" class="mb-0"></pre>
+            </div>
+            <div class="progress" style="height: 30px;">
+                <div class="progress-bar progress-bar-striped progress-bar-animated"
+                     role="progressbar" style="width: 100%">Running...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results -->
+    <div id="benchmarkResult" class="card mt-4 d-none">
+        <div class="card-header" id="benchmarkResultHeader">
+            <h5 class="mb-0"><i class="bi bi-check-circle"></i> Benchmark Results</h5>
+        </div>
+        <div class="card-body" id="benchmarkResultBody"></div>
+    </div>
+
+    <!-- HTML Report -->
+    <div id="benchmarkReportFrame" class="mt-4 d-none">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-file-earmark-bar-graph"></i> Visual Report</h5>
+                <a id="benchmarkReportNewTab" href="#" target="_blank" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-box-arrow-up-right"></i> Open in New Tab
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <iframe id="benchmarkReportIframe" style="width:100%;height:800px;border:none"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let benchmarkId = null;
+let benchmarkInterval = null;
+
+document.getElementById('taxMode').addEventListener('change', function() {
+    document.getElementById('taxContigFields').classList.toggle('d-none', this.value !== 'contig-based');
+});
+
+function runBenchmark(module) {
+    let requestData = { module: module };
+
+    if (module === 'qc') {
+        const raw = document.getElementById('qcRawReads').value;
+        const cleaned = document.getElementById('qcCleanedReads').value;
+        if (!raw || !cleaned) { alert('Raw reads and cleaned reads are required'); return; }
+        requestData.raw_reads = raw;
+        requestData.cleaned_reads = cleaned;
+        const kr = document.getElementById('qcKeepRemove').value.trim();
+        if (kr) requestData.keep_remove = kr;
+    } else if (module === 'assembly') {
+        const contigs = document.getElementById('assemblyContigs').value;
+        const genomes = document.getElementById('assemblyGenomes').value;
+        if (!contigs || !genomes) { alert('Contigs and genomes FASTA are required'); return; }
+        requestData.contigs = contigs;
+        requestData.genomes = genomes;
+        const gt = document.getElementById('assemblyGroundTruth').value;
+        if (gt) requestData.ground_truth = gt;
+    } else if (module === 'taxonomy') {
+        const pipelineOutput = document.getElementById('taxPipelineOutput').value;
+        const groundTruth = document.getElementById('taxGroundTruth').value;
+        if (!pipelineOutput || !groundTruth) { alert('Classifier output and ground truth are required'); return; }
+        requestData.pipeline_output = pipelineOutput;
+        requestData.ground_truth = groundTruth;
+        requestData.format = document.getElementById('taxFormat').value;
+        requestData.mode = document.getElementById('taxMode').value;
+        if (requestData.mode === 'contig-based') {
+            const ct = document.getElementById('taxContigTaxonomy').value;
+            if (ct) requestData.contig_taxonomy = ct;
+            const c = document.getElementById('taxContigs').value;
+            if (c) requestData.contigs = c;
+            const g = document.getElementById('taxGenomes').value;
+            if (g) requestData.genomes = g;
+        }
+        const td = document.getElementById('taxTaxdump').value;
+        if (td) requestData.taxdump_dir = td;
+    }
+
+    fetch('/api/benchmark', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(requestData)
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.error) { alert('Error: ' + data.error); return; }
+        benchmarkId = data.benchmark_id;
+        document.getElementById('benchmarkProgress').classList.remove('d-none');
+        document.getElementById('benchmarkResult').classList.add('d-none');
+        document.getElementById('benchmarkCommand').textContent = data.command;
+        benchmarkInterval = setInterval(checkBenchmarkStatus, 2000);
+    })
+    .catch(error => alert('Error: ' + error.message));
+}
+
+function checkBenchmarkStatus() {
+    if (!benchmarkId) return;
+
+    fetch(`/api/benchmark/${benchmarkId}/status`)
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'running') return;
+
+            clearInterval(benchmarkInterval);
+            document.getElementById('benchmarkProgress').classList.add('d-none');
+            document.getElementById('benchmarkResult').classList.remove('d-none');
+
+            if (data.status === 'success') {
+                document.getElementById('benchmarkResultHeader').className = 'card-header bg-success text-white';
+                let html = '<p><i class="bi bi-check-circle-fill text-success"></i> Benchmark completed successfully.</p>';
+
+                if (data.report_url) {
+                    html += `<p><a href="${data.report_url}" target="_blank" class="btn btn-primary btn-sm me-2"><i class="bi bi-file-earmark-bar-graph"></i> View Visual Report</a></p>`;
+                    document.getElementById('benchmarkReportFrame').classList.remove('d-none');
+                    document.getElementById('benchmarkReportIframe').src = data.report_url;
+                    document.getElementById('benchmarkReportNewTab').href = data.report_url;
+                }
+
+                if (data.metrics) {
+                    html += '<h6 class="mt-3">Key Metrics</h6>';
+                    html += renderMetrics(data.metrics);
+                }
+
+                if (data.markdown) {
+                    html += '<details class="mt-3"><summary class="text-muted" style="cursor:pointer">Show full markdown report</summary>';
+                    html += `<pre style="max-height:500px;overflow-y:auto;margin-top:8px">${escapeHtml(data.markdown)}</pre></details>`;
+                }
+
+                document.getElementById('benchmarkResultBody').innerHTML = html;
+            } else {
+                document.getElementById('benchmarkResultHeader').className = 'card-header bg-danger text-white';
+                document.getElementById('benchmarkResultBody').innerHTML = `
+                    <p><i class="bi bi-x-circle-fill"></i> Benchmark failed</p>
+                    <pre>${escapeHtml(data.stderr || 'Unknown error')}</pre>
+                `;
+            }
+        });
+}
+
+function renderMetrics(metrics) {
+    let html = '<table class="table table-sm">';
+    for (const [key, value] of Object.entries(metrics)) {
+        if (typeof value === 'object' && value !== null) {
+            html += `<tr><th colspan="2" class="table-secondary">${formatKey(key)}</th></tr>`;
+            for (const [k2, v2] of Object.entries(value)) {
+                if (typeof v2 === 'object' && v2 !== null) continue;
+                html += `<tr><td style="padding-left:2rem">${formatKey(k2)}</td><td>${formatValue(v2)}</td></tr>`;
+            }
+        } else {
+            html += `<tr><th>${formatKey(key)}</th><td>${formatValue(value)}</td></tr>`;
+        }
+    }
+    html += '</table>';
+    return html;
+}
+
+function formatKey(key) {
+    return key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function formatValue(v) {
+    if (typeof v === 'number') {
+        if (v >= 0 && v <= 1 && v !== 0 && v !== 1) return (v * 100).toFixed(1) + '%';
+        if (Number.isInteger(v)) return v.toLocaleString();
+        return v.toFixed(4);
+    }
+    return v;
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+</script>
+{% endblock %}

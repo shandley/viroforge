@@ -172,7 +172,7 @@ def validate_preset(preset: Dict) -> tuple[bool, List[str]]:
             errors.append("Missing 'platform' or 'short_platform' in parameters")
 
         # Validate platform
-        valid_platforms = ['novaseq', 'miseq', 'hiseq', 'pacbio-hifi', 'nanopore']
+        valid_platforms = ['novaseq', 'miseq', 'hiseq', 'nanopore']
         platform = params.get('platform') or params.get('short_platform')
         if platform and platform not in valid_platforms:
             errors.append(f"Invalid platform: {platform}")

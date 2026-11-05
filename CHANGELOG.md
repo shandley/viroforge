@@ -8,6 +8,19 @@ ViroForge generates data. A change that alters generator output for a fixed seed
 is treated as breaking even when the API is untouched, and is called out under
 "Reproducibility" below.
 
+## [0.21.0] - 2026-10-05
+
+### Reproducibility
+
+**VLP enrichment compositions change for all protocols.** Contamination reduction
+and nuclease efficiency parameters were lowered across all 7 VLP protocols to
+match real-world VLP prep results from Duan et al. 2026 (mSystems
+11(6):e00188-26), which report 63-73% viral reads from gut VLP preparations.
+The previous model produced ~86% viral, which was too idealized — it did not
+account for incomplete bacterial removal (small cells, L-forms passing filters),
+DNA protected in debris aggregates, and incomplete nuclease digestion. TFF 0.2 μm
+now produces ~74% viral (was ~86%), aligning with Duan et al. VP1 (72.8%).
+
 ## [0.20.0] - 2026-07-30
 
 ### Reproducibility

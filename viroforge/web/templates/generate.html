@@ -39,17 +39,69 @@
 
                             <div id="presetDetails" class="d-none">
                                 <div class="alert alert-info">
-                                    <h6>Preset Details:</h6>
+                                    <h6>Preset Defaults:</h6>
                                     <div id="presetInfo"></div>
+                                    <small class="text-muted">Override any parameter below. Leave blank to use preset defaults.</small>
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="form-label">Output Directory (optional override)</label>
+                                    <label class="form-label">Output Directory</label>
                                     <input type="text" class="form-control" id="presetOutput" placeholder="data/my-dataset">
                                 </div>
 
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Coverage (short-read)</label>
+                                        <input type="number" class="form-control" id="presetCoverage" placeholder="From preset">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Depth (long-read)</label>
+                                        <input type="number" class="form-control" id="presetDepth" placeholder="From preset">
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Platform</label>
+                                        <select class="form-select" id="presetPlatform">
+                                            <option value="">From preset</option>
+                                            <option value="novaseq">NovaSeq</option>
+                                            <option value="miseq">MiSeq</option>
+                                            <option value="hiseq">HiSeq</option>
+                                            <option value="nanopore">Oxford Nanopore</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">VLP Protocol</label>
+                                        <select class="form-select" id="presetVlp">
+                                            <option value="">From preset</option>
+                                            <option value="tangential_flow">Tangential Flow Filtration</option>
+                                            <option value="ultracentrifugation">Ultracentrifugation</option>
+                                            <option value="norgen">Norgen Kit</option>
+                                            <option value="syringe">Syringe Filter</option>
+                                            <option value="none">None (bulk metagenome)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Contamination Level</label>
+                                        <select class="form-select" id="presetContamination">
+                                            <option value="">From preset</option>
+                                            <option value="realistic">Realistic</option>
+                                            <option value="clean">Clean</option>
+                                            <option value="heavy">Heavy</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Dark Matter Fraction</label>
+                                        <input type="number" class="form-control" id="presetDarkMatter" placeholder="0.30 (default)" step="0.05" min="0" max="1">
+                                    </div>
+                                </div>
+
                                 <div class="mb-3">
-                                    <label class="form-label">Random Seed (optional override)</label>
+                                    <label class="form-label">Random Seed</label>
                                     <input type="number" class="form-control" id="presetSeed" placeholder="42">
                                 </div>
                             </div>
@@ -73,7 +125,6 @@
                                     <option value="novaseq">NovaSeq (Illumina short-read)</option>
                                     <option value="miseq">MiSeq (Illumina short-read)</option>
                                     <option value="hiseq">HiSeq (Illumina short-read)</option>
-                                    <option value="pacbio-hifi">PacBio HiFi (long-read)</option>
                                     <option value="nanopore">Oxford Nanopore (long-read)</option>
                                 </select>
                             </div>
@@ -103,6 +154,21 @@
                                     <option value="norgen">Norgen Kit</option>
                                     <option value="syringe">Syringe Filter</option>
                                 </select>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Contamination Level</label>
+                                    <select class="form-select" id="contaminationLevel">
+                                        <option value="realistic">Realistic</option>
+                                        <option value="clean">Clean</option>
+                                        <option value="heavy">Heavy</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Dark Matter Fraction</label>
+                                    <input type="number" class="form-control" id="darkMatter" placeholder="0.30 (default)" step="0.05" min="0" max="1">
+                                </div>
                             </div>
 
                             <div class="mb-3">
@@ -165,7 +231,6 @@
                     <h6>Platforms</h6>
                     <ul class="small">
                         <li><strong>NovaSeq/MiSeq/HiSeq:</strong> Illumina short reads</li>
-                        <li><strong>PacBio HiFi:</strong> High-accuracy long reads</li>
                         <li><strong>Nanopore:</strong> Ultra-long reads</li>
                     </ul>
 
@@ -190,12 +255,20 @@ document.getElementById('presetSelect').addEventListener('change', function() {
         fetch(`/api/preset/${presetName}`)
             .then(r => r.json())
             .then(data => {
+                const p = data.parameters;
                 document.getElementById('presetDetails').classList.remove('d-none');
-                document.getElementById('presetInfo').innerHTML = `
-                    <strong>Collection:</strong> ${data.parameters.collection_id}<br>
-                    <strong>Platform:</strong> ${data.parameters.platform}<br>
-                    <strong>Coverage/Depth:</strong> ${data.parameters.coverage || data.parameters.depth}x
-                `;
+                let info = `<strong>Collection:</strong> ${p.collection_id}`;
+                info += `<br><strong>Platform:</strong> ${p.platform || 'novaseq'}`;
+                if (p.coverage) info += `<br><strong>Coverage:</strong> ${p.coverage}x`;
+                if (p.depth) info += `<br><strong>Depth:</strong> ${p.depth}x`;
+                if (p.vlp_protocol) info += `<br><strong>VLP:</strong> ${p.vlp_protocol}`;
+                if (p.amplification) info += `<br><strong>Amplification:</strong> ${p.amplification}`;
+                if (p.read_length) info += `<br><strong>Read Length:</strong> ${p.read_length}`;
+                if (p.contamination_level) info += `<br><strong>Contamination:</strong> ${p.contamination_level}`;
+                document.getElementById('presetInfo').innerHTML = info;
+
+                document.getElementById('presetCoverage').placeholder = p.coverage ? `${p.coverage} (preset)` : 'From preset';
+                document.getElementById('presetDepth').placeholder = p.depth ? `${p.depth} (preset)` : 'From preset';
             });
     } else {
         document.getElementById('presetDetails').classList.add('d-none');
@@ -215,6 +288,24 @@ function startGeneration() {
         requestData.preset = preset;
         if (document.getElementById('presetOutput').value) {
             requestData.output = document.getElementById('presetOutput').value;
+        }
+        if (document.getElementById('presetCoverage').value) {
+            requestData.coverage = parseFloat(document.getElementById('presetCoverage').value);
+        }
+        if (document.getElementById('presetDepth').value) {
+            requestData.depth = parseFloat(document.getElementById('presetDepth').value);
+        }
+        if (document.getElementById('presetPlatform').value) {
+            requestData.platform = document.getElementById('presetPlatform').value;
+        }
+        if (document.getElementById('presetVlp').value) {
+            requestData.vlp_protocol = document.getElementById('presetVlp').value;
+        }
+        if (document.getElementById('presetContamination').value) {
+            requestData.contamination_level = document.getElementById('presetContamination').value;
+        }
+        if (document.getElementById('presetDarkMatter').value) {
+            requestData.dark_matter_fraction = parseFloat(document.getElementById('presetDarkMatter').value);
         }
         if (document.getElementById('presetSeed').value) {
             requestData.seed = parseInt(document.getElementById('presetSeed').value);
@@ -239,6 +330,12 @@ function startGeneration() {
         }
         if (document.getElementById('vlpProtocol').value) {
             requestData.vlp_protocol = document.getElementById('vlpProtocol').value;
+        }
+        if (document.getElementById('contaminationLevel').value) {
+            requestData.contamination_level = document.getElementById('contaminationLevel').value;
+        }
+        if (document.getElementById('darkMatter').value) {
+            requestData.dark_matter_fraction = parseFloat(document.getElementById('darkMatter').value);
         }
         if (document.getElementById('customSeed').value) {
             requestData.seed = parseInt(document.getElementById('customSeed').value);
@@ -279,8 +376,13 @@ function checkStatus() {
 
                 if (data.status === 'success') {
                     document.getElementById('resultHeader').className = 'card-header bg-success text-white';
+                    let reportLink = '';
+                    if (data.report_url) {
+                        reportLink = `<p><a href="${data.report_url}" target="_blank" class="btn btn-outline-primary btn-sm"><i class="bi bi-file-earmark-bar-graph"></i> View HTML Report</a></p>`;
+                    }
                     document.getElementById('resultBody').innerHTML = `
                         <p><i class="bi bi-check-circle-fill"></i> Dataset generated successfully!</p>
+                        ${reportLink}
                         <p class="mb-0"><strong>Command:</strong><br><pre>${data.command}</pre></p>
                     `;
                 } else {

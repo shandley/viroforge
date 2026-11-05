@@ -8,6 +8,10 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 10717	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Spizizenvirus
 10730	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Traversvirus
 10732	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Arequatrovirus
+10826	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Mastrevirus
+10834	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Mastrevirus
+10836	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Mastrevirus
+10840	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Curtovirus
 10854	Floreoviria	Loebvirae	Hofneiviricota	Faserviricetes	Tubulavirales	Plectroviridae	Vespertiliovirus
 10886	Riboviria	Orthornavirae	Duplornaviricota	Resentoviricetes	Reovirales	Spinareoviridae	Orthoreovirus
 11021	Riboviria	Orthornavirae	Kitrinoviricota	Alsuviricetes	Martellivirales	Togaviridae	Alphavirus
@@ -20,7 +24,6 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 11152	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Nidovirales	Coronaviridae	Gammacoronavirus
 11247	Riboviria	Orthornavirae	Negarnaviricota	Monjiviricetes	Mononegavirales	Pneumoviridae	Orthopneumovirus
 11307	Riboviria	Orthornavirae	Negarnaviricota	Monjiviricetes	Mononegavirales	Rhabdoviridae	Betanucleorhabdovirus
-11642	Riboviria	Pararnavirae	Artverviricota	Revtraviricetes	Ortervirales	Retroviridae	
 11764	Riboviria	Pararnavirae	Artverviricota	Revtraviricetes	Ortervirales	Retroviridae	Gammaretrovirus
 11788	Riboviria	Pararnavirae	Artverviricota	Revtraviricetes	Ortervirales	Retroviridae	Gammaretrovirus
 11795	Riboviria	Pararnavirae	Artverviricota	Revtraviricetes	Ortervirales	Retroviridae	Gammaretrovirus
@@ -91,16 +94,19 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 52996	Riboviria	Pararnavirae	Artverviricota	Revtraviricetes	Ortervirales	Caulimoviridae	Badnavirus
 53010	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 53182	Riboviria	Pararnavirae	Artverviricota	Revtraviricetes	Ortervirales	Retroviridae	Felispumavirus
+53260	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 54290	Riboviria	Orthornavirae	Kitrinoviricota	Flasuviricetes	Amarillovirales	Hepaciviridae	Pegivirus
 55884	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			
 57119	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Mastrevirus
 58103	Riboviria	Orthornavirae	Duplornaviricota	Chrymotiviricetes	Ghabrivirales	Pseudototiviridae	Leishmaniavirus
+58177	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 59241	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			
 59563	Riboviria	Orthornavirae	Kitrinoviricota	Flasuviricetes	Amarillovirales	Flaviviridae	Orthoflavivirus
 60875	Riboviria	Orthornavirae	Kitrinoviricota	Alsuviricetes	Martellivirales	Togaviridae	Alphavirus
 60876	Riboviria	Orthornavirae	Kitrinoviricota	Alsuviricetes	Martellivirales	Togaviridae	Alphavirus
 60877	Riboviria	Orthornavirae	Kitrinoviricota	Alsuviricetes	Martellivirales	Togaviridae	Alphavirus
 60879	Riboviria	Orthornavirae	Kitrinoviricota	Alsuviricetes	Martellivirales	Togaviridae	Alphavirus
+62079	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 63746	Riboviria	Orthornavirae	Kitrinoviricota	Flasuviricetes	Amarillovirales	Hepaciviridae	Orthohepacivirus
 64305	Riboviria	Orthornavirae	Kitrinoviricota	Flasuviricetes	Amarillovirales	Flaviviridae	Orthoflavivirus
 64311	Riboviria	Orthornavirae	Kitrinoviricota	Flasuviricetes	Amarillovirales	Flaviviridae	Orthoflavivirus
@@ -121,15 +127,21 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 75590							
 75914	Riboviria						
 77344	Riboviria	Orthornavirae	Kitrinoviricota	Tolucaviricetes	Tolivirales	Tombusviridae	Betacarmovirus
+77647	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 77775	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes		Andersonviridae	Felixounavirus
+77813	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
+78395	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Mastrevirus
 78540	Riboviria	Orthornavirae	Kitrinoviricota	Alsuviricetes	Martellivirales	Togaviridae	Alphavirus
+83839	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 84589	Riboviria	Orthornavirae	Kitrinoviricota	Alsuviricetes	Martellivirales	Togaviridae	Alphavirus
+85752	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 85753	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 88870	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Timquatrovirus
 92652				Naldaviricetes		Nimaviridae	Whispovirus
 93678	Floreoviria	Shotokuvirae	Commensaviricota	Cardeaviricetes	Sanitavirales	Anelloviridae	Betatorquevirus
 93830	Riboviria	Orthornavirae	Negarnaviricota	Bunyaviricetes	Elliovirales	Hantaviridae	Orthohantavirus
 95340	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Picornavirales	Caliciviridae	Norovirus
+96054	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 96892						Alphasatellitidae	Colecusatellite
 97081	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Traversvirus
 99179	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Gotuavirus
@@ -143,6 +155,7 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 113553	Riboviria	Orthornavirae	Kitrinoviricota	Alsuviricetes	Tymovirales	Tymoviridae	
 114416	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			
 114777	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes		Vertoviridae	Myohalovirus
+117198	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 118140	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Picornavirales	Picornaviridae	Teschovirus
 119222	Riboviria	Orthornavirae	Kitrinoviricota	Flasuviricetes	Amarillovirales	Pestiviridae	Orthopestivirus
 120574	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Paclarkvirus
@@ -181,6 +194,7 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 169684	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes		Vertoviridae	Myohalovirus
 169691						Tolecusatellitidae	Betasatellite
 169693						Tolecusatellitidae	Betasatellite
+169865	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 171618	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Psavirus
 172314	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Picornavirales	Picornaviridae	Parechovirus
 172667	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			
@@ -203,6 +217,7 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 190478	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			
 190809							
 191289	Riboviria						
+191460	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 191547	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Picornavirales	Secoviridae	Nepovirus
 192021							
 192196	Riboviria	Orthornavirae	Negarnaviricota	Bunyaviricetes	Elliovirales	Peribunyaviridae	Orthobunyavirus
@@ -230,6 +245,7 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 205908	Riboviria	Orthornavirae	Duplornaviricota	Resentoviricetes	Reovirales	Spinareoviridae	Cypovirus
 207343	Riboviria	Pararnavirae	Artverviricota	Revtraviricetes	Ortervirales	Retroviridae	Bovispumavirus
 207597	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Oonoonbavirus
+211866	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 213236	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Pegunavirus
 213774	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Skunavirus
 213775	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Skunavirus
@@ -240,12 +256,17 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 218667	Riboviria						
 218849	Riboviria	Orthornavirae	Kitrinoviricota	Flasuviricetes	Amarillovirales	Flaviviridae	Orthoflavivirus
 220813						Tolecusatellitidae	Betasatellite
+220932	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 221029	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Lederbergvirus
 222078	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 222441	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 222445	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
+222456	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
+222459	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 222460	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
+222464	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 222557	Riboviria	Orthornavirae	Kitrinoviricota	Magsaviricetes	Nodamuvirales	Nodaviridae	
+223252	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 223260	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 223265	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 223276	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
@@ -256,6 +277,7 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 223328	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 223332	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 223334	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
+223346	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 223357	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 224578	Riboviria	Orthornavirae	Kitrinoviricota	Tolucaviricetes	Tolivirales	Tombusviridae	Luteovirus
 225979	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			
@@ -294,6 +316,7 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 260797	Varidnaviria	Bamfordvirae	Nucleocytoviricota	Megaviricetes	Pimascovirales	Ascoviridae	Ascovirus
 260827	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Enhodamvirus
 260908	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
+263001	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 263578						Tolecusatellitidae	Betasatellite
 268316	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Mastrevirus
 268328	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Mastrevirus
@@ -373,6 +396,7 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 336959	Riboviria	Orthornavirae	Pisuviricota	Stelpaviricetes	Stellavirales	Astroviridae	Avastrovirus
 337824						Tolecusatellitidae	Betasatellite
 338079	Riboviria	Pararnavirae	Artverviricota	Revtraviricetes	Ortervirales	Retroviridae	Simiispumavirus
+340016							
 340054	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Sendosyvirus
 340187	Riboviria						
 340921	Riboviria						
@@ -431,9 +455,11 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 387423	Riboviria	Orthornavirae	Kitrinoviricota	Alsuviricetes	Tymovirales	Betaflexiviridae	Vitivirus
 387909	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Biseptimavirus
 390157	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Picornavirales	Picornaviridae	Senecavirus
+390436	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 390844	Riboviria	Orthornavirae	Kitrinoviricota	Flasuviricetes	Amarillovirales	Flaviviridae	Orthoflavivirus
 390845	Riboviria	Orthornavirae	Kitrinoviricota	Flasuviricetes	Amarillovirales	Flaviviridae	Orthoflavivirus
 391090						Tolecusatellitidae	Betasatellite
+391228	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Becurtovirus
 393034						Tolecusatellitidae	Betasatellite
 393767	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Nidovirales	Coronaviridae	Alphacoronavirus
 395349	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
@@ -458,7 +484,6 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 420684	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 423476	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			
 424716	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Macdonaldcampvirus
-424944	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes		Sarkviridae	Jerseyvirus
 425009	Riboviria	Orthornavirae	Duplornaviricota	Chrymotiviricetes	Ghabrivirales	Orthototiviridae	Totivirus
 425010	Riboviria	Orthornavirae	Pisuviricota	Duplopiviricetes	Durnavirales	Partitiviridae	
 425386							
@@ -510,6 +535,7 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 459770	Riboviria						
 461711	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes	Autographivirales		Aegirvirus
 462590	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes		Mesyanzhinovviridae	Yuavirus
+463360	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Mastrevirus
 463392	Riboviria	Orthornavirae	Duplornaviricota	Chrymotiviricetes	Ghabrivirales	Orthototiviridae	Totivirus
 463676	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Picornavirales	Picornaviridae	Enterovirus
 465447	Riboviria	Orthornavirae	Duplornaviricota	Resentoviricetes	Reovirales	Spinareoviridae	Aquareovirus
@@ -535,6 +561,7 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 491893	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			
 492502	Riboviria	Orthornavirae	Pisuviricota	Duplopiviricetes	Durnavirales	Partitiviridae	
 493906	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes		Peduoviridae	Longwoodvirus
+494651	Floreoviria	Shotokuvirae	Cossaviricota	Quintoviricetes	Piccovirales	Parvoviridae	Tetraparvovirus
 494652	Floreoviria	Shotokuvirae	Cossaviricota	Quintoviricetes	Piccovirales	Parvoviridae	Tetraparvovirus
 496396	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes	Autographivirales	Autoscriptoviridae	Phikmvvirus
 496874	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Larmunavirus
@@ -560,13 +587,13 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 520973	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Picornavirales	Caliciviridae	
 532078	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes	Autographivirales	Autotranscriptaviridae	Berlinvirus
 537874	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes		Aliceevansviridae	
-538004						Alphasatellitidae	Colecusatellite
 538979	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Eisenstarkvirus
 540064	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Fromanvirus
 540070	Varidnaviria	Bamfordvirae	Nucleocytoviricota	Megaviricetes	Pimascovirales	Iridoviridae	Ranavirus
 541865	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			
 543152	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Coopervirus
 543153	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Predatorvirus
+543876	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 543939	Varidnaviria	Bamfordvirae	Preplasmiviricota	Virophaviricetes	Mividavirales	Sputniviroviridae	Sputnikvirus
 546184	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Pipefishvirus
 546803	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Bixzunavirus
@@ -583,6 +610,7 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 556524	Riboviria	Orthornavirae	Duplornaviricota	Chrymotiviricetes	Ghabrivirales	Orthototiviridae	
 557289	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			
 558690	Riboviria	Orthornavirae	Kitrinoviricota	Alsuviricetes	Martellivirales	Closteroviridae	Crinivirus
+559878	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 560178	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			
 561998	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Plotvirus
 561999	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Plotvirus
@@ -634,6 +662,7 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 631719	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Oonoonbavirus
 637730	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes	Pantevenvirales	Ackermannviridae	Agtrevirus
 638313	Floreoviria	Shotokuvirae	Cossaviricota	Quintoviricetes	Piccovirales	Parvoviridae	Bocaparvovirus
+638358	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Eragrovirus
 638660	Varidnaviria	Bamfordvirae	Nucleocytoviricota	Megaviricetes	Pimascovirales	Iridoviridae	Ranavirus
 640136						Tolecusatellitidae	Betasatellite
 640897	Riboviria						
@@ -714,10 +743,12 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 687367	Floreoviria	Shotokuvirae	Commensaviricota	Cardeaviricetes	Sanitavirales	Anelloviridae	Alphatorquevirus
 688540	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 688699	Riboviria	Orthornavirae	Negarnaviricota	Bunyaviricetes	Hareavirales	Phenuiviridae	Phlebovirus
+689414	Floreoviria	Loebvirae	Hofneiviricota	Faserviricetes	Tubulavirales	Inoviridae	Affertcholeramvirus
 691963	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Reqipinevirus
 691964	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Pepyhexavirus
 691965	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Pepyhexavirus
 691966	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Docdeeseptimavirus
+693272	Varidnaviria	Bamfordvirae	Nucleocytoviricota	Megaviricetes	Imitervirales	Mimiviridae	Rheavirus
 693892	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 693894	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 694015	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Nidovirales	Coronaviridae	Gammacoronavirus
@@ -791,6 +822,7 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 756280	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			
 756282	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Cbastvirus
 758863	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Picornavirales	Caliciviridae	Sapovirus
+758866	Riboviria	Orthornavirae	Lenarviricota	Howeltoviricetes	Cryppavirales	Mitoviridae	Triamitovirus
 759124						Alphasatellitidae	
 762660	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes	Pantevenvirales	Straboviridae	
 762905							
@@ -802,12 +834,12 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 767806	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			
 795381	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cirlivirales	Circoviridae	Cyclovirus
 795694	Floreoviria	Shotokuvirae	Cossaviricota	Quintoviricetes	Piccovirales	Parvoviridae	Bocaparvovirus
+859650	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Turncurtovirus
 864178	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			
 864596	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Nidovirales	Coronaviridae	Betacoronavirus
 864686	Floreoviria	Shotokuvirae	Cossaviricota	Quintoviricetes	Piccovirales	Parvoviridae	Bocaparvovirus
 866553	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Traversvirus
 869724	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes	Pantevenvirales	Kyanoviridae	Neptunevirus
-871521	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 871584	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			
 871700	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Picornavirales	Picornaviridae	Oscivirus
 871701	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Picornavirales	Picornaviridae	Oscivirus
@@ -823,7 +855,6 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 881953	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Audreyjarvisvirus
 884612	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 885867	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes	Autographivirales		Tangaroavirus
-887825	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Mastrevirus
 889202	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 889203	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 889338	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Seunavirus
@@ -976,7 +1007,6 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 1052671	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Pegunavirus
 1052672	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Bixzunavirus
 1052673	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Omegavirus
-1054649	Riboviria	Orthornavirae	Pisuviricota	Duplopiviricetes	Durnavirales	Amalgaviridae	Unirnavirus
 1056830	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Charlievirus
 1056833	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Backyardiganvirus
 1069378	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Schmidvirus
@@ -985,10 +1015,12 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 1071503	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Fromanvirus
 1071504	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Turbidovirus
 1071506	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Fromanvirus
+1072672	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Mastrevirus
 1073766	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Saphexavirus
 1074044	Floreoviria	Loebvirae	Hofneiviricota	Faserviricetes	Tubulavirales	Inoviridae	
 1074210	Riboviria	Orthornavirae	Pisuviricota	Stelpaviricetes	Stellavirales	Astroviridae	
 1074213	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Picornavirales	Picornaviridae	Kobuvirus
+1074214	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cirlivirales	Vilyaviridae	Glamdringvirus
 1074305	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Bixzunavirus
 1074307	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Bixzunavirus
 1074308	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Patiencevirus
@@ -1156,7 +1188,6 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 1173745	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Homburgvirus
 1173747	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Homburgvirus
 1173748	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Homburgvirus
-1173760	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Nonanavirus
 1175504	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Fromanvirus
 1175505						Tolecusatellitidae	Betasatellite
 1175654	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Nipunavirus
@@ -1186,6 +1217,7 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 1195085	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes		Chimalliviridae	Derbicusvirus
 1195086	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Phietavirus
 1195367	Floreoviria	Shotokuvirae	Cossaviricota	Quintoviricetes	Piccovirales	Parvoviridae	Bocaparvovirus
+1196237	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Mastrevirus
 1197935	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes		Andersonviridae	Felixounavirus
 1200971						Tolecusatellitidae	Betasatellite
 1204178	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Schmidvirus
@@ -1323,7 +1355,9 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 1277672	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Triavirus
 1279082	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Hiroshimavirus
 1280920	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Picornavirales	Caliciviridae	Sapovirus
+1281454	Riboviria	Orthornavirae	Kitrinoviricota	Flasuviricetes	Amarillovirales	Hepaciviridae	Orthohepacivirus
 1282444							
+1282967	Singelaviria	Helvetiavirae	Dividoviricota	Laserviricetes	Halopanivirales	Sphaerolipoviridae	Alphasphaerolipovirus
 1283071	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes		Schitoviridae	Pacinivirus
 1283076	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes	Pantevenvirales	Kyanoviridae	
 1283077	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			
@@ -1366,6 +1400,7 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 1312445	Riboviria	Orthornavirae	Duplornaviricota	Chrymotiviricetes	Ghabrivirales	Pseudototiviridae	Victorivirus
 1313215	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Picornavirales	Picornaviridae	Kobuvirus
 1325372	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Yokohamavirus
+1325446	Riboviria	Orthornavirae	Kitrinoviricota	Flasuviricetes	Amarillovirales	Hepaciviridae	Orthohepacivirus
 1325953	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes		Vilmaviridae	Bongovirus
 1325963	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes		Sarkviridae	Jerseyvirus
 1327035	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Fromanvirus
@@ -1409,6 +1444,7 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 1329380	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 1329381	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 1329649	Floreoviria	Shotokuvirae	Cossaviricota	Quintoviricetes	Piccovirales	Parvoviridae	Bocaparvovirus
+1329650	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cirlivirales	Circoviridae	Circovirus
 1329781	Riboviria						
 1330070	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Picornavirales	Picornaviridae	Megrivirus
 1330491	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Picornavirales	Picornaviridae	Cosavirus
@@ -1445,6 +1481,8 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 1346829				Naldaviricetes	Lefavirales	Baculoviridae	Alphabaculovirus
 1347760	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Dubowvirus
 1348500	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cirlivirales	Circoviridae	Cyclovirus
+1349409							Pandoravirus
+1349410							Pandoravirus
 1349999	Riboviria	Orthornavirae	Pisuviricota	Stelpaviricetes	Stellavirales	Astroviridae	Avastrovirus
 1351702						Bicaudaviridae	
 1351735	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Saphexavirus
@@ -1536,6 +1574,7 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 1406792	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Slashvirus
 1406793	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Cinunavirus
 1406974	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Bruynoghevirus
+1407057						Alphasatellitidae	Colecusatellite
 1407493	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			
 1408133	Riboviria	Orthornavirae	Kitrinoviricota	Alsuviricetes	Martellivirales	Endornaviridae	Alphaendornavirus
 1408137	Riboviria	Orthornavirae	Duplornaviricota	Resentoviricetes	Reovirales	Sedoreoviridae	Orbivirus
@@ -1706,12 +1745,15 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 1488557	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cremevirales	Smacoviridae	Porprismacovirus
 1488574	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Genomoviridae	Gemygorvirus
 1489714							
+1492296	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Mastrevirus
+1493508	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes	Pantevenvirales	Kyanoviridae	Nereusvirus
 1493511	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes	Pantevenvirales	Kyanoviridae	Atlauavirus
 1493858	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Picornavirales	Caliciviridae	
 1494074	Riboviria	Orthornavirae	Lenarviricota	Howeltoviricetes	Cryppavirales	Mitoviridae	Unuamitovirus
 1495316	Riboviria	Orthornavirae	Kitrinoviricota	Flasuviricetes	Amarillovirales	Flaviviridae	
 1495866	Riboviria	Orthornavirae	Negarnaviricota	Bunyaviricetes	Elliovirales	Peribunyaviridae	Orthobunyavirus
 1497019	Riboviria	Orthornavirae	Duplornaviricota	Chrymotiviricetes	Ghabrivirales	Pseudototiviridae	Leishmaniavirus
+1497848	Riboviria	Orthornavirae	Duplornaviricota	Chrymotiviricetes	Ghabrivirales	Orthototiviridae	
 1498171	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Dubowvirus
 1498172	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes	Autographivirales		Gajwadongvirus
 1498188	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Pahexavirus
@@ -1756,6 +1798,9 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 1500832	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Pahexavirus
 1500865	Riboviria						
 1500866	Riboviria						
+1503289	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Nidovirales	Coronaviridae	Alphacoronavirus
+1503291	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Nidovirales	Coronaviridae	Alphacoronavirus
+1503292	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Nidovirales	Coronaviridae	Alphacoronavirus
 1503293	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Nidovirales	Coronaviridae	Alphacoronavirus
 1503929	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			
 1504732	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
@@ -1840,6 +1885,7 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 1530093	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 1530251	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Picornavirales	Picornaviridae	
 1530400	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes		Schitoviridae	Litunavirus
+1530454	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cirlivirales	Circoviridae	Cyclovirus
 1532031	Riboviria						
 1534545	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Picornavirales	Picornaviridae	Avisivirus
 1534546	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Picornavirales	Picornaviridae	Avisivirus
@@ -1898,6 +1944,7 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 1560514	Varidnaviria	Bamfordvirae	Nucleocytoviricota	Megaviricetes	Pimascovirales	Marseilleviridae	Marseillevirus
 1561171	Riboviria	Orthornavirae	Duplornaviricota	Chrymotiviricetes	Ghabrivirales	Pseudototiviridae	Victorivirus
 1561172	Riboviria	Orthornavirae	Duplornaviricota	Chrymotiviricetes	Ghabrivirales	Pseudototiviridae	Victorivirus
+1561961	Riboviria	Orthornavirae	Lenarviricota	Howeltoviricetes	Cryppavirales	Mitoviridae	Duamitovirus
 1562064	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Picornavirales	Picornaviridae	Hunnivirus
 1562065	Riboviria	Orthornavirae	Kitrinoviricota	Flasuviricetes	Amarillovirales	Hepaciviridae	Pegivirus
 1562066	Riboviria	Orthornavirae	Kitrinoviricota	Flasuviricetes	Amarillovirales	Pestiviridae	Orthopestivirus
@@ -1943,6 +1990,7 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 1574360	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cirlivirales	Circoviridae	Cyclovirus
 1574361	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cirlivirales	Circoviridae	Cyclovirus
 1574362	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cirlivirales	Circoviridae	Cyclovirus
+1574422	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cremevirales	Smacoviridae	
 1577776	Riboviria	Orthornavirae	Duplornaviricota	Resentoviricetes	Reovirales	Spinareoviridae	Cypovirus
 1578826	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Picornavirales	Picornaviridae	Torchivirus
 1580591						Bicaudaviridae	
@@ -1979,6 +2027,7 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 1589755	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Fernvirus
 1590155							
 1590156	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Genomoviridae	Gemycircularvirus
+1590370	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Nidovirales	Coronaviridae	Betacoronavirus
 1590550	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Punavirus
 1591072	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			
 1591073	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Aquingentivirus
@@ -2018,6 +2067,7 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 1592764	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cirlivirales	Circoviridae	Cyclovirus
 1592828							
 1595961							
+1595998	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cremevirales	Smacoviridae	Huchismacovirus
 1597966	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Pagevirus
 1603963	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Picornavirales	Picornaviridae	Malagasivirus
 1603964	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Picornavirales	Picornaviridae	Malagasivirus
@@ -2303,7 +2353,9 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 1676184	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cirlivirales	Circoviridae	
 1676185							
 1676267	Riboviria	Orthornavirae	Duplornaviricota	Chrymotiviricetes	Ghabrivirales	Megabirnaviridae	Megabirnavirus
+1676469	Riboviria	Orthornavirae	Lenarviricota	Howeltoviricetes	Cryppavirales	Mitoviridae	Unuamitovirus
 1678003	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
+1678078							
 1678160	Riboviria						
 1678161	Riboviria	Orthornavirae	Duplornaviricota	Chrymotiviricetes	Ghabrivirales	Orthototiviridae	
 1678162	Riboviria	Orthornavirae	Duplornaviricota	Chrymotiviricetes	Ghabrivirales	Orthototiviridae	
@@ -2364,6 +2416,7 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 1685759							
 1685761							
 1685763							
+1685764							
 1685765							
 1685768							
 1685769							
@@ -2539,6 +2592,7 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 1755682	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Woodruffvirus
 1755689	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Bugaksanvirus
 1755697	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Lenusvirus
+1755753	Riboviria	Orthornavirae	Pisuviricota		Yadokarivirales	Yadokariviridae	Alphayadokarivirus
 1755754							
 1755781							
 1756157	Riboviria	Orthornavirae	Pisuviricota	Duplopiviricetes	Durnavirales	Partitiviridae	
@@ -2761,7 +2815,6 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 1843742	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Genomoviridae	Gemycircularvirus
 1843761	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Genomoviridae	Gemykibivirus
 1843763							
-1843764							
 1843765							
 1843766							
 1843767							
@@ -2771,6 +2824,7 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 1843772							
 1843773	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cremevirales	Smacoviridae	Porprismacovirus
 1844477	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Nipunavirus
+1844928	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cirlivirales	Circoviridae	Circovirus
 1846168	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Maenadvirus
 1849335	Riboviria	Orthornavirae	Pisuviricota	Duplopiviricetes	Durnavirales	Partitiviridae	
 1849531	Riboviria	Orthornavirae	Lenarviricota	Amabiliviricetes	Wolframvirales	Narnaviridae	Narnavirus
@@ -3949,6 +4003,7 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 1931369	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Picornavirales		
 1931370	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Picornavirales		
 1931371	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Picornavirales		
+1932006	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cremevirales	Smacoviridae	Huchismacovirus
 1932007	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Behunavirus
 1932118	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Namazuvirus
 1932713							
@@ -3957,6 +4012,7 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 1932895	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Cheoctovirus
 1933108	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes	Autographivirales	Autosignataviridae	Vectrevirus
 1934252	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Lederbergvirus
+1934322	Riboviria	Orthornavirae	Duplornaviricota	Chrymotiviricetes	Ghabrivirales	Fusagraviridae	Fusagravirus
 1934428	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Peeveelvirus
 1936269	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Picornavirales	Iflaviridae	Iflavirus
 1937789	Riboviria	Orthornavirae	Kitrinoviricota	Alsuviricetes	Martellivirales	Mayoviridae	Idaeovirus
@@ -4060,6 +4116,7 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 1983578	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Wbetavirus
 1983579	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Wbetavirus
 1983581	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Wbetavirus
+1983771	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Genomoviridae	Gemycircularvirus
 1985159	Riboviria	Orthornavirae	Lenarviricota	Amabiliviricetes	Wolframvirales	Narnaviridae	
 1985202	Riboviria	Orthornavirae	Pisuviricota	Duplopiviricetes	Durnavirales	Amalgaviridae	Amalgavirus
 1985699	Riboviria	Orthornavirae	Negarnaviricota	Monjiviricetes	Mononegavirales	Rhabdoviridae	Betacytorhabdovirus
@@ -4132,12 +4189,14 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 2015882	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Timquatrovirus
 2015886	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Anayavirus
 2016034	Riboviria	Orthornavirae	Kitrinoviricota	Alsuviricetes	Tymovirales	Betaflexiviridae	Vitivirus
+2016400	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Nidovirales	Tobaniviridae	Pregotovirus
 2016447	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Picornavirales	Picornaviridae	Ailurivirus
 2016448	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Picornavirales	Picornaviridae	
 2016456	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cirlivirales	Circoviridae	Circovirus
 2016457	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cirlivirales	Circoviridae	Circovirus
 2016458	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cirlivirales	Circoviridae	Circovirus
 2016459	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cirlivirales	Circoviridae	Circovirus
+2016460	Floreoviria	Shotokuvirae	Commensaviricota	Cardeaviricetes	Sanitavirales	Anelloviridae	
 2016467	Riboviria						
 2016468	Riboviria						
 2017081	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cirlivirales	Circoviridae	
@@ -4278,6 +4337,7 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 2048977	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Nickievirus
 2050018	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Nidovirales	Coronaviridae	
 2050019	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Nidovirales	Coronaviridae	
+2050021	Riboviria	Orthornavirae	Kitrinoviricota	Flasuviricetes	Amarillovirales	Pestiviridae	Orthopestivirus
 2050585	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cirlivirales	Circoviridae	Cyclovirus
 2050586	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cirlivirales	Circoviridae	Cyclovirus
 2050971	Riboviria	Orthornavirae	Kitrinoviricota	Flasuviricetes	Amarillovirales	Flaviviridae	
@@ -4425,8 +4485,13 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 2099637	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Bernalvirus
 2099649	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Septimatrevirus
 2099652	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Vidquintavirus
+2099658	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Vequintavirus
 2099853	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes		Anamaviridae	Tsukubavirus
 2099860	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes		Anamaviridae	Tsukubavirus
+2107574	Riboviria	Pararnavirae	Artverviricota	Revtraviricetes	Blubervirales	Hepadnaviridae	Orthohepadnavirus
+2107707							Pandoravirus
+2107708							Pandoravirus
+2107709							Pandoravirus
 2108115	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Traversvirus
 2108120	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Soupsvirus
 2108121	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Anayavirus
@@ -4441,7 +4506,6 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 2108549							
 2108551							
 2108552							
-2109373							
 2109374							
 2109380	Riboviria	Orthornavirae	Kitrinoviricota	Alsuviricetes	Hepelivirales	Alphatetraviridae	
 2115848	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Nonagvirus
@@ -4515,7 +4579,7 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 2169743	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 2169744	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 2169747	Riboviria	Orthornavirae	Kitrinoviricota	Alsuviricetes	Martellivirales	Endornaviridae	Betaendornavirus
-2169828						Alphasatellitidae	Clecrusatellite
+2169843						Alphasatellitidae	Colecusatellite
 2169853	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Picornavirales	Picornaviridae	Crohivirus
 2169854	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Picornavirales	Picornaviridae	Crohivirus
 2169876	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cremevirales	Smacoviridae	Drosmacovirus
@@ -4541,7 +4605,15 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 2170111	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cremevirales	Smacoviridae	Porprismacovirus
 2170112	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cremevirales	Smacoviridae	Porprismacovirus
 2170115	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cremevirales	Smacoviridae	Porprismacovirus
+2170116	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cremevirales	Smacoviridae	Porprismacovirus
 2170117	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cremevirales	Smacoviridae	Porprismacovirus
+2170119	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cremevirales	Smacoviridae	Porprismacovirus
+2170120	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cremevirales	Smacoviridae	Porprismacovirus
+2170121	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cremevirales	Smacoviridae	Porprismacovirus
+2170122	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cremevirales	Smacoviridae	Porprismacovirus
+2170123	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cremevirales	Smacoviridae	Porprismacovirus
+2170124	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cremevirales	Smacoviridae	Porprismacovirus
+2170125	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cremevirales	Smacoviridae	Porprismacovirus
 2170126	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cremevirales	Smacoviridae	Porprismacovirus
 2170130	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cremevirales	Smacoviridae	Porprismacovirus
 2170139	Riboviria	Pararnavirae	Artverviricota	Revtraviricetes	Ortervirales	Retroviridae	Prosimiispumavirus
@@ -4596,8 +4668,11 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 2201455	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Rerduovirus
 2202146	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 2202225	Riboviria	Orthornavirae	Kitrinoviricota	Flasuviricetes	Amarillovirales	Hepaciviridae	Orthohepacivirus
+2202565	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Genomoviridae	
 2202647	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Baphyvirales	Bacilladnaviridae	
 2203894						Tolecusatellitidae	Betasatellite
+2213167	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cremevirales	Smacoviridae	Porprismacovirus
+2213168	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cremevirales	Smacoviridae	Babosmacovirus
 2218594	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Picornavirales	Picornaviridae	
 2218617	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes		Casjensviridae	
 2218618	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes		Casjensviridae	
@@ -4908,6 +4983,7 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 2495554	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Coventryvirus
 2495555	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Coventryvirus
 2496549	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes		Drexlerviridae	Warwickvirus
+2496634	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cremevirales	Smacoviridae	Porprismacovirus
 2499003	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Korravirus
 2499008	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Korravirus
 2499009	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Majavirus
@@ -4997,10 +5073,10 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 2557875	Riboviria	Pararnavirae	Artverviricota	Revtraviricetes	Blubervirales	Hepadnaviridae	
 2558458	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Begomovirus
 2559112	Riboviria	Orthornavirae	Negarnaviricota	Bunyaviricetes	Hareavirales	Phenuiviridae	Phlebovirus
+2560313	Riboviria	Orthornavirae	Negarnaviricota	Monjiviricetes	Mononegavirales	Paramyxoviridae	Metaavulavirus
 2560525	Riboviria	Orthornavirae	Negarnaviricota	Monjiviricetes	Mononegavirales	Paramyxoviridae	Orthorubulavirus
 2560602	Riboviria	Orthornavirae	Negarnaviricota	Monjiviricetes	Mononegavirales	Paramyxoviridae	Orthorubulavirus
-2560714	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cirlivirales	Circoviridae	Cyclovirus
-2560715	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cirlivirales	Circoviridae	Cyclovirus
+2560754	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes	Pantevenvirales	Straboviridae	Tequatrovirus
 2560851	Riboviria	Orthornavirae	Pisuviricota	Duplopiviricetes	Durnavirales	Amalgaviridae	Amalgavirus
 2562174	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Bimevirus
 2562175	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Loughboroughvirus
@@ -5120,6 +5196,7 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 2596882	Floreoviria	Shotokuvirae	Cressdnaviricota	Repensiviricetes	Geplafuvirales	Geminiviridae	Mastrevirus
 2596899	Ribozyviria					Kolmioviridae	Deltavirus
 2596902	Ribozyviria					Kolmioviridae	Deltavirus
+2597175	Riboviria	Orthornavirae	Kitrinoviricota	Alsuviricetes	Tymovirales	Gammaflexiviridae	Gammaflexivirus
 2597809	Riboviria	Orthornavirae	Kitrinoviricota	Alsuviricetes	Tymovirales	Betaflexiviridae	Trichovirus
 2599622	Riboviria	Orthornavirae	Negarnaviricota	Monjiviricetes	Jingchuvirales	Chuviridae	Mivirus
 2599828	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Klausavirus
@@ -5156,6 +5233,7 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 2608369	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Ceduovirus
 2613793	Riboviria	Orthornavirae	Negarnaviricota	Monjiviricetes	Mononegavirales	Paramyxoviridae	Metaavulavirus
 2614061	Riboviria	Orthornavirae	Pisuviricota	Pisoniviricetes	Picornavirales	Picornaviridae	Marsupivirus
+2650876	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes		Rountreeviridae	Rosenblumvirus
 2650877	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Menderavirus
 2652402	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Luchadorvirus
 2652404	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Cheoctovirus
@@ -5179,6 +5257,7 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 2653755	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Unicornvirus
 2653763	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Cheoctovirus
 2653764	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Cheoctovirus
+2654367	Riboviria	Orthornavirae	Negarnaviricota	Monjiviricetes	Mononegavirales	Rhabdoviridae	Alphacytorhabdovirus
 2656515	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Teubervirus
 2656526	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Mufasoctovirus
 2656529	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Tanisvirus
@@ -5289,6 +5368,7 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 2686378	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Torvergatavirus
 2686471	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Bixzunavirus
 2689367	Riboviria	Orthornavirae	Negarnaviricota	Bunyaviricetes	Hareavirales	Phenuiviridae	Mobuvirus
+2695844	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Vequintavirus
 2696345	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Phietavirus
 2696373	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Fishburnevirus
 2696379	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Justusliebigvirus
@@ -5299,6 +5379,8 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 2696426	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Justusliebigvirus
 2696431	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Phapecoctavirus
 2696432	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Phapecoctavirus
+2696435	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Vequintavirus
+2696439	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Vequintavirus
 2696442	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Dhillonvirus
 2696455	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Phapecoctavirus
 2696458	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Phapecoctavirus
@@ -5330,6 +5412,7 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 2713319	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes		Sarkviridae	Jerseyvirus
 2713327	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Rosemountvirus
 2714894	Riboviria	Orthornavirae	Negarnaviricota	Monjiviricetes	Jingchuvirales	Aliusviridae	Ollusvirus
+2715094	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cremevirales	Smacoviridae	
 2716322	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes		Peduoviridae	Kisquattuordecimvirus
 2719181	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Hafyongvirus
 2719185	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes		Lindbergviridae	Pbunavirus
@@ -5447,6 +5530,7 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 2762429	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes		Sarkviridae	Kagunavirus
 2763102	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Denvervirus
 2763527	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Dhillonvirus
+2766566	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cirlivirales	Vilyaviridae	Vingilotevirus
 2767194	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Wbetavirus
 2767195	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Wbetavirus
 2767196	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Wbetavirus
@@ -5574,6 +5658,7 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 2824647	Riboviria	Orthornavirae	Negarnaviricota	Monjiviricetes	Mononegavirales	Rhabdoviridae	
 2829367	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Lishizhenvirus
 2829393	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Dismasvirus
+2829846	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Vequintavirus
 2829853	Riboviria	Orthornavirae	Negarnaviricota	Monjiviricetes	Mononegavirales	Rhabdoviridae	Alphanucleorhabdovirus
 2834256	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Medeavirus
 2834265	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			
@@ -5588,6 +5673,7 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 2836048	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Footloosevirus
 2836091	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Silentrexvirus
 2836105	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Dhillonvirus
+2836106	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Vequintavirus
 2836142	Riboviria	Orthornavirae	Negarnaviricota	Bunyaviricetes	Hareavirales	Phenuiviridae	Coguvirus
 2838078	Riboviria	Pararnavirae	Artverviricota	Revtraviricetes	Ortervirales	Caulimoviridae	Tungrovirus
 2839003	Riboviria	Orthornavirae	Negarnaviricota	Monjiviricetes	Mononegavirales	Rhabdoviridae	
@@ -5603,7 +5689,9 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 2847063	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes		Zimmerviridae	Nesevirus
 2847073	Floreoviria	Loebvirae	Hofneiviricota	Faserviricetes	Tubulavirales	Inoviridae	Inovirus
 2847081	Riboviria	Orthornavirae	Negarnaviricota	Bunyaviricetes	Elliovirales	Hantaviridae	Orthohantavirus
+2847107	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes	Thumleimavirales	Hafunaviridae	Haloferacalesvirus
 2847108	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes	Thumleimavirales	Hafunaviridae	Mincapvirus
+2847109	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes	Thumleimavirales	Hafunaviridae	Haloferacalesvirus
 2847285	Singelaviria	Helvetiavirae	Dividoviricota	Laserviricetes	Halopanivirales	Simuloviridae	Yingchengvirus
 2847286	Floreoviria	Trapavirae	Saleviricota	Huolimaviricetes	Haloruvirales	Pleolipoviridae	Betapleolipovirus
 2847815	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Mydovirus
@@ -5632,6 +5720,7 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 2851980	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Dhillonvirus
 2851981	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Dhillonvirus
 2851982	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Dhillonvirus
+2852023	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Vequintavirus
 2852114	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			
 2856180	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			
 2856824	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Fukuivirus
@@ -6015,6 +6104,8 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 2985648	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Bauervirus
 2992641	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Biseptimavirus
 2992645	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Peeveelvirus
+2992785	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Vequintavirus
+2992788	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Vequintavirus
 2992927	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Detrevirus
 2993858	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Dubowvirus
 2993859	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Dubowvirus
@@ -6028,27 +6119,18 @@ ncbi_taxid	realm	kingdom	phylum	class	order	family	genus
 2999013	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Successvirus
 3003632	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Septimatrevirus
 3003729	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Micathvirus
-3017829	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cirlivirales	Circoviridae	Cyclovirus
-3017830	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cirlivirales	Circoviridae	Cyclovirus
-3017831	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cirlivirales	Circoviridae	Cyclovirus
-3017832	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cirlivirales	Circoviridae	Cyclovirus
-3017833	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cirlivirales	Circoviridae	Cyclovirus
-3017834	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cirlivirales	Circoviridae	Cyclovirus
-3017835	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cirlivirales	Circoviridae	Cyclovirus
-3017836	Floreoviria	Shotokuvirae	Cressdnaviricota	Arfiviricetes	Cirlivirales	Circoviridae	Cyclovirus
 3020045	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Septimatrevirus
 3025408	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Theosmithvirus
 3035369	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Aziravirus
 3038367	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Santhisvirus
 3052494	Riboviria	Orthornavirae	Negarnaviricota	Bunyaviricetes	Elliovirales	Hantaviridae	Mobatvirus
 3068353	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			
-3068355	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			
-3068356	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			
 3070616	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Ericdabvirus
 3070820	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Zhangqianvirus
 3070912	Riboviria	Orthornavirae	Negarnaviricota	Bunyaviricetes	Elliovirales	Phasmaviridae	Orthophasmavirus
 3070917	Riboviria	Orthornavirae	Negarnaviricota	Monjiviricetes	Mononegavirales	Rhabdoviridae	Alphathriprhavirus
 3071007	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Menderavirus
+3071215	Riboviria	Orthornavirae	Negarnaviricota	Monjiviricetes	Mononegavirales	Rhabdoviridae	Betacytorhabdovirus
 3071280	Duplodnaviria	Heunggongvirae	Uroviricota	Caudoviricetes			Segzyvirus
 3071295	Riboviria	Orthornavirae	Kitrinoviricota	Alsuviricetes	Martellivirales	Kitaviridae	Cilevirus
 3071296	Floreoviria	Loebvirae	Hofneiviricota	Faserviricetes	Tubulavirales	Plectroviridae	Virgulavirus

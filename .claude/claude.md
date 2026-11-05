@@ -27,7 +27,7 @@
 - ✅ **Phase 7**: Critical collections (wastewater, IBD, HIV+, CF respiratory)
 - ✅ **Phase 8**: RNA virome workflow (RT, rRNA depletion, degradation)
 - ✅ **Phase 9**: Additional host niches (vaginal, blood, ocular, lung, urinary)
-- ✅ **Phase 10**: Long-read sequencing (PacBio HiFi, Oxford Nanopore)
+- ✅ **Phase 10**: Long-read sequencing (Oxford Nanopore)
 - ✅ **Phase 11**: Hybrid assembly support (matched short + long reads)
 - ✅ **Phase 12**: CLI enhancements & web interface
 - ✅ **Taxonomy Bug Fix**: Enhanced fuzzy matching, fixed 469 genomes
@@ -54,7 +54,7 @@
 - Disease states (IBD, HIV+, CF)
 - RNA viromes (respiratory, arbovirus, fecal)
 
-**5 sequencing platforms**: NovaSeq, MiSeq, HiSeq, PacBio HiFi, Oxford Nanopore
+**4 sequencing platforms**: NovaSeq, MiSeq, HiSeq, Oxford Nanopore
 
 **Complete CLI**: browse, generate, batch, report, compare, presets, web, setup-db,
 summary, benchmark
@@ -333,7 +333,6 @@ pytest tests/test_fastq_integration.py -v
   - See `data/ictv/still_unmatched_after_fix.tsv`
 
 ### Collection Gaps
-- No long-read sequencing support (PacBio/Nanopore) - planned for Phase 10
 - No temporal dynamics - planned for Phase 11
 - Limited to human and environmental viromes currently
 

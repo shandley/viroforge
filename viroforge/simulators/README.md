@@ -190,7 +190,7 @@ Planned for future versions:
 - Read-level ground truth export (exact read-to-genome mapping)
 - Support for custom error models
 - Integration with other simulators (ART, NEAT)
-- Long-read support (PacBio, Oxford Nanopore)
+- Long-read support (Oxford Nanopore)
 
 ---
 

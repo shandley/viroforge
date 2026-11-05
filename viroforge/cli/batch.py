@@ -129,9 +129,7 @@ def show_batch_summary(config: Dict, args):
         platform = ds.get('platform', 'novaseq')
         coverage = ds.get('coverage', ds.get('depth', 30))
         # Base time per dataset by platform (minutes)
-        if platform in ('pacbio-hifi',):
-            base_time = 8  # PBSIM3 + ccs is slower
-        elif platform == 'nanopore':
+        if platform == 'nanopore':
             base_time = 6  # PBSIM3 only
         else:
             base_time = 4  # Illumina (ISS)

@@ -12,8 +12,8 @@
 
 ✅ 14,423 RefSeq viral genomes with ICTV taxonomy (57.1% ICTV coverage)
 ✅ 28 curated collections (host-associated, environmental, disease states)
-✅ **5 sequencing platforms** - NovaSeq, MiSeq, HiSeq, PacBio HiFi, Oxford Nanopore
-✅ **Long-read simulation** - PBSIM3-based PacBio HiFi and Nanopore
+✅ **4 sequencing platforms** - NovaSeq, MiSeq, HiSeq, Oxford Nanopore
+✅ **Long-read simulation** - PBSIM3-based Oxford Nanopore
 ✅ **Hybrid assembly support** - Matched short + long read datasets
 ✅ VLP enrichment (5 protocols) adapted for long reads
 ✅ RNA virome workflow with reverse transcription and rRNA depletion
@@ -242,30 +242,25 @@
 **Status**: ✅ Complete
 
 #### Objectives
-- ✅ Support PacBio HiFi and Nanopore platforms
+- ✅ Support Oxford Nanopore long-read platform
 - ✅ Enable complete genome assembly benchmarking
 - ✅ Model long-read specific artifacts
 
 #### Tasks
 - [x] Research long-read simulators (pbsim3, NanoSim, PBSIM2)
-  - Selected PBSIM3 (supports both PacBio and Nanopore)
+  - Selected PBSIM3 for Nanopore simulation
   - Documented in `docs/PHASE10_LONGREAD_RESEARCH.md`
-- [x] Integrate PacBio HiFi simulator
-  - High accuracy (>99.9%, QV20+)
-  - Two-step workflow: PBSIM3 CLR → ccs consensus
-  - Configurable passes (3-20), read lengths (10-30kb)
 - [x] Integrate Nanopore simulator
   - Homopolymer errors (hp_del_bias)
   - Ultra-long reads (10kb-2Mb)
   - R9.4 and R10.4 chemistry support
-- [x] Add `--platform {novaseq,miseq,hiseq,pacbio-hifi,nanopore}` options
+- [x] Add `--platform {novaseq,miseq,hiseq,nanopore}` options
 - [x] Update VLP modeling for long reads (60% size bias reduction)
   - Long reads span entire genomes → less sequencing bias
 - [x] Create long-read specific tests (`tests/test_longread_simulator.py`)
 - [x] Create comprehensive long-read tutorial (`docs/LONGREAD_TUTORIAL.md`)
 
 #### Deliverables
-- ✅ PacBio HiFi support with realistic CCS workflow
 - ✅ Nanopore support with characteristic homopolymer errors
 - ✅ Long-read assembly benchmarking capability
 - ✅ Tutorial: "ViroForge Long-Read Sequencing Tutorial"
@@ -705,7 +700,7 @@ extras_require={
 - Comprehensive human body site coverage
 
 ### **v1.0.0 - Feature Complete** (16-20 weeks from now)
-- Long-read support (PacBio HiFi minimum)
+- Long-read support (Oxford Nanopore)
 - Temporal dynamics framework
 - 30+ curated collections
 - Comprehensive benchmarking platform
@@ -739,7 +734,7 @@ extras_require={
 ### **Technical Metrics**
 - [ ] 30+ curated virome collections
 - [ ] DNA + RNA workflow support
-- [ ] 5+ sequencing platforms (Illumina + PacBio + Nanopore)
+- [ ] 4+ sequencing platforms (Illumina + Nanopore)
 - [ ] 4+ library prep methods
 - [ ] Temporal dynamics framework
 - [ ] 100% test coverage on critical paths
@@ -787,7 +782,7 @@ extras_require={
 
 | Risk | Likelihood | Impact | Mitigation |
 |------|------------|--------|------------|
-| Long-read simulator integration issues | Medium | Medium | Start with PacBio HiFi only, well-documented tools |
+| Long-read simulator integration issues | Medium | Medium | Using PBSIM3 for Nanopore, well-documented tools |
 | RNA workflow complexity | Medium | High | Leverage existing RT-PCR knowledge, literature |
 | Database size growth | Low | Low | SQLite handles 2GB easily, can migrate to PostgreSQL |
 | Test suite maintenance | Medium | Medium | Incremental testing, dry-run modes for CI/CD |

@@ -55,7 +55,7 @@ viroforge generate \
 - Validates parameters before generation
 - Shows parameter table before starting
 - Builds complete command for generate_fastq_dataset.py
-- Supports all platforms (NovaSeq, MiSeq, HiSeq, PacBio HiFi, Nanopore)
+- Supports all platforms (NovaSeq, MiSeq, HiSeq, Nanopore)
 - Handles short-read and long-read specific parameters
 
 ### 2. Real-Time Progress Reporting ✅
@@ -236,7 +236,7 @@ viroforge generate --preset gut-standard --verbose
 ### Example 6: Long-Read Generation
 
 ```bash
-# Generate PacBio HiFi dataset
+# Generate Nanopore long-read dataset
 viroforge generate --preset quick-test-long
 
 # Or override depth
@@ -312,13 +312,13 @@ elif 'vlp_protocol' in params:
 
 **All Parameter Types**:
 - Required: collection_id, output
-- Platform: novaseq/miseq/hiseq/pacbio-hifi/nanopore
+- Platform: novaseq/miseq/hiseq/nanopore
 - Coverage: coverage (short) or depth (long)
 - VLP: vlp_protocol or --no-vlp
 - Contamination: contamination_level
 - Amplification: amplification method
 - RNA: rna_depletion, molecule_type
-- Long-read: pacbio_passes, ont_chemistry, read lengths
+- Long-read: ont_chemistry, ont_read_length
 - Reproducibility: seed
 
 ---

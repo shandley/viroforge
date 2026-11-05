@@ -324,15 +324,30 @@ def benchmark_taxonomy(
     """
     items = []
     non_viral = 0
+    provenance_items: dict[str, list] = {}
     for rid, assigned in assignments.items():
         gt = taxonomy_gt.get(parse_genome_id(rid))
         if gt is None:
             non_viral += 1
             continue
         items.append((assigned, gt.get("ncbi_taxid"), gt.get("is_known")))
+        prov = gt.get("genome_provenance", "isolate")
+        provenance_items.setdefault(prov, []).append(
+            (assigned, gt.get("ncbi_taxid"), gt.get("is_known"))
+        )
 
     core = _score(items, ncbi_tree, ranks)
-    return {
+
+    provenance_strata = {}
+    for prov, pitems in sorted(provenance_items.items()):
+        pcore = _score(pitems, ncbi_tree, ranks)
+        provenance_strata[prov] = {
+            "n_reads": pcore["n_viral"],
+            "known_viruses": pcore["known_viruses"],
+            "dark_matter": pcore["dark_matter"],
+        }
+
+    result = {
         "reliable": core["reliable"],
         "n_assignments": len(assignments),
         "n_viral_reads": core["n_viral"],
@@ -342,6 +357,9 @@ def benchmark_taxonomy(
         "per_rank": core["per_rank"],
         "abundance_profile": core["abundance_profile"],
     }
+    if any(p != "isolate" for p in provenance_items):
+        result["provenance"] = provenance_strata
+    return result
 
 
 def _score(items, ncbi_tree, ranks) -> dict:

@@ -23,6 +23,7 @@ from .vlp import (
     VLPEnrichment,
     VLPProtocol,
     VLPProtocolConfig,
+    VLP_EFFICIENCY_MODELS,
     VirionSizeEstimator,
     VirionSizeEstimate,
     FiltrationCurve
@@ -32,6 +33,7 @@ __all__ = [
     'VLPEnrichment',
     'VLPProtocol',
     'VLPProtocolConfig',
+    'VLP_EFFICIENCY_MODELS',
     'VirionSizeEstimator',
     'VirionSizeEstimate',
     'FiltrationCurve'
